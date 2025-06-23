@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QuizMaster - Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: #e7ddf9;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #fff;
+      padding: 1.2rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border-top-left-radius: 1.5rem;
+      border-top-right-radius: 1.5rem;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: #6a11cb;
+    }
+
+    nav a {
+      margin-left: 1.5rem;
+      text-decoration: none;
+      color: #333;
+      font-weight: 600;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: #6a11cb;
+    }
+
+    .hero {
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 4rem 2rem;
+      color: #fff;
+      border-bottom-left-radius: 2rem;
+      border-bottom-right-radius: 2rem;
+      min-height: 80vh;
+    }
+
+    .hero-text {
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .hero-text h2 {
+      font-size: 1.4rem;
+      margin-bottom: 0.6rem;
+      color: #f7d6d7;
+      width: 6vw;
+      height: 30px;
+      background-color: #f1ebeb57;
+      text-align: center;
+    }
+
+    .hero-text h1 {
+      font-size: 2.7rem;
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+
+    .hero-text p {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      max-width: 500px;
+      margin-bottom: 2rem;
+    }
+
+    .hero-text a {
+      background: #fff;
+      color: #6a11cb;
+      padding: 0.9rem 2rem;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 2rem;
+      transition: background 0.3s ease;
+    }
+
+    .hero-text a:hover {
+      background: #eee;
+    }
+
+    .hero-img {
+      flex: 1;
+      text-align: center;
+      min-width: 250px;
+    }
+
+    .hero-img img {
+      width: auto;
+      height: 50vh;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 6px solid #fff;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+    }
+
+    footer {
+      background: #fff;
+      text-align: center;
+      padding: 1rem 0;
+      font-size: 0.9rem;
+      color: #555;
+    }
+
+    .social-icons a {
+      margin: 0 0.6rem;
+      text-decoration: none;
+      font-size: 1.2rem;
+      color: #6a11cb;
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 2rem 1rem;
+      }
+
+      .hero-text h1 {
+        font-size: 2rem;
+      }
+
+      .hero-text p {
+        font-size: 1rem;
+      }
+
+      .hero-img {
+        margin-top: 2rem;
+      }
+    }
+    /* Modal styles */
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 99;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    }
+
+    .modal-content h2 {
+      color: #6a11cb;
+      margin-bottom: 1rem;
+    }
+
+    .modal-content button {
+      margin-top: 1rem;
+      padding: 0.5rem 1.5rem;
+      background: #6a11cb;
+      border: none;
+      color: white;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    .modal-content button:hover {
+      background: #4a0fb3;
+    }
+    /* SAME ABOVE STYLES UNTIL nav a { ... } */
+
+nav {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Hero section stays same */
+
+/* UPDATE media query for better responsiveness */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  nav {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 1rem;
+  }
+
+  nav a {
+    margin: 0.4rem 0;
+  }
+
+  .hero {
+    flex-direction: column;
+    text-align: center;
+    padding: 3rem 1.2rem;
+  }
+
+  .hero-text h1 {
+    font-size: 2rem;
+  }
+
+  .hero-text p {
+    font-size: 1rem;
+  }
+
+  .hero-img {
+    margin-top: 2rem;
+  }
+
+  .hero-img img {
+    height: 40vh;
+    width: 70vw;
+    border-radius: 1rem;
+  }
+
+  .modal-content {
+    width: 90%;
+    padding: 1.5rem;
+  }
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #6a11cb;
+}
+
+.logo img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+  <img src="/online-graduation_16847316.png" alt="logo">
+  <span>QuizMaster</span>
+</div>
+
+    <nav>
+      <a onclick="showWarning()" href="#">Home</a>
+      <a onclick="showWarning()" href="#">About</a>
+      <a onclick="showWarning()" href="#">Contact</a>
+    </nav>
+  </header>
+  
+
+  <section class="hero">
+    <div class="hero-text">
+      <h2>Online</h2>
+      <h1>E-Learning Class for Students</h1>
+      <p>Explore competitive quizzes, upload or view notes, and enhance your learning in Science & Math for Classes 9 and 10. Fun meets challenge here.</p>
+      <a href="signup.html">Get Started</a>
+    </div>
+    <div class="hero-img">
+      <img src="https://images.unsplash.com/photo-1501504905252-473c47e087f8?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Student Image" />
+    </div>
+  </section>
+  <div class="modal" id="warningModal">
+  <div class="modal-content">
+    <h2>Sign In Required</h2>
+    <p>You need to sign in to access these options.</p>
+    <button onclick="closeWarning()">Okay</button>
+  </div>
+</div>
+
+  <footer>
+    &copy; 2025 QuizMaster | <span class="social-icons">
+      <a href="#">🌐</a>
+      <a href="#">📘</a>
+      <a href="#">▶️</a>
+    </span>
+  </footer>
+
+</body>
+  <script>
+    function showWarning() {
+      document.getElementById("warningModal").style.display = "flex";
+    }
+
+    function closeWarning() {
+      document.getElementById("warningModal").style.display = "none";
+    }
+
+    // Optional: Close on outside click
+    window.onclick = function (e) {
+      const modal = document.getElementById("warningModal");
+      if (e.target == modal) {
+        modal.style.display = "none";
+      }
+    };
+  </script>
+</html>

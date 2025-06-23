@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>E-Learning Dashboard</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:600,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #334155;
+            --accent: #38bdf8;
+            --text: #f1f5f9;
+            --card: #222c3a;
+            --hover: #475569;
+        }
+        body {
+            margin: 0;
+            font-family: 'Montserrat', sans-serif;
+            background: var(--primary);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--secondary);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .logo {
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: var(--accent);
+            letter-spacing: 2px;
+        }
+        .logout-btn {
+            background: var(--accent);
+            color: var(--primary);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .logout-btn:hover {
+            background: #0ea5e9;
+        }
+        nav {
+            display: flex;
+            gap: 2rem;
+            background: var(--card);
+            padding: 1rem 2rem;
+            border-radius: 0 0 12px 12px;
+            margin: 1.5rem auto 0 auto;
+            max-width: 700px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        nav a {
+            color: var(--text);
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        nav a:hover, nav a.active {
+            background: var(--hover);
+            color: var(--accent);
+        }
+        .container {
+            max-width: 700px;
+            margin: 2.5rem auto 0 auto;
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+            padding: 2rem;
+        }
+        .class-select-title {
+            font-size: 1.3rem;
+            margin-bottom: 1.2rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .class-options {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+        }
+        .class-btn {
+            background: var(--secondary);
+            color: var(--text);
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            padding: 1.2rem 2.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border 0.2s;
+        }
+        .class-btn.selected, .class-btn:hover {
+            background: var(--accent);
+            color: var(--primary);
+            border-color: var(--accent);
+        }
+        @media (max-width: 600px) {
+            nav, .container {
+                max-width: 98vw;
+                padding: 1rem;
+            }
+            .class-options {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">NeoBranium E-Learning</div>
+        <button class="logout-btn">Logout</button>
+    </header>
+    <nav>
+        <a href="#" class="active">Quiz</a>
+        <a href="#">Notes</a>
+        <a href="#">Upload Notes</a>
+    </nav>
+    <div class="container">
+        <div class="class-select-title">Select Your Class</div>
+        <div class="class-options">
+            <button class="class-btn selected" id="class9">Class 9</button>
+            <button class="class-btn" id="class10">Class 10</button>
+        </div>
+    </div>
+    <script>
+        // Class selection toggle
+        const class9 = document.getElementById('class9');
+        const class10 = document.getElementById('class10');
+        class9.addEventListener('click', () => {
+            class9.classList.add('selected');
+            class10.classList.remove('selected');
+        });
+        class10.addEventListener('click', () => {
+            class10.classList.add('selected');
+            class9.classList.remove('selected');
+        });
+
+        // Navigation active state
+        const navLinks = document.querySelectorAll('nav a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                e.preventDefault();
+            });
+        });
+
+        // Logout button (demo)
+        document.querySelector('.logout-btn').onclick = () => {
+            alert('Logged out!');
+            // Redirect or clear session here
+        };
+    </script>
+</body>
+</html>.0">

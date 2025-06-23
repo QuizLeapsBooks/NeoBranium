@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account | S-Code</title>
+    <link rel="stylesheet" href="/css/sign.css">
+  <style>
+    .hidden {
+      display: none;
+    }
+
+    .eye {
+      cursor: pointer;
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Sign Up Form -->
+  <div id="signup-page" class="container">
+    <h2>Sign Up</h2>
+    <form action="javascript:void(0)">
+      <div id="signUpMessage" class="messageDiv" style="display: none;"></div>
+      <div class="input-box">
+        <input type="text" id="signup-fname" required>
+        <label>First Name</label>
+      </div>
+      <div class="input-box">
+        <input type="text" id="signup-lname" required>
+        <label>Last Name</label>
+      </div>
+      <div class="input-box">
+        <input type="email" id="signup-email" required>
+        <label>Email</label>
+      </div>
+      <div class="input-box" style="position: relative;">
+        <input type="password" id="signup-password" required>
+        <label>Password</label>
+        <span class="eye" onclick="togglePassword('signup-password', 'eye-icon1')">
+          <i id="eye-icon1" class="fa fa-eye"></i>
+        </span>
+      </div>
+      <div class="input-box" style="position: relative;">
+  <input type="password" id="signup-confirm-password" required />
+  <label>Confirm Password</label>
+  <span class="eye" onclick="togglePassword('signup-confirm-password', 'eye-icon2')">
+    <i id="eye-icon2" class="fa fa-eye"></i>
+  </span>
+</div>
+      <p>Already have an Account? <a href="#" onclick="showLoginForm()">Sign In</a></p>
+      <button id="submitSignUp">Sign Up</button>
+    </form>
+  </div>
+
+  <!-- Login Form (Hidden initially) -->
+  <div id="login-page" class="container hidden">
+    <h2>Sign In</h2>
+    <form action="javascript:void(0)">
+      <div id="signInMessage" class="messageDiv" style="display: none;"></div>
+      <div class="input-box">
+        <input type="email" id="signIn-email" required>
+        <label>Email</label>
+      </div>
+      <div class="input-box" style="position: relative;">
+        <input type="password" id="signIn-password" required>
+        <label>Password</label>
+        <span class="eye" onclick="togglePassword('signIn-password', 'eye-icon2')">
+          <i id="eye-icon2" class="fa fa-eye"></i>
+        </span>
+      </div>
+      <p>Create an Account <a href="#" onclick="showSignUpForm()">Sign Up</a></p>
+      <button id="submitSignIn">Sign In</button>
+    </form>
+  </div>
+</body>
+<script type="module" src="/js/main-backend.js"></script>
+<script>
+// Password toggle
+  function togglePassword(fieldId, eyeId) {
+    const passwordField = document.getElementById(fieldId);
+    const eyeIcon = document.getElementById(eyeId);
+
+    if (passwordField.type === "password") {
+      passwordField.type = "text";
+      eyeIcon.classList.replace("fa-eye", "fa-eye-slash");
+    } else {
+      passwordField.type = "password";
+      eyeIcon.classList.replace("fa-eye-slash", "fa-eye");
+    }
+  }
+
+  // Show Sign Up Form
+  function showSignUpForm() {
+    document.getElementById("signup-page").classList.remove("hidden");
+    document.getElementById("login-page").classList.add("hidden");
+  }
+
+  // Show Login Form
+  function showLoginForm() {
+    document.getElementById("login-page").classList.remove("hidden");
+    document.getElementById("signup-page").classList.add("hidden");
+  }
+
+</script>
+</html>
