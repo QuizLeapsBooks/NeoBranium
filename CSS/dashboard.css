@@ -1,0 +1,115 @@
+:root {
+      --bg-color: #f8f9fa;
+      --text-color: #212529;
+      --sidebar-bg: #e9ecef;
+      --header-bg: #343a40;
+      --header-text: #ffffff;
+      --card-bg: #ffffff;
+    }
+    body.dark-mode {
+      --bg-color: #212529;
+      --text-color: #f8f9fa;
+      --sidebar-bg: #343a40;
+      --header-bg: #1a1d21;
+      --header-text: #f8f9fa;
+      --card-bg: #343a40;
+    }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: all 0.3s ease;
+    }
+    .navbar {
+      background-color: var(--header-bg);
+      color: var(--header-text);
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+    }
+    .navbar-brand, .nav-link {
+      color: var(--header-text) !important;
+    }
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      background-color: var(--sidebar-bg);
+      position: fixed;
+      top: 0;
+      left: 0;
+      padding-top: 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      z-index: 999;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+    .sidebar ul li a {
+      display: block;
+      padding: 12px 20px;
+      color: var(--text-color);
+      text-decoration: none;
+    }
+    .sidebar ul li a:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+    .sidebar .plus-btn {
+      padding: 20px;
+      text-align: center;
+    }
+    .sidebar .plus-btn button {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      font-size: 24px;
+    }
+    main {
+      margin-left: 250px;
+      padding: 20px;
+    }
+
+.card-select {
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  color: #fff;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-select::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 10%, transparent 10.01%);
+  background-size: 10% 10%;
+  animation: shimmer 2s linear infinite;
+  z-index: 0;
+}
+
+@keyframes shimmer {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(100%, 100%); }
+}
+
+.card-select h3 {
+  font-size: 28px;
+  font-weight: bold;
+  z-index: 1;
+  position: relative;
+}
+
+.card-select:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+}

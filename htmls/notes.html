@@ -3,22 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>E-Learning Dashboard</title>
+  <title>Notes - NeoBranium</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
   <link rel="stylesheet" href="/CSS/dashboard.css">
-  <style>
-    .class-card {
-      transition: transform 0.3s ease;
-      cursor: pointer;
-    }
-    .class-card:hover {
-      transform: scale(1.05);
-    }
-    .modal-backdrop.show {
-      opacity: 0.8;
-    }
-  </style>
+  <link rel="stylesheet" href="/CSS/notes.css">
+  <script type="module" src="/js/notes-like_button-func.js"></script>
+  <script type="module" src="/js/auth.js"></script>
 </head>
 <body>
   <header class="navbar navbar-expand-lg fixed-top">
@@ -46,7 +37,7 @@
   <div class="sidebar">
     <ul>
       <li><a href="#"><i class="bi bi-question-circle"></i> Quiz</a></li>
-      <li><a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes</a></li>
+      <li><a href="#"><i class="bi bi-journal"></i> Notes</a></li>
       <li><a href="#"><i class="bi bi-journal-text"></i> Your Notes</a></li>
     </ul>
     <div class="plus-btn">
@@ -57,48 +48,25 @@
   <main>
     <h2>Welcome to the Dashboard</h2>
     <p>Select your class to continue.</p>
-   <div class="row mt-5">
-  <div class="col-md-6">
-<div class="card-select" onclick="openSubjectModal('9')">
-          <div class="card-body text-center">
-            <h3>Class 9</h3>
-          </div>
-        </div>
-      </div>
-   <div class="col-md-6">
-<div class="card-select" onclick="openSubjectModal('10')">
-          <div class="card-body text-center">
-            <h3>Class 10</h3>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- Modal -->
- <!-- Modal HTML (add inside body just before closing tag) -->
-<div class="modal fade" id="subjectModal" tabindex="-1" aria-labelledby="subjectModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="subjectModalLabel">Select Subject</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <select class="form-select" id="subjectSelect">
-          <option value="">Select a subject</option>
-          <option value="math">Math</option>
-          <option value="science">Science</option>
-          <option value="english">English</option>
-        </select>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary" onclick="goToSubjectPage()">Go</button>
+<div class="pdf-card">
+  <div class="pdf-thumb">
+    <i class="bi bi-file-earmark-pdf-fill"></i>
+  </div>
+  <div class="pdf-info">
+    <h5 class="pdf-title">Class 9 - Physics Notes</h5>
+    <p class="pdf-desc">Includes Ch 1, 2 & 3 with diagrams and solved numericals.</p>
+    <div class="pdf-actions">
+      <a href="https://yourgithubsite.com/pdfs/class9-physics.pdf" target="_blank" class="btn btn-sm btn-primary">📄 View PDF</a>
+      <div class="likes">
+        <i class="bi bi-hand-thumbs-up-fill like-icon"></i>
+        <span>23</span>
       </div>
     </div>
   </div>
 </div>
 
+
+  </main>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/card_func.js"></script>
