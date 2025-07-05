@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact Us</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/CSS/dashboard.css">
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <script src="/js/card_func.js"></script>
+    <link rel="stylesheet" href="/CSS/feedback_contact.css">
+</head>
+<body>
+ <header class="navbar navbar-expand-lg fixed-top">
+      <div class="hero-img">
+        <a href="/index.html">
+      <img src="/online-graduation_16847316.png" alt="Student Image" width="40px"/>
+    </div>
+    </a>
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/htmls/privacy_policy&terms_conditions.html">NeoBranium</a>
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <button id="dark-mode-toggle" class="btn btn-outline-light">Dark Mode</button>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+            <img src="https://via.placeholder.com/30" class="rounded-circle" width="30" />
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="/htmls/profile.html">Profile</a></li>
+            <li><a class="dropdown-item" href="/htmls/setting.html">Settings</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" id="logout">Logout</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </header>
+
+  <div class="sidebar">
+   <ul>
+      <li><a href="/htmls/dashboard.html"><i class="bi bi-question-circle"></i> Quiz</a></li>
+      <li><a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes</a></li>
+      <li><a href="/htmls/spotlight.html"><i class="bi bi-journal"></i> Spotlight</a></li>
+      <li><a href="/htmls/contactus.html"><i class="bi bi-journal-text"></i> Contact Us</a></li>
+      <li><a href="/htmls/feedback.html"><i class="bi bi-journal-text"></i> Feedback/Complaint</a></li>
+    </ul>
+    <div class="plus-btn">
+      <button class="btn btn-primary rounded-circle"><i class="bi bi-plus"></i></button>
+    </div>
+  </div>
+  <div class="container">
+    <h2>Contact Us</h2>
+    <!-- Replace this with your Formspree form ID -->
+    <form action="https://formspree.io/f/your-form-id" method="POST">
+      <label for="name">Your Name</label>
+      <input type="text" id="name" name="name" required />
+
+    <label for="email">Your Email <span style="color:#ffeb3b;" title="We'll never share your email.">&#9432;</span></label>
+      <input type="email" id="email" name="_replyto" required />
+
+      <label for="subject">Subject</label>
+      <input type="text" id="subject" name="subject" />
+
+      <label for="message">Message</label>
+      <textarea id="message" name="message" rows="5" required></textarea>
+
+      <button type="submit">Send Message</button>
+    </form>
+  </div>
+</body>
+<script>
+// dark-mode.js
+function toggleDarkMode() {
+  const body = document.body;
+  body.classList.toggle('dark-mode');
+
+  // Save user's preference in localStorage
+  if (body.classList.contains('dark-mode')) {
+    localStorage.setItem('theme', 'dark');
+  } else {
+    localStorage.setItem('theme', 'light');
+  }
+}
+
+// Apply saved theme on every page load
+window.addEventListener('DOMContentLoaded', () => {
+  const theme = localStorage.getItem('theme');
+  if (theme === 'dark') {
+    document.body.classList.add('dark-mode');
+  }
+});
+</script>
+</html>
+
+<!-- dark mood is sudharana hai -->

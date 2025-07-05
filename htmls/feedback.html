@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Feedback / Complaint</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/CSS/dashboard.css">
+    <script src="/js/card_func.js"></script>
+    <link rel="stylesheet" href="/CSS/feedback_contact.css">
+  <script>
+    function setType(type) {
+      document.getElementById('type').value = type;
+      document.getElementById('feedbackBtn').classList.toggle('active', type === 'Feedback');
+      document.getElementById('complaintBtn').classList.toggle('active', type === 'Complaint');
+      document.getElementById('formTitle').textContent = type + " Form";
+      document.getElementById('starsRow').style.display = (type === 'Feedback') ? 'flex' : 'none';
+      document.getElementById('categoryRow').style.display = (type === 'Complaint') ? 'block' : 'none';
+    }
+    window.onload = () => setType('Feedback');
+
+    // Dark mode toggle
+    document.addEventListener('DOMContentLoaded', function () {
+      const toggle = document.getElementById('dark-mode-toggle');
+      toggle.addEventListener('click', function () {
+        document.body.classList.toggle('dark-mode');
+        // Optionally change button text
+        if (document.body.classList.contains('dark-mode')) {
+          toggle.textContent = 'Light Mode';
+        } else {
+          toggle.textContent = 'Dark Mode';
+        }
+      });
+    });
+  </script>
+</head>
+<body>
+ <header class="navbar navbar-expand-lg fixed-top">
+      <div class="hero-img">
+        <a href="/index.html">
+      <img src="/online-graduation_16847316.png" alt="Student Image" width="40px"/>
+    </div>
+    </a>
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/htmls/privacy_policy&terms_conditions.html">NeoBranium</a>
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <button id="dark-mode-toggle" class="btn btn-outline-light">Dark Mode</button>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+            <img src="https://via.placeholder.com/30" class="rounded-circle" width="30" />
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="/htmls/profile.html">Profile</a></li>
+            <li><a class="dropdown-item" href="/htmls/setting.html">Settings</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" id="logout">Logout</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </header>
+
+  <div class="sidebar">
+   <ul>
+      <li><a href="/htmls/dashboard.html"><i class="bi bi-question-circle"></i> Quiz</a></li>
+      <li><a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes</a></li>
+      <li><a href="/htmls/spotlight.html"><i class="bi bi-journal"></i> Spotlight</a></li>
+      <li><a href="/htmls/contactus.html"><i class="bi bi-journal-text"></i> Contact Us</a></li>
+      <li><a href="/htmls/feedback.html"><i class="bi bi-journal-text"></i> Feedback/Complaint</a></li>
+    </ul>
+    <div class="plus-btn">
+      <button class="btn btn-primary rounded-circle"><i class="bi bi-plus"></i></button>
+    </div>
+  </div>
+  <div class="container">
+    <div class="toggle-group">
+      <button id="feedbackBtn" class="toggle-btn" onclick="setType('Feedback')">Feedback</button>
+      <button id="complaintBtn" class="toggle-btn" onclick="setType('Complaint')">Complaint</button>
+    </div>
+    <h2 id="formTitle">Feedback Form</h2>
+    <!-- 💌 Replace with your Formspree form ID -->
+    <form action="https://formspree.io/f/your-form-id" method="POST">
+      <input type="hidden" id="type" name="type" value="Feedback" />
+
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required />
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="_replyto" required />
+
+      <div id="starsRow" class="stars">
+        <input type="radio" id="star5" name="rating" value="5" />
+        <label for="star5">&#9733;</label>
+        <input type="radio" id="star4" name="rating" value="4" />
+        <label for="star4">&#9733;</label>
+        <input type="radio" id="star3" name="rating" value="3" />
+        <label for="star3">&#9733;</label>
+        <input type="radio" id="star2" name="rating" value="2" />
+        <label for="star2">&#9733;</label>
+        <input type="radio" id="star1" name="rating" value="1" />
+        <label for="star1">&#9733;</label>
+      </div>
+
+      <div id="categoryRow" style="display: none;">
+        <label for="category">Complaint Category</label>
+        <select id="category" name="category">
+          <option value="">Select category</option>
+          <option value="Service">Service</option>
+          <option value="Technical Issue">Technical Issue</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <label for="subject">Subject <span class="optional">(optional)</span></label>
+      <input type="text" id="subject" name="subject" />
+
+      <label for="message">Your Message</label>
+      <textarea id="message" name="message" rows="4" required></textarea>
+
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+</body>
+
+</html>

@@ -20,10 +20,6 @@
       this.textContent = mode === 'dark' ? 'Light Mode' : 'Dark Mode';
     });
 
-    document.getElementById('logout').addEventListener('click', function () {
-      alert('Logout functionality to be implemented!');
-    });
-
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       document.body.classList.add('dark-mode');

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,24 +9,30 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
   <link rel="stylesheet" href="/CSS/dashboard.css">
   <link rel="stylesheet" href="/CSS/notes.css">
-  <script type="module" src="/js/notes-like_button-func.js"></script>
-  <script type="module" src="/js/auth.js"></script>
+  <link rel="stylesheet" href="/CSS/notes_css.css">
 </head>
+
 <body>
-  <header class="navbar navbar-expand-lg fixed-top">
+ <header class="navbar navbar-expand-lg fixed-top">
+    <div class="hero-img">
+      <a href="/index.html">
+        <img src="/online-graduation_16847316.png" alt="Student Image" width="40px"/>
+      </a>
+    </div>
     <div class="container-fluid">
-      <a class="navbar-brand" href="#">E-Learning</a>
+      <a class="navbar-brand" href="/htmls/privacy_policy&terms_conditions.html">NeoBranium</a>
+      <span id="usernameDisplay" class="navbar-text text-white me-3">Welcome, User!</span>
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
           <button id="dark-mode-toggle" class="btn btn-outline-light">Dark Mode</button>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-            <img src="https://via.placeholder.com/30" class="rounded-circle" width="30" />
+            <img id="profilePicture" src="https://via.placeholder.com/30" class="rounded-circle" width="30" />
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="#">Profile</a></li>
-            <li><a class="dropdown-item" href="#">Settings</a></li>
+            <li><a class="dropdown-item" href="/htmls/profile.html">Profile</a></li>
+            <li><a class="dropdown-item" href="/htmls/setting.html">Settings</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="#" id="logout">Logout</a></li>
           </ul>
@@ -36,9 +43,11 @@
 
   <div class="sidebar">
     <ul>
-      <li><a href="#"><i class="bi bi-question-circle"></i> Quiz</a></li>
-      <li><a href="#"><i class="bi bi-journal"></i> Notes</a></li>
-      <li><a href="#"><i class="bi bi-journal-text"></i> Your Notes</a></li>
+      <li><a href="/htmls/dashboard.html"><i class="bi bi-question-circle"></i> Quiz</a></li>
+      <li><a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes</a></li>
+      <li><a href="/htmls/spotlight.html"><i class="bi bi-journal"></i> Spotlight</a></li>
+      <li><a href="/htmls/contactus.html"><i class="bi bi-journal-text"></i> Contact Us</a></li>
+      <li><a href="/htmls/feedback.html"><i class="bi bi-journal-text"></i> Feedback/Complaint</a></li>
     </ul>
     <div class="plus-btn">
       <button class="btn btn-primary rounded-circle"><i class="bi bi-plus"></i></button>
@@ -46,29 +55,52 @@
   </div>
 
   <main>
-    <h2>Welcome to the Dashboard</h2>
-    <p>Select your class to continue.</p>
-<div class="pdf-card">
-  <div class="pdf-thumb">
-    <i class="bi bi-file-earmark-pdf-fill"></i>
-  </div>
-  <div class="pdf-info">
-    <h5 class="pdf-title">Class 9 - Physics Notes</h5>
-    <p class="pdf-desc">Includes Ch 1, 2 & 3 with diagrams and solved numericals.</p>
-    <div class="pdf-actions">
-      <a href="https://yourgithubsite.com/pdfs/class9-physics.pdf" target="_blank" class="btn btn-sm btn-primary">📄 View PDF</a>
-      <div class="likes">
-        <i class="bi bi-hand-thumbs-up-fill like-icon"></i>
-        <span>23</span>
+    <h2 class="mt-5">Hand Written Notes - Uploaded by the Students</h2>
+
+    <div class="card">
+      <div class="card__content">
+        <div class="d-flex flex-column align-items-center justify-content-center" style="height: 300px;">
+          <i class="bi bi-file-earmark-pdf" style="font-size: 4rem; color: #d9534f;"></i>
+          <h5 class="mt-3">Topic:</h5>
+          <p class="mb-3 text-center">Name:</p>
+
+          <a href="/Notes/ihss301.pdf" download class="btn btn-success mb-3">
+            <i class="bi bi-download"></i> Download Notes
+          </a>
+        </div>
       </div>
     </div>
-  </div>
-</div>
-
-
   </main>
 
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/js/card_func.js"></script>
+  <script type="module" src="/js/auth.js"></script>
 </body>
+<script>
+  const toggle = document.getElementById('dark-mode-toggle');
+  const body = document.body;
+
+  function setDarkMode(enabled) {
+    if (enabled) {
+      body.classList.add('dark-mode');
+      localStorage.setItem('darkMode', 'enabled');
+      toggle.textContent = 'Light Mode';
+    } else {
+      body.classList.remove('dark-mode');
+      localStorage.setItem('darkMode', 'disabled');
+      toggle.textContent = 'Dark Mode';
+    }
+  }
+
+  toggle.addEventListener('click', () => {
+    const isDark = body.classList.contains('dark-mode');
+    setDarkMode(!isDark);
+  });
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const darkMode = localStorage.getItem('darkMode');
+    setDarkMode(darkMode === 'enabled');
+  });
+</script>
+
 </html>

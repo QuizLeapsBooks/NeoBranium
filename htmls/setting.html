@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module" src="/js/auth.js"></script>
+    <script type="module" src="/js/settings.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .dark {
+            background-color: #1f2937;
+            color: #f9fafb;
+        }
+        .dark input, .dark textarea {
+            background-color: #374151;
+            color: #f9fafb;
+            border-color: #4b5563;
+        }
+        .dark .container {
+            background-color: #2d3748;
+        }
+        .status {
+            transition: opacity 0.3s;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-800 min-h-screen flex items-center justify-center">
+    <div class="container max-w-md mx-auto bg-white dark:bg-gray-700 rounded-2xl shadow-lg p-6 md:p-8">
+        <div class="flex flex-col items-center mb-6">
+            <div id="initialAvatar" class="w-24 h-24 rounded-full flex items-center justify-center bg-blue-600 text-white text-4xl font-semibold"></div>
+        </div>
+        <span id="usernameDisplay" class="navbar-text text-white me-3">Welcome, User!</span>
+
+        <div class="space-y-6">
+            <div class="form-group">
+                <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Username</label>
+                <div class="flex gap-2">
+                    <input type="text" id="username" class="w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-600 dark:border-gray-500 text-gray-900 dark:text-gray-100" autocomplete="off">
+                    <button id="saveUsernameBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">Save</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="bio" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Bio</label>
+                <textarea id="bio" rows="3" class="w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-600 dark:border-gray-500 text-gray-900 dark:text-gray-100" maxlength="150"></textarea>
+                <button id="saveBioBtn" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">Save Bio</button>
+            </div>
+
+            <div class="form-group">
+                <label for="currentPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Current Password</label>
+                <input type="password" id="currentPassword" class="w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-600 dark:border-gray-500 text-gray-900 dark:text-gray-100" autocomplete="current-password">
+            </div>
+
+            <div class="form-group">
+                <label for="newPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-200">New Password</label>
+                <div class="flex gap-2">
+                    <input type="password" id="newPassword" class="w-full p-2 border rounded-lg bg-gray-50 dark:bg-gray-600 dark:border-gray-500 text-gray-900 dark:text-gray-100" autocomplete="new-password">
+                    <button id="changePasswordBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">Change Password</button>
+                </div>
+            </div>
+
+            <div class="form-group flex items-center justify-between">
+                <label for="themeSwitch" class="text-sm font-medium text-gray-700 dark:text-gray-200">Dark Theme</label>
+                <input type="checkbox" id="themeSwitch" class="h-5 w-5 text-blue-600 rounded">
+            </div>
+
+            <button id="logoutBtn" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 w-full">Logout</button>
+
+            <div id="status" class="status text-sm text-center text-green-600 dark:text-green-400"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore-compat.js"></script>
+    <script>
+      
+    </script>
+</body>
+</html>

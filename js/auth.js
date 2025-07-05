@@ -20,61 +20,77 @@ const db = getFirestore();
 const storage = getStorage();
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Check if the user is logged in
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       const loggedInUserId = user.uid;
       localStorage.setItem("loggedInUserId", loggedInUserId);
 
       try {
-        // Fetch user data from Firestore
         const userDoc = await getDoc(doc(db, "users", loggedInUserId));
+
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          document.getElementById("loggedUserfname").innerText = userData.fname || "User";
 
-          // Profile Picture Handling
-          const profilePicRef = ref(storage, 'profile_pictures/' + loggedInUserId); // Path to profile images
+          // Username
+          const usernameDisplay = document.getElementById("usernameDisplay");
+          if (usernameDisplay) {
+            usernameDisplay.innerText = `Welcome, ${userData.username || user.displayName || "User"}!`;
+          }
+
+          // Bio 👇
+          const bioBox = document.getElementById("userBioText");
+          if (bioBox) {
+            bioBox.innerText = userData.bio || "No bio added yet.";
+          }
+
+          // Profile Picture 👇
+          const profilePicRef = ref(storage, `profileImages/${loggedInUserId}`);
           try {
             const profilePicUrl = await getDownloadURL(profilePicRef);
-            document.getElementById("profilePicture").src = profilePicUrl; // Set profile image
+            const profilePicture = document.getElementById("profilePicture");
+            if (profilePicture) {
+              profilePicture.src = profilePicUrl;
+            }
           } catch (error) {
             console.error("Error loading profile picture:", error);
-            document.getElementById("profilePicture").src = '/images/default-avatar.jpg'; // Default image if error occurs
+            const profilePicture = document.getElementById("profilePicture");
+            if (profilePicture) {
+              profilePicture.src = '/images/default-avatar.jpg';
+            }
           }
+
         } else {
           console.log("No user data found.");
+          const usernameDisplay = document.getElementById("usernameDisplay");
+          if (usernameDisplay) {
+            usernameDisplay.innerText = "Welcome, User!";
+          }
         }
       } catch (error) {
         console.error("Error retrieving user data:", error);
       }
+
     } else {
-      // User is not logged in, redirect to the login page
+      // Not logged in
       localStorage.removeItem("loggedInUserId");
       window.location.href = "/index.html";
     }
   });
 
-  // Logout functionality
-  const logoutButton = document.getElementById("logoutButton");
-  logoutButton.addEventListener("click", () => {
-    signOut(auth)
-      .then(() => {
-        localStorage.removeItem("loggedInUserId");
-        window.location.href = "/index.html"; // Redirect to login page on logout
-      })
-      .catch((error) => {
-        console.log("Error during logout:", error);
-      });
-  });
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    const navToggle = document.querySelector('.nav-toggle');
-    const navLinks = document.querySelector('.nav-links');
-  
-    navToggle.addEventListener('click', () => {
-      navLinks.classList.toggle('active');
+  // Logout
+  const logoutButton = document.getElementById("logout");
+  if (logoutButton) {
+    logoutButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      signOut(auth)
+        .then(() => {
+          localStorage.removeItem("loggedInUserId");
+          window.location.href = "/index.html";
+        })
+        .catch((error) => {
+          console.error("Error during logout:", error);
+          alert("Failed to logout: " + error.message);
+        });
     });
-  });
-  
+  }
+});
