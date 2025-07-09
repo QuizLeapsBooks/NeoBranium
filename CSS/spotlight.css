@@ -1,42 +1,205 @@
-
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
-  grid-gap: 2px; /* Space between items */
-  padding: 2px;
-  gap: 1px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 10px;
+  margin: 0 auto;
+  max-width: 80%;
+  background-color: var(--bg-color);
+  transition: background-color 0.3s ease;
 }
 
 .grid-item_1 {
   background-color: #ff4d4d;
-    color: white;
-    padding: 7px;
-    text-align: center;
-    border-radius: 10px;
-    width: 70%;
-    margin-right: -21%;
-    margin-top: 10%;
-    margin-left: 24%;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  border-radius: 10px;
+  width: 80%;
+  margin: 10px auto 0 auto;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
 .grid-item_3 {
   background-color: #884dff;
-    color: white;
-    padding: 7px;
-    text-align: center;
-    border-radius: 10px;
-    width: 70%;
-    margin-right: -21%;
-    margin-top: 0%;
-    margin-left: 24%;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  border-radius: 10px;
+  width: 80%;
+  margin: 5px auto;
+  font-family: 'Poppins', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
 .grid-item_2 {
   background-color: #ff4dde;
-    color: white;
-    padding: 7px;
-    text-align: center;
-    border-radius: 10px;
-    width: 70%;
-    margin-right: -21%;
-    margin-top: 0%;
-    margin-left: 24%;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  border-radius: 10px;
+  width: 80%;
+  margin: 5px auto;
+  font-family: 'Poppins', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.dark-mode .grid-item_1 {
+  background-color: #d93636;
+  color: #f8f9fa;
+}
+
+body.dark-mode .grid-item_3 {
+  background-color: #6a3cd9;
+  color: #f8f9fa;
+}
+
+body.dark-mode .grid-item_2 {
+  background-color: #d936b8;
+  color: #f8f9fa;
+}
+
+main.container {
+  padding: 20px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1 {
+  text-align: center;
+  margin-top: 3%;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  color: var(--text-color);
+  transition: color 0.3s ease;
+}
+
+body.dark-mode h1 {
+  color: #f8f9fa;
+}
+
+/* Bottom Navigation for Mobile */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--sidebar-bg);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 0;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.nav-icon {
+  color: var(--text-color);
+  font-size: 24px;
+  text-decoration: none;
+  padding: 10px;
+  transition: color 0.3s ease;
+}
+
+.nav-icon:hover {
+  color: #6a11cb;
+}
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 24px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+body.dark-mode .bottom-nav {
+  background: var(--sidebar-bg);
+}
+
+body.dark-mode .nav-icon:hover,
+body.dark-mode .sidebar-toggle:hover {
+  color: #2575fc;
+}
+
+/* Header height adjustment for small screens */
+@media (max-width: 767.98px) {
+  .navbar {
+    padding: 5px 10px;
+  }
+
+  .navbar-brand, .navbar-text, .nav-link {
+    font-size: 0.9rem;
+  }
+
+  .hero-img img {
+    width: 30px;
+  }
+
+  .switch {
+    width: 40px;
+    height: 20px;
+  }
+
+  .slider:before {
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(20px);
+  }
+
+  .nav-item .switch {
+    margin: 6px 8px;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  main.container {
+    margin-left: 0;
+    padding: 15px;
+  }
+
+  .grid-container {
+    grid-template-columns: 1fr;
+    max-width: 95%;
+    gap: 5px;
+  }
+
+  .grid-item_1, .grid-item_2, .grid-item_3 {
+    width: 95%;
+    margin: 5px auto;
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin-top: 15%;
+  }
+}
+
+/* Hide bottom nav on larger screens */
+@media (min-width: 768px) {
+  .bottom-nav {
+    display: none !important;
+  }
+
+  .grid-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }

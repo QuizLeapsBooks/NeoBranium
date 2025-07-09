@@ -1,140 +1,180 @@
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+.container {
+  padding: 20px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  margin-left: 20%;
+  margin-top: 5%;
+}
 
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+form {
+  max-width: 600px;
+  margin: 0 auto;
+}
 
-    .container {
-      width: 100%;
-      max-width: 500px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(15px);
-      border-radius: 20px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-      padding: 40px 30px;
-      animation: slideIn 0.5s ease-in-out;
-    }
+h2#formTitle {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  color: var(--text-color);
+  text-align: center;
+  margin-bottom: 20px;
+  transition: color 0.3s ease;
+}
 
-    @keyframes slideIn {
-      from { transform: translateY(30px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
+body.dark-mode h2#formTitle {
+  color: #f8f9fa;
+}
 
-    .toggle-group {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 30px;
-    }
+label {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--text-color);
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
 
-    .toggle-btn {
-      flex: 1;
-      margin: 0 5px;
-      padding: 12px;
-      border: none;
-      border-radius: 30px;
-      background: #dbeafe;
-      color: #333;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
+input, textarea, select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  font-family: 'Poppins', sans-serif;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
 
-    .toggle-btn.active {
-      background: linear-gradient(to right, #4f46e5, #7c3aed);
-      color: white;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #6a11cb;
+  box-shadow: 0 0 5px rgba(106, 17, 203, 0.3);
+}
 
-    h2 {
-      text-align: center;
-      color: #fff;
-      margin-bottom: 25px;
-      font-size: 1.6em;
-    }
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select {
+  border-color: #666;
+  background-color: var(--notes-card-bg);
+}
 
-    label {
-      color: #f0f0f0;
-      font-weight: 500;
-      margin-bottom: 5px;
-      display: block;
-    }
+body.dark-mode input:focus,
+body.dark-mode textarea:focus,
+body.dark-mode select:focus {
+  border-color: #2575fc;
+  box-shadow: 0 0 5px rgba(37, 117, 252, 0.3);
+}
 
-    input, select, textarea {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 20px;
-      border: none;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.9);
-      font-size: 1em;
-      transition: all 0.3s ease;
-    }
+button[type="submit"] {
+  background-color: #6a11cb;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
 
-    input:focus, textarea:focus, select:focus {
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.4);
-    }
+button[type="submit"]:hover {
+  background-color: #2575fc;
+}
 
-    .stars {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-      flex-direction: row-reverse;
-    }
+body.dark-mode button[type="submit"] {
+  background-color: #2575fc;
+}
 
-    .stars input[type="radio"] {
-      display: none;
-    }
+body.dark-mode button[type="submit"]:hover {
+  background-color: #6a11cb;
+}
 
-    .stars label {
-      font-size: 1.6em;
-      color: #ccc;
-      cursor: pointer;
-      transition: color 0.2s ease;
-      padding: 0 3px;
-    }
+.toggle-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
 
-    .stars input:checked ~ label,
-    .stars label:hover,
-    .stars label:hover ~ label {
-      color: #facc15;
-    }
+.toggle-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #e0e7ff;
+  color: #333;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
 
-    .optional {
-      font-weight: normal;
-      color: #ccc;
-      font-size: 0.9em;
-    }
+.toggle-btn.active {
+  background-color: #6a11cb;
+  color: #fff;
+}
 
-    button[type="submit"] {
-      width: 100%;
-      background: linear-gradient(to right, #4f46e5, #7c3aed);
-      color: #fff;
-      border: none;
-      padding: 14px;
-      border-radius: 30px;
-      font-size: 1.1em;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
+.toggle-btn:hover {
+  background-color: #c7d2fe;
+}
 
-    button[type="submit"]:hover {
-      transform: scale(1.02);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-    }
+body.dark-mode .toggle-btn {
+  background-color: #4b5563;
+  color: #f8f9fa;
+}
 
-    @media (max-width: 500px) {
-      .container {
-        padding: 30px 20px;
-      }
-    }
+body.dark-mode .toggle-btn.active {
+  background-color: #2575fc;
+}
+
+body.dark-mode .toggle-btn:hover {
+  background-color: #6b7280;
+}
+
+.stars {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 15px;
+  flex-direction: row-reverse;
+}
+
+.stars input {
+  display: none;
+}
+
+.stars label {
+  font-size: 24px;
+  color: #ccc;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.stars input:checked + label,
+.stars input:checked ~ label,
+.stars label:hover,
+.stars label:hover ~ label {
+  color: #ffeb3b;
+}
+
+body.dark-mode .stars label {
+  color: #666;
+}
+
+body.dark-mode .stars input:checked + label,
+body.dark-mode .stars input:checked ~ label,
+body.dark-mode .stars label:hover,
+body.dark-mode .stars label:hover ~ label {
+  color: #ffd700;
+}
+
+.optional {
+  font-size: 0.9em;
+  color: #666;
+  font-weight: 400;
+  transition: color 0.3s ease;
+}
+
+body.dark-mode .optional {
+  color: #aaa;
+}

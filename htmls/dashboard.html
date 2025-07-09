@@ -7,24 +7,26 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
   <link rel="stylesheet" href="/CSS/dashboard.css">
-  <style>
-    .class-card {
-      transition: transform 0.3s ease;
-      cursor: pointer;
-    }
-    .class-card:hover {
-      transform: scale(1.05);
-    }
-    .modal-backdrop.show {
-      opacity: 0.8;
-    }
-  </style>
+  <meta name="description" content="NeoBranium E-Learning Dashboard: Access quizzes, notes, spotlights, and interactive features for Class 9 and 10. Enhance your learning experience with top resources and community feedback.">
+  <meta name="keywords" content="NeoBranium, E-Learning, Dashboard, Class 9, Class 10, Notes, Quiz, Spotlight, Education, Study, PDF Download, Interactive, Feedback">
+  <meta name="author" content="NeoBranium Team">
+  <link rel="canonical" href="https://neobranium.com/htmls/dashboard.html">
+  <meta property="og:title" content="NeoBranium E-Learning Dashboard">
+  <meta property="og:description" content="Access quizzes, notes, spotlights, and interactive features for Class 9 and 10. Enhance your learning experience with NeoBranium.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://neobranium.com/htmls/dashboard.html">
+  <meta property="og:image" content="https://neobranium.com/online-graduation_16847316.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="NeoBranium E-Learning Dashboard">
+  <meta name="twitter:description" content="Access quizzes, notes, spotlights, and interactive features for Class 9 and 10. Enhance your learning experience with NeoBranium.">
+  <meta name="twitter:image" content="https://neobranium.com/online-graduation_16847316.png">
+
 </head>
 <body>
   <header class="navbar navbar-expand-lg fixed-top">
     <div class="hero-img">
       <a href="/index.html">
-        <img src="/online-graduation_16847316.png" alt="Student Image" width="40px"/>
+        <img src="/online-graduation_16847316.png" alt="Student Image" width="40px" />
       </a>
     </div>
     <div class="container-fluid">
@@ -32,7 +34,10 @@
       <span id="usernameDisplay" class="navbar-text text-white me-3">Welcome, User!</span>
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
-          <button id="dark-mode-toggle" class="btn btn-outline-light">Dark Mode</button>
+          <label class="switch">
+            <input type="checkbox" id="dark-mode-toggle">
+            <span class="slider"></span>
+          </label>
         </li>
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
@@ -51,7 +56,7 @@
 
   <div class="sidebar">
     <ul>
-      <li><a href="#"><i class="bi bi-question-circle"></i> Quiz</a></li>
+      <li><a href="/htmls/dashboard.html"><i class="bi bi-question-circle"></i> Dashboard</a></li>
       <li><a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes</a></li>
       <li><a href="/htmls/spotlight.html"><i class="bi bi-journal"></i> Spotlight</a></li>
       <li><a href="/htmls/contactus.html"><i class="bi bi-journal-text"></i> Contact Us</a></li>
@@ -81,6 +86,106 @@
         </div>
       </div>
     </div>
+
+    <!-- Newly Uploaded Notes Section -->
+    <section class="mt-5">
+      <h3>Newly Uploaded Notes</h3>
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card notes-card">
+            <div class="card-body">
+              <h5 class="card-title">Name: Null</h5>
+              <p class="card-text">Topic: Null<br>Class: Null</p>
+              <a href="#" class="btn btn-primary">View Notes</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card notes-card">
+            <div class="card-body">
+              <h5 class="card-title">Name: Null</h5>
+              <p class="card-text">Topic: Null<br>Class: Null</p>
+              <a href="#" class="btn btn-primary">View Notes</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card notes-card">
+            <div class="card-body">
+              <h5 class="card-title">Name: Null</h5>
+              <p class="card-text">Topic: Null<br>Class: Null</p>
+              <a href="#" class="btn btn-primary">View Notes</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="mt-5">
+      <h3>Features</h3>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card feature-card">
+            <div class="card-body">
+              <h5 class="card-title">New Features</h5>
+              <ul>
+                <li>Interactive Quizzes</li>
+                <li>PDF Notes Download</li>
+                <li>Ranking All Over The Users by comparing uploaded notes and activity on the website.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card feature-card">
+            <div class="card-body">
+              <h5 class="card-title">Coming Soon</h5>
+              <ul>
+                <li>General AI Support</li>
+                <li>Progress Tracker</li>
+                <li><b>Write in Feedback what should be the next feature.</b></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Spotlight Section -->
+    <section class="mt-5">
+      <h3>Spotlight</h3>
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card spotlight-card">
+            <div class="card-body">
+              <h5 class="card-title">Weekly Top Notes</h5>
+              <p class="card-text">Check out the most popular notes this week!</p>
+              <ul>
+                <li>Name: Null <br> Topic: Null <br> Class: Null</li>
+                <li>Name: Null <br> Topic: Null <br> Class: Null</li>
+                <li>Name: Null <br> Topic: Null <br> Class: Null</li>
+              </ul>
+              <a href="/htmls/spotlight.html" class="btn btn-primary">Explore More</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card spotlight-card">
+            <div class="card-body">
+              <h5 class="card-title">Monthly Top Notes</h5>
+              <p class="card-text">The best notes from the past month!</p>
+              <ul>
+                <li>Name: Null <br> Topic: Null <br> Class: Null</li>
+                <li>Name: Null <br> Topic: Null <br> Class: Null</li>
+                <li>Name: Null <br> Topic: Null <br> Class: Null</li>
+              </ul>
+              <a href="/htmls/spotlight.html" class="btn btn-primary">Explore More</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <div class="modal fade" id="subjectModal" tabindex="-1" aria-labelledby="subjectModalLabel" aria-hidden="true">
@@ -105,10 +210,19 @@
       </div>
     </div>
   </div>
-  <div id="userBioBox" class="user-bio-box">
-  <p id="userBioText">Loading bio...</p>
-</div>
 
+  <div id="userBioBox" class="user-bio-box">
+    <p id="userBioText">Loading bio...</p>
+  </div>
+
+  <div class="bottom-nav d-md-none">
+    <a href="#" class="nav-icon"><i class="bi bi-question-circle"></i></a>
+    <a href="/htmls/notes.html" class="nav-icon"><i class="bi bi-journal"></i></a>
+    <a href="/htmls/spotlight.html" class="nav-icon"><i class="bi bi-journal"></i></a>
+    <a href="/htmls/contactus.html" class="nav-icon"><i class="bi bi-journal-text"></i></a>
+    <a href="/htmls/feedback.html" class="nav-icon"><i class="bi bi-journal-text"></i></a>
+    <button class="nav-icon sidebar-toggle"><i class="bi bi-list"></i></button>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script type="module" src="/js/auth.js"></script>
@@ -128,19 +242,7 @@
         window.location.href = `${selectedClass}-${subject}.html`;
       }
     }
-
-    document.getElementById('dark-mode-toggle').addEventListener('click', function () {
-      document.body.classList.toggle('dark-mode');
-      const mode = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
-      localStorage.setItem('theme', mode);
-      this.textContent = mode === 'dark' ? 'Light Mode' : 'Dark Mode';
-    });
-
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      document.body.classList.add('dark-mode');
-      document.getElementById('dark-mode-toggle').textContent = 'Light Mode';
-    }
   </script>
+  <script src="/js/dark_mode.js"></script>
 </body>
 </html>
