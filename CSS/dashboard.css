@@ -2,7 +2,7 @@
   --bg-color: #f8f9fa;
   --text-color: #212529;
   --sidebar-bg: #e9ecef;
-  --header-bg: #343a40;
+  --header-bg: #1a1d21;
   --header-text: #ffffff;
   --card-bg: #ffffff;
   --notes-card-bg: #ffffff;
@@ -14,7 +14,7 @@ body.dark-mode {
   --bg-color: #212529;
   --text-color: #f8f9fa;
   --sidebar-bg: #343a40;
-  --header-bg: #1a1d21;
+  --header-bg: #121416;
   --header-text: #f8f9fa;
   --card-bg: #343a40;
   --notes-card-bg: #2c3034;
@@ -30,32 +30,73 @@ body {
   padding: 0;
   transition: all 0.3s ease;
 }
-
-.navbar {
-  background: linear-gradient(to right, #6a11cb, #2575fc);
-  color: var(--header-text);
-  padding: 10px 20px;
-  z-index: 1001; /* Above sidebar */
+h1 , h2{
+  text-align: center;
 }
 
-.navbar-brand, .nav-link {
+p{
+  text-align: center;
+}
+
+.navbar {
+  background: linear-gradient(135deg, #4a00e0, #8e2de2);
+  color: var(--header-text);
+  padding: 0.5rem 1rem;
+  z-index: 1001;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.navbar-brand {
+  font-size: 1.5rem;
+  font-weight: 700;
   color: var(--header-text) !important;
+  transition: color 0.3s ease;
+}
+
+.navbar-brand:hover {
+  color: #e0e0e0 !important;
+}
+
+.nav-link {
+  color: var(--header-text) !important;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #e0e0e0 !important;
 }
 
 .navbar .container-fluid {
-  padding: 0;
+  padding: 0 1rem;
 }
 
-.hero-img {
-  margin-right: 15px;
+.header-logo {
+  width: 40px;
+  height: 40px;
+  transition: transform 0.3s ease;
+}
+
+.header-logo:hover {
+  transform: scale(1.1);
 }
 
 #usernameDisplay {
-  margin-right: 15px;
+  font-size: 1rem;
+  font-weight: 500;
 }
 
 .navbar-nav {
   align-items: center;
+}
+
+.navbar-toggler {
+  border: none;
+  color: var(--header-text);
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
 .sidebar {
@@ -63,7 +104,7 @@ body {
   height: 100vh;
   background-color: var(--sidebar-bg);
   position: fixed;
-  top: 60px; /* Adjusted to avoid overlap with header */
+  top: 60px;
   left: 0;
   padding-top: 20px;
   display: flex;
@@ -87,7 +128,8 @@ body {
   padding: 12px 20px;
   color: var(--text-color);
   text-decoration: none;
-  font-size: 16px; /* Ensure readability */
+  font-size: 16px;
+  white-space: nowrap;
 }
 
 .sidebar ul li a:hover {
@@ -97,6 +139,8 @@ body {
 .sidebar .plus-btn {
   padding: 20px;
   text-align: center;
+  
+    margin-bottom: 20%;
 }
 
 .sidebar .plus-btn button {
@@ -104,11 +148,14 @@ body {
   height: 50px;
   border-radius: 50%;
   font-size: 24px;
+  
+    margin-bottom: 20%;
 }
 
 main {
   margin-left: 250px;
   padding: 20px;
+  margin-top: 60px;
   transition: margin-left 0.3s ease;
 }
 
@@ -248,7 +295,6 @@ body.dark-mode .user-bio-box {
   line-height: 1.5;
 }
 
-/* Bottom Navigation for Mobile */
 .bottom-nav {
   position: fixed;
   bottom: 0;
@@ -275,86 +321,12 @@ body.dark-mode .user-bio-box {
   color: #6a11cb;
 }
 
-.sidebar-toggle {
-  background: none;
-  border: none;
-  color: var(--text-color);
-  font-size: 24px;
-  padding: 10px;
-  cursor: pointer;
-}
-
 body.dark-mode .bottom-nav {
   background: var(--sidebar-bg);
 }
 
-body.dark-mode .nav-icon:hover,
-body.dark-mode .sidebar-toggle:hover {
+body.dark-mode .nav-icon:hover {
   color: #2575fc;
-}
-
-/* Hide sidebar on small screens */
-@media (max-width: 767.98px) {
-  .sidebar {
-    transform: translateX(-100%);
-  }
-
-  .sidebar.active {
-    transform: translateX(0);
-  }
-
-  main {
-    margin-left: 0;
-  }
-
-  .navbar {
-    padding: 5px 15px;
-  }
-
-  .navbar-brand, #usernameDisplay, .nav-link {
-    font-size: 0.9rem;
-  }
-
-  .hero-img img {
-    width: 30px;
-  }
-
-  .switch {
-    width: 40px;
-    height: 20px;
-  }
-
-  .slider:before {
-    height: 16px;
-    width: 16px;
-  }
-
-  input:checked + .slider:before {
-    transform: translateX(20px);
-  }
-
-  .nav-item .switch {
-    margin: 6px 8px;
-  }
-}
-
-/* Show bottom nav only on small screens */
-@media (min-width: 768px) {
-  .bottom-nav {
-    display: none !important;
-  }
-
-  .navbar {
-    padding: 15px 30px;
-  }
-
-  .sidebar {
-    top: 70px; /* Adjusted for larger header height */
-  }
-
-  main {
-    margin-top: 70px; /* Ensure content starts below header */
-  }
 }
 
 .switch {
@@ -410,7 +382,139 @@ body.dark-mode input:checked + .slider {
   background-color: #2575fc;
 }
 
-/* Ensure switch aligns nicely in navbar */
 .nav-item .switch {
   margin: 8px 10px;
+}
+
+/* Responsive Design */
+@media (max-width: 575.98px) {
+  .navbar {
+    padding: 0.5rem;
+  }
+
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+
+  .header-logo {
+    width: 30px;
+    height: 30px;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    top: 56px;
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  main {
+    margin-left: 0;
+    margin-top: 56px;
+  }
+
+  .switch {
+    width: 40px;
+    height: 20px;
+  }
+
+  .slider:before {
+    height: 16px;
+    width: 16px;
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(20px);
+  }
+}
+
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .navbar {
+    padding: 0.75rem 1rem;
+  }
+
+  .navbar-brand {
+    font-size: 1.3rem;
+  }
+
+  .header-logo {
+    width: 35px;
+    height: 35px;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    top: 58px;
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  main {
+    margin-left: 0;
+    margin-top: 58px;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .navbar {
+    padding: 0.75rem 1.5rem;
+  }
+
+  .navbar-brand {
+    font-size: 1.4rem;
+  }
+
+  .sidebar {
+    width: 200px;
+    top: 60px;
+  }
+
+  main {
+    margin-left: 200px;
+    margin-top: 60px;
+  }
+
+  .bottom-nav {
+    display: none !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .navbar {
+    padding: 1rem 2rem;
+  }
+
+  .navbar-brand {
+    font-size: 1.5rem;
+  }
+
+  .sidebar {
+    top: 60px;
+  }
+
+  main {
+    margin-top: 60px;
+  }
+
+  .bottom-nav {
+    display: none !important;
+  }
+}
+
+@media (min-width: 901px) and (max-height: 1385px) {
+  .navbar {
+    padding: 1rem 1.5rem;
+  }
+
+  .sidebar {
+    top: 60px;
+  }
+
+  main {
+    margin-top: 60px;
+  }
 }
