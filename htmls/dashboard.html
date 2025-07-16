@@ -1,26 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>E-Learning Dashboard</title>
+  <link rel="stylesheet" href="/CSS/dashboard.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/CSS/dashboard.css">
-  <meta name="description" content="NeoBranium E-Learning Dashboard: Access quizzes, notes, spotlights, and interactive features for Class 9 and 10. Enhance your learning experience with top resources and community feedback.">
-  <meta name="keywords" content="NeoBranium, E-Learning, Dashboard, Class 9, Class 10, Notes, Quiz, Spotlight, Education, Study, PDF Download, Interactive, Feedback">
+  <meta name="description"
+    content="NeoBranium E-Learning Dashboard: Access quizzes, notes, spotlights, and interactive features for Class 9 and 10. Enhance your learning experience with top resources and community feedback.">
+  <meta name="keywords"
+    content="NeoBranium, E-Learning, Dashboard, Class 9, Class 10, Notes, Quiz, Spotlight, Education, Study, PDF Download, Interactive, Feedback">
   <meta name="author" content="NeoBranium Team">
   <link rel="canonical" href="https://neobranium.com/htmls/dashboard.html">
   <meta property="og:title" content="NeoBranium E-Learning Dashboard">
-  <meta property="og:description" content="Access quizzes, notes, spotlights, and interactive features for Class 9 and 10. Enhance your learning experience with NeoBranium.">
+  <meta property="og:description"
+    content="Access quizzes, notes, spotlights, and interactive features for Class 9 and 10. Enhance your learning experience with NeoBranium.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://neobranium.com/htmls/dashboard.html">
   <meta property="og:image" content="https://neobranium.com/online-graduation_16847316.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="NeoBranium E-Learning Dashboard">
-  <meta name="twitter:description" content="Access quizzes, notes, spotlights, and interactive features for Class 9 and 10. Enhance your learning experience with NeoBranium.">
+  <meta name="twitter:description"
+    content="Access quizzes, notes, spotlights, and interactive features for Class 9 and 10. Enhance your learning experience with NeoBranium.">
   <meta name="twitter:image" content="https://neobranium.com/online-graduation_16847316.png">
+  <script src="/js/dark_mode.js"></script>
 </head>
+
 <body>
   <header class="navbar navbar-expand-lg fixed-top">
     <div class="container-fluid align-items-center">
@@ -59,7 +66,7 @@
   </header>
 
   <div class="sidebar">
-   <ul>
+    <ul>
       <li><a href="/htmls/dashboard.html"><i class="bi bi-question-circle"></i> Dashboard</a></li>
       <li><a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes</a></li>
       <li><a href="/htmls/spotlight.html"><i class="bi bi-star"></i> Spotlight (Monthly)</a></li>
@@ -67,7 +74,7 @@
       <li><a href="/htmls/feedback.html"><i class="bi bi-chat"></i> Feedback/Complaint</a></li>
     </ul>
     <div class="plus-btn">
-      <button class="btn btn-primary rounded-circle"><i class="bi bi-plus"></i></button>
+      <button class="btn btn-primary rounded-circle" onclick="openUploadModal()"><i class="bi bi-plus-lg"></i></button>
     </div>
   </div>
 
@@ -91,15 +98,62 @@
       </div>
     </div>
 
-    <!-- Newly Uploaded Notes Section -->
-    <section class="mt-5">
+    <!-- Skeleton Loader for Class Selection -->
+    <div class="row skeleton-loader" id="classSkeleton" style="display: none;">
+      <div class="col-md-6">
+        <div class="card skeleton">
+          <div class="card-body">
+            <h5 class="skeleton-title"></h5>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card skeleton">
+          <div class="card-body">
+            <h5 class="skeleton-title"></h5>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skeleton Loader for Newly Uploaded Notes -->
+    <section class="mt-5" id="notesSection">
       <h3>Newly Uploaded Notes</h3>
-      <div class="row">
+      <div class="row skeleton-loader" id="notesSkeleton">
+        <div class="col-md-4">
+          <div class="card notes-card skeleton">
+            <div class="card-body">
+              <h5 class="skeleton-title"></h5>
+              <p class="skeleton-text"></p>
+              <div class="skeleton-button"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card notes-card skeleton">
+            <div class="card-body">
+              <h5 class="skeleton-title"></h5>
+              <p class="skeleton-text"></p>
+              <div class="skeleton-button"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card notes-card skeleton">
+            <div class="card-body">
+              <h5 class="skeleton-title"></h5>
+              <p class="skeleton-text"></p>
+              <div class="skeleton-button"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row" id="notesContent" style="display: none;">
         <div class="col-md-4">
           <div class="card notes-card">
             <div class="card-body">
-              <h5 class="card-title">Name: Null</h5>
-              <p class="card-text">Topic: Null<br>Class: Null</p>
+              <h5 class="card-title">Name: N/O</h5>
+              <p class="card-text">Topic: N/O<br>Class: N/O</p>
               <a href="#" class="btn btn-primary">View Notes</a>
             </div>
           </div>
@@ -107,8 +161,8 @@
         <div class="col-md-4">
           <div class="card notes-card">
             <div class="card-body">
-              <h5 class="card-title">Name: Null</h5>
-              <p class="card-text">Topic: Null<br>Class: Null</p>
+              <h5 class="card-title">Name: N/O</h5>
+              <p class="card-text">Topic: N/O<br>Class: N/O</p>
               <a href="#" class="btn btn-primary">View Notes</a>
             </div>
           </div>
@@ -116,8 +170,8 @@
         <div class="col-md-4">
           <div class="card notes-card">
             <div class="card-body">
-              <h5 class="card-title">Name: Null</h5>
-              <p class="card-text">Topic: Null<br>Class: Null</p>
+              <h5 class="card-title">Name: N/O</h5>
+              <p class="card-text">Topic: N/O<br>Class: N/O</p>
               <a href="#" class="btn btn-primary">View Notes</a>
             </div>
           </div>
@@ -125,10 +179,28 @@
       </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="mt-5">
+    <!-- Skeleton Loader for Features Section -->
+    <section class="mt-5" id="featuresSection">
       <h3>Features</h3>
-      <div class="row">
+      <div class="row skeleton-loader" id="featuresSkeleton">
+        <div class="col-md-6">
+          <div class="card feature-card skeleton">
+            <div class="card-body">
+              <h5 class="skeleton-title"></h5>
+              <div class="skeleton-list"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card feature-card skeleton">
+            <div class="card-body">
+              <h5 class="skeleton-title"></h5>
+              <div class="skeleton-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row" id="featuresContent" style="display: none;">
         <div class="col-md-6">
           <div class="card feature-card">
             <div class="card-body">
@@ -156,19 +228,41 @@
       </div>
     </section>
 
-    <!-- Spotlight Section -->
-    <section class="mt-5">
+    <!-- Skeleton Loader for Spotlight Section -->
+    <section class="mt-5" id="spotlightSection">
       <h3>Spotlight</h3>
-      <div class="row">
+      <div class="row skeleton-loader" id="spotlightSkeleton">
+        <div class="col-md-6">
+          <div class="card spotlight-card skeleton">
+            <div class="card-body">
+              <h5 class="skeleton-title"></h5>
+              <div class="skeleton-text"></div>
+              <div class="skeleton-list"></div>
+              <div class="skeleton-button"></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card spotlight-card skeleton">
+            <div class="card-body">
+              <h5 class="skeleton-title"></h5>
+              <div class="skeleton-text"></div>
+              <div class="skeleton-list"></div>
+              <div class="skeleton-button"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row" id="spotlightContent" style="display: none;">
         <div class="col-md-6">
           <div class="card spotlight-card">
             <div class="card-body">
               <h5 class="card-title">Weekly Top Notes</h5>
-              <p class="card-text">Check out the most popular notes this week!</p>
+              <p class="card-text">These 3 are the top 3 notes by the students!</p>
               <ul>
-                <li>Name: Null <br> Topic: Null <br> Class: Null</li>
-                <li>Name: Null <br> Topic: Null <br> Class: Null</li>
-                <li>Name: Null <br> Topic: Null <br> Class: Null</li>
+                <li>Name: N/O <br> Topic: N/O <br> Class: N/O</li>
+                <li>Name: N/O <br> Topic: N/O <br> Class: N/O</li>
+                <li>Name: N/O <br> Topic: N/O <br> Class: N/O</li>
               </ul>
               <a href="/htmls/spotlight.html" class="btn btn-primary">Explore More</a>
             </div>
@@ -178,20 +272,27 @@
           <div class="card spotlight-card">
             <div class="card-body">
               <h5 class="card-title">Monthly Top Notes</h5>
-              <p class="card-text">The best notes from the past month!</p>
+              <p class="card-text">Check Out the Best Notes of Previous Months From Spotlight Option.</p>
               <ul>
-                <li>Name: Null <br> Topic: Null <br> Class: Null</li>
-                <li>Name: Null <br> Topic: Null <br> Class: Null</li>
-                <li>Name: Null <br> Topic: Null <br> Class: Null</li>
+                <li>Name: N/O <br> Topic: N/O <br> Class: N/O</li>
+                <li>Name: N/O <br> Topic: N/O <br> Class: N/O</li>
+                <li>Name: N/O <br> Topic: N/O <br> Class: N/O</li>
               </ul>
               <a href="/htmls/spotlight.html" class="btn btn-primary">Explore More</a>
             </div>
           </div>
         </div>
       </div>
+      <h4><strong style="color: rgb(255, 255, 0);">Attention: </strong> Upload Your Own Best Handwritten Notes to get
+        your Name on the Dashboard!</h4>
+      <h4><strong style="color: red;">Warning: </strong> Do not Publish another once notes from this website (i.e.,
+        NeoBranium) or from another platform. <br>Notes must be written by You!</h4>
     </section>
+    <hr>
+    <h3><a href="/htmls/use-website.html">Click Here</a> to know How to use the Website (NeoBranium).</h3>
   </main>
 
+  <!-- Subject Modal -->
   <div class="modal fade" id="subjectModal" tabindex="-1" aria-labelledby="subjectModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -201,11 +302,12 @@
         </div>
         <div class="modal-body">
           <select class="form-select" id="subjectSelect">
-            <option value="#">Select a subject</option>
-            <option value="quiz_htmls/classs9-10maths.html">Mathematics</option>    <!-- error is coming while loading the page -->
-            <option value="physics">Physics</option>
-            <option value="chemistry">Chemistry</option>
-            <option value="biology">Biology</option>
+            <option value="">Select a subject</option>
+            <option value="class9-10maths">Mathematics</option>
+            <option value="class9-10science"><a href="/htmls/quiz_htmls/class9-10science.html">Science</a></option>
+            <option value="class9-10physics">Physics</option>
+            <option value="class9-10chemistry">Chemistry</option>
+            <option value="class9-10biology">Biology</option>
           </select>
         </div>
         <div class="modal-footer">
@@ -216,87 +318,28 @@
   </div>
 
   <div id="userBioBox" class="user-bio-box">
-    <p id="userBioText">Loading bio...</p>
+    <p id="userBioText">--Your Bio--</p>
   </div>
 
-  <div class="bottom-nav d-md-none">
+  <div class="bottom-nav">
     <a href="/htmls/dashboard.html" class="nav-icon"><i class="bi bi-question-circle"></i></a>
     <a href="/htmls/notes.html" class="nav-icon"><i class="bi bi-journal"></i></a>
     <a href="/htmls/spotlight.html" class="nav-icon"><i class="bi bi-star"></i></a>
     <a href="/htmls/contactus.html" class="nav-icon"><i class="bi bi-envelope"></i></a>
     <a href="/htmls/feedback.html" class="nav-icon"><i class="bi bi-chat"></i></a>
+    <div class="plus-btn">
+      <a href="#">
+        <button class="btn btn-primary rounded-circle"><i class="bi bi-plus"></i></button>
+      </a>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script type="module" src="/js/auth.js"></script>
-  <script src="/js/card_func.js"></script>
-  <script>
-    let selectedClass = '';
-
-    function openSubjectModal(cls) {
-      selectedClass = cls;
-      const modal = new bootstrap.Modal(document.getElementById('subjectModal'));
-      modal.show();
-    }
-
-    function goToSubjectPage() {
-      const subject = document.getElementById('subjectSelect').value;
-      if (subject && subject !== '#') {
-        window.location.href = `${selectedClass}-${subject}.html`;
-      }
-    }
-
-    // Toggle sidebar logic
-    document.querySelector('.navbar-toggler').addEventListener('click', function () {
-      const sidebar = document.querySelector('.sidebar');
-      const main = document.querySelector('main');
-      sidebar.classList.toggle('active');
-      main.classList.toggle('shifted');
-    });
-
-    // Load saved theme
-    document.getElementById('dark-mode-toggle').addEventListener('change', function () {
-      document.body.classList.toggle('dark-mode');
-      const mode = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
-      localStorage.setItem('theme', mode);
-    });
-
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      document.body.classList.add('dark-mode');
-      document.getElementById('dark-mode-toggle').checked = true;
-    }
-
-    // Adjust layout on resize
-    window.addEventListener('resize', function () {
-      const sidebar = document.querySelector('.sidebar');
-      const main = document.querySelector('main');
-      if (window.innerWidth >= 1024) {
-        sidebar.classList.remove('active');
-        main.classList.remove('shifted');
-        main.style.marginLeft = '250px';
-      } else if (window.innerWidth >= 768) {
-        main.style.marginLeft = sidebar.classList.contains('active') ? '0' : '200px';
-      } else {
-        main.style.marginLeft = '0';
-      }
-    });
-
-    // Initial load adjustment
-    window.addEventListener('load', function () {
-      const sidebar = document
-
-.querySelector('.sidebar');
-      const main = document.querySelector('main');
-      if (window.innerWidth >= 1024) {
-        main.style.marginLeft = '250px';
-      } else if (window.innerWidth >= 768) {
-        main.style.marginLeft = '200px';
-      } else {
-        main.style.marginLeft = '0';
-      }
-    });
-  </script>
-  <script src="/js/dark_mode.js"></script>
+  <script src="/js/dashboard.js"></script>
 </body>
+
 </html>
+
+
+
+<!-- https://uiverse.io/david-mohseni/young-frog-89 -->

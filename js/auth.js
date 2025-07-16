@@ -37,13 +37,20 @@ document.addEventListener("DOMContentLoaded", () => {
             usernameDisplay.innerText = `Welcome, ${userData.username || user.displayName || "User"}!`;
           }
 
-          // Bio 👇
+          // User Initial
+          const userInitial = document.getElementById("userInitial");
+          if (userInitial) {
+            const username = userData.username || user.displayName || "User";
+            userInitial.innerText = username.charAt(0).toUpperCase();
+          }
+
+          // Bio
           const bioBox = document.getElementById("userBioText");
           if (bioBox) {
             bioBox.innerText = userData.bio || "No bio added yet.";
           }
 
-          // Profile Picture 👇
+          // Profile Picture
           const profilePicRef = ref(storage, `profileImages/${loggedInUserId}`);
           try {
             const profilePicUrl = await getDownloadURL(profilePicRef);
@@ -64,6 +71,10 @@ document.addEventListener("DOMContentLoaded", () => {
           const usernameDisplay = document.getElementById("usernameDisplay");
           if (usernameDisplay) {
             usernameDisplay.innerText = "Welcome, User!";
+          }
+          const userInitial = document.getElementById("userInitial");
+          if (userInitial) {
+            userInitial.innerText = "U";
           }
         }
       } catch (error) {

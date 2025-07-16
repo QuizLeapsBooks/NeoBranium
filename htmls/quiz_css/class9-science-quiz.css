@@ -295,6 +295,7 @@ main.shifted {
   right: 20px;
   z-index: 1000;
   width: 200px;
+  margin-top: 2%;
 }
 
 .level-select-bar .form-select {

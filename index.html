@@ -3,54 +3,97 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>QuizMaster - Home</title>
+  <title>NeoBranium - Home</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="index_css.css">
 </head>
 <body>
+  <!-- Preloader with Instagram-style Logo -->
+  <div id="preloader">
+    <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="preloader-logo" />
+    <div class="loader"></div>
+  </div>
+
   <header>
     <div class="logo">
-  <img src="/online-graduation_16847316.png" alt="logo">
-  <span>NeoBranium</span>
-</div>
-
+      <img src="/online-graduation_16847316.png" alt="logo">
+      <span>NeoBranium</span>
+    </div>
     <nav>
       <a onclick="showWarning()" href="#">Home</a>
       <a onclick="showWarning()" href="#">About</a>
       <a onclick="showWarning()" href="#">Contact</a>
     </nav>
   </header>
-  
 
   <section class="hero">
     <div class="hero-text">
-      <h2>NeoBranium - Online Learning Platform</h2>
-      <h1>E-Learning Quiz and notes for Students</h1>
-      <p>Explore competitive quizzes, upload or view notes, and enhance your learning in Science & Math for Classes 9 and 10. Fun meets challenge here.</p>
-      <a href="/htmls/sign.html">Get Started</a>
+      <h2 class="animate__animated animate__fadeInUp">NeoBranium - Online Learning Platform</h2>
+      <h1 class="type-effect animate__animated animate__fadeInUp animate__delay-1s"></h1>
+      <p class="animate__animated animate__slideInLeft animate__delay-2s">Explore competitive quizzes, upload or view notes, and level up your skills in Science & Math for Classes 9 and 10. Fun meets challenge here! 🔥</p>
+      <a href="/htmls/sign.html" class="animate__animated animate__bounceIn animate__delay-3s">Get Started 🚀</a>
     </div>
     <div class="hero-img">
-      <img src="/online-graduation_16847316.png" alt="Student Image" />
+      <img src="/online-graduation_16847316.png" alt="Student Image" class="animate__animated animate__pulse" />
     </div>
   </section>
+
   <div class="modal" id="warningModal">
-  <div class="modal-content">
-    <h2>Sign In Required</h2>
-    <p>You need to sign in to access these options.</p>
-    <button onclick="closeWarning()">Okay</button>
+    <div class="modal-content">
+      <h2>Sign In Required</h2>
+      <p>You need to sign in to access these options. 🙌</p>
+      <button onclick="closeWarning()">Okay, Got It!</button>
+    </div>
   </div>
-</div>
 
   <footer>
-    &copy; 2025 QuizMaster | <span class="social-icons">
-      <a href="#">🌐</a>
-      <a href="#">📘</a>
-      <a href="#">▶️</a>
+    © 2025 NeoBranium | <span class="social-icons">
+      <a href="#" target="_blank">🌐</a>
+      <a href="#" target="_blank">📘</a>
+      <a href="#" target="_blank">▶️</a>
+      <a href="#" target="_blank">🐦</a>
+      <a href="#" target="_blank">💬</a>
     </span>
   </footer>
 
-</body>
+  <script src="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
   <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const preloader = document.getElementById('preloader');
+  preloader.style.display = 'flex';
+});
+
+window.addEventListener('load', function() {
+  const preloader = document.getElementById('preloader');
+  const preloaderLogo = document.querySelector('.preloader-logo');
+
+  preloaderLogo.style.transform = 'scale(1.5)';
+  preloaderLogo.style.opacity = '0';
+
+  setTimeout(() => {
+    preloader.style.opacity = '0';
+    setTimeout(() => {
+      preloader.style.display = 'none';
+
+      // ✅ ONLY ONE Typed.js instance
+      var typed = new Typed('.type-effect', {
+        strings: ['E-Learning Quiz & Notes for Students'],
+        typeSpeed: 50,
+        backSpeed: 10,
+        loop: false,
+        showCursor: true,
+        cursorChar: '|',
+        onBegin: function () {
+          document.querySelector('.type-effect').style.opacity = '1';
+        }
+      });
+
+    }, 500);
+  }, 1000);
+});
+
+
     function showWarning() {
       document.getElementById("warningModal").style.display = "flex";
     }
@@ -59,12 +102,13 @@
       document.getElementById("warningModal").style.display = "none";
     }
 
-    // Optional: Close on outside click
-    window.onclick = function (e) {
+    window.onclick = function(e) {
       const modal = document.getElementById("warningModal");
       if (e.target == modal) {
         modal.style.display = "none";
       }
     };
+  
   </script>
+</body>
 </html>
