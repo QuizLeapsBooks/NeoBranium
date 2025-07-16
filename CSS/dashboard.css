@@ -13,6 +13,7 @@
   --highlight-color: #0bff17;
   --link-color: #6a11cb;
   --shadow-color: rgba(0, 0, 0, 0.15);
+  --notes-button-bg: #2575fc; /* Fixed blue for buttons */
 }
 
 body.dark-mode {
@@ -20,9 +21,9 @@ body.dark-mode {
   --text-color: #f8f9fa;
   --sidebar-bg: #343a40;
   --card-bg: #343a40;
-  --notes-card-bg: #2c3034;
-  --feature-card-bg: #2c3034;
-  --spotlight-card-bg: #2c3034;
+  --notes-card-bg: #1a1a1a; /* Slightly lighter black for notes-card */
+  --feature-card-bg: #1a1a1a; /* Same for feature-card */
+  --spotlight-card-bg: #1a1a1a; /* Same for spotlight-card */
   --button-bg: #2575fc;
   --button-text: #ffffff;
   --highlight-color: #0bff17;
@@ -53,7 +54,8 @@ main,
 .modal-content,
 .card-body,
 .card-title,
-.card-text {
+.card-text,
+ul {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -199,11 +201,18 @@ main {
 }
 
 .notes-card, .feature-card, .spotlight-card {
-  background: var(--notes-card-bg);
+  background: var(--notes-card-bg); /* Same variable for all three */
   color: var(--text-color);
   border-radius: 15px;
   box-shadow: 0 8px 20px var(--shadow-color);
   margin-bottom: 20px;
+}
+
+body.dark-mode .notes-card,
+body.dark-mode .feature-card,
+body.dark-mode .spotlight-card {
+  background: var(--notes-card-bg); /* #1a1a1a in dark mode */
+  color: #ffffff; /* Force white text */
 }
 
 .notes-card .card-body,
@@ -220,6 +229,17 @@ main {
   color: var(--text-color);
 }
 
+body.dark-mode .notes-card .card-title,
+body.dark-mode .feature-card .card-title,
+body.dark-mode .spotlight-card .card-title,
+body.dark-mode .notes-card .card-text,
+body.dark-mode .feature-card .card-text,
+body.dark-mode .spotlight-card .card-text,
+body.dark-mode .feature-card ul,
+body.dark-mode .spotlight-card ul {
+  color: #ffffff; /* Force white text for titles, text, and lists */
+}
+
 .notes-card .card-text,
 .spotlight-card .card-text {
   font-size: 16px;
@@ -231,6 +251,7 @@ main {
 .spotlight-card ul {
   list-style: none;
   padding: 0;
+  color: var(--text-color);
 }
 
 .feature-card ul li,
@@ -400,14 +421,14 @@ body.dark-mode .skeleton-button {
 }
 
 .btn-primary {
-  background-color: var(--button-bg);
-  border-color: var(--button-bg);
+  background-color: var(--notes-button-bg); /* Always blue */
+  border-color: var(--notes-button-bg);
   color: var(--button-text);
 }
 
 .btn-primary:hover {
-  background-color: var(--link-color);
-  border-color: var(--link-color);
+  background-color: #1a5bb5; /* Slightly darker blue on hover */
+  border-color: #1a5bb5;
 }
 
 .modal-content {

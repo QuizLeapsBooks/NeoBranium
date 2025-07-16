@@ -26,6 +26,7 @@
     content="Access quizzes, notes, spotlights, and interactive features for Class 9 and 10. Enhance your learning experience with NeoBranium.">
   <meta name="twitter:image" content="https://neobranium.com/online-graduation_16847316.png">
   <script src="/js/dark_mode.js"></script>
+  <script type="module" src="/js/auth.js" defer></script>
 </head>
 
 <body>
@@ -41,7 +42,7 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-        <span id="usernameDisplay" class="navbar-text text-white me-3 d-none d-lg-block">Welcome, User!</span>
+        <span id="usernameDisplay" class="navbar-text text-white me-3 d-none d-lg-block"></span>
         <ul class="navbar-nav align-items-center">
           <li class="nav-item">
             <label class="switch">
@@ -51,7 +52,7 @@
           </li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-              <img id="profilePicture" src="https://via.placeholder.com/30" class="rounded-circle" width="30" />
+              <span id="userInitial" class="me-2"></span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" href="/htmls/profile.html">Profile</a></li>
@@ -339,7 +340,3 @@
 </body>
 
 </html>
-
-
-
-<!-- https://uiverse.io/david-mohseni/young-frog-89 -->
