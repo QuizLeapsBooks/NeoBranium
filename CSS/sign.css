@@ -1,141 +1,264 @@
-  /* General Styles */
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Poppins', sans-serif;
-    /* background: linear-gradient(135deg, #ff9a9e, #fad0c4); */
-    background-image: url(https://static.vecteezy.com/system/resources/previews/016/840/429/non_2x/memphis-blue-background-with-halftone-and-line-elements-for-wallpaper-web-banner-or-landing-page-vector.jpg);
-    background-repeat: no-repeat;
-    background-size: cover;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(135deg, #e7ddf9, #d1c4e9);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+.container {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  padding: clamp(20px, 5vw, 40px);
+  border-radius: 20px;
+  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+  width: clamp(300px, 90%, 450px);
+  text-align: center;
+  animation: fadeIn 1s ease-out;
+}
+
+.logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.logo img {
+  width: clamp(40px, 10vw, 50px);
+  height: clamp(40px, 10vw, 50px);
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.logo img:hover {
+  transform: rotate(360deg);
+}
+
+.logo span {
+  font-size: clamp(1.4rem, 5vw, 1.8rem);
+  font-weight: 700;
+  color: #6a11cb;
+}
+
+h2 {
+  color: #333;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  letter-spacing: 1px;
+  animation: slideInFromTop 0.8s ease-out;
+}
+
+.input-box {
+  position: relative;
+  margin: clamp(15px, 3vw, 25px) 0;
+}
+
+.input-box input {
+  width: 100%;
+  padding: clamp(8px, 2vw, 12px) clamp(10px, 3vw, 15px);
+  font-size: clamp(14px, 3vw, 16px);
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  outline: none;
+  background: #f9f9f9;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+}
+
+.input-box input:focus,
+.input-box input:valid {
+  background: #fff;
+  border: 1px solid #6a11cb;
+  box-shadow: 0 4px 15px rgba(106, 17, 203, 0.2);
+}
+
+.input-box label {
+  position: absolute;
+  top: 50%;
+  left: clamp(10px, 2vw, 15px);
+  transform: translateY(-50%);
+  font-size: clamp(12px, 2.5vw, 14px);
+  color: #aaa;
+  pointer-events: none;
+  transition: all 0.3s;
+}
+
+.input-box input:focus ~ label,
+.input-box input:valid ~ label {
+  top: -10px;
+  font-size: clamp(10px, 2vw, 12px);
+  color: #6a11cb;
+}
+
+.eye {
+  cursor: pointer;
+  position: absolute;
+  right: clamp(10px, 2vw, 15px);
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+  font-size: clamp(14px, 3vw, 16px);
+}
+
+.eye:hover {
+  color: #6a11cb;
+}
+
+.terms-checkbox {
+  margin: clamp(10px, 2vw, 15px) 0;
+  display: flex;
+  align-items: center;
+  font-size: clamp(12px, 2.5vw, 14px);
+}
+
+.terms-checkbox input {
+  margin-right: 10px;
+}
+
+.terms-checkbox a {
+  color: #2575fc;
+  text-decoration: none;
+}
+
+.terms-checkbox a:hover {
+  color: #6a11cb;
+}
+
+.messageDiv {
+  margin: clamp(8px, 2vw, 10px) 0;
+  padding: clamp(8px, 2vw, 10px);
+  border-radius: 5px;
+  text-align: center;
+  font-size: clamp(12px, 2.5vw, 14px);
+}
+
+button {
+  width: 100%;
+  padding: clamp(10px, 2.5vw, 12px) clamp(15px, 3vw, 20px);
+  font-size: clamp(14px, 3vw, 16px);
+  font-weight: 600;
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #6a11cb, #2575fc);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(106, 17, 203, 0.3);
+  transition: all 0.3s ease-in-out;
+}
+
+button:hover {
+  background: linear-gradient(135deg, #2575fc, #6a11cb);
+  transform: translateY(-3px);
+}
+
+p {
+  font-size: clamp(12px, 2.5vw, 14px);
+  margin: clamp(10px, 2vw, 15px) 0;
+}
+
+a {
+  color: #2575fc;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: #6a11cb;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    width: clamp(280px, 95%, 400px);
+    padding: clamp(15px, 4vw, 30px);
   }
 
+  .logo img {
+    width: clamp(35px, 8vw, 45px);
+    height: clamp(35px, 8vw, 45px);
+  }
+
+  .logo span {
+    font-size: clamp countertop(1.2rem, 4vw, 1.6rem);
+  }
+}
+
+@media (max-width: 480px) {
   .container {
-    background: rgba(255, 255, 255, 0.368);
-    padding: 50px;
-    border-radius: 20px;
-    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
-    border-color: 2px solid black;
-    width: 400px;
-    text-align: center;
-    animation: fadeIn 1.5s ease-out;
+    width: clamp(250px, 90%, 350px);
+    padding: clamp(15px, 4vw, 25px);
   }
 
   h2 {
-    color: #333;
-    font-size: 28px;
-    font-weight: bold;
-    margin-bottom: 25px;
-    letter-spacing: 1px;
-    animation: slideInFromTop 1s ease-out;
-  }
-
-  .input-box {
-    position: relative;
-    margin: 25px 0;
+    font-size: clamp(1.2rem, 4vw, 1.6rem);
   }
 
   .input-box input {
-    width: 100%;
-    padding: 10px 15px;
-    font-size: 16px;
-    border: 1px solid #ddd;
-    border-radius: 25px;
-    outline: none;
-    background: #f9f9f9;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s;
-  }
-
-  .input-box input:focus {
-    background: #fff;
-    border: 1px solid #6a11cb;
-    box-shadow: 0 4px 15px rgba(106, 17, 203, 0.2);
+    font-size: clamp(12px, 2.5vw, 14px);
   }
 
   .input-box label {
-    position: absolute;
-    top: 50%;
-    left: 15px;
-    transform: translateY(-50%);
-    font-size: 16px;
-    color: #aaa;
-    pointer-events: none;
-    transition: all 0.3s;
+    font-size: clamp(10px, 2vw, 12px);
   }
 
   .input-box input:focus ~ label,
   .input-box input:valid ~ label {
-    top: -10px;
-    font-size: 12px;
-    color: #6a11cb;
-  }
-
-  .eye {
-    cursor: pointer;
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #aaa;
-  }
-
-  .eye:hover {
-    color: #6a11cb;
+    font-size: clamp(8px, 1.8vw, 10px);
   }
 
   button {
-    width: 100%;
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    border: none;
-    border-radius: 25px;
-    background: linear-gradient(135deg, #6a11cb, #2575fc);
-    color: white;
-    cursor: pointer;
-    box-shadow: 0 10px 20px rgba(106, 17, 203, 0.3);
-    transition: all 0.3s ease-in-out;
+    font-size: clamp(12px, 2.5vw, 14px);
   }
 
-  button:hover {
-    background: linear-gradient(135deg, #2575fc, #6a11cb);
-    transform: translateY(-3px);
+  .terms-checkbox {
+    font-size: clamp(10px, 2vw, 12px);
   }
 
-  a {
-    color: #2575fc;
-    text-decoration: none;
-    font-weight: bold;
-    transition: color 0.3s;
+  .messageDiv {
+    font-size: clamp(10px, 2vw, 12px);
   }
+}
 
-  a:hover {
-    color: #6a11cb;
+@media (min-width: 769px) and (max-width: 1024px) {
+  .container {
+    width: clamp(350px, 80%, 500px);
   }
+}
 
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: scale(0.9);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  @keyframes slideInFromTop {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+.hidden {
+  display: none !important;
+}

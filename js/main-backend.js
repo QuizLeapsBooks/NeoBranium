@@ -49,21 +49,6 @@ document.getElementById("submitSignUp").addEventListener("click", async () => {
   const email = document.getElementById("signup-email").value.trim();
   const password = document.getElementById("signup-password").value;
 
-  if (!fname || !lname || !email || !password) {
-    showMessage("All fields are required", "signUpMessage");
-    return;
-  }
-
-  if (!isValidEmail(email)) {
-    showMessage("Invalid email format", "signUpMessage");
-    return;
-  }
-
-  if (password.length < 8) {
-    showMessage("Password must be at least 8 characters long", "signUpMessage");
-    return;
-  }
-
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
@@ -85,16 +70,6 @@ document.getElementById("submitSignIn").addEventListener("click", async () => {
   const email = document.getElementById("signIn-email").value.trim();
   const password = document.getElementById("signIn-password").value;
 
-  if (!email || !password) {
-    showMessage("All fields are required", "signInMessage");
-    return;
-  }
-
-  if (!isValidEmail(email)) {
-    showMessage("Invalid email format", "signInMessage");
-    return;
-  }
-
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     localStorage.setItem("loggedInUserId", userCredential.user.uid);
@@ -105,4 +80,3 @@ document.getElementById("submitSignIn").addEventListener("click", async () => {
     showMessage("Login Failed. Email or Password is incorrect.", "signInMessage");
   }
 });
-

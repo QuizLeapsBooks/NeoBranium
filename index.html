@@ -19,7 +19,8 @@
       <img src="/online-graduation_16847316.png" alt="logo">
       <span>NeoBranium</span>
     </div>
-    <nav>
+    <button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+    <nav class="nav-menu">
       <a onclick="showWarning()" href="#">Home</a>
       <a onclick="showWarning()" href="#">About</a>
       <a onclick="showWarning()" href="#">Contact</a>
@@ -62,6 +63,14 @@
 document.addEventListener('DOMContentLoaded', () => {
   const preloader = document.getElementById('preloader');
   preloader.style.display = 'flex';
+
+  // Toggle mobile menu
+  const menuToggle = document.querySelector('.menu-toggle');
+  const navMenu = document.querySelector('.nav-menu');
+  menuToggle.addEventListener('click', () => {
+    navMenu.classList.toggle('active');
+    menuToggle.textContent = navMenu.classList.contains('active') ? '✕' : '☰';
+  });
 });
 
 window.addEventListener('load', function() {
@@ -76,7 +85,6 @@ window.addEventListener('load', function() {
     setTimeout(() => {
       preloader.style.display = 'none';
 
-      // ✅ ONLY ONE Typed.js instance
       var typed = new Typed('.type-effect', {
         strings: ['E-Learning Quiz & Notes for Students'],
         typeSpeed: 50,
@@ -88,27 +96,24 @@ window.addEventListener('load', function() {
           document.querySelector('.type-effect').style.opacity = '1';
         }
       });
-
     }, 500);
   }, 1000);
 });
 
+function showWarning() {
+  document.getElementById("warningModal").style.display = "flex";
+}
 
-    function showWarning() {
-      document.getElementById("warningModal").style.display = "flex";
-    }
+function closeWarning() {
+  document.getElementById("warningModal").style.display = "none";
+}
 
-    function closeWarning() {
-      document.getElementById("warningModal").style.display = "none";
-    }
-
-    window.onclick = function(e) {
-      const modal = document.getElementById("warningModal");
-      if (e.target == modal) {
-        modal.style.display = "none";
-      }
-    };
-  
+window.onclick = function(e) {
+  const modal = document.getElementById("warningModal");
+  if (e.target == modal) {
+    modal.style.display = "none";
+  }
+};
   </script>
 </body>
 </html>
