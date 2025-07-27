@@ -1,42 +1,82 @@
+:root {
+  --bg-color: #f8f9fa;
+  --text-color: #212529;
+  --sidebar-bg: #e9ecef;
+  --header-bg: linear-gradient(135deg, #4a00e0, #8e2de2);
+  --header-text: #ffffff;
+  --card-bg: #ffffff;
+  --notes-card-bg: #ffffff;
+  --feature-card-bg: #ffffff;
+  --spotlight-card-bg: #ffffff;
+  --button-bg: #6a11cb;
+  --button-text: #ffffff;
+  --highlight-color: #0bff17;
+  --link-color: #6a11cb;
+  --shadow-color: rgba(0, 0, 0, 0.15);
+  --notes-button-bg: #2575fc;
+  --grid-item-1-bg: #ff4d4d; /* Class 9/10 NCERT */
+  --grid-item-2-bg: #4d84ff; /* Chapters */
+  --grid-item-3-bg: #884dff; /* Subjects */
+  --grid-item-text: #ffffff; /* Default text color for grid items */
+}
+
+body.dark-mode {
+  --bg-color: #212529;
+  --text-color: #f8f9fa;
+  --sidebar-bg: #343a40;
+  --card-bg: #343a40;
+  --notes-card-bg: #1a1a1a;
+  --feature-card-bg: #1a1a1a;
+  --spotlight-card-bg: #1a1a1a;
+  --button-bg: #2575fc;
+  --button-text: #ffffff;
+  --highlight-color: #0bff17;
+  --link-color: #2575fc;
+  --shadow-color: rgba(255, 255, 255, 0.1);
+  --grid-item-1-bg: #cc0000; /* Darker red for dark mode */
+  --grid-item-2-bg: #1a5bb5; /* Darker blue for dark mode */
+  --grid-item-3-bg: #6200ea; /* Darker purple for dark mode */
+  --grid-item-text: #f8f9fa; /* Lighter text for dark mode */
+}
 .grid-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    padding: 10px;
-    margin: 0 auto;
-    max-width: 80%;
-    background-color: var(--bg-color);
-    transition: background-color 0.3s ease;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 10px;
+  margin: 0 auto;
+  max-width: 80%;
+  background-color: var(--bg-color);
+  transition: background-color 0.3s ease;
 }
 
 .grid-item_1 {
-    background-color: #ff4d4d;
-    color: white;
-    padding: 10px;
-    text-align: center;
-    border-radius: 10px;
-    width: 80%;
-    margin: 10px auto 0 auto;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: var(--grid-item-1-bg);
+  color: var(--grid-item-text);
+  padding: 10px;
+  text-align: center;
+  border-radius: 10px;
+  width: 80%;
+  margin: 10px auto 0 auto;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .grid-item_2 {
-    background-color: #4d84ff;
-    color: white;
-    padding: 10px;
-    text-align: center;
-    border-radius: 10px;
-    width: 80%;
-    margin: 5px auto;
-    font-family: 'Poppins', sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease;
+  background-color: var(--grid-item-2-bg);
+  color: var(--grid-item-text);
+  padding: 10px;
+  text-align: center;
+  border-radius: 10px;
+  width: 80%;
+  margin: 5px auto;
+  font-family: 'Poppins', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .grid-item_3 {
-  background-color: #884dff;
-  color: black;
+  background-color: var(--grid-item-3-bg);
+  color: var(--grid-item-text);
   padding: 10px;
   text-align: center;
   border-radius: 10px;
@@ -47,5 +87,7 @@
 }
 
 a {
-    text-decoration: none;
+  text-decoration: none;
+  color: var(--grid-item-text); /* Ensure links use the same text color */
+  transition: color 0.3s ease;
 }

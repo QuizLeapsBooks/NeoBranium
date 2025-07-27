@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoBranium Live Chat</title>
+    <meta name="description" content="NeoBranium Live Chat: Connect with peers, share thoughts, and engage in real-time discussions for Class 9 and 10.">
+    <meta name="keywords" content="NeoBranium, Live Chat, E-Learning, Class 9, Class 10, Community, Feedback, Education">
+    <meta name="author" content="NeoBranium Team">
+    <link rel="canonical" href="https://neobranium.com/htmls/chat.html">
+    <meta property="og:title" content="NeoBranium Live Chat">
+    <meta property="og:description" content="Connect with peers and share thoughts in real-time on NeoBranium's Live Chat for Class 9 and 10.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://neobranium.com/htmls/chat.html">
+    <meta property="og:image" content="https://neobranium.com/online-graduation_16847316.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="NeoBranium Live Chat">
+    <meta name="twitter:description" content="Connect with peers and share thoughts in real-time on NeoBranium's Live Chat for Class 9 and 10.">
+    <meta name="twitter:image" content="https://neobranium.com/online-graduation_16847316.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+
+        // Firebase config
+        const firebaseConfig = {
+            apiKey: "AIzaSyA1iWJdGtmrox9RAHgWBxaK4p8KGf7ji_Y",
+            authDomain: "neobranium.firebaseapp.com",
+            projectId: "neobranium",
+            storageBucket: "neobranium.appspot.com",
+            messagingSenderId: "59188872045",
+            appId: "1:59188872045:web:450a70b28e4be5db335064",
+            databaseURL: "https://neobranium-default-rtdb.firebaseio.com"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const rtdb = getDatabase(app);
+        const messagesRef = ref(rtdb, "messages");
+
+        // Check auth state and get username
+        let currentUser = null;
+        onAuthStateChanged(auth, async (user) => {
+            try {
+                if (user) {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        currentUser = {
+                            uid: user.uid,
+                            username: userData.fname || user.displayName || "User"
+                        };
+                        console.log("User loaded:", currentUser);
+                        document.getElementById("usernameDisplay").innerText = `Welcome, ${currentUser.username}!`;
+                        document.getElementById("userInitial").innerText = currentUser.username.charAt(0).toUpperCase();
+                    } else {
+                        console.warn("User document not found in Firestore");
+                        currentUser = { uid: user.uid, username: "User" };
+                        document.getElementById("usernameDisplay").innerText = `Welcome, ${currentUser.username}!`;
+                        document.getElementById("userInitial").innerText = "U";
+                    }
+                } else {
+                    console.log("No user logged in, redirecting to index.html");
+                    window.location.href = "/index.html";
+                }
+            } catch (error) {
+                console.error("Error in auth state change:", error);
+                alert("Error loading user data: " + error.message);
+            }
+        });
+
+        // Send message
+        document.getElementById("chat-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const messageInput = document.getElementById("message-input");
+            const messageText = messageInput.value.trim();
+            if (messageText && currentUser) {
+                try {
+                    const messageData = {
+                        username: currentUser.username,
+                        text: messageText,
+                        timestamp: Date.now(),
+                        reported: false
+                    };
+                    await push(messagesRef, messageData);
+                    console.log("Message sent:", messageData);
+                    messageInput.value = ""; // Clear input
+                } catch (error) {
+                    console.error("Error sending message:", error);
+                    alert("Failed to send message: " + error.message);
+                }
+            } else {
+                console.warn("Cannot send message: Empty text or user not loaded");
+                if (!messageText) {
+                    alert("Please enter a message.");
+                } else if (!currentUser) {
+                    alert("User data is still loading, please wait.");
+                }
+            }
+        });
+
+        // Display messages in real-time
+        onValue(messagesRef, (snapshot) => {
+            const messageList = document.getElementById("message-list");
+            messageList.innerHTML = ""; // Clear existing messages
+            try {
+                const messages = snapshot.val();
+                if (messages) {
+                    console.log("Messages fetched:", Object.keys(messages).length, "messages");
+                    // Sort messages by timestamp
+                    const sortedMessages = Object.entries(messages).sort((a, b) => (a[1].timestamp || 0) - (b[1].timestamp || 0));
+                    sortedMessages.forEach(([key, message]) => {
+                        if (message.username && message.text && message.timestamp) {
+                            const li = document.createElement("li");
+                            li.innerHTML = `
+                                <div class="message ${message.username === currentUser?.username ? 'message-sent' : 'message-received'}">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="avatar">${message.username.charAt(0).toUpperCase()}</span>
+                                            <div class="username">${message.username}</div>
+                                        </div>
+                                        <div class="relative">
+                                            <button class="menu-btn text-gray-400 hover:text-white" data-message-id="${key}">
+                                                <i class="bi bi-three-dots-vertical"></i>
+                                            </button>
+                                            <ul class="menu hidden absolute right-0 mt-2 w-32 bg-gray-800 border border-indigo-500/30 rounded-lg shadow-lg z-10">
+                                                <li>
+                                                    <button class="report-btn w-full text-left px-4 py-2 text-white hover:bg-indigo-600" data-message-id="${key}">Report</button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="text">${message.text}</div>
+                                    <div class="timestamp flex items-center gap-2">
+                                        ${new Date(message.timestamp).toLocaleString()}
+                                        ${message.reported ? '<span class="w-2 h-2 bg-red-500 rounded-full"></span>' : ''}
+                                    </div>
+                                </div>
+                            `;
+                            messageList.appendChild(li);
+                        } else {
+                            console.warn("Skipping invalid message:", message);
+                        }
+                    });
+                    messageList.scrollTop = messageList.scrollHeight; // Auto-scroll to bottom
+                } else {
+                    console.log("No messages in database");
+                    messageList.innerHTML = "<li class='text-center text-gray-400'>No messages yet.</li>";
+                }
+            } catch (error) {
+                console.error("Error processing messages:", error);
+                messageList.innerHTML = "<li class='text-center text-red-400'>Failed to load messages.</li>";
+            }
+        }, {
+            onlyOnce: false // Ensure real-time updates
+        }, (error) => {
+            console.error("Error in onValue listener:", error);
+            document.getElementById("message-list").innerHTML = "<li class='text-center text-red-400'>Error fetching messages.</li>";
+        });
+    </script>
+</head>
+<body class="bg-gradient-to-br from-gray-950 to-indigo-900 min-h-screen">
+    <!-- Header -->
+    <header class="navbar navbar-expand-lg fixed-top bg-gradient-to-r from-indigo-600 to-purple-700 shadow-lg z-[1001]">
+        <div class="container-fluid align-items-center px-4">
+            <div class="hero-img">
+                <a href="/index.html">
+                    <img src="/online-graduation_16847316.png" alt="Student Image" class="header-logo w-10 h-10">
+                </a>
+            </div>
+            <a class="navbar-brand fw-bold text-white text-xl" href="/htmls/privacy_policy&terms_conditions.html">NeoBranium</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <span id="usernameDisplay" class="navbar-text text-white me-3 text-base font-medium"></span>
+                <ul class="navbar-nav align-items-center gap-4">
+                    <li class="nav-item">
+                        <label class="switch relative inline-block w-12 h-6">
+                            <input type="checkbox" id="dark-mode-toggle" class="opacity-0 w-0 h-0">
+                            <span class="slider absolute top-0 left-0 right-0 bottom-0 bg-gray-400 rounded-full cursor-pointer transition-all duration-300 before:content-[''] before:absolute before:w-5 before:h-5 before:bg-white before:rounded-full before:top-0.5 before:left-0.5 before:transition-transform before:duration-300 checked:bg-indigo-500 checked:before:translate-x-6"></span>
+                        </label>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle text-white flex items-center gap-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span id="userInitial" class="avatar inline-block w-8 h-8 rounded-full bg-indigo-400 text-white font-bold text-center leading-8"></span>
+                            <span class="hidden sm:inline">Profile</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end bg-gray-800 text-white border border-indigo-500/30 shadow-lg z-[1002]">
+                            <li><a class="dropdown-item text-white hover:bg-indigo-600" href="/htmls/profile.html">Profile</a></li>
+                            <li><a class="dropdown-item text-white hover:bg-indigo-600" href="/htmls/setting.html">Settings</a></li>
+                            <li><hr class="dropdown-divider border-gray-600"></li>
+                            <li><a class="dropdown-item text-white hover:bg-indigo-600" href="#" id="logout">Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <div class="sidebar bg-gray-900/80 backdrop-blur-md border-r border-indigo-500/20 fixed top-[60px] left-0 h-[calc(100vh-60px)] w-[250px] z-[999] flex flex-col justify-between">
+        <ul class="p-0">
+            <li><a href="/htmls/dashboard.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-question-circle"></i> Dashboard</a></li>
+            <li><a href="/htmls/notes.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-journal"></i> Notes</a></li>
+            <li><a href="/htmls/spotlight.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-star"></i> Spotlight (Monthly)</a></li>
+            <li><a href="/htmls/contactus.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-envelope"></i> Contact Us</a></li>
+            <li><a href="/htmls/feedback.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-chat"></i> Feedback/Complaint</a></li>
+        </ul>
+        <div class="plus-btn p-4 text-center">
+            <button class="btn btn-primary rounded-circle w-12 h-12 bg-indigo-500 hover:bg-indigo-600 text-white border-none" onclick="openUploadModal()"><i class="bi bi-plus-lg"></i></button>
+        </div>
+    </div>
+
+    <!-- Main Chat Content -->
+    <main class="pt-20 px-4 sm:px-6 ml-0 md:ml-[250px]">
+        <div id="chat-container" class="bg-gray-900/30 backdrop-blur-xl w-full max-w-3xl mx-auto rounded-3xl shadow-2xl p-6 sm:p-8 border border-indigo-500/20 transition-all duration-500 hover:shadow-indigo-500/30">
+            <div id="usernameDisplay" class="text-2xl font-bold text-indigo-200 mb-6 flex items-center gap-3 animate-fade-in">
+                <svg class="w-7 h-7 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <span></span>
+            </div>
+            <ul id="message-list" class="h-[550px] overflow-y-auto bg-gray-950/50 rounded-2xl p-5 mb-6 scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-gray-950">
+                <li class="text-center text-gray-400">Loading messages...</li>
+            </ul>
+            <form id="chat-form" class="flex gap-3 relative">
+                <div class="absolute -top-6 left-0 text-gray-400 text-sm animate-pulse" id="typing-indicator" style="display: none;">Typing...</div>
+                <input 
+                    type="text" 
+                    id="message-input" 
+                    placeholder="Type your message..." 
+                    required 
+                    class="flex-1 p-4 bg-gray-800/50 text-white rounded-2xl border border-indigo-500/30 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 placeholder-gray-500 hover:bg-gray-800/70"
+                    oninput="document.getElementById('typing-indicator').style.display = this.value ? 'block' : 'none';"
+                >
+                <button 
+                    type="submit" 
+                    id="send-button" 
+                    class="px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-2xl hover:from-indigo-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                    Send
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Bottom Navigation for Mobile -->
+    <div class="bottom-nav bg-gray-900/80 backdrop-blur-md border-t border-indigo-500/20 fixed bottom-0 left-0 w-full flex justify-around items-center p-2 z-[1000]">
+        <a href="/htmls/dashboard.html" class="nav-icon text-indigo-200 hover:text-indigo-400"><i class="bi bi-question-circle"></i></a>
+        <a href="/htmls/notes.html" class="nav-icon text-indigo-200 hover:text-indigo-400"><i class="bi bi-journal"></i></a>
+        <a href="/htmls/spotlight.html" class="nav-icon text-indigo-200 hover:text-indigo-400"><i class="bi bi-star"></i></a>
+        <a href="/htmls/contactus.html" class="nav-icon text-indigo-200 hover:text-indigo-400"><i class="bi bi-envelope"></i></a>
+        <a href="/htmls/feedback.html" class="nav-icon text-indigo-200 hover:text-indigo-400"><i class="bi bi-chat"></i></a>
+        <div class="plus-btn">
+            <a href="#">
+                <button class="btn btn-primary rounded-circle w-10 h-10 bg-indigo-500 hover:bg-indigo-600 text-white border-none"><i class="bi bi-plus"></i></button>
+            </a>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-gray-800 text-white border border-indigo-500/30">
+                <div class="modal-header border-b border-gray-600">
+                    <h5 class="modal-title" id="reportModalLabel">Report Message</h5>
+                    <button type="button" class="btn-close bg-gray-600" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-4">Select the reason for reporting this message:</p>
+                    <select id="reportReason" class="form-select bg-gray-700 text-white border-gray-600 mb-4">
+                        <option value="">Select a reason</option>
+                        <option value="Spam">Spam</option>
+                        <option value="Harassment">Harassment</option>
+                        <option value="Inappropriate Content">Inappropriate Content</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <p class="text-red-400 text-sm">Warning: If your report is found to be false, your account may be subject to deletion.</p>
+                </div>
+                <div class="modal-footer border-t border-gray-600">
+                    <button type="button" class="btn btn-secondary bg-gray-600 text-white" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="submitReport" class="btn btn-primary bg-indigo-500 hover:bg-indigo-600 text-white">Report</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/report.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-color: #f8f9fa;
+            --sidebar-bg: #111827;
+            --header-bg: linear-gradient(135deg, #4f46e5, #7c3aed);
+            --card-bg: #1f2937;
+            --button-bg: #4f46e5;
+            --button-text: #ffffff;
+            --highlight-color: #a5b4fc;
+            --link-color: #818cf8;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode {
+            --bg-color: #0f172a;
+            --text-color: #f8f9fa;
+            --sidebar-bg: #111827;
+            --card-bg: #1f2937;
+            --button-bg: #4f46e5;
+            --button-text: #ffffff;
+            --highlight-color: #a5b4fc;
+            --link-color: #818cf8;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .navbar, .sidebar, main, .bottom-nav {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .navbar {
+            background: var(--header-bg);
+            padding: 0.5rem 1rem;
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+
+        .switch input:checked + .slider {
+            background-color: var(--button-bg);
+        }
+
+        .switch input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        body.dark-mode .slider {
+            background-color: #666;
+        }
+
+        .sidebar {
+            background-color: var(--sidebar-bg);
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar ul li a {
+            transition: background-color 0.3s ease;
+        }
+
+        main {
+            background-color: transparent;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            padding: 12px 16px;
+            margin: 10px 12px;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            max-width: 70%;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .message-sent {
+            background: linear-gradient(135deg, #5b21b6, #7c3aed);
+            align-self: flex-end;
+            color: white;
+            border: 1px solid rgba(129, 140, 248, 0.3);
+        }
+
+        .message-received {
+            background: linear-gradient(135deg, #1f2937, #374151);
+            align-self: flex-start;
+            border: 1px solid rgba(165, 180, 252, 0.2);
+        }
+
+        .message:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .username {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #c7d2fe;
+        }
+
+        .text {
+            color: #e5e7eb;
+            margin: 6px 0;
+            word-break: break-word;
+            font-size: 1rem;
+        }
+
+        .timestamp {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            opacity: 0.7;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .scrollbar-thumb-indigo-300::-webkit-scrollbar-thumb {
+            background-color: #a5b4fc;
+            border-radius: 3px;
+        }
+
+        .scrollbar-track-gray-950::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .menu {
+            display: none;
+        }
+
+        .menu.show {
+            display: block;
+        }
+
+        @media (max-width: 767px) {
+            .sidebar {
+                transform: translateX(-100%);
+                top: 56px;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            main {
+                margin-left: 0;
+                margin-top: 56px;
+            }
+
+            .bottom-nav {
+                display: flex;
+            }
+
+            #chat-container {
+                padding: 1rem;
+            }
+
+            #message-list {
+                height: 450px;
+            }
+
+            #message-input {
+                padding: 0.75rem;
+            }
+
+            #send-button {
+                padding: 0.75rem 1.5rem;
+            }
+
+            .message {
+                max-width: 85%;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .sidebar {
+                transform: translateX(0);
+                top: 60px;
+            }
+
+            .bottom-nav {
+                display: none;
+            }
+        }
+    </style>
+</body>
+<script type="module" src="report.js"></script>
+</html>

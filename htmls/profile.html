@@ -212,90 +212,6 @@
       -ms-user-select: none;
       user-select: none;
     }
-
-    .dark {
-      opacity: .5;
-    }
-
-    .mark {
-      border-radius: 100px;
-      background-color: black;
-    }
-
-    .time {
-      color: black;
-    }
-
-    /* -------- Switch Styles ------------ */
-    [type="checkbox"] {
-      display: none;
-    }
-
-    /* Toggle */
-    [type="checkbox"]:checked + .app .toggle {
-      -webkit-transform: translateX(100%);
-      -ms-transform: translateX(100%);
-      transform: translateX(100%);
-      background-color: #34323D;
-    }
-
-    [type="checkbox"]:checked + .app .dark {
-      opacity: 1;
-      color: white;
-    }
-
-    [type="checkbox"]:checked + .app .light {
-      opacity: 1;
-      color: white;
-    }
-
-    /* App */
-    [type="checkbox"]:checked + .app .body {
-      background-color: #26242E;
-      color: white;
-    }
-
-    /* Circle */
-    [type="checkbox"]:checked + .app .crescent {
-      -webkit-transform: scale(1);
-      -ms-transform: scale(1);
-      transform: scale(1);
-      background: #26242E;
-    }
-
-    [type="checkbox"]:checked + .app .circle {
-      background: linear-gradient(40deg, #8983F7, #A3DAFB 70%);
-    }
-
-    [type="checkbox"]:checked + .app .main-circle {
-      background: linear-gradient(40deg, #8983F7, #A3DAFB 70%);
-    }
-
-    [type="checkbox"]:checked + .time {
-      color: white;
-    }
-
-    [type="checkbox"]:checked + .app .body .phone .menu .time {
-      color: white;
-    }
-
-    [type="checkbox"]:checked + .app .body .phone .menu .icons .network {
-      border-color: transparent transparent white transparent;
-    }
-
-    [type="checkbox"]:checked + .app .body .phone .menu .icons .battery {
-      background-color: white;
-    }
-
-    [type="checkbox"]:checked + .app .body {
-      border-radius: 40px;
-    }
-
-    /* Additional styles for body dark mode */
-    .dark-mode {
-      background-color: #26242E;
-      color: white;
-    }
   </style>
 </head>
 
@@ -328,7 +244,7 @@
     </div>  
 
     <div class="flex justify-center gap-3 mt-4 mb-4 z-10">
-      <a href="/settings.html" class="bg-indigo-600 text-white px-5 py-2 rounded-lg font-semibold shadow hover:bg-indigo-700 transition">Edit Profile</a>
+      <a href="/htmls/setting.html" class="bg-indigo-600 text-white px-5 py-2 rounded-lg font-semibold shadow hover:bg-indigo-700 transition">Edit Profile</a>
       <button id="logoutBtn" class="bg-gray-600 text-white px-5 py-2 rounded-lg font-semibold shadow hover:bg-gray-700 transition">Logout</button>
     </div>
 
@@ -338,36 +254,6 @@
       <a href="/htmls/rank-score-info.html" class="text-indigo-700 hover:underline text-sm font-semibold">
     📚 How Rank & Score are calculated?
   </a>
-  </div>
-  <!-- From Uiverse.io by Pradeepsaranbishnoi -->
-  <input id="switch" type="checkbox">
-  <div class="app">
-    <div class="body">
-      <div class="phone">
-        <div class="menu">
-          <div class="time">4:20</div>
-          <div class="icons">
-            <div class="network"></div>
-            <div class="battery"></div>
-          </div>
-        </div>
-        <div class="content">
-          <div class="circle">
-            <div class="crescent"></div>
-          </div>
-          <label for="switch">
-            <div class="toggle"></div>
-            <div class="names">
-              <p class="light">Light</p>
-              <p class="dark">Dark</p>
-            </div>
-          </label>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="credit">
-    <a href="https://uiverse.io">From Uiverse.io by Pradeepsaranbishnoi</a>
   </div>
 
   
