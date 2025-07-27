@@ -20,150 +20,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-        import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
-
-        // Firebase config
-        const firebaseConfig = {
-            apiKey: "AIzaSyA1iWJdGtmrox9RAHgWBxaK4p8KGf7ji_Y",
-            authDomain: "neobranium.firebaseapp.com",
-            projectId: "neobranium",
-            storageBucket: "neobranium.appspot.com",
-            messagingSenderId: "59188872045",
-            appId: "1:59188872045:web:450a70b28e4be5db335064",
-            databaseURL: "https://neobranium-default-rtdb.firebaseio.com"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const rtdb = getDatabase(app);
-        const messagesRef = ref(rtdb, "messages");
-
-        // Check auth state and get username
-        let currentUser = null;
-        onAuthStateChanged(auth, async (user) => {
-            try {
-                if (user) {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        currentUser = {
-                            uid: user.uid,
-                            username: userData.fname || user.displayName || "User"
-                        };
-                        console.log("User loaded:", currentUser);
-                        document.getElementById("usernameDisplay").innerText = `Welcome, ${currentUser.username}!`;
-                        document.getElementById("userInitial").innerText = currentUser.username.charAt(0).toUpperCase();
-                    } else {
-                        console.warn("User document not found in Firestore");
-                        currentUser = { uid: user.uid, username: "User" };
-                        document.getElementById("usernameDisplay").innerText = `Welcome, ${currentUser.username}!`;
-                        document.getElementById("userInitial").innerText = "U";
-                    }
-                } else {
-                    console.log("No user logged in, redirecting to index.html");
-                    window.location.href = "/index.html";
-                }
-            } catch (error) {
-                console.error("Error in auth state change:", error);
-                alert("Error loading user data: " + error.message);
-            }
-        });
-
-        // Send message
-        document.getElementById("chat-form").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const messageInput = document.getElementById("message-input");
-            const messageText = messageInput.value.trim();
-            if (messageText && currentUser) {
-                try {
-                    const messageData = {
-                        username: currentUser.username,
-                        text: messageText,
-                        timestamp: Date.now(),
-                        reported: false
-                    };
-                    await push(messagesRef, messageData);
-                    console.log("Message sent:", messageData);
-                    messageInput.value = ""; // Clear input
-                } catch (error) {
-                    console.error("Error sending message:", error);
-                    alert("Failed to send message: " + error.message);
-                }
-            } else {
-                console.warn("Cannot send message: Empty text or user not loaded");
-                if (!messageText) {
-                    alert("Please enter a message.");
-                } else if (!currentUser) {
-                    alert("User data is still loading, please wait.");
-                }
-            }
-        });
-
-        // Display messages in real-time
-        onValue(messagesRef, (snapshot) => {
-            const messageList = document.getElementById("message-list");
-            messageList.innerHTML = ""; // Clear existing messages
-            try {
-                const messages = snapshot.val();
-                if (messages) {
-                    console.log("Messages fetched:", Object.keys(messages).length, "messages");
-                    // Sort messages by timestamp
-                    const sortedMessages = Object.entries(messages).sort((a, b) => (a[1].timestamp || 0) - (b[1].timestamp || 0));
-                    sortedMessages.forEach(([key, message]) => {
-                        if (message.username && message.text && message.timestamp) {
-                            const li = document.createElement("li");
-                            li.innerHTML = `
-                                <div class="message ${message.username === currentUser?.username ? 'message-sent' : 'message-received'}">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <div class="flex items-center gap-2">
-                                            <span class="avatar">${message.username.charAt(0).toUpperCase()}</span>
-                                            <div class="username">${message.username}</div>
-                                        </div>
-                                        <div class="relative">
-                                            <button class="menu-btn text-gray-400 hover:text-white" data-message-id="${key}">
-                                                <i class="bi bi-three-dots-vertical"></i>
-                                            </button>
-                                            <ul class="menu hidden absolute right-0 mt-2 w-32 bg-gray-800 border border-indigo-500/30 rounded-lg shadow-lg z-10">
-                                                <li>
-                                                    <button class="report-btn w-full text-left px-4 py-2 text-white hover:bg-indigo-600" data-message-id="${key}">Report</button>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="text">${message.text}</div>
-                                    <div class="timestamp flex items-center gap-2">
-                                        ${new Date(message.timestamp).toLocaleString()}
-                                        ${message.reported ? '<span class="w-2 h-2 bg-red-500 rounded-full"></span>' : ''}
-                                    </div>
-                                </div>
-                            `;
-                            messageList.appendChild(li);
-                        } else {
-                            console.warn("Skipping invalid message:", message);
-                        }
-                    });
-                    messageList.scrollTop = messageList.scrollHeight; // Auto-scroll to bottom
-                } else {
-                    console.log("No messages in database");
-                    messageList.innerHTML = "<li class='text-center text-gray-400'>No messages yet.</li>";
-                }
-            } catch (error) {
-                console.error("Error processing messages:", error);
-                messageList.innerHTML = "<li class='text-center text-red-400'>Failed to load messages.</li>";
-            }
-        }, {
-            onlyOnce: false // Ensure real-time updates
-        }, (error) => {
-            console.error("Error in onValue listener:", error);
-            document.getElementById("message-list").innerHTML = "<li class='text-center text-red-400'>Error fetching messages.</li>";
-        });
-    </script>
 </head>
 <body class="bg-gradient-to-br from-gray-950 to-indigo-900 min-h-screen">
     <!-- Header -->
@@ -204,58 +60,71 @@
         </div>
     </header>
 
-    <!-- Sidebar -->
-    <div class="sidebar bg-gray-900/80 backdrop-blur-md border-r border-indigo-500/20 fixed top-[60px] left-0 h-[calc(100vh-60px)] w-[250px] z-[999] flex flex-col justify-between">
-        <ul class="p-0">
-            <li><a href="/htmls/dashboard.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-question-circle"></i> Dashboard</a></li>
-            <li><a href="/htmls/notes.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-journal"></i> Notes</a></li>
-            <li><a href="/htmls/spotlight.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-star"></i> Spotlight (Monthly)</a></li>
-            <li><a href="/htmls/contactus.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-envelope"></i> Contact Us</a></li>
-            <li><a href="/htmls/feedback.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-chat"></i> Feedback/Complaint</a></li>
-        </ul>
-        <div class="plus-btn p-4 text-center">
-            <button class="btn btn-primary rounded-circle w-12 h-12 bg-indigo-500 hover:bg-indigo-600 text-white border-none" onclick="openUploadModal()"><i class="bi bi-plus-lg"></i></button>
+    <!-- Main Layout -->
+    <div class="grid min-h-screen" style="grid-template-rows: 60px 1fr;">
+        <!-- Sidebar -->
+        <div class="sidebar bg-gray-900/80 backdrop-blur-md border-r border-indigo-500/20 fixed top-[60px] left-0 h-[calc(100vh-60px)] w-[250px] z-[999] flex flex-col justify-between hidden md:flex">
+            <ul class="p-0">
+                <li><a href="/htmls/dashboard.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-question-circle"></i> Dashboard</a></li>
+                <li><a href="/htmls/notes.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-journal"></i> Notes</a></li>
+                <li><a href="/htmls/spotlight.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-star"></i> Spotlight (Monthly)</a></li>
+                <li><a href="/htmls/contactus.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-envelope"></i> Contact Us</a></li>
+                <li><a href="/htmls/feedback.html" class="flex items-center gap-3 p-4 text-indigo-200 hover:bg-indigo-600/50"><i class="bi bi-chat"></i> Feedback/Complaint</a></li>
+            </ul>
+            <div class="plus-btn p-4 text-center">
+                <button class="btn btn-primary rounded-circle w-12 h-12 bg-indigo-500 hover:bg-indigo-600 text-white border-none" onclick="openUploadModal()"><i class="bi bi-plus-lg"></i></button>
+            </div>
         </div>
+
+        <!-- Main Chat Content -->
+        <main class="pt-0 px-0 md:ml-[250px] h-[calc(100vh-60px)] flex flex-col">
+            <div id="chat-container" class="flex-1 bg-gray-900/30 backdrop-blur-xl rounded-t-3xl md:rounded-3xl border border-indigo-500/20 shadow-2xl flex flex-col m-4 transition-all duration-500 hover:shadow-indigo-500/30">
+                <div class="flex items-center justify-between p-4 sm:p-6">
+                    <div id="usernameDisplay" class="text-2xl font-bold text-indigo-200 flex items-center gap-3 animate-fade-in">
+                        <svg class="w-7 h-7 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        <span></span>
+                    </div>
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="search-input" 
+                            placeholder="Search messages..." 
+                            class="p-2 bg-gray-800/50 text-white rounded-lg border border-indigo-500/30 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 placeholder-gray-500 w-40 sm:w-64"
+                        >
+                    </div>
+                </div>
+                <ul id="message-list" class="flex-1 overflow-y-auto bg-gray-950/50 p-5 scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-gray-950">
+                    <li class="text-center text-gray-400">Loading messages...</li>
+                </ul>
+                <form id="chat-form" class="flex gap-3 relative p-4 sm:p-6">
+                    <div class="absolute -top-6 left-4 text-gray-400 text-sm animate-pulse" id="typing-indicator" style="display: none;">Typing...</div>
+                    <input 
+                        type="text" 
+                        id="message-input" 
+                        placeholder="Type your message..." 
+                        required 
+                        class="flex-1 p-4 bg-gray-800/50 text-white rounded-2xl border border-indigo-500/30 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 placeholder-gray-500 hover:bg-gray-800/70"
+                        oninput="document.getElementById('typing-indicator').style.display = this.value ? 'block' : 'none';"
+                    >
+                    <button 
+                        type="submit" 
+                        id="send-button" 
+                        class="px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-2xl hover:from-indigo-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                        Send
+                    </button>
+                </form>
+            </div>
+        </main>
     </div>
 
-    <!-- Main Chat Content -->
-    <main class="pt-20 px-4 sm:px-6 ml-0 md:ml-[250px]">
-        <div id="chat-container" class="bg-gray-900/30 backdrop-blur-xl w-full max-w-3xl mx-auto rounded-3xl shadow-2xl p-6 sm:p-8 border border-indigo-500/20 transition-all duration-500 hover:shadow-indigo-500/30">
-            <div id="usernameDisplay" class="text-2xl font-bold text-indigo-200 mb-6 flex items-center gap-3 animate-fade-in">
-                <svg class="w-7 h-7 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
-                <span></span>
-            </div>
-            <ul id="message-list" class="h-[550px] overflow-y-auto bg-gray-950/50 rounded-2xl p-5 mb-6 scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-gray-950">
-                <li class="text-center text-gray-400">Loading messages...</li>
-            </ul>
-            <form id="chat-form" class="flex gap-3 relative">
-                <div class="absolute -top-6 left-0 text-gray-400 text-sm animate-pulse" id="typing-indicator" style="display: none;">Typing...</div>
-                <input 
-                    type="text" 
-                    id="message-input" 
-                    placeholder="Type your message..." 
-                    required 
-                    class="flex-1 p-4 bg-gray-800/50 text-white rounded-2xl border border-indigo-500/30 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 placeholder-gray-500 hover:bg-gray-800/70"
-                    oninput="document.getElementById('typing-indicator').style.display = this.value ? 'block' : 'none';"
-                >
-                <button 
-                    type="submit" 
-                    id="send-button" 
-                    class="px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-2xl hover:from-indigo-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
-                >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                    </svg>
-                    Send
-                </button>
-            </form>
-        </div>
-    </main>
-
     <!-- Bottom Navigation for Mobile -->
-    <div class="bottom-nav bg-gray-900/80 backdrop-blur-md border-t border-indigo-500/20 fixed bottom-0 left-0 w-full flex justify-around items-center p-2 z-[1000]">
+    <div class="bottom-nav bg-gray-900/80 backdrop-blur-md border-t border-indigo-500/20 fixed bottom-0 left-0 w-full flex justify-around items-center p-2 z-[1000] md:hidden">
         <a href="/htmls/dashboard.html" class="nav-icon text-indigo-200 hover:text-indigo-400"><i class="bi bi-question-circle"></i></a>
         <a href="/htmls/notes.html" class="nav-icon text-indigo-200 hover:text-indigo-400"><i class="bi bi-journal"></i></a>
         <a href="/htmls/spotlight.html" class="nav-icon text-indigo-200 hover:text-indigo-400"><i class="bi bi-star"></i></a>
@@ -267,7 +136,6 @@
             </a>
         </div>
     </div>
-
     <!-- Report Modal -->
     <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -296,7 +164,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/report.js"></script>
+    <script type="module" src="chat.js"></script>
+    <script type="module" src="report.js"></script>
+    <script type="module" src="message.js"></script>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -371,6 +241,14 @@
             background-color: transparent;
         }
 
+        #chat-container {
+            height: calc(100% - 2rem); /* Account for margin */
+        }
+
+        #message-list {
+            height: calc(100% - 160px); /* Adjust for username, search bar, and input form */
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
@@ -394,6 +272,12 @@
             transition: all 0.3s ease;
             max-width: 70%;
             animation: slideIn 0.3s ease-out;
+            cursor: pointer;
+        }
+
+        .message:hover {
+            transform: scale(1.03);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
 
         .message-sent {
@@ -407,11 +291,6 @@
             background: linear-gradient(135deg, #1f2937, #374151);
             align-self: flex-start;
             border: 1px solid rgba(165, 180, 252, 0.2);
-        }
-
-        .message:hover {
-            transform: scale(1.03);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
 
         .avatar {
@@ -444,6 +323,19 @@
             font-size: 0.75rem;
             color: #9ca3af;
             opacity: 0.7;
+        }
+
+        .reactions {
+            font-size: 0.9rem;
+            color: #a5b4fc;
+        }
+
+        .reaction-picker {
+            display: none;
+        }
+
+        .reaction-picker.show {
+            display: flex;
         }
 
         .scrollbar-thin::-webkit-scrollbar {
@@ -486,18 +378,17 @@
             main {
                 margin-left: 0;
                 margin-top: 56px;
-            }
-
-            .bottom-nav {
-                display: flex;
+                height: calc(100vh - 116px); /* Account for header and bottom nav */
             }
 
             #chat-container {
-                padding: 1rem;
+                margin: 0;
+                border-radius: 0;
+                height: 100%;
             }
 
             #message-list {
-                height: 450px;
+                height: calc(100% - 140px); /* Adjust for smaller header, search, and input */
             }
 
             #message-input {
@@ -506,6 +397,10 @@
 
             #send-button {
                 padding: 0.75rem 1.5rem;
+            }
+
+            #search-input {
+                width: 100px;
             }
 
             .message {
@@ -525,5 +420,4 @@
         }
     </style>
 </body>
-<script type="module" src="report.js"></script>
 </html>

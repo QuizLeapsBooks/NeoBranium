@@ -1,4 +1,4 @@
-import { getDatabase, ref, push, update } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
+import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 
 const db = getDatabase();
@@ -40,20 +40,26 @@ document.getElementById('submitReport').addEventListener('click', async () => {
     }
 
     try {
-        const reportData = {
-            messageId: currentMessageId,
-            reporterUid: auth.currentUser.uid,
-            reason: reason,
-            timestamp: Date.now()
-        };
+        const reportRef = ref(db, `reports/${currentMessageId}/${auth.currentUser.uid}`);
+        
+        // Check if user has already reported this message
+        const reportSnapshot = await get(reportRef);
+        if (reportSnapshot.exists()) {
+            alert('You have already reported this message.');
+            reportModal.hide();
+            return;
+        }
 
         // Store report in Firebase
-        await push(ref(db, 'reports'), reportData);
+        await set(reportRef, {
+            reason: reason,
+            timestamp: Date.now()
+        });
 
         // Mark message as reported
         await update(ref(db, `messages/${currentMessageId}`), { reported: true });
 
-        console.log('Message reported:', reportData);
+        console.log('Message reported:', { messageId: currentMessageId, userId: auth.currentUser.uid, reason });
         reportModal.hide();
         document.getElementById('reportReason').value = ''; // Reset dropdown
         alert('Message reported successfully.');
