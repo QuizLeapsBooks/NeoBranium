@@ -38,13 +38,14 @@ body.dark-mode {
   --grid-item-3-bg: #6200ea; /* Darker purple for dark mode */
   --grid-item-text: #f8f9fa; /* Lighter text for dark mode */
 }
+
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  padding: 15px;
   margin: 0 auto;
-  max-width: 80%;
+  max-width: 1200px; /* Adjusted for larger screens */
   background-color: var(--bg-color);
   transition: background-color 0.3s ease;
 }
@@ -52,42 +53,100 @@ body.dark-mode {
 .grid-item_1 {
   background-color: var(--grid-item-1-bg);
   color: var(--grid-item-text);
-  padding: 10px;
+  padding: 12px;
   text-align: center;
   border-radius: 10px;
-  width: 80%;
-  margin: 10px auto 0 auto;
+  width: 90%; /* Slightly reduced for better spacing */
+  margin: 10px auto;
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 1.2rem; /* Slightly larger for readability */
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+.grid-item_1:hover {
+  transform: scale(1.02); /* Subtle hover effect */
 }
 
 .grid-item_2 {
   background-color: var(--grid-item-2-bg);
   color: var(--grid-item-text);
-  padding: 10px;
+  padding: 12px;
   text-align: center;
   border-radius: 10px;
-  width: 80%;
+  width: 90%;
   margin: 5px auto;
   font-family: 'Poppins', sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 1rem; /* Adjusted for better fit */
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+.grid-item_2:hover {
+  transform: scale(1.02); /* Subtle hover effect */
 }
 
 .grid-item_3 {
   background-color: var(--grid-item-3-bg);
   color: var(--grid-item-text);
-  padding: 10px;
+  padding: 12px;
   text-align: center;
   border-radius: 10px;
-  width: 80%;
+  width: 90%;
   margin: 5px auto;
   font-family: 'Poppins', sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-size: 1.1rem; /* Slightly larger for subject headers */
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+.grid-item_3:hover {
+  transform: scale(1.02); /* Subtle hover effect */
 }
 
 a {
   text-decoration: none;
-  color: var(--grid-item-text); /* Ensure links use the same text color */
+  color: var(--grid-item-text);
+  display: block; /* Ensures full grid item is clickable */
   transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--highlight-color); /* Highlight color on hover for better UX */
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .grid-container {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Smaller columns for tablets */
+    max-width: 90%;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .grid-item_1, .grid-item_2, .grid-item_3 {
+    width: 95%; /* Slightly wider for smaller screens */
+    font-size: 1rem; /* Adjust font size for readability */
+    padding: 10px;
+  }
+}
+
+@media (max-width: 767px) {
+  .grid-container {
+    grid-template-columns: 1fr; /* Single column for mobile */
+    max-width: 100%;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .grid-item_1, .grid-item_2, .grid-item_3 {
+    width: 100%; /* Full width for mobile */
+    font-size: 0.9rem; /* Smaller font for mobile */
+    padding: 8px;
+    margin: 5px 0; /* Reduced margin for tighter layout */
+  }
+}
+
+@media (min-width: 1200px) {
+  .grid-container {
+    grid-template-columns: repeat(3, 1fr); /* Force 3 columns for large screens */
+  }
 }
