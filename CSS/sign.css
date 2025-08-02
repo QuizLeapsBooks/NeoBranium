@@ -77,14 +77,7 @@ h2 {
 }
 
 .input-box input:focus,
-.input-box input:valid:not([type="tel"]) {
-  background: #fff;
-  border: 1px solid #6a11cb;
-  box-shadow: 0 4px 15px rgba(106, 17, 203, 0.2);
-}
-
-.input-box input[type="tel"]:focus,
-.input-box input[type="tel"]:not(:placeholder-shown) {
+.input-box input:valid {
   background: #fff;
   border: 1px solid #6a11cb;
   box-shadow: 0 4px 15px rgba(106, 17, 203, 0.2);
@@ -102,8 +95,7 @@ h2 {
 }
 
 .input-box input:focus ~ label,
-.input-box input:valid:not([type="tel"]) ~ label,
-.input-box input[type="tel"]:not(:placeholder-shown) ~ label {
+.input-box input:valid ~ label {
   top: -10px;
   font-size: clamp(10px, 2vw, 12px);
   color: #6a11cb;
@@ -186,72 +178,6 @@ a:hover {
   color: #6a11cb;
 }
 
-.social-divider {
-  margin-top: clamp(15px, 3vw, 20px);
-  text-align: center;
-}
-
-.social-divider span {
-  font-size: clamp(12px, 2.5vw, 14px);
-  color: #666;
-  margin-bottom: clamp(10px, 2vw, 15px);
-  display: block;
-}
-
-.social-buttons {
-  display: flex;
-  gap: clamp(10px, 2vw, 15px);
-  justify-content: center;
-}
-
-.social-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: clamp(8px, 2vw, 10px) clamp(15px, 3vw, 20px);
-  font-size: clamp(14px, 3vw, 16px);
-  font-weight: 600;
-  border: none;
-  border-radius: 25px;
-  cursor: pointer;
-  transition: all 0.3s ease-in-out;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 120px;
-}
-
-.social-btn i {
-  font-size: clamp(16px, 3vw, 18px);
-}
-
-.social-btn.google {
-  background-color: #db4437;
-  color: white;
-}
-
-.social-btn.google:hover {
-  background-color: #c23321;
-}
-
-.social-btn.microsoft {
-  background-color: #00a1f1;
-  color: white;
-}
-
-.social-btn.microsoft:hover {
-  background-color: #0086c9;
-}
-
-.social-btn.facebook {
-  background-color: #3b5998;
-  color: white;
-}
-
-.social-btn.facebook:hover {
-  background-color: #2f477a;
-}
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -287,7 +213,7 @@ a:hover {
   }
 
   .logo span {
-    font-size: clamp(1.2rem, 4vw, 1.6rem);
+    font-size: clamp countertop(1.2rem, 4vw, 1.6rem);
   }
 }
 
@@ -310,8 +236,7 @@ a:hover {
   }
 
   .input-box input:focus ~ label,
-  .input-box input:valid:not([type="tel"]) ~ label,
-  .input-box input[type="tel"]:not(:placeholder-shown) ~ label {
+  .input-box input:valid ~ label {
     font-size: clamp(8px, 1.8vw, 10px);
   }
 
@@ -325,14 +250,6 @@ a:hover {
 
   .messageDiv {
     font-size: clamp(10px, 2vw, 12px);
-  }
-
-  .social-buttons {
-    flex-direction: column;
-  }
-
-  .social-btn {
-    max-width: 100%;
   }
 }
 

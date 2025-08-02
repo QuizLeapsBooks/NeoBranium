@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEOBranium AI Assistant</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="importmap">
+        {
+            "imports": {
+                "@google/generative-ai": "https://esm.run/@google/generative-ai"
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="chat-container">
+        <div class="chat-header">
+            <span class="material-symbols-rounded">school</span>
+            NEOBranium AI Assistant 🧠⚡
+        </div>
+        <div class="chat-body">
+            <div class="chat-message ai-message">I'm here to ignite your curiosity in Science and Math (Class 9–10).
+Ask me about concepts, study tips, or interesting facts—but no direct homework answers, alright?
+So, what would you like to explore today? 📘✨</div>
+        </div>
+        <div class="typing-container">
+            <div class="typing-textarea">
+                <textarea id="chat-input" placeholder="Ask something to expand your knowledge..." rows="2" required></textarea>
+            </div>
+            <button id="send-btn" class="send-btn">
+                <span class="material-symbols-rounded">send</span>
+            </button>
+        </div>
+    </div>
+    <script type="module" src="script.js"></script>
+</body>
+</html>

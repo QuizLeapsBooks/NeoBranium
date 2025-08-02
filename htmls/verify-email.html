@@ -5,11 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verify Your Email | NeoBranium</title>
   <link rel="stylesheet" href="/css/sign.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <meta name="description" content="Verify your email to access NeoBranium E-Learning Platform.">
-  <meta name="keywords" content="NeoBranium, Email Verification, E-Learning, Education">
-  <meta name="author" content="NeoBranium Team">
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
 </head>
 <body>
   <div class="container">
@@ -18,13 +14,9 @@
       <span>NeoBranium</span>
     </div>
     <h2>Verify Your Email</h2>
-    <div id="verifyMessage" class="messageDiv"></div>
-    <p>Please check your email for a verification link. Once verified, you can proceed to the dashboard.</p>
-    <button onclick="checkVerification()">Check Verification Status</button>
-    <p>Didn't receive the email? <a href="#" onclick="resendVerification()">Resend Email</a></p>
-    <p>Already verified? <a href="/htmls/dashboard.html">Go to Dashboard</a></p>
+    <p>Please check your email for a verification link to activate your account.</p>
+    <strong>Click on Sign In and fill in your email and password.</strong>
+    <p>Already verified? <a href="#" onclick="location.replace('/htmls/sign.html')">Sign In</a></p>
   </div>
-
-  <script type="module" src="/js/verify-email.js"></script>
 </body>
 </html>

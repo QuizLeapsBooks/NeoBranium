@@ -10,7 +10,6 @@
   <meta name="keywords" content="NeoBranium, Sign Up, Sign In, E-Learning, Education, Class 9, Class 10">
   <meta name="author" content="NeoBranium Team">
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <!-- <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"> -->
 </head>
 <body>
   <!-- Sign Up Form -->
@@ -35,8 +34,8 @@
         <label>Email</label>
       </div>
       <div class="input-box">
-        <input type="tel" id="signup-phone" aria-label="Phone Number" pattern="[0-9]{10}" title="Enter a valid 10-digit phone number">
-        <label>Phone Number (Optional)</label>
+        <input type="tel" id="signup-phone" required aria-label="Phone Number" pattern="\+[0-9]{10,15}" placeholder="+919876543210">
+        <label>Phone Number (e.g., +919876543210)</label>
       </div>
       <div class="input-box">
         <input type="password" id="signup-password" required aria-label="Password">
@@ -81,17 +80,38 @@
           <i id="eye-icon2" class="fa-regular fa-eye"></i>
         </span>
       </div>
+      <div class="input-box">
+        <input type="tel" id="signIn-phone" aria-label="Phone Number" pattern="\+[0-9]{10,15}" placeholder="+919876543210">
+        <label>Phone Number (e.g., +919876543210)</label>
+      </div>
       <p>Create an account <a href="#" onclick="showSignUpForm()">Sign Up</a></p>
       <button type="submit" id="submitSignIn">Sign In</button>
     </form>
   </div>
 
+  <!-- OTP Verification Form (Hidden initially) -->
+  <div id="otp-page" class="container hidden">
+    <div class="logo">
+      <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
+      <span>NeoBranium</span>
+    </div>
+    <h2>Verify OTP</h2>
+    <form action="javascript:void(0)" onsubmit="verifyOTP(event)">
+      <div id="otpMessage" class="messageDiv" style="display: none;"></div>
+      <div class="input-box">
+        <input type="text" id="otp-code" required aria-label="OTP Code">
+        <label>Enter OTP</label>
+      </div>
+      <button type="submit" id="submitOTP">Verify OTP</button>
+      <p><a href="#" onclick="showLoginForm()">Back to Sign In</a></p>
+    </form>
+  </div>
+
   <script type="module" src="/js/main-backend.js"></script>
   <script>
-    // Page load pe default signup form show karo
     document.addEventListener('DOMContentLoaded', () => {
       console.log("DOM Loaded, showing Sign Up form");
-      showSignUpForm(); // Default signup form ko load karo
+      showSignUpForm();
     });
 
     function togglePassword(fieldId, eyeId) {
@@ -110,94 +130,21 @@
       console.log("Showing Sign Up form");
       document.getElementById("signup-page").classList.remove("hidden");
       document.getElementById("login-page").classList.add("hidden");
+      document.getElementById("otp-page").classList.add("hidden");
     }
 
     function showLoginForm() {
       console.log("Showing Login form");
       document.getElementById("login-page").classList.remove("hidden");
       document.getElementById("signup-page").classList.add("hidden");
+      document.getElementById("otp-page").classList.add("hidden");
     }
 
-    function showMessage(message, elementId) {
-      const messageDiv = document.getElementById(elementId);
-      messageDiv.textContent = message;
-      messageDiv.style.display = "block";
-      messageDiv.style.backgroundColor = "#ffebee";
-      messageDiv.style.color = "#c62828";
-      setTimeout(() => {
-        messageDiv.style.display = "none";
-      }, 3000);
-    }
-
-    function isValidEmail(email) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return emailRegex.test(email);
-    }
-
-    function isValidPhone(phone) {
-      const phoneRegex = /^[0-9]{10}$/;
-      return phone ? phoneRegex.test(phone) : true; // Phone is optional, so valid if empty
-    }
-
-    function handleSignUp(event) {
-      event.preventDefault();
-      const fname = document.getElementById("signup-fname").value.trim();
-      const lname = document.getElementById("signup-lname").value.trim();
-      const email = document.getElementById("signup-email").value.trim();
-      const phone = document.getElementById("signup-phone").value.trim();
-      const password = document.getElementById("signup-password").value;
-      const confirmPassword = document.getElementById("signup-confirm-password").value;
-      const termsCheckbox = document.getElementById("terms-checkbox").checked;
-
-      if (!fname || !lname || !email || !password || !confirmPassword) {
-        showMessage("All required fields must be filled", "signUpMessage");
-        return;
-      }
-
-      if (!isValidEmail(email)) {
-        showMessage("Invalid email format", "signUpMessage");
-        return;
-      }
-
-      if (!isValidPhone(phone)) {
-        showMessage("Invalid phone number format (10 digits required)", "signUpMessage");
-        return;
-      }
-
-      if (password.length < 8) {
-        showMessage("Password must be at least 8 characters long", "signUpMessage");
-        return;
-      }
-
-      if (password !== confirmPassword) {
-        showMessage("Passwords do not match", "signUpMessage");
-        return;
-      }
-
-      if (!termsCheckbox) {
-        showMessage("Please agree to Terms & Conditions and Privacy Policy", "signUpMessage");
-        return;
-      }
-
-      document.getElementById("submitSignUp").click();
-    }
-
-    function handleLogin(event) {
-      event.preventDefault();
-      const email = document.getElementById("signIn-email").value.trim();
-      const password = document.getElementById("signIn-password").value;
-
-      if (!email || !password) {
-        showMessage("All fields are required", "signInMessage");
-        return;
-      }
-
-      if (!isValidEmail(email)) {
-        showMessage("Invalid email format", "signInMessage");
-        return;
-      }
-
-      document.getElementById("submitSignIn").click();
+    function showOTPForm() {
+      console.log("Showing OTP form");
+      document.getElementById("otp-page").classList.remove("hidden");
+      document.getElementById("login-page").classList.add("hidden");
+      document.getElementById("signup-page").classList.add("hidden");
     }
   </script>
 </body>

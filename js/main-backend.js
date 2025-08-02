@@ -4,7 +4,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
-  sendSignInLinkToEmail,
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 import {
   getFirestore,
@@ -27,12 +28,22 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Initialize reCAPTCHA for phone authentication
+let recaptchaVerifier;
+document.addEventListener("DOMContentLoaded", () => {
+  recaptchaVerifier = new RecaptchaVerifier(auth, "submitSignIn", {
+    size: "invisible",
+    callback: () => {},
+  });
+});
+
 // Helper function to show messages
 function showMessage(message, divId, isError = true) {
   const messageDiv = document.getElementById(divId);
   messageDiv.style.display = "block";
   messageDiv.textContent = message;
-  messageDiv.style.color = isError ? "red" : "green";
+  messageDiv.style.backgroundColor = isError ? "#ffebee" : "#e8f5e9";
+  messageDiv.style.color = isError ? "#c62828" : "#2e7d32";
   setTimeout(() => {
     messageDiv.style.display = "none";
   }, 5000);
@@ -44,73 +55,140 @@ function isValidEmail(email) {
   return emailRegex.test(email);
 }
 
-// Sign Up functionality with email verification
-document.getElementById("submitSignUp").addEventListener("click", async () => {
+// Utility for phone number validation
+function isValidPhone(phone) {
+  const phoneRegex = /^\+[0-9]{10,15}$/;
+  return phoneRegex.test(phone);
+}
+
+// Sign Up functionality
+window.handleSignUp = async function (event) {
+  event.preventDefault();
   const fname = document.getElementById("signup-fname").value.trim();
   const lname = document.getElementById("signup-lname").value.trim();
   const email = document.getElementById("signup-email").value.trim();
   const phone = document.getElementById("signup-phone").value.trim();
   const password = document.getElementById("signup-password").value;
+  const confirmPassword = document.getElementById("signup-confirm-password").value;
+  const termsCheckbox = document.getElementById("terms-checkbox").checked;
+
+  if (!fname || !lname || !email || !phone || !password || !confirmPassword) {
+    showMessage("All fields are required", "signUpMessage");
+    return;
+  }
+
+  if (!isValidEmail(email)) {
+    showMessage("Invalid email format", "signUpMessage");
+    return;
+  }
+
+  if (!isValidPhone(phone)) {
+    showMessage("Invalid phone number format (e.g., +919876543210)", "signUpMessage");
+    return;
+  }
+
+  if (password.length < 8) {
+    showMessage("Password must be at least 8 characters long", "signUpMessage");
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    showMessage("Passwords do not match", "signUpMessage");
+    return;
+  }
+
+  if (!termsCheckbox) {
+    showMessage("Please agree to Terms & Conditions and Privacy Policy", "signUpMessage");
+    return;
+  }
 
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-
-    // Send verification email
+    await setDoc(doc(db, "users", user.uid), { fname, lname, email, phone });
     await sendEmailVerification(user);
-    // Store user data, including phone number if provided
-    await setDoc(doc(db, "users", user.uid), {
-      fname,
-      lname,
-      email,
-      phone: phone || null, // Store null if phone is empty
-      emailVerified: false
-    });
     localStorage.setItem("loggedInUserId", user.uid);
-    showMessage("Account Created! Please check your email to verify your account.", "signUpMessage", false);
-    // Delay redirect to allow user to see the message
-    setTimeout(() => location.replace("/htmls/verify-email.html"), 3000);
+    showMessage("Account created! Please verify your email to continue.", "signUpMessage", false);
+    setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);
   } catch (error) {
     console.error(error);
     const errorMessage = error.code === "auth/email-already-in-use"
       ? "Email Address Already Exists"
-      : "Unable to create User. Please try again.";
+      : "Unable to create user. Please try again.";
     showMessage(errorMessage, "signUpMessage");
   }
-});
+};
 
-// Login functionality with email verification check
-document.getElementById("submitSignIn").addEventListener("click", async () => {
+// Login functionality
+window.handleLogin = async function (event) {
+  event.preventDefault();
   const email = document.getElementById("signIn-email").value.trim();
   const password = document.getElementById("signIn-password").value;
+  const phone = document.getElementById("signIn-phone").value.trim();
+
+  if (!email && !phone) {
+    showMessage("Please provide either an email or phone number", "signInMessage");
+    return;
+  }
+
+  if (email && !isValidEmail(email)) {
+    showMessage("Invalid email format", "signInMessage");
+    return;
+  }
+
+  if (phone && !isValidPhone(phone)) {
+    showMessage("Invalid phone number format (e.g., +919876543210)", "signInMessage");
+    return;
+  }
+
+  if (email && password) {
+    // Email/Password login
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      if (!user.emailVerified) {
+        showMessage("Please verify your email before logging in.", "signInMessage");
+        return;
+      }
+      localStorage.setItem("loggedInUserId", user.uid);
+      showMessage("Logged in successfully!", "signInMessage", false);
+      setTimeout(() => location.replace("/htmls/dashboard.html"), 2000);
+    } catch (error) {
+      console.error(error);
+      showMessage("Login failed. Email or password is incorrect.", "signInMessage");
+    }
+  } else if (phone) {
+    // Phone number login with OTP
+    try {
+      const confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
+      window.confirmationResult = confirmationResult; // Store for OTP verification
+      showMessage("OTP sent to your phone number!", "signInMessage", false);
+      showOTPForm();
+    } catch (error) {
+      console.error(error);
+      showMessage("Failed to send OTP. Please try again.", "signInMessage");
+    }
+  }
+};
+
+// OTP Verification
+window.verifyOTP = async function (event) {
+  event.preventDefault();
+  const otp = document.getElementById("otp-code").value.trim();
+
+  if (!otp) {
+    showMessage("Please enter the OTP", "otpMessage");
+    return;
+  }
 
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    if (!user.emailVerified) {
-      showMessage("Please verify your email before logging in. Check your inbox or spam folder.", "signInMessage");
-      // Option to resend verification email
-      const resendLink = document.createElement("a");
-      resendLink.href = "#";
-      resendLink.textContent = " Resend verification email";
-      resendLink.onclick = async () => {
-        try {
-          await sendEmailVerification(user);
-          showMessage("Verification email resent. Please check your inbox.", "signInMessage", false);
-        } catch (error) {
-          showMessage("Failed to resend verification email.", "signInMessage");
-        }
-      };
-      document.getElementById("signInMessage").appendChild(resendLink);
-      return;
-    }
-
+    const result = await window.confirmationResult.confirm(otp);
+    const user = result.user;
     localStorage.setItem("loggedInUserId", user.uid);
-    showMessage("Logged in Successfully", "signInMessage", false);
+    showMessage("Logged in successfully!", "otpMessage", false);
     setTimeout(() => location.replace("/htmls/dashboard.html"), 2000);
   } catch (error) {
     console.error(error);
-    showMessage("Login Failed. Email or Password is incorrect.", "signInMessage");
+    showMessage("Invalid OTP. Please try again.", "otpMessage");
   }
-});
+};

@@ -1,7 +1,7 @@
 /* From Uiverse.io by adamgiebl */
-.card {
-  width: 190px;
-  height: 254px;
+.notes-cards {
+  width: 200px;
+  height: 260px;
   border-radius: 20px;
   padding: 5px;
   box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
@@ -90,4 +90,33 @@ body.dark-mode .btn.btn-success {
 body.dark-mode .btn.btn-success:hover {
   background-color: #1e7e34;
   border-color: #1e7e34;
+}
+
+
+#view-notes{
+  background-color: blueviolet;
+  color: #fff;
+  border-radius: 5px;
+  border: 2px blueviolet;
+  align-items: center;
+  display: inline-block;
+  margin: 5px;
+    width: 80%;
+  height: 3vh;
+  justify-content: center;
+  justify-items: center;
+
+}
+#download-notes{
+  background-color: rgb(43, 226, 52);
+  color: #fff;
+  border-radius: 5px;
+  border: 2px blueviolet;
+  align-items: center;
+  display: inline-block;
+  margin: 5px;
+  width: 90%;
+  height: 4vh;
+  justify-content: center;
+  justify-items: center;
 }
