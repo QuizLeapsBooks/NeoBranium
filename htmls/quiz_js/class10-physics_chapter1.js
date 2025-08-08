@@ -6,9 +6,9 @@ const quizData = {
       answer: "Ampere"
     },
     {
-      question: "What is electric current?",
-      options: ["Flow of charge", "Flow of voltage", "Flow of resistance", "Flow of power"],
-      answer: "Flow of charge"
+      question: "Electric current is the flow of:",
+      options: ["Protons", "Electrons", "Neutrons", "Ions"],
+      answer: "Electrons"
     },
     {
       question: "Which device measures electric current?",
@@ -21,12 +21,12 @@ const quizData = {
       answer: "Volt"
     },
     {
-      question: "What does Ohm’s law relate?",
-      options: ["Current and power", "Voltage and current", "Resistance and power", "Charge and time"],
-      answer: "Voltage and current"
+      question: "Ohm’s law relates which quantities?",
+      options: ["Current and Power", "Voltage and Current", "Resistance and Power", "Charge and Time"],
+      answer: "Voltage and Current"
     },
     {
-      question: "What is the SI unit of resistance?",
+      question: "The SI unit of resistance is:",
       options: ["Volt", "Ohm", "Ampere", "Watt"],
       answer: "Ohm"
     },
@@ -103,14 +103,14 @@ const quizData = {
   ],
   level2: [
     {
-      question: "A current of 5 A flows through a 10 Ω resistor. What is the voltage?",
-      options: ["50 V", "25 V", "10 V", "5 V"],
-      answer: "50 V"
+      question: "A current of 2 A flows through a 6 Ω resistor. What is the voltage?",
+      options: ["12 V", "3 V", "8 V", "6 V"],
+      answer: "12 V"
     },
     {
-      question: "A 12 V battery is connected to a 3 Ω resistor. What is the current?",
-      options: ["4 A", "3 A", "6 A", "2 A"],
-      answer: "4 A"
+      question: "A 12 V battery is connected to a 4 Ω resistor. What is the current?",
+      options: ["3 A", "2 A", "4 A", "6 A"],
+      answer: "3 A"
     },
     {
       question: "A 100 W bulb operates at 220 V. What is the current?",
@@ -118,13 +118,13 @@ const quizData = {
       answer: "0.45 A"
     },
     {
-      question: "A 6 Ω resistor has 12 V across it. What is the power dissipated?",
-      options: ["24 W", "12 W", "36 W", "48 W"],
-      answer: "24 W"
+      question: "A 5 Ω resistor has 10 V across it. What is the power dissipated?",
+      options: ["20 W", "50 W", "10 W", "25 W"],
+      answer: "20 W"
     },
     {
-      question: "Two resistors of 5 Ω and 5 Ω are in series. Total resistance is:",
-      options: ["10 Ω", "2.5 Ω", "25 Ω", "5 Ω"],
+      question: "Two resistors of 4 Ω and 6 Ω are in series. Total resistance is:",
+      options: ["10 Ω", "2.4 Ω", "24 Ω", "5 Ω"],
       answer: "10 Ω"
     },
     {
@@ -153,14 +153,14 @@ const quizData = {
       answer: "110 Ω"
     },
     {
-      question: "A 4 Ω resistor has 8 A current. What is the voltage?",
-      options: ["32 V", "16 V", "8 V", "4 V"],
-      answer: "32 V"
+      question: "A 3 Ω resistor has 6 A current. What is the voltage?",
+      options: ["18 V", "9 V", "12 V", "24 V"],
+      answer: "18 V"
     },
     {
-      question: "Three 3 Ω resistors are in series. Total resistance is:",
-      options: ["9 Ω", "3 Ω", "1 Ω", "6 Ω"],
-      answer: "9 Ω"
+      question: "Three 2 Ω resistors are in series. Total resistance is:",
+      options: ["6 Ω", "2 Ω", "3 Ω", "1 Ω"],
+      answer: "6 Ω"
     },
     {
       question: "A 100 W bulb at 200 V draws current of:",
@@ -310,7 +310,7 @@ const quizData = {
 // Render quiz
 function renderQuiz(level) {
   const quizContainer = document.getElementById("quizContainer");
-  quizContainer.innerHTML = "";
+  quizContainer.innerHTML = ""; // Clear previous questions
   quizData[level].forEach((item, index) => {
     const card = document.createElement("div");
     card.className = "card animate__animated animate__fadeInUp";
@@ -337,7 +337,7 @@ function checkAnswers(level) {
       const userAnswer = selected.value;
       if (userAnswer === item.answer) {
         score++;
-        selected.parentElement.style.color = "var(--highlight-color)";
+        selected.parentElement.style.color = "var(--correct-color)";
       } else {
         selected.parentElement.style.color = "var(--wrong-color)";
       }
@@ -350,7 +350,7 @@ function checkAnswers(level) {
 
 // Level selection
 document.addEventListener("DOMContentLoaded", () => {
-  renderQuiz("level1");
+  renderQuiz("level1"); // Default to Level 1
   document.getElementById("levelSelect").addEventListener("change", function () {
     const selectedLevel = this.value;
     renderQuiz(selectedLevel);
