@@ -1,0 +1,151 @@
+:root {
+  --bg-color: #f8f9fa;
+  --text-color: #212529;
+  --sidebar-bg: #e9ecef;
+  --header-bg: linear-gradient(135deg, #4a00e0, #8e2de2);
+  --header-text: #ffffff;
+  --card-bg: #ffffff;
+  --notes-card-bg: #ffffff;
+  --feature-card-bg: #ffffff;
+  --spotlight-card-bg: #ffffff;
+  --button-bg: #6a11cb;
+  --button-text: #ffffff;
+  --highlight-color: #0bff17;
+  --link-color: #6a11cb;
+  --shadow-color: rgba(0, 0, 0, 0.15);
+  --notes-button-bg: #2575fc;
+  --grid-item-1-bg: #ff4d4d; /* Class 9/10 NCERT */
+  --grid-item-2-bg: #4d84ff; /* Chapters */
+  --grid-item-3-bg: #884dff; /* Subjects */
+  --grid-item-text: #ffffff; /* Default text color for grid items */
+}
+
+body.dark-mode {
+  --bg-color: #212529;
+  --text-color: #f8f9fa;
+  --sidebar-bg: #343a40;
+  --card-bg: #343a40;
+  --notes-card-bg: #1a1a1a;
+  --feature-card-bg: #1a1a1a;
+  --spotlight-card-bg: #1a1a1a;
+  --button-bg: #2575fc;
+  --button-text: #ffffff;
+  --highlight-color: #0bff17;
+  --link-color: #2575fc;
+  --shadow-color: rgba(255, 255, 255, 0.1);
+  --grid-item-1-bg: #cc0000; /* Darker red for dark mode */
+  --grid-item-2-bg: #1a5bb5; /* Darker blue for dark mode */
+  --grid-item-3-bg: #6200ea; /* Darker purple for dark mode */
+  --grid-item-text: #f8f9fa; /* Lighter text for dark mode */
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  padding: 15px;
+  margin: 0 auto;
+  max-width: 1200px;
+  background-color: var(--bg-color);
+  transition: background-color 0.3s ease;
+}
+
+.grid-item_1 {
+  background-color: var(--grid-item-1-bg);
+  color: var(--grid-item-text);
+  padding: 12px;
+  text-align: center;
+  border-radius: 10px;
+  width: corral; /* Slightly reduced for better spacing */
+  margin: 10px auto;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 1.2rem;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+.grid-item_1:hover {
+  transform: scale(1.02);
+}
+
+.grid-item_2 {
+  background-color: var(--grid-item-2-bg);
+  color: var(--grid-item-text);
+  padding: 12px;
+  text-align: center;
+  border-radius: 10px;
+  width: 90%;
+  margin: 5px auto;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1rem;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+.grid-item_2:hover {
+  transform: scale(1.02);
+}
+
+.grid-item_3 {
+  background-color: var(--grid-item-3-bg);
+  color: var(--grid-item-text);
+  padding: 12px;
+  text-align: center;
+  border-radius: 10px;
+  width: 90%;
+  margin: 5px auto;
+  font-family: 'Poppins', sans-serif;
+  font-size: 1.1rem;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+.grid-item_3:hover {
+  transform: scale(1.02);
+}
+
+a {
+  text-decoration: none;
+  color: var(--grid-item-text);
+  display: block;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--highlight-color);
+}
+
+@media (max-width: 1024px) {
+  .grid-container {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    max-width: 90%;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .grid-item_1, .grid-item_2, .grid-item_3 {
+    width: 95%;
+    font-size: 1rem;
+    padding: 10px;
+  }
+}
+
+@media (max-width: 767px) {
+  .grid-container {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .grid-item_1, .grid-item_2, .grid-item_3 {
+    width: 100%;
+    font-size: 0.9rem;
+    padding: 8px;
+    margin: 5px 0;
+  }
+}
+
+@media (min-width: 1200px) {
+  .grid-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

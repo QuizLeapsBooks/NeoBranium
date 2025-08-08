@@ -6,8 +6,6 @@
     <title>User Settings</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module" src="/js/auth.js"></script>
-    <script type="module" src="/js/settings.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -28,14 +26,18 @@
         .status {
             transition: opacity 0.3s;
         }
+        #initialAvatar {
+            background-size: cover;
+            background-position: center;
+        }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-800 min-h-screen flex items-center justify-center">
     <div class="container max-w-md mx-auto bg-white dark:bg-gray-700 rounded-2xl shadow-lg p-6 md:p-8">
         <div class="flex flex-col items-center mb-6">
             <div id="initialAvatar" class="w-24 h-24 rounded-full flex items-center justify-center bg-blue-600 text-white text-4xl font-semibold"></div>
+            <span id="usernameDisplay" class="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">Welcome, User!</span>
         </div>
-        <span id="usernameDisplay" class="navbar-text text-white me-3">Welcome, User!</span>
 
         <div class="space-y-6">
             <div class="form-group">
@@ -102,8 +104,7 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore-compat.js"></script>
+    <script type="module" src="/js/auth.js"></script>
+    <script type="module" src="/js/settings.js"></script>
 </body>
 </html>

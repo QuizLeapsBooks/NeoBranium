@@ -1,7 +1,6 @@
-/* From Uiverse.io by adamgiebl */
 .notes-cards {
   width: 200px;
-  height: 260px;
+  height: 400px; /* Increased height to accommodate comment section */
   border-radius: 20px;
   padding: 5px;
   box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
@@ -17,19 +16,79 @@
   height: 100%;
   color: #fff;
   transition: background 0.3s ease, color 0.3s ease;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto; /* Allow scrolling if comments overflow */
 }
 
-.card__pdf {
-  width: 100%;
-  height: 100%;
-  border: none;
-  border-radius: 0 0 17px 17px;
+.notes-cards p {
+  font-size: 14px;
+  margin: 5px 0;
+  text-align: center;
+}
+
+.notes-cards .view-notes {
+  width: 80%;
+  margin: 5px auto;
   display: block;
-  background: transparent;
-  object-fit: cover;
+  font-size: 14px;
 }
 
-body.dark-mode .card {
+.reaction-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 5px auto;
+}
+
+.notes-cards .like-btn,
+.notes-cards .dislike-btn {
+  width: 40%;
+  font-size: 14px;
+}
+
+.comment-section {
+  width: 100%;
+  padding: 5px;
+}
+
+.comment-input {
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border: none;
+}
+
+.comment-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.comment-submit {
+  font-size: 12px;
+}
+
+.comment-list {
+  max-height: 80px;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.comment-list li {
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  padding: 5px;
+  margin-bottom: 5px;
+  word-wrap: break-word;
+}
+
+.comment-list li small {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.dark-mode .notes-cards {
   background-image: linear-gradient(144deg, #2c3034, #343a40 50%, #2575fc);
   box-shadow: rgba(37, 117, 252, 0.2) 0 15px 30px -5px;
 }
@@ -37,6 +96,23 @@ body.dark-mode .card {
 body.dark-mode .card__content {
   background: #1a1d21;
   color: #f8f9fa;
+}
+
+body.dark-mode .comment-input {
+  background: rgba(255, 255, 255, 0.2);
+  color: #f8f9fa;
+}
+
+body.dark-mode .comment-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.dark-mode .comment-list li {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+body.dark-mode .comment-list li small {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 main.container {
@@ -74,49 +150,4 @@ i.bi-file-earmark-pdf {
 
 body.dark-mode i.bi-file-earmark-pdf {
   color: #ff6b6b;
-}
-
-.btn.btn-success {
-  background-color: #28a745;
-  border-color: #28a745;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-body.dark-mode .btn.btn-success {
-  background-color: #218838;
-  border-color: #218838;
-}
-
-body.dark-mode .btn.btn-success:hover {
-  background-color: #1e7e34;
-  border-color: #1e7e34;
-}
-
-
-#view-notes{
-  background-color: blueviolet;
-  color: #fff;
-  border-radius: 5px;
-  border: 2px blueviolet;
-  align-items: center;
-  display: inline-block;
-  margin: 5px;
-    width: 80%;
-  height: 3vh;
-  justify-content: center;
-  justify-items: center;
-
-}
-#download-notes{
-  background-color: rgb(43, 226, 52);
-  color: #fff;
-  border-radius: 5px;
-  border: 2px blueviolet;
-  align-items: center;
-  display: inline-block;
-  margin: 5px;
-  width: 90%;
-  height: 4vh;
-  justify-content: center;
-  justify-items: center;
 }

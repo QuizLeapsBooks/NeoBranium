@@ -4,8 +4,6 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
-  signInWithPhoneNumber,
-  RecaptchaVerifier,
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 import {
   getFirestore,
@@ -27,15 +25,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
-// Initialize reCAPTCHA for phone authentication
-let recaptchaVerifier;
-document.addEventListener("DOMContentLoaded", () => {
-  recaptchaVerifier = new RecaptchaVerifier(auth, "submitSignIn", {
-    size: "invisible",
-    callback: () => {},
-  });
-});
 
 // Helper function to show messages
 function showMessage(message, divId, isError = true) {
@@ -119,76 +108,34 @@ window.handleSignUp = async function (event) {
   }
 };
 
-// Login functionality
+// Login functionality (Email/Password only)
 window.handleLogin = async function (event) {
   event.preventDefault();
   const email = document.getElementById("signIn-email").value.trim();
   const password = document.getElementById("signIn-password").value;
-  const phone = document.getElementById("signIn-phone").value.trim();
 
-  if (!email && !phone) {
-    showMessage("Please provide either an email or phone number", "signInMessage");
+  if (!email || !password) {
+    showMessage("Email and password are required", "signInMessage");
     return;
   }
 
-  if (email && !isValidEmail(email)) {
+  if (!isValidEmail(email)) {
     showMessage("Invalid email format", "signInMessage");
     return;
   }
 
-  if (phone && !isValidPhone(phone)) {
-    showMessage("Invalid phone number format (e.g., +919876543210)", "signInMessage");
-    return;
-  }
-
-  if (email && password) {
-    // Email/Password login
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      if (!user.emailVerified) {
-        showMessage("Please verify your email before logging in.", "signInMessage");
-        return;
-      }
-      localStorage.setItem("loggedInUserId", user.uid);
-      showMessage("Logged in successfully!", "signInMessage", false);
-      setTimeout(() => location.replace("/htmls/dashboard.html"), 2000);
-    } catch (error) {
-      console.error(error);
-      showMessage("Login failed. Email or password is incorrect.", "signInMessage");
-    }
-  } else if (phone) {
-    // Phone number login with OTP
-    try {
-      const confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
-      window.confirmationResult = confirmationResult; // Store for OTP verification
-      showMessage("OTP sent to your phone number!", "signInMessage", false);
-      showOTPForm();
-    } catch (error) {
-      console.error(error);
-      showMessage("Failed to send OTP. Please try again.", "signInMessage");
-    }
-  }
-};
-
-// OTP Verification
-window.verifyOTP = async function (event) {
-  event.preventDefault();
-  const otp = document.getElementById("otp-code").value.trim();
-
-  if (!otp) {
-    showMessage("Please enter the OTP", "otpMessage");
-    return;
-  }
-
   try {
-    const result = await window.confirmationResult.confirm(otp);
-    const user = result.user;
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    if (!user.emailVerified) {
+      showMessage("Please verify your email before logging in.", "signInMessage");
+      return;
+    }
     localStorage.setItem("loggedInUserId", user.uid);
-    showMessage("Logged in successfully!", "otpMessage", false);
+    showMessage("Logged in successfully!", "signInMessage", false);
     setTimeout(() => location.replace("/htmls/dashboard.html"), 2000);
   } catch (error) {
     console.error(error);
-    showMessage("Invalid OTP. Please try again.", "otpMessage");
+    showMessage("Login failed. Email or password is incorrect.", "signInMessage");
   }
 };

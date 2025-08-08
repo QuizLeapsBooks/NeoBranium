@@ -35,8 +35,7 @@
     .social-icon:hover {
       background: #e0e7ff;
     }
-    /* From Uiverse.io by Pradeepsaranbishnoi */
-    /* GENERAL */
+
     .credit {
       position: fixed;
       right: 2rem;
@@ -48,7 +47,6 @@
       color: inherit;
     }
 
-    /* Main Circle */
     .main-circle {
       width: 40rem;
       height: 40rem;
@@ -57,49 +55,31 @@
       position: absolute;
       z-index: 1;
       left: 50%;
-      -webkit-transform: translate(-50%, -70%);
-      -ms-transform: translate(-50%, -70%);
       transform: translate(-50%, -70%);
     }
 
-    /* Phone */
     .phone {
       position: relative;
       z-index: 2;
       width: 18rem;
       height: 17rem;
       background-color: inherit;
-      -webkit-box-shadow: 0 4px 35px rgba(0, 0, 0, .1);
       box-shadow: 0 4px 35px rgba(0, 0, 0, .1);
       border-radius: 40px;
-      display: -webkit-box;
-      display: -ms-flexbox;
       display: flex;
-      -webkit-box-orient: vertical;
-      -webkit-box-direction: normal;
-      -ms-flex-direction: column;
       flex-direction: column;
     }
 
-    /* Top */
     .menu {
       font-size: 80%;
       opacity: .4;
       padding: .8rem 1.8rem;
-      display: -webkit-box;
-      display: -ms-flexbox;
       display: flex;
-      -webkit-box-pack: justify;
-      -ms-flex-pack: justify;
       justify-content: space-between;
-      -webkit-box-align: center;
-      -ms-flex-align: center;
       align-items: center;
     }
 
     .icons {
-      display: -webkit-box;
-      display: -ms-flexbox;
       display: flex;
       margin-top: .5rem;
     }
@@ -116,26 +96,16 @@
       border-style: solid;
       border-width: 0 6.8px 7.2px 6.8px;
       border-color: transparent transparent black transparent;
-      -webkit-transform: rotate(135deg);
-      -ms-transform: rotate(135deg);
       transform: rotate(135deg);
       margin: .12rem .5rem;
     }
 
-    /* Middle */
     .content {
-      display: -webkit-box;
-      display: -ms-flexbox;
       display: flex;
-      -webkit-box-orient: vertical;
-      -webkit-box-direction: normal;
-      -ms-flex-direction: column;
       flex-direction: column;
       margin: auto;
       text-align: center;
       width: 70%;
-      -webkit-transform: translateY(5%);
-      -ms-transform: translateY(5%);
       transform: translateY(5%);
     }
 
@@ -155,16 +125,9 @@
       width: 6rem;
       height: 6rem;
       background: white;
-      -webkit-transform: scale(0);
-      -ms-transform: scale(0);
       transform: scale(0);
-      -webkit-transform-origin: top right;
-      -ms-transform-origin: top right;
       transform-origin: top right;
-      -webkit-transition: -webkit-transform .6s cubic-bezier(0.645, 0.045, 0.355, 1);
-      transition: -webkit-transform .6s cubic-bezier(0.645, 0.045, 0.355, 1);
       transition: transform .6s cubic-bezier(0.645, 0.045, 0.355, 1);
-      transition: transform .6s cubic-bezier(0.645, 0.045, 0.355, 1), -webkit-transform .6s cubic-bezier(0.645, 0.045, 0.355, 1);
     }
 
     label, .toggle {
@@ -185,12 +148,8 @@
       position: absolute;
       width: 50%;
       background-color: #fff;
-      -webkit-box-shadow: 0 2px 15px rgba(0, 0, 0, .15);
       box-shadow: 0 2px 15px rgba(0, 0, 0, .15);
-      -webkit-transition: -webkit-transform .3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      transition: -webkit-transform .3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
       transition: transform .3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      transition: transform .3s cubic-bezier(0.25, 0.46, 0.45, 0.94), -webkit-transform .3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
 
     .names {
@@ -201,23 +160,46 @@
       margin-left: 17.5%;
       margin-top: 6.5%;
       position: absolute;
-      display: -webkit-box;
-      display: -ms-flexbox;
       display: flex;
-      -webkit-box-pack: justify;
-      -ms-flex-pack: justify;
       justify-content: space-between;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
       user-select: none;
+    }
+
+    .dark body {
+      background: linear-gradient(135deg, #111827 0%, #6366f1 100%);
+    }
+
+    .dark .glass {
+      background: rgba(75, 85, 99, 0.85);
+    }
+
+    .dark #usernameDisplay, .dark #bioDisplay, .dark #emailDisplay {
+      color: #e5e7eb;
+    }
+
+    .dark .text-gray-500, .dark .text-gray-600 {
+      color: #d1d5db;
+    }
+
+    .dark #userStats .text-indigo-600 {
+      color: #a5b4fc;
+    }
+
+    .dark .bg-gray-200 {
+      background-color: #374151;
+      color: #e5e7eb;
+    }
+
+    .dark .hover:bg-indigo-100 {
+      background-color: #4b5563;
     }
   </style>
 </head>
 
-<body class="flex items-center justify-center min-h-screen">
+<body class="flex items-center justify-center min-h-screen relative">
+  <div class="main-circle"></div>
 
-  <div class="glass rounded-2xl p-8 w-full max-w-md text-center relative">
+  <div class="glass rounded-2xl p-8 w-full max-w-md text-center relative z-10">
     <div class="absolute -top-6 -right-6 w-16 h-16 bg-indigo-200 rounded-full opacity-60 z-0"></div>
     <div class="absolute -bottom-8 -left-8 w-24 h-24 bg-indigo-100 rounded-full opacity-40 z-0"></div>
 
@@ -251,28 +233,14 @@
     <div class="flex justify-center mt-2 mb-4 z-10">
       <button id="themeToggle" class="bg-gray-200 text-gray-700 px-4 py-1 rounded-full text-sm font-semibold hover:bg-indigo-100 transition">Switch Theme</button>
     </div>
-      <a href="/htmls/rank-score-info.html" class="text-indigo-700 hover:underline text-sm font-semibold">
+    <a href="/htmls/rank-score-info.html" class="text-indigo-700 hover:underline text-sm font-semibold">
     📚 How Rank & Score are calculated?
   </a>
   </div>
 
-  
-
-  <!-- Firebase Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore-compat.js"></script>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyA1iWJdGtmrox9RAHgWBxaK4p8KGf7ji_Y",
-      authDomain: "neobranium.firebaseapp.com",
-      projectId: "neobranium"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+  <script type="module" src="/js/auth.js"></script>
+  <script type="module">
+    import { auth, loadUserData, updateUserDisplay, showStatus } from '/js/auth.js';
 
     const usernameDisplay = document.getElementById('usernameDisplay');
     const bioDisplay = document.getElementById('bioDisplay');
@@ -284,43 +252,30 @@
     const userRank = document.getElementById('userRank');
     const themeToggle = document.getElementById('themeToggle');
 
-    auth.onAuthStateChanged(async user => {
-      if (!user) {
-        window.location.href = "/index.html";
-        return;
-      }
+    document.addEventListener('userLoaded', async (e) => {
+      const { user, userData } = e.detail;
+      emailDisplay.textContent = userData.email || 'No email';
+      usernameDisplay.textContent = userData.username || user.displayName || 'User';
+      bioDisplay.textContent = userData.bio || 'No bio added yet';
+      userScore.textContent = userData.score ?? 0;
+      highScore.textContent = userData.highScore ?? 0;
+      userRank.textContent = userData.rank ?? '-';
 
-      emailDisplay.textContent = user.email;
-
-      try {
-        const userDoc = await db.collection("users").doc(user.uid).get();
-        const data = userDoc.data();
-
-        const username = data?.username || user.displayName || "User";
-        const bio = data?.bio || "No bio added yet";
-
-        usernameDisplay.textContent = username;
-        bioDisplay.textContent = bio;
-
-        if (user.photoURL) {
-          profilePicContainer.innerHTML = `<img class="w-28 h-28 rounded-full mx-auto shadow-lg border-4 border-white" src="${user.photoURL}" alt="Profile Picture" />`;
-        } else {
-          const firstLetter = username.charAt(0).toUpperCase();
-          profilePicContainer.innerHTML = `<div class="avatar">${firstLetter}</div>`;
-        }
-
-        userScore.textContent = data?.score ?? 0;
-        highScore.textContent = data?.highScore ?? 0;
-        userRank.textContent = data?.rank ?? '-';
-
-      } catch (error) {
-        console.error("Error loading user data:", error);
+      if (userData.photoURL) {
+        profilePicContainer.innerHTML = `<img class="w-28 h-28 rounded-full mx-auto shadow-lg border-4 border-white" src="${userData.photoURL}" alt="Profile Picture" />`;
+      } else {
+        const firstLetter = (userData.username || user.displayName || 'User').charAt(0).toUpperCase();
+        profilePicContainer.innerHTML = `<div class="avatar">${firstLetter}</div>`;
       }
     });
 
     logoutBtn.addEventListener("click", async () => {
-      await auth.signOut();
-      window.location.href = "/index.html";
+      try {
+        await auth.signOut();
+        window.location.href = "/index.html";
+      } catch (error) {
+        showStatus("Failed to logout: " + error.message, true);
+      }
     });
 
     themeToggle.addEventListener("click", () => {
@@ -332,7 +287,6 @@
       }
     });
   </script>
-
 </body>
 
 </html>

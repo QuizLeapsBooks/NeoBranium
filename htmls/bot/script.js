@@ -1,9 +1,3 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const API_KEY = "AIzaSyCshENXW82VynAiFZ-strGvyvVvocTK_tA";
-const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
 const chatInput = document.querySelector("#chat-input");
 const sendButton = document.querySelector("#send-btn");
 const chatContainer = document.querySelector(".chat-body");
@@ -13,26 +7,28 @@ async function getChatResponse(userText) {
         "solve", "answer", "do my homework", "complete", "assignment", 
         "problem set", "homework", "Q.", "Q:", "solution", "calculate"
     ];
-    const isHomework = homeworkKeywords.some(keyword => userText.toLowerCase().includes(keyword));
+    const isHomework = homeworkKeywords.some(keyword =>
+        userText.toLowerCase().includes(keyword)
+    );
     const isSimpleMath = /^\s*\d+\s*[\+\-\*\/]\s*\d+\s*$/.test(userText);
 
     if (isHomework || isSimpleMath) {
         return "Oops! 😅 I don’t directly solve homework, but I can make you an expert by explaining the concept. Ask me any theory, reason, or trick — let’s learn smartly! 📘✨";
     }
 
-    const systemPrompt = `You are NEOBranium's AI Assistant for Class 9-10 students. Your default language is English, but always respond in the same language the user uses (e.g., Hindi, Hinglish, etc.). Be concise (2-4 lines max), clear, friendly, and creative.
-You're here to:
-- explain Science and Math concepts in simple language,
-- spark curiosity with short facts or analogies,
-- give study tips and motivate students to learn.
-Avoid solving homework or giving direct answers to textbook questions. Instead, guide the user with explanations and questions that promote thinking.`;
-
     try {
-        const result = await model.generateContent(`${systemPrompt}\nUser: ${userText}`);
-        const response = await result.response.text();
-        return response.trim();
+        const res = await fetch("http://localhost:3000/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ message: userText })
+        });
+
+        const data = await res.json();
+        return data.reply;
     } catch (error) {
-        console.error("Gemini Error:", error);
+        console.error("Error:", error);
         return "Oops! Server is busy right now. Please try again later. 😅";
     }
 }

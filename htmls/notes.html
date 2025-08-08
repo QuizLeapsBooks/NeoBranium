@@ -6,8 +6,8 @@
   <title>Notes - NeoBranium</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
-  <meta name="description" content="Access your notes for Class 9 and 10 on NeoBranium. Download PDFs and enhance your study game!">
-  <meta name="keywords" content="NeoBranium, Notes, Class 9, Class 10, PDF Download, Study, Education">
+  <meta name="description" content="Access your notes for Class 9 and 10 on NeoBranium. Enhance your study game!">
+  <meta name="keywords" content="NeoBranium, Notes, Class 9, Class 10, Study, Education">
   <meta name="author" content="NeoBranium Team">
   <link rel="stylesheet" href="/CSS/notes_css.css">
   <link rel="stylesheet" href="/CSS/dashboard.css">
@@ -77,14 +77,49 @@
     </div>
 
     <div class="notes-grid mt-4" id="notesGrid">
-      <div class="notes-cards">
-        <b>Topic: Electricity</b>
-        <p>Chapter Name: Electricity</p>
-        <p>Class: 10</p>
-        <p>Uploaded by: Shubham Singh</p>
-        <p class="pdf-path d-none" data-pdf="/Notes/ihss301.pdf"></p>
-        <button class="view-notes btn btn-primary" onclick="viewPDF(this)">View Notes</button>
-        <button class="download-notes btn btn-success" onclick="downloadPDF(this)">Download Notes</button>
+      <div class="notes-cards" data-note-id="electricity_10_001">
+        <div class="card__content">
+          <b>Topic: Electricity</b>
+          <p>Chapter Name: Electricity</p>
+          <p>Class: 10</p>
+          <p>Uploaded by: Shubham Singh</p>
+          <p id="reaction-count-electricity_10_001">Likes: 0 | Dislikes: 0</p>
+          <p class="pdf-path d-none" data-pdf="/Notes/ihss301.pdf"></p>
+          <button class="view-notes btn btn-primary">View Notes</button>
+          <div class="reaction-buttons">
+            <button class="like-btn btn btn-outline-success" id="like-electricity_10_001"><i class="bi bi-hand-thumbs-up"></i> Like</button>
+            <button class="dislike-btn btn btn-outline-danger" id="dislike-electricity_10_001"><i class="bi bi-hand-thumbs-down"></i> Dislike</button>
+          </div>
+          <div class="comment-section mt-2">
+            <div class="input-group">
+              <input type="text" class="form-control comment-input" id="comment-input-electricity_10_001" placeholder="Add a comment..." maxlength="500">
+              <button class="btn btn-primary comment-submit" id="comment-submit-electricity_10_001">Post</button>
+            </div>
+            <ul class="comment-list list-unstyled mt-2" id="comment-list-electricity_10_001"></ul>
+          </div>
+        </div>
+      </div>
+      <div class="notes-cards" data-note-id="magnetism_10_002">
+        <div class="card__content">
+          <b>Topic: Magnetism</b>
+          <p>Chapter Name: Magnetic Effects</p>
+          <p>Class: 10</p>
+          <p>Uploaded by: Priya Sharma</p>
+          <p id="reaction-count-magnetism_10_002">Likes: 0 | Dislikes: 0</p>
+          <p class="pdf-path d-none" data-pdf="/Notes/magnetism.pdf"></p>
+          <button class="view-notes btn btn-primary">View Notes</button>
+          <div class="reaction-buttons">
+            <button class="like-btn btn btn-outline-success" id="like-magnetism_10_002"><i class="bi bi-hand-thumbs-up"></i> Like</button>
+            <button class="dislike-btn btn btn-outline-danger" id="dislike-magnetism_10_002"><i class="bi bi-hand-thumbs-down"></i> Dislike</button>
+          </div>
+          <div class="comment-section mt-2">
+            <div class="input-group">
+              <input type="text" class="form-control comment-input" id="comment-input-magnetism_10_002" placeholder="Add a comment..." maxlength="500">
+              <button class="btn btn-primary comment-submit" id="comment-submit-magnetism_10_002">Post</button>
+            </div>
+            <ul class="comment-list list-unstyled mt-2" id="comment-list-magnetism_10_002"></ul>
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -125,23 +160,20 @@
       else main.style.marginLeft = '250px';
     });
 
-    // PDF view and download functions
+    // PDF view function
     function viewPDF(button) {
       const pdfPath = button.parentElement.querySelector('.pdf-path').getAttribute('data-pdf');
       window.open(pdfPath, '_blank');
     }
 
-    function downloadPDF(button) {
-      const pdfPath = button.parentElement.querySelector('.pdf-path').getAttribute('data-pdf');
-      const link = document.createElement('a');
-      link.href = pdfPath;
-      link.download = pdfPath.split('/').pop();
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+    // Bind viewPDF to view-notes buttons
+    document.querySelectorAll('.view-notes').forEach(button => {
+      button.addEventListener('click', () => viewPDF(button));
+    });
   </script>
+  <script src="/js/dark_mode.js"></script>
+  <script type="module" src="/js/auth.js"></script>
+  <script type="module" src="/js/like.js"></script>
+  <script type="module" src="/js/comments.js"></script>
 </body>
-<script src="/js/dark_mode.js"></script>
-<script type="module" src="/js/auth.js"></script>
 </html>
