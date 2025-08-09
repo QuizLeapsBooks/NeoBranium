@@ -2,11 +2,12 @@ const chatInput = document.querySelector("#chat-input");
 const sendButton = document.querySelector("#send-btn");
 const chatContainer = document.querySelector(".chat-body");
 
-// 🔹 Backend API ka URL (localhost ki jagah tumhara Vercel URL lagao)
+// 🔹 API URL (replace with your actual deployed Vercel domain)
 const API_URL = "https://neo-branium.vercel.app/api/chat";
 
+// Function to get response from backend
 async function getChatResponse(userText) {
-    // Homework keywords check
+    // Words that might indicate homework requests
     const homeworkKeywords = [
         "solve", "answer", "do my homework", "complete", "assignment", 
         "problem set", "homework", "Q.", "Q:", "solution", "calculate"
@@ -16,11 +17,11 @@ async function getChatResponse(userText) {
         userText.toLowerCase().includes(keyword)
     );
 
-    // Simple math pattern check (like 5+3)
+    // Pattern check for simple math expressions (e.g., 5+3)
     const isSimpleMath = /^\s*\d+\s*[\+\-\*\/]\s*\d+\s*$/.test(userText);
 
     if (isHomework || isSimpleMath) {
-        return "Oops! 😅 I don’t directly solve homework, but I can make you an expert by explaining the concept. Ask me any theory, reason, or trick — let’s learn smartly! 📘✨";
+        return "Oops! 😅 I don’t directly solve homework, but I can help you understand the concept. Ask me any theory, reason, or trick — let’s learn smartly! 📘✨";
     }
 
     try {
@@ -40,10 +41,11 @@ async function getChatResponse(userText) {
         return data.reply || "Hmm... I didn’t get a reply. 🤔";
     } catch (error) {
         console.error("❌ Fetch Error:", error);
-        return "Oops! Server is busy or unreachable right now. Please try again later. 😅";
+        return "Oops! The server is busy or unreachable right now. Please try again later. 😅";
     }
 }
 
+// Function to add a message bubble to the chat UI
 function addMessageToChat(text, isUser, isThinking = false) {
     const messageDiv = document.createElement("div");
     messageDiv.classList.add(
@@ -56,22 +58,28 @@ function addMessageToChat(text, isUser, isThinking = false) {
     return messageDiv;
 }
 
+// Handles sending the message and receiving a response
 async function handleAPI() {
     const userText = chatInput.value.trim();
     if (!userText) return;
 
+    // Add user's message
     addMessageToChat(userText, true);
     chatInput.value = "";
     sendButton.disabled = true;
 
+    // Show "Thinking..." placeholder
     const thinkingMessage = addMessageToChat("Thinking... 🤔", false, true);
 
+    // Get AI response
     const response = await getChatResponse(userText);
     thinkingMessage.remove();
     addMessageToChat(response, false);
+
     sendButton.disabled = false;
 }
 
+// Event listeners
 sendButton.addEventListener("click", handleAPI);
 chatInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
