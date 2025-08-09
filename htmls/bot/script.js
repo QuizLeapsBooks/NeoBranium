@@ -2,51 +2,40 @@ const chatInput = document.querySelector("#chat-input");
 const sendButton = document.querySelector("#send-btn");
 const chatContainer = document.querySelector(".chat-body");
 
-// API will auto-match your Vercel domain
-const API_URL = "/api/chat";
-
-// Function to get response from backend
 async function getChatResponse(userText) {
     const homeworkKeywords = [
         "solve", "answer", "do my homework", "complete", "assignment", 
         "problem set", "homework", "Q.", "Q:", "solution", "calculate"
     ];
-
     const isHomework = homeworkKeywords.some(keyword =>
         userText.toLowerCase().includes(keyword)
     );
-
     const isSimpleMath = /^\s*\d+\s*[\+\-\*\/]\s*\d+\s*$/.test(userText);
 
     if (isHomework || isSimpleMath) {
-        return "Oops! 😅 I don’t directly solve homework, but I can help you understand the concept. Ask me any theory, reason, or trick — let’s learn smartly! 📘✨";
+        return "Oops! 😅 I don’t directly solve homework, but I can make you an expert by explaining the concept. Ask me any theory, reason, or trick — let’s learn smartly! 📘✨";
     }
 
     try {
-        const res = await fetch(API_URL, {
+        const res = await fetch("http://localhost:3000/chat", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({ message: userText })
         });
 
-        if (!res.ok) {
-            throw new Error(`HTTP error! Status: ${res.status}`);
-        }
-
         const data = await res.json();
-        return data.reply || "Hmm... I didn’t get a reply. 🤔";
+        return data.reply;
     } catch (error) {
-        console.error("❌ Fetch Error:", error);
-        return "Oops! The server is busy or unreachable right now. Please try again later. 😅";
+        console.error("Error:", error);
+        return "Oops! Server is busy right now. Please try again later. 😅";
     }
 }
 
 function addMessageToChat(text, isUser, isThinking = false) {
     const messageDiv = document.createElement("div");
-    messageDiv.classList.add(
-        "chat-message", 
-        isUser ? "user-message" : isThinking ? "thinking-message" : "ai-message"
-    );
+    messageDiv.classList.add("chat-message", isUser ? "user-message" : isThinking ? "thinking-message" : "ai-message");
     messageDiv.textContent = text;
     chatContainer.appendChild(messageDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -66,7 +55,6 @@ async function handleAPI() {
     const response = await getChatResponse(userText);
     thinkingMessage.remove();
     addMessageToChat(response, false);
-
     sendButton.disabled = false;
 }
 
