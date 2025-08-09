@@ -1,16 +1,25 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).end("Method Not Allowed");
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+app.post('/chat', async (req, res) => {
+  const userText = req.body.message;
+  if (!userText) {
+    return res.status(400).json({ reply: 'Bhai, kuch toh message bhej! 😅' });
   }
 
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-  const userText = req.body.message;
-
-  const prompt = `You are NEOBranium's AI Assistant for Class 9-10 students. Your default language is English, but always respond in the same language the user uses (e.g., Hindi, Hinglish, etc.). Be concise (2-4 lines max), clear, friendly, and creative.
+  const prompt = `
+    You are NEOBranium's AI Assistant for Class 9-10 students. Your default language is English, but always respond in the same language the user uses (e.g., Hindi, Hinglish, etc.). Be concise (2-4 lines max), clear, friendly, and creative.
 You're here to:
 - explain Science and Math concepts in simple language,
 - spark curiosity with short facts or analogies,
@@ -44,14 +53,19 @@ You're here to:
 - Always encourage students to ask questions and explore topics further.
 - Akways keep the response like teenager and always be friendly and creative but do not bad words or dimotivational language.
 - Use emojis to make the conversation more engaging and fun.
-Avoid solving homework or giving direct answers to textbook questions. Instead, guide the user with explanations and questions that promote thinking.\nUser: ${userText}`;
+Avoid solving homework or giving direct answers to textbook questions. Instead, guide the user with explanations and questions that promote thinking. ${userText}
+  `;
 
   try {
     const result = await model.generateContent(prompt);
     const response = await result.response.text();
-    res.status(200).json({ reply: response.trim() });
+    res.json({ reply: response.trim() });
   } catch (err) {
-    console.error("Gemini Error:", err);
-    res.status(500).json({ reply: "Server error. Try again later." });
+    console.error('Error:', err.message);
+    res.status(500).json({ reply: 'Server error or lose internet connection' });
   }
-}
+});
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port} 🚀`);
+});
