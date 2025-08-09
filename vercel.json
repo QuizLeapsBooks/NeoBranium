@@ -1,11 +1,23 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/server.js", "use": "@vercel/node" },
-    { "src": "htmls/bot/bot.html", "use": "@vercel/static" }
+    {
+      "src": "chat.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "htmls/**",
+      "use": "@vercel/static"
+    }
   ],
   "routes": [
-    { "src": "/api/chat", "dest": "api/server.js" },
-    { "src": "/(.*)", "dest": "/htmls/$1" }
+    {
+      "src": "/api/chat",
+      "dest": "/chat.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/htmls/$1"
+    }
   ]
 }
