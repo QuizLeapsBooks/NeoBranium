@@ -8,33 +8,16 @@ const chatContainer = document.querySelector(".chat-body");
 // ========================
 // Backend URL Setup
 // ========================
-const API_BASE_URL = window.location.hostname === "localhost" 
-    ? "http://localhost:3000" 
-    : "https://neobranium.onrender.com/server"; // Apne backend ka live URL
+const API_BASE_URL = window.location.hostname === "localhost"
+    ? "http://localhost:3000"
+    : "https://neobranium.onrender.com"; // Live backend URL
 
 // ========================
 // Function: Get Chat Response
 // ========================
 async function getChatResponse(userText) {
-    // Homework filter
-    const homeworkKeywords = [
-        "solve", "answer", "do my homework", "complete", "assignment",
-        "problem set", "homework", "Q.", "Q:", "solution", "calculate"
-    ];
-    const isHomework = homeworkKeywords.some(keyword =>
-        userText.toLowerCase().includes(keyword)
-    );
-
-    // Simple Math Detection
-    const isSimpleMath = /^\s*\d+\s*[\+\-\*\/]\s*\d+\s*$/.test(userText);
-
-    if (isHomework || isSimpleMath) {
-        return "Oops! 😅 I don’t directly solve homework, but I can explain the concept. Ask me any theory, reason, or trick — let’s learn smartly! 📘✨";
-    }
-
-    // API Call
     try {
-        const res = await fetch(`${API_BASE_URL}/chat`, {
+        const res = await fetch(`${API_BASE_URL}/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message: userText })

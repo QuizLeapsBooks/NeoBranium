@@ -1,4 +1,3 @@
-// chat.js
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -9,21 +8,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// OPTIONAL: serve your frontend from the same service (if you keep htmls folder)
+// OPTIONAL: Serve frontend if needed
 app.use('/htmls', express.static(path.join(__dirname, 'htmls')));
 
 // GEMINI client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
+// Chat endpoint
 app.post('/api/chat', async (req, res) => {
-  const userText = req.body.message || '';
+    const userText = req.body.message || '';
 
-  if (!userText.trim()) {
-    return res.status(400).json({ reply: 'Please send a message.' });
-  }
+    if (!userText.trim()) {
+        return res.status(400).json({ reply: 'Please send a message.' });
+    }
 
-  const prompt = `
+    const prompt = `
   You are NEOBranium's AI Assistant for Class 9-10 students. Your default language is English, but always respond in the same language the user uses (e.g., Hindi, Hinglish, etc.). Be concise (2-4 lines max), clear, friendly, and creative.
 You're here to:
 - explain Science and Math concepts in simple language,
@@ -58,19 +58,20 @@ You're here to:
 - Always encourage students to ask questions and explore topics further.
 - Akways keep the response like teenager and always be friendly and creative but do not bad words or dimotivational language.
 - Use emojis to make the conversation more engaging and fun.
-Avoid solving homework or giving direct answers to textbook questions. Instead, guide the user with explanations and questions that promote thinking. ${userText}
-  `;
+Avoid solving homework or giving direct answers to textbook questions. Instead, guide the user with explanations and questions that promote thinking.
+${userText}
+    `;
 
-  try {
-    const result = await model.generateContent(prompt);
-    const text = await result.response.text();
-    return res.json({ reply: text.trim() });
-  } catch (err) {
-    console.error('ERROR (AI):', err);
-    return res.status(500).json({ reply: 'Server error or lost internet connection' });
-  }
+    try {
+        const result = await model.generateContent(prompt);
+        const text = await result.response.text();
+        return res.json({ reply: text.trim() });
+    } catch (err) {
+        console.error('ERROR (AI):', err);
+        return res.status(500).json({ reply: 'Server error or lost internet connection' });
+    }
 });
 
-// Start server on Render (use the PORT Render provides)
+// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
