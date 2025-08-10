@@ -5,7 +5,7 @@ const chatContainer = document.querySelector(".chat-body");
 // ✅ Backend URL setup
 const API_BASE_URL = window.location.hostname === "localhost" 
     ? "http://localhost:3000" 
-    : "https://neo-branium.vercel.app/server"; // Apne hosted backend ka URL yaha daal
+    : "https://neobranium.onrender.com/server"; // Apne hosted backend ka URL yaha daal
 
 async function getChatResponse(userText) {
     const homeworkKeywords = [
