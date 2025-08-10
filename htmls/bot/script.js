@@ -10,7 +10,7 @@ const chatContainer = document.querySelector(".chat-body");
 // ========================
 const API_BASE_URL = window.location.hostname === "localhost" 
     ? "http://localhost:3000" 
-    : "https://neobranium.onrender.com/server.js"; // Apne backend ka live URL
+    : "https://neobranium.onrender.com/server"; // Apne backend ka live URL
 
 // ========================
 // Function: Get Chat Response
