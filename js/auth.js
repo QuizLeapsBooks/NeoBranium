@@ -45,6 +45,14 @@ export function updateUserDisplay(userData, user) {
             initialAvatar.textContent = (userData.username || user.displayName || "User").charAt(0).toUpperCase();
         }
     }
+    const userInitial = document.getElementById("userInitial");
+    if (userInitial) {
+        userInitial.textContent = (userData.username || user.displayName || "User").charAt(0).toUpperCase();
+    }
+    const userBioText = document.getElementById("userBioText");
+    if (userBioText) {
+        userBioText.textContent = userData.bio || "--Your Bio--";
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
