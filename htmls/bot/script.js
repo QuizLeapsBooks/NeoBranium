@@ -2,9 +2,14 @@ const chatInput = document.querySelector("#chat-input");
 const sendButton = document.querySelector("#send-btn");
 const chatContainer = document.querySelector(".chat-body");
 
+// ✅ Backend URL setup
+const API_BASE_URL = window.location.hostname === "localhost" 
+    ? "http://localhost:3000" 
+    : "https://neo-branium.vercel.app/server"; // Apne hosted backend ka URL yaha daal
+
 async function getChatResponse(userText) {
     const homeworkKeywords = [
-        "solve", "answer", "do my homework", "complete", "assignment", 
+        "solve", "answer", "do my homework", "complete", "assignment",
         "problem set", "homework", "Q.", "Q:", "solution", "calculate"
     ];
     const isHomework = homeworkKeywords.some(keyword =>
@@ -17,7 +22,7 @@ async function getChatResponse(userText) {
     }
 
     try {
-        const res = await fetch("http://localhost:3000/chat", {
+        const res = await fetch(`${API_BASE_URL}/chat`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -25,8 +30,12 @@ async function getChatResponse(userText) {
             body: JSON.stringify({ message: userText })
         });
 
+        if (!res.ok) {
+            throw new Error(`HTTP error! Status: ${res.status}`);
+        }
+
         const data = await res.json();
-        return data.reply;
+        return data.reply || "No response from server.";
     } catch (error) {
         console.error("Error:", error);
         return "Oops! Server is busy right now. Please try again later. 😅";
@@ -35,7 +44,10 @@ async function getChatResponse(userText) {
 
 function addMessageToChat(text, isUser, isThinking = false) {
     const messageDiv = document.createElement("div");
-    messageDiv.classList.add("chat-message", isUser ? "user-message" : isThinking ? "thinking-message" : "ai-message");
+    messageDiv.classList.add(
+        "chat-message",
+        isUser ? "user-message" : isThinking ? "thinking-message" : "ai-message"
+    );
     messageDiv.textContent = text;
     chatContainer.appendChild(messageDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
