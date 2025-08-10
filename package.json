@@ -17,11 +17,11 @@
     "url": "https://github.com/QuizLeapsBooks/NeoBranium/issues"
   },
   "homepage": "https://github.com/QuizLeapsBooks/NeoBranium#readme",
-  "description": "",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0"
-  }
+  },
+  "description": ""
 }
