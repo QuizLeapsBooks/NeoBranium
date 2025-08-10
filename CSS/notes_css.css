@@ -1,12 +1,14 @@
 .notes-cards {
-  width: 200px;
-  height: 400px; /* Increased height to accommodate comment section */
+  width: 100%; /* Changed to 100% for responsiveness */
+  max-width: 200px; /* Maintain max width for larger screens */
+  height: 400px; /* Kept height for consistency */
   border-radius: 20px;
   padding: 5px;
   box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
   background-image: linear-gradient(144deg, #AF40FF, #5B42F3 50%, #00DDEB);
   color: #fff;
   transition: background-image 0.3s ease, box-shadow 0.3s ease;
+  margin: 10px; /* Added margin for spacing in grid */
 }
 
 .card__content {
@@ -150,4 +152,56 @@ i.bi-file-earmark-pdf {
 
 body.dark-mode i.bi-file-earmark-pdf {
   color: #ff6b6b;
+}
+
+/* Responsive Notes Grid */
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Responsive grid */
+  gap: 20px; /* Space between cards */
+  padding: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+  .notes-cards {
+    max-width: 100%; /* Full width on small screens */
+    height: auto; /* Allow height to adjust */
+    min-height: 350px; /* Minimum height to avoid too small cards */
+  }
+
+  .notes-cards p {
+    font-size: 12px; /* Smaller text for mobile */
+  }
+
+  .notes-cards .view-notes {
+    font-size: 12px;
+  }
+
+  .notes-cards .like-btn,
+  .notes-cards .dislike-btn {
+    font-size: 12px;
+  }
+
+  .comment-input {
+    font-size: 10px;
+  }
+
+  .comment-submit {
+    font-size: 10px;
+  }
+
+  .comment-list li {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 576px) {
+  .notes-grid {
+    grid-template-columns: 1fr; /* Single column on very small screens */
+  }
+
+  .notes-cards {
+    margin: 5px; /* Smaller margins for tight screens */
+  }
 }
