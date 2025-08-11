@@ -488,3 +488,7 @@
       display: none;
     }
   }
+
+  #shortcutBtn {
+    margin: 3px;
+  }
