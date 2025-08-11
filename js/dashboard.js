@@ -1,4 +1,16 @@
+function openSubjectModal(cls) {
+  const modal = new bootstrap.Modal(document.getElementById('subjectModal'));
+  modal.show();
+}
 
+function goToSubjectPage() {
+  const subject = document.getElementById('subjectSelect').value;
+  if (subject) {
+    window.location.href = `/htmls/quiz_htmls/${subject}.html`;
+  } else {
+    alert("Please select a subject first.");
+  }
+}
 
 // Toggle sidebar logic for mobile
 document.querySelector('.navbar-toggler').addEventListener('click', function () {
