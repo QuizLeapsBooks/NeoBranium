@@ -24,103 +24,104 @@
 </head>
 <body class="bg-gradient-to-br from-gray-950 to-indigo-900 min-h-screen">
     <!-- Header -->
-     <header class="navbar navbar-expand-lg fixed-top">
-    <div class="container-fluid align-items-center">
-      <div class="hero-img">
-        <a href="/index.html">
-          <img src="/online-graduation_16847316.png" alt="Student Image" class="header-logo" />
-        </a>
-      </div>
-      <a class="navbar-brand fw-bold" href="/htmls/privacy_policy&terms_conditions.html">NeoBranium</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-        <span id="usernameDisplay" class="navbar-text text-white me-3 d-none d-lg-block"></span>
-        <ul class="navbar-nav align-items-center">
-          <li class="nav-item">
-            <label class="switch">
-              <input type="checkbox" id="dark-mode-toggle">
-              <span class="slider"></span>
-            </label>
-          </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-              <span id="userInitial" class="me-2"></span>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="/htmls/profile.html">Profile</a></li>
-              <li><a class="dropdown-item" href="/htmls/setting.html">Settings</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="#" id="logout">Logout</a></li>
-            </ul>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </header>
-
-  <div class="sidebar">
-    <ul>
-      <li><a href="/htmls/dashboard.html"><i class="bi bi-question-circle"></i> Dashboard</a></li>
-      <li><a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes</a></li>
-      <li><a href="/htmls/spotlight.html"><i class="bi bi-star"></i> Spotlight (Monthly)</a></li>
-      <li><a href="/htmls/contactus.html"><i class="bi bi-envelope"></i> Contact Us</a></li>
-      <li><a href="/htmls/feedback.html"><i class="bi bi-chat"></i> Feedback/Complaint</a></li>
-      <li><a href="/htmls/chat/chat_app.html"><i class="bi bi-chat"></i> Live Chat</a></li>
-    </ul><a href="https://forms.gle/ZJzVq7LR8rkdw27g6">
-    <div class="plus-btn">
-      <button class="btn btn-primary rounded-circle" onclick="openUploadModal()"><i class="bi bi-plus-lg"></i></button>
-    </div>
-    </a>
-  </div>
-
-        <!-- Main Chat Content -->
-        <main class="pt-0 px-0 md:ml-[250px] h-[calc(100vh-60px)] flex flex-col">
-            <div id="chat-container" class="flex-1 bg-gray-900/30 backdrop-blur-xl rounded-t-3xl md:rounded-3xl border border-indigo-500/20 shadow-2xl flex flex-col m-4 transition-all duration-500 hover:shadow-indigo-500/30">
-                <div class="flex items-center justify-between p-4 sm:p-6">
-                    <div id="usernameDisplay" class="text-2xl font-bold text-indigo-200 flex items-center gap-3 animate-fade-in">
-                        <svg class="w-7 h-7 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                        </svg>
-                        <span></span>
-                    </div>
-                    <div class="relative">
-                        <input 
-                            type="text" 
-                            id="search-input" 
-                            placeholder="Search messages..." 
-                            class="p-2 bg-gray-800/50 text-white rounded-lg border border-indigo-500/30 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 placeholder-gray-500 w-40 sm:w-64"
-                        >
-                    </div>
-                </div>
-                <ul id="message-list" class="flex-1 overflow-y-auto bg-gray-950/50 p-5 scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-gray-950">
-                    <li class="text-center text-gray-400">Loading messages...</li>
+    <header class="navbar navbar-expand-lg fixed-top">
+        <div class="container-fluid align-items-center">
+            <div class="hero-img">
+                <a href="/index.html">
+                    <img src="/online-graduation_16847316.png" alt="Student Image" class="header-logo" />
+                </a>
+            </div>
+            <a class="navbar-brand fw-bold" href="/htmls/privacy_policy&terms_conditions.html">NeoBranium</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <span id="usernameDisplay" class="navbar-text text-white me-3 d-none d-lg-block"></span>
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item">
+                        <label class="switch">
+                            <input type="checkbox" id="dark-mode-toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <span id="userInitial" class="me-2"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/htmls/profile.html">Profile</a></li>
+                            <li><a class="dropdown-item" href="/htmls/setting.html">Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" id="logout">Logout</a></li>
+                        </ul>
+                    </li>
                 </ul>
-                <form id="chat-form" class="flex gap-3 relative p-4 sm:p-6">
-                    <div class="absolute -top-6 left-4 text-gray-400 text-sm animate-pulse" id="typing-indicator" style="display: none;">Typing...</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <ul>
+            <li><a href="/htmls/dashboard.html"><i class="bi bi-question-circle"></i> Dashboard</a></li>
+            <li><a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes</a></li>
+            <li><a href="/htmls/spotlight.html"><i class="bi bi-star"></i> Spotlight (Monthly)</a></li>
+            <li><a href="/htmls/contactus.html"><i class="bi bi-envelope"></i> Contact Us</a></li>
+            <li><a href="/htmls/feedback.html"><i class="bi bi-chat"></i> Feedback/Complaint</a></li>
+            <li><a href="/htmls/chat/chat_app.html"><i class="bi bi-chat"></i> Live Chat</a></li>
+        </ul>
+        <a href="https://forms.gle/ZJzVq7LR8rkdw27g6">
+            <div class="plus-btn">
+                <button class="btn btn-primary rounded-circle" onclick="openUploadModal()"><i class="bi bi-plus-lg"></i></button>
+            </div>
+        </a>
+    </div>
+
+    <!-- Main Chat Content -->
+    <main class="pt-0 px-0 md:ml-[250px] h-[calc(100vh-60px)] flex flex-col">
+        <div id="chat-container" class="flex-1 bg-gray-900/30 backdrop-blur-xl rounded-t-3xl md:rounded-3xl border border-indigo-500/20 shadow-2xl flex flex-col m-4 transition-all duration-500 hover:shadow-indigo-500/30">
+            <div class="flex flex-col sm:flex-row items-center justify-between p-4 sm:p-6">
+                <div id="usernameDisplay" class="text-xl sm:text-2xl font-bold text-indigo-200 flex items-center gap-3 animate-fade-in">
+                    <svg class="w-6 h-6 sm:w-7 sm:h-7 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <span></span>
+                </div>
+                <div class="relative w-full sm:w-auto mt-3 sm:mt-0">
                     <input 
                         type="text" 
-                        id="message-input" 
-                        placeholder="Type your message..." 
-                        required 
-                        class="flex-1 p-4 bg-gray-800/50 text-white rounded-2xl border border-indigo-500/30 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 placeholder-gray-500 hover:bg-gray-800/70"
-                        oninput="document.getElementById('typing-indicator').style.display = this.value ? 'block' : 'none';"
+                        id="search-input" 
+                        placeholder="Search messages..." 
+                        class="p-2 bg-gray-800/50 text-white rounded-lg border border-indigo-500/30 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 placeholder-gray-500 w-full sm:w-64"
                     >
-                    <button 
-                        type="submit" 
-                        id="send-button" 
-                        class="px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-2xl hover:from-indigo-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
-                    >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                        </svg>
-                        Send
-                    </button>
-                </form>
+                </div>
             </div>
-        </main>
-    </div>
+            <ul id="message-list" class="flex-1 overflow-y-auto bg-gray-950/50 p-3 sm:p-5 scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-gray-950">
+                <li class="text-center text-gray-400">Loading messages...</li>
+            </ul>
+            <form id="chat-form" class="flex flex-col sm:flex-row gap-3 relative p-4 sm:p-6">
+                <div class="absolute -top-6 left-4 text-gray-400 text-sm animate-pulse" id="typing-indicator" style="display: none;">Typing...</div>
+                <input 
+                    type="text" 
+                    id="message-input" 
+                    placeholder="Type your message..." 
+                    required 
+                    class="flex-1 p-3 sm:p-4 bg-gray-800/50 text-white rounded-2xl border border-indigo-500/30 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 placeholder-gray-500 hover:bg-gray-800/70"
+                    oninput="document.getElementById('typing-indicator').style.display = this.value ? 'block' : 'none';"
+                >
+                <button 
+                    type="submit" 
+                    id="send-button" 
+                    class="px-4 py-3 sm:px-6 sm:py-4 bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-2xl hover:from-indigo-700 hover:to-purple-800 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                    Send
+                </button>
+            </form>
+        </div>
+    </main>
 
     <!-- Bottom Navigation for Mobile -->
     <div class="bottom-nav bg-gray-900/80 backdrop-blur-md border-t border-indigo-500/20 fixed bottom-0 left-0 w-full flex justify-around items-center p-2 z-[1000] md:hidden">
@@ -135,6 +136,7 @@
             </a>
         </div>
     </div>
+
     <!-- Report Modal -->
     <div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -166,6 +168,7 @@
     <script type="module" src="chat.js"></script>
     <script type="module" src="report.js"></script>
     <script type="module" src="message.js"></script>
+
     <style>
         :root {
             --bg-color: #0f172a;
@@ -178,6 +181,7 @@
             --highlight-color: #a5b4fc;
             --link-color: #818cf8;
             --shadow-color: rgba(0, 0, 0, 0.3);
+            --notes-button-bg: #2575fc; /* Consistent blue button color */
         }
 
         body.dark-mode {
@@ -185,7 +189,7 @@
             --text-color: #f8f9fa;
             --sidebar-bg: #111827;
             --card-bg: #1f2937;
-            --button-bg: #4f46e5;
+            --button-bg: #2575fc;
             --button-text: #ffffff;
             --highlight-color: #a5b4fc;
             --link-color: #818cf8;
@@ -211,8 +215,24 @@
             box-shadow: 0 4px 12px var(--shadow-color);
         }
 
+        .navbar-brand {
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            font-weight: 700;
+            color: var(--header-text);
+            text-decoration: none;
+        }
+
+        .navbar-brand:hover {
+            color: #e0e0e0;
+        }
+
         .navbar-toggler-icon {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+
+        .hero-img img {
+            width: clamp(30px, 8vw, 40px);
+            height: clamp(30px, 8vw, 40px);
         }
 
         .switch input:checked + .slider {
@@ -228,24 +248,64 @@
         }
 
         .sidebar {
+            width: 250px;
+            height: calc(100vh - 60px);
             background-color: var(--sidebar-bg);
+            position: fixed;
+            top: 60px;
+            left: 0;
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 999;
             transition: transform 0.3s ease;
         }
 
         .sidebar ul li a {
+            display: block;
+            padding: 12px 20px;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: clamp(14px, 3vw, 16px);
             transition: background-color 0.3s ease;
         }
 
+        .sidebar ul li a:hover {
+            background-color: var(--shadow-color);
+        }
+
+        .plus-btn button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 24px;
+            background-color: var(--notes-button-bg);
+            color: var(--button-text);
+            border: none;
+        }
+
+        .plus-btn button:hover {
+            background-color: #1a5bb5;
+        }
+
         main {
+            margin-left: 0;
+            padding: 20px;
+            margin-top: 60px;
+            height: calc(100vh - 60px);
             background-color: transparent;
         }
 
         #chat-container {
-            height: calc(100% - 2rem); /* Account for margin */
+            height: calc(100% - 2rem);
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         #message-list {
-            height: calc(100% - 160px); /* Adjust for username, search bar, and input form */
+            height: calc(100% - 160px);
+            padding: clamp(10px, 3vw, 20px);
         }
 
         @keyframes fadeIn {
@@ -265,11 +325,11 @@
         .message {
             display: flex;
             flex-direction: column;
-            padding: 12px 16px;
-            margin: 10px 12px;
+            padding: clamp(8px, 2vw, 12px) clamp(10px, 2vw, 16px);
+            margin: clamp(5px, 2vw, 10px) clamp(6px, 2vw, 12px);
             border-radius: 16px;
             transition: all 0.3s ease;
-            max-width: 70%;
+            max-width: 80%;
             animation: slideIn 0.3s ease-out;
             cursor: pointer;
         }
@@ -293,8 +353,8 @@
         }
 
         .avatar {
-            width: 32px;
-            height: 32px;
+            width: clamp(24px, 6vw, 32px);
+            height: clamp(24px, 6vw, 32px);
             border-radius: 50%;
             background: linear-gradient(135deg, #6366f1, #a855f7);
             display: flex;
@@ -302,12 +362,12 @@
             justify-content: center;
             font-weight: bold;
             color: white;
-            font-size: 1rem;
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
         }
 
         .username {
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: clamp(0.85rem, 2.5vw, 0.95rem);
             color: #c7d2fe;
         }
 
@@ -315,17 +375,17 @@
             color: #e5e7eb;
             margin: 6px 0;
             word-break: break-word;
-            font-size: 1rem;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
         }
 
         .timestamp {
-            font-size: 0.75rem;
+            font-size: clamp(0.65rem, 2vw, 0.75rem);
             color: #9ca3af;
             opacity: 0.7;
         }
 
         .reactions {
-            font-size: 0.9rem;
+            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
             color: #a5b4fc;
         }
 
@@ -364,10 +424,17 @@
             display: block;
         }
 
+        .bottom-nav {
+            display: none;
+        }
+
+        /* Responsive Styles */
         @media (max-width: 767px) {
             .sidebar {
                 transform: translateX(-100%);
                 top: 56px;
+                width: 200px;
+                height: calc(100vh - 56px);
             }
 
             .sidebar.active {
@@ -377,7 +444,8 @@
             main {
                 margin-left: 0;
                 margin-top: 56px;
-                height: calc(100vh - 116px); /* Account for header and bottom nav */
+                height: calc(100vh - 116px);
+                padding: 10px;
             }
 
             #chat-container {
@@ -387,23 +455,44 @@
             }
 
             #message-list {
-                height: calc(100% - 140px); /* Adjust for smaller header, search, and input */
+                height: calc(100% - 140px);
+                padding: 10px;
             }
 
             #message-input {
                 padding: 0.75rem;
+                font-size: clamp(0.85rem, 3vw, 0.95rem);
             }
 
             #send-button {
                 padding: 0.75rem 1.5rem;
+                font-size: clamp(0.85rem, 3vw, 0.95rem);
             }
 
             #search-input {
-                width: 100px;
+                width: 100%;
+                font-size: clamp(0.85rem, 3vw, 0.95rem);
             }
 
             .message {
                 max-width: 85%;
+            }
+
+            .navbar {
+                padding: 0.5rem;
+            }
+
+            .navbar-brand {
+                font-size: clamp(1rem, 3.5vw, 1.2rem);
+            }
+
+            .hero-img img {
+                width: clamp(25px, 7vw, 30px);
+                height: clamp(25px, 7vw, 30px);
+            }
+
+            .bottom-nav {
+                display: flex;
             }
         }
 
@@ -411,10 +500,30 @@
             .sidebar {
                 transform: translateX(0);
                 top: 60px;
+                width: 250px;
+            }
+
+            main {
+                margin-left: 250px;
+                padding: 20px;
             }
 
             .bottom-nav {
                 display: none;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            #chat-container {
+                max-width: 1000px;
+            }
+
+            #message-input {
+                padding: 1rem;
+            }
+
+            #send-button {
+                padding: 1rem 2rem;
             }
         }
     </style>
