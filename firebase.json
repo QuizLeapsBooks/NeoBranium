@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "NEOBRANIUM",
+    "public": "NeoBranium",
     "ignore": [
       "firebase.json",
       "**/.*",
