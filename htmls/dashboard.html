@@ -74,26 +74,33 @@
       <li><a href="/htmls/contactus.html"><i class="bi bi-envelope"></i> Contact Us</a></li>
       <li><a href="/htmls/feedback.html"><i class="bi bi-chat"></i> Feedback/Complaint</a></li>
       <li><a href="/htmls/chat/chat_app.html"><i class="bi bi-chat"></i> Live Chat</a></li>
-    </ul><a href="https://forms.gle/ZJzVq7LR8rkdw27g6">
-    <div class="plus-btn">
-      <button class="btn btn-primary rounded-circle" onclick="openUploadModal()"><i class="bi bi-plus-lg"></i></button>
-    </div>
+    </ul>
+    <a href="https://forms.gle/ZJzVq7LR8rkdw27g6">
+      <div class="plus-btn">
+        <button class="btn btn-primary rounded-circle pulsating" onclick="openUploadModal()"><i class="bi bi-plus-lg"></i></button>
+      </div>
     </a>
   </div>
 
   <main>
+    <!-- Animated Welcome Banner -->
+    <section class="mt-3 welcome-banner">
+      <h2 class="slide-in">Welcome to NeoBranium!</h2>
+      <p class="slide-in">Your one-stop platform for learning, quizzes, and more!</p>
+    </section>
+
     <h2>Welcome to the Dashboard</h2>
     <p>Select your class to continue.</p>
     <div class="row mt-5">
       <div class="col-md-6">
-        <div class="card-select" onclick="openSubjectModal('9')">
+        <div class="card-select animated-card" onclick="openSubjectModal('9')">
           <div class="card-body text-center">
             <h3>Class 9</h3>
           </div>
         </div>
       </div>
       <div class="col-md-6">
-        <div class="card-select" onclick="openSubjectModal('10')">
+        <div class="card-select animated-card" onclick="openSubjectModal('10')">
           <div class="card-body text-center">
             <h3>Class 10</h3>
           </div>
@@ -102,13 +109,11 @@
     </div>
     <div class="row mt-3">
       <div class="col-12 text-center"><a href="/htmls/bot/bot.html">
-        <button class="btn btn-primary" id="shortcutBtn">AI Assistant</button>
-        </a>
-      </div>
+        <button class="btn btn-primary animated-btn" id="shortcutBtn">AI Assistant</button>
+      </a></div>
       <div class="col-12 text-center"><a href="/htmls/chat/chat_app.html">
-        <button class="btn btn-primary" id="shortcutBtn">Chat With Peers</button>
-        </a>
-      </div>
+        <button class="btn btn-primary animated-btn" id="shortcutBtn">Chat With Peers</button>
+      </a></div>
     </div>
 
     <!-- Skeleton Loader for Class Selection -->
@@ -163,29 +168,29 @@
       </div>
       <div class="row" id="notesContent" style="display: none;">
         <div class="col-md-4">
-          <div class="card notes-card">
+          <div class="card notes-card animated-card">
             <div class="card-body">
               <h5 class="card-title">Name: Upload Now</h5>
               <p class="card-text">Topic: Upload Now<br>Class: Upload Now</p>
-              <a href="#" class="btn btn-primary">View Notes</a>
+              <a href="#" class="btn btn-primary animated-btn">View Notes</a>
             </div>
           </div>
         </div>
         <div class="col-md-4">
-          <div class="card notes-card">
+          <div class="card notes-card animated-card">
             <div class="card-body">
               <h5 class="card-title">Name: Upload Now</h5>
               <p class="card-text">Topic: Upload Now<br>Class: Upload Now</p>
-              <a href="#" class="btn btn-primary">View Notes</a>
+              <a href="#" class="btn btn-primary animated-btn">View Notes</a>
             </div>
           </div>
         </div>
         <div class="col-md-4">
-          <div class="card notes-card">
+          <div class="card notes-card animated-card">
             <div class="card-body">
               <h5 class="card-title">Name: Upload Now</h5>
               <p class="card-text">Topic: Upload Now<br>Class: Upload Now</p>
-              <a href="#" class="btn btn-primary">View Notes</a>
+              <a href="#" class="btn btn-primary animated-btn">View Notes</a>
             </div>
           </div>
         </div>
@@ -215,7 +220,7 @@
       </div>
       <div class="row" id="featuresContent" style="display: none;">
         <div class="col-md-6">
-          <div class="card feature-card">
+          <div class="card feature-card animated-card">
             <div class="card-body">
               <h5 class="card-title">New Features</h5>
               <ul>
@@ -227,7 +232,7 @@
           </div>
         </div>
         <div class="col-md-6">
-          <div class="card feature-card">
+          <div class="card feature-card animated-card">
             <div class="card-body">
               <h5 class="card-title">Coming Soon</h5>
               <ul>
@@ -268,7 +273,7 @@
       </div>
       <div class="row" id="spotlightContent" style="display: none;">
         <div class="col-md-6">
-          <div class="card spotlight-card">
+          <div class="card spotlight-card animated-card">
             <div class="card-body">
               <h5 class="card-title">Weekly Top Notes</h5>
               <p class="card-text">These 3 are the top 3 notes by the students!</p>
@@ -277,12 +282,12 @@
                 <li>Name: Upload Now <br> Topic: Upload Now <br> Class: Upload Now</li>
                 <li>Name: Upload Now <br> Topic: Upload Now <br> Class: Upload Now</li>
               </ul>
-              <a href="/htmls/spotlight.html" class="btn btn-primary">Explore More</a>
+              <a href="/htmls/spotlight.html" class="btn btn-primary animated-btn">Explore More</a>
             </div>
           </div>
         </div>
         <div class="col-md-6">
-          <div class="card spotlight-card">
+          <div class="card spotlight-card animated-card">
             <div class="card-body">
               <h5 class="card-title">Monthly Top Notes</h5>
               <p class="card-text">Check Out the Best Notes of Previous Months From Spotlight Option.</p>
@@ -291,7 +296,7 @@
                 <li>Name: Upload Now <br> Topic: Upload Now <br> Class: Upload Now</li>
                 <li>Name: Upload Now <br> Topic: Upload Now <br> Class: Upload Now</li>
               </ul>
-              <a href="/htmls/spotlight.html" class="btn btn-primary">Explore More</a>
+              <a href="/htmls/spotlight.html" class="btn btn-primary animated-btn">Explore More</a>
             </div>
           </div>
         </div>
@@ -316,7 +321,7 @@
         <div class="modal-body">
           <select class="form-select" id="subjectSelect">
             <option value="">Select a subject</option>
-            <option value="class9-10maths"><a href="/htmls/quiz_htmls/class9-10maths.html">Mathematics</a></option>
+            <option value="class9-10mathematics"><a href="/htmls/quiz_htmls/class9-10mathematics.html">Mathematics</a></option>
             <option value="class9-10science"><a href="/htmls/quiz_htmls/class9-10science.html">Science</a></option>
             <option value="class9-10science"><a href="/htmls/quiz_htmls/class9-10science.html">Biology</a></option>
             <option value="class9-10science"><a href="/htmls/quiz_htmls/class9-10science.html">Physics</a></option>
@@ -324,7 +329,7 @@
           </select>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-primary" onclick="goToSubjectPage()">Go</button>
+          <button class="btn btn-primary animated-btn" onclick="goToSubjectPage()">Go</button>
         </div>
       </div>
     </div>
@@ -342,7 +347,7 @@
     <a href="/htmls/feedback.html" class="nav-icon"><i class="bi bi-chat"></i></a>
     <div class="plus-btn">
       <a href="https://forms.gle/ZJzVq7LR8rkdw27g6">
-        <button class="btn btn-primary rounded-circle"><i class="bi bi-plus"></i></button>
+        <button class="btn btn-primary rounded-circle pulsating"><i class="bi bi-plus"></i></button>
       </a>
     </div>
   </div>
