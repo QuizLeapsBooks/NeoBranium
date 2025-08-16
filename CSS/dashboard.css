@@ -15,6 +15,10 @@
   --shadow-color: rgba(0, 0, 0, 0.15);
   --notes-button-bg: #2575fc;
   --welcome-banner-bg: #e6f3ff;
+  --study-tip-bg: #fff3e6;
+  --notification-bg: #ff4444;
+  --quote-card-bg: #f0f8ff;
+  --events-card-bg: #fef9e7;
 }
 
 body.dark-mode {
@@ -31,6 +35,10 @@ body.dark-mode {
   --link-color: #2575fc;
   --shadow-color: rgba(255, 255, 255, 0.1);
   --welcome-banner-bg: #2a3b5c;
+  --study-tip-bg: #4a3b2e;
+  --notification-bg: #cc3333;
+  --quote-card-bg: #2c3e50;
+  --events-card-bg: #4a3b2e;
 }
 
 body {
@@ -50,6 +58,9 @@ main,
 .feature-card,
 .spotlight-card,
 .welcome-banner,
+.study-tip-card,
+.quote-card,
+.events-card,
 .bottom-nav,
 .user-bio-box,
 .btn,
@@ -92,10 +103,12 @@ p {
   font-weight: 700;
   color: var(--header-text);
   text-decoration: none;
+  transition: transform 0.3s ease;
 }
 
 .navbar-brand:hover {
   color: #e0e0e0;
+  transform: scale(1.05);
 }
 
 .navbar-toggler {
@@ -128,11 +141,16 @@ p {
 .hero-img img {
   width: 40px;
   height: 40px;
+  transition: transform 0.5s ease;
+}
+
+.hero-img img:hover {
+  transform: rotate(360deg);
 }
 
 .sidebar {
   width: 250px;
-  height: 100vh;
+  height: calc(100vh - 60px);
   background-color: var(--sidebar-bg);
   position: fixed;
   top: 60px;
@@ -142,6 +160,7 @@ p {
   flex-direction: column;
   justify-content: space-between;
   z-index: 999;
+  box-shadow: 2px 0 8px var(--shadow-color);
 }
 
 .sidebar ul {
@@ -161,6 +180,26 @@ p {
 .sidebar ul li a:hover {
   background-color: var(--shadow-color);
   transform: translateX(10px);
+}
+
+.notification-badge {
+  display: inline-block;
+  background-color: var(--notification-bg);
+  color: #fff;
+  border-radius: 50%;
+  padding: 2px 8px;
+  font-size: 12px;
+  margin-left: 10px;
+  animation: bounce 1.5s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 .plus-btn {
@@ -235,6 +274,108 @@ main {
   }
 }
 
+.study-tip-carousel {
+  margin-bottom: 20px;
+}
+
+.study-tip-card {
+  background: var(--study-tip-bg);
+  border-radius: 15px;
+  box-shadow: 0 8px 20px var(--shadow-color);
+  transition: transform 0.5s ease;
+}
+
+.carousel-item.active .study-tip-card {
+  animation: rotateIn 0.5s ease forwards;
+}
+
+@keyframes rotateIn {
+  from {
+    transform: rotateY(90deg);
+    opacity: 0;
+  }
+  to {
+    transform: rotateY(0);
+    opacity: 1;
+  }
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+  width: 5%;
+  background: none;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  background-color: var(--link-color);
+  border-radius: 50%;
+}
+
+.motivational-quote {
+  margin-bottom: 20px;
+}
+
+.quote-card {
+  background: var(--quote-card-bg);
+  border-radius: 15px;
+  box-shadow: 0 8px 20px var(--shadow-color);
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 2s ease-in forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+.events-panel {
+  margin-bottom: 20px;
+}
+
+.events-card {
+  background: var(--events-card-bg);
+  border-radius: 15px;
+  box-shadow: 0 8px 20px var(--shadow-color);
+}
+
+.events-card ul li {
+  font-size: 16px;
+  margin-bottom: 10px;
+  position: relative;
+  padding-left: 25px;
+  color: var(--text-color);
+  transition: transform 0.3s ease;
+}
+
+.events-card ul li::before {
+  content: "📢";
+  position: absolute;
+  left: 0;
+  font-size: 18px;
+}
+
+.events-card ul li:hover {
+  transform: translateX(10px);
+}
+
+.slide-in-right {
+  opacity: 0;
+  transform: translateX(100px);
+  animation: slideInRight 1s ease-out forwards;
+}
+
+@keyframes slideInRight {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .card-select {
   background: linear-gradient(to right, #6a11cb, #2575fc);
   color: #fff;
@@ -259,7 +400,20 @@ main {
   box-shadow: 0 15px 30px var(--shadow-color);
 }
 
-.notes-card, .feature-card, .spotlight-card {
+.flip-card {
+  perspective: 1000px;
+}
+
+.flip-card:hover .card-body {
+  transform: rotateY(180deg);
+}
+
+.flip-card .card-body {
+  transition: transform 0.6s ease;
+  transform-style: preserve-3d;
+}
+
+.notes-card, .feature-card, .spotlight-card, .study-tip-card, .quote-card, .events-card {
   background: var(--notes-card-bg);
   color: var(--text-color);
   border-radius: 15px;
@@ -269,20 +423,41 @@ main {
 
 body.dark-mode .notes-card,
 body.dark-mode .feature-card,
-body.dark-mode .spotlight-card {
+body.dark-mode .spotlight-card,
+body.dark-mode .study-tip-card,
+body.dark-mode .quote-card,
+body.dark-mode .events-card {
   background: var(--notes-card-bg);
   color: #ffffff;
 }
 
+body.dark-mode .study-tip-card {
+  background: var(--study-tip-bg);
+}
+
+body.dark-mode .quote-card {
+  background: var(--quote-card-bg);
+}
+
+body.dark-mode .events-card {
+  background: var(--events-card-bg);
+}
+
 .notes-card .card-body,
 .feature-card .card-body,
-.spotlight-card .card-body {
+.spotlight-card .card-body,
+.study-tip-card .card-body,
+.quote-card .card-body,
+.events-card .card-body {
   padding: 20px;
 }
 
 .notes-card .card-title,
 .feature-card .card-title,
-.spotlight-card .card-title {
+.spotlight-card .card-title,
+.study-tip-card .card-title,
+.quote-card .card-title,
+.events-card .card-title {
   font-size: 20px;
   font-weight: bold;
   color: var(--text-color);
@@ -291,23 +466,34 @@ body.dark-mode .spotlight-card {
 body.dark-mode .notes-card .card-title,
 body.dark-mode .feature-card .card-title,
 body.dark-mode .spotlight-card .card-title,
+body.dark-mode .study-tip-card .card-title,
+body.dark-mode .quote-card .card-title,
+body.dark-mode .events-card .card-title,
 body.dark-mode .notes-card .card-text,
 body.dark-mode .feature-card .card-text,
 body.dark-mode .spotlight-card .card-text,
+body.dark-mode .study-tip-card .card-text,
+body.dark-mode .quote-card .card-text,
+body.dark-mode .events-card .card-text,
 body.dark-mode .feature-card ul,
-body.dark-mode .spotlight-card ul {
+body.dark-mode .spotlight-card ul,
+body.dark-mode .events-card ul {
   color: #ffffff;
 }
 
 .notes-card .card-text,
-.spotlight-card .card-text {
+.spotlight-card .card-text,
+.study-tip-card .card-text,
+.quote-card .card-text,
+.events-card .card-text {
   font-size: 16px;
   margin-bottom: 15px;
   color: var(--text-color);
 }
 
 .feature-card ul,
-.spotlight-card ul {
+.spotlight-card ul,
+.events-card ul {
   list-style: none;
   padding: 0;
   color: var(--text-color);
@@ -375,6 +561,7 @@ body.dark-mode .spotlight-card ul {
   font-size: 24px;
   text-decoration: none;
   padding: 10px;
+  position: relative;
   transition: transform 0.3s ease;
 }
 
@@ -517,6 +704,17 @@ body.dark-mode .skeleton-button {
   color: var(--text-color);
 }
 
+.zoom-in .modal-dialog {
+  transform: scale(0.7);
+  opacity: 0;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+.zoom-in.show .modal-dialog {
+  transform: scale(1);
+  opacity: 1;
+}
+
 @media (max-width: 767px) {
   .navbar {
     padding: 0.5rem;
@@ -534,6 +732,8 @@ body.dark-mode .skeleton-button {
   .sidebar {
     transform: translateX(-100%);
     top: 56px;
+    width: 200px;
+    height: calc(100vh - 56px);
   }
 
   .sidebar.active {
@@ -546,7 +746,7 @@ body.dark-mode .skeleton-button {
   }
 
   main.shifted {
-    margin-left: 250px;
+    margin-left: 200px;
   }
 
   .bottom-nav {
@@ -558,6 +758,8 @@ body.dark-mode .skeleton-button {
   .sidebar {
     transform: translateX(0);
     top: 60px;
+    width: 250px;
+    height: calc(100vh - 60px);
   }
 
   main {
