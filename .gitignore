@@ -3,6 +3,8 @@ node_modules/
 dist/
 packege-lock.json
 packege.json
+/packege-lock.json
+/packege.json
 Notes/
 sreenshot_images/
 /api/server.js
