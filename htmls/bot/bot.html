@@ -15,33 +15,24 @@
         }
     </script>
 </head>
-<style>
-    .neomind-warning {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        background: #fffbe6;
-        color: #7a5c00;
-        text-align: center;
-        padding: 10px 0;
-        font-size: 0.95rem;
-        box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
-        z-index: 100;
-    }
-</style>
 <body>
     <div class="bg-animation"></div>
+    <div class="gradient-overlay"></div>
     <div class="chat-container">
         <div class="chat-header">
             <span class="material-symbols-rounded">school</span>
-            NEOBranium AI Assistant 🧠⚡<br>
+            NEOBranium AI Assistant 🧠⚡
             <h1>NeoMind</h1>
         </div>
         <div class="chat-body">
-            <div class="chat-message ai-message">I'm here to ignite your curiosity in Science and Math (Class 9–10).
-Ask me about concepts, study tips, or interesting facts—but no direct homework answers, alright?
-So, what would you like to explore today? 📘✨ <br> <b>Try to refresh the page if you encounter any issues.</b></div>
+            <div class="chat-message ai-message">
+                <div class="message-content">
+                    I'm here to ignite your curiosity in Science and Math (Class 9–10).
+                    Ask me about concepts, study tips, or interesting facts—but no direct homework answers, alright?
+                    So, what would you like to explore today? 📘✨
+                    <br><b>Try to refresh the page if you encounter any issues.</b>
+                </div>
+            </div>
         </div>
         <div class="typing-container">
             <div class="typing-textarea">
@@ -52,7 +43,6 @@ So, what would you like to explore today? 📘✨ <br> <b>Try to refresh the pag
             </button>
         </div>
     </div> 
-    <p class="neomind-warning">NeoMind AI can make mistakes, so please verify any critical information AI provide.</p>
-    <script type="module" src="script.js"></script>
+    <p class="neomind-warning">NeoMind AI can make mistakes, so please verify any critical information AI provides.</p>
 </body>
 </html>

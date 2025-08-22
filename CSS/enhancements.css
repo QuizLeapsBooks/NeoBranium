@@ -1,0 +1,299 @@
+/* New enhancements for modern dashboard: gradients, typography, interactions, etc. */
+/* Import modern fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap');
+
+/* Variable updates inspired by QuizMaster purple theme */
+:root {
+  --header-bg: linear-gradient(135deg, #4c1d95 0%, #7e22ce 100%);
+  --sidebar-bg: linear-gradient(180deg, #4a306a 0%, #6b21a8 100%);
+  --welcome-banner-bg: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%);
+  --study-tip-bg: linear-gradient(135deg, #f5d0fe 0%, #e9d5ff 100%);
+  --quote-card-bg: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  --events-card-bg: linear-gradient(135deg, #e9d5ff 0%, #d1b2ff 100%);
+  --button-bg: linear-gradient(135deg, #6b21a8 0%, #9333ea 100%);
+  --link-color: #9333ea;
+  --highlight-color: #f472b6;
+  --shadow-color: rgba(0, 0, 0, 0.08);
+  --bottom-nav-height: 60px; /* For bio box adjustment */
+  --stats-card-bg: linear-gradient(135deg, #d8b4fe 0%, #c4b5fd 100%);
+  --quick-actions-bg: linear-gradient(135deg, #c4b5fd 0%, #d8b4fe 100%);
+}
+
+body.dark-mode {
+  --header-bg: linear-gradient(135deg, #2d1b4e 0%, #5b21b6 100%);
+  --sidebar-bg: linear-gradient(180deg, #2d1b4e 0%, #4c1d95 100%);
+  --welcome-banner-bg: linear-gradient(135deg, #5b21b6 0%, #6b21a8 100%);
+  --study-tip-bg: linear-gradient(135deg, #701a75 0%, #9333ea 100%);
+  --quote-card-bg: linear-gradient(135deg, #4c1d95 0%, #6b21a8 100%);
+  --events-card-bg: linear-gradient(135deg, #701a75 0%, #9333ea 100%);
+  --button-bg: linear-gradient(135deg, #9333ea 0%, #a855f7 100%);
+  --link-color: #a855f7;
+  --highlight-color: #f472b6;
+  --shadow-color: rgba(0, 0, 0, 0.4);
+  --stats-card-bg: linear-gradient(135deg, #4c1d95 0%, #6b21a8 100%);
+  --quick-actions-bg: linear-gradient(135deg, #5b21b6 0%, #4c1d95 100%);
+}
+
+/* Typography upgrades */
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+h4 {
+  font-weight: 500;
+}
+
+p {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* Card enhancements inspired by QuizMaster stats */
+.card-select,
+.notes-card,
+.feature-card,
+.spotlight-card,
+.study-tip-card,
+.quote-card,
+.events-card {
+  border: 1px solid transparent;
+  border-image: linear-gradient(135deg, var(--link-color), transparent) 1;
+  transition: all 0.3s ease;
+}
+
+.animated-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 8px 24px var(--shadow-color);
+}
+
+/* New Stats Cards (Quizzes Completed, Average Score, etc.) */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stats-card {
+  background: var(--stats-card-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 4px 20px var(--shadow-color);
+  transition: transform 0.3s ease;
+}
+
+.stats-card h4 {
+  color: var(--highlight-color);
+  margin-bottom: 0.5rem;
+}
+
+.stats-card p {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.stats-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Quick Actions Section */
+.quick-actions {
+  background: var(--quick-actions-bg);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 4px 20px var(--shadow-color);
+  margin-bottom: 2rem;
+}
+
+.quick-actions .btn-primary {
+  margin-top: 1rem;
+  padding: 0.75rem 2rem;
+}
+
+/* Welcome banner facelift with QuizMaster vibe */
+.welcome-banner {
+  position: relative;
+  overflow: hidden;
+  padding: 2.5rem;
+}
+
+.welcome-banner::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40%;
+  background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" preserveAspectRatio="none"><path d="M0,0 C150,100 350,0 500,50 C650,100 850,0 1000,50 L1000,100 L0,100 Z" fill="rgba(255,255,255,0.2)"></path></svg>') no-repeat bottom;
+  background-size: cover;
+  opacity: 0.6;
+}
+
+.welcome-banner h2 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.welcome-banner p {
+  font-size: 1.1rem;
+}
+
+/* Sidebar modern touch with QuizMaster icons */
+.sidebar ul li a {
+  border-radius: 8px;
+}
+
+.sidebar ul li a:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(5px);
+}
+
+.sidebar ul li.active a {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.sidebar ul li a i {
+  margin-right: 0.75rem;
+  font-size: 1.25rem;
+}
+
+/* Buttons pop with QuizMaster style */
+.btn-primary,
+.animated-btn {
+  background: var(--button-bg);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover,
+.animated-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(var(--link-color), 0.5);
+}
+
+/* Study tip carousel enhancements */
+.study-tip-carousel .carousel-item.active .study-tip-card {
+  animation: fadeIn 0.6s ease;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  padding: 0.75rem;
+  border-radius: 50%;
+  background: rgba(var(--link-color), 0.8);
+}
+
+/* Dark mode enhancements */
+body.dark-mode .card-select,
+body.dark-mode .notes-card,
+body.dark-mode .feature-card,
+body.dark-mode .spotlight-card,
+body.dark-mode .stats-card,
+body.dark-mode .quick-actions {
+  box-shadow: 0 4px 20px rgba(0, 255, 133, 0.2); /* Subtle glow */
+}
+
+/* Responsive fixes and no overlaps */
+@media (max-width: 767px) {
+  #userBioBox {
+    bottom: calc(var(--bottom-nav-height) + 1rem);
+    right: 1rem;
+    max-width: 200px;
+    font-size: 0.85rem;
+    margin-bottom: 7%;
+  }
+
+  .welcome-banner {
+    padding: 1.5rem;
+  }
+
+  .welcome-banner h2 {
+    font-size: 1.75rem;
+  }
+
+  .welcome-banner p {
+    font-size: 1rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-actions {
+    padding: 1rem;
+  }
+
+  h2 {
+    font-size: 1.75rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  .sidebar {
+    width: 220px;
+  }
+
+  main {
+    padding: 1rem;
+  }
+}
+
+/* Accessibility */
+a:focus,
+button:focus,
+input:focus {
+  outline: 2px solid var(--link-color);
+  outline-offset: 2px;
+}
+
+.btn-primary:focus {
+  box-shadow: 0 0 0 3px rgba(var(--link-color), 0.3);
+}
+
+/* Ensure no overlaps in general */
+.user-bio-box,
+.bottom-nav,
+.sidebar,
+.navbar {
+  z-index: 1000;
+}
+
+.modal-content {
+  z-index: 1050;
+}
+
+/* New animations for welcome banner */
+.slide-in {
+  animation: slideIn 0.8s ease-out forwards;
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
