@@ -17,6 +17,9 @@
   --bottom-nav-height: 60px; /* For bio box adjustment */
   --stats-card-bg: linear-gradient(135deg, #d8b4fe 0%, #c4b5fd 100%);
   --quick-actions-bg: linear-gradient(135deg, #c4b5fd 0%, #d8b4fe 100%);
+  --footer-bg: linear-gradient(135deg, #4c1d95 0%, #6b21a8 100%);
+  --footer-text: #ffffff;
+  --footer-link-hover: #d1b2ff;
 }
 
 body.dark-mode {
@@ -32,6 +35,9 @@ body.dark-mode {
   --shadow-color: rgba(0, 0, 0, 0.4);
   --stats-card-bg: linear-gradient(135deg, #4c1d95 0%, #6b21a8 100%);
   --quick-actions-bg: linear-gradient(135deg, #5b21b6 0%, #4c1d95 100%);
+  --footer-bg: linear-gradient(135deg, #2d1b4e 0%, #4c1d95 100%);
+  --footer-text: #e2e8f0;
+  --footer-link-hover: #a855f7;
 }
 
 /* Typography upgrades */
@@ -296,4 +302,84 @@ input:focus {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* Footer styles */
+.footer {
+  background: var(--footer-bg);
+  color: var(--footer-text);
+  padding: 2rem 1rem;
+  width: 100%;
+  margin-top: auto;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-section {
+  flex: 1;
+  min-width: 200px;
+}
+
+.footer-section h4 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: var(--highlight-color);
+}
+
+.footer-section p {
+  font-size: 0.95rem;
+  margin: 0.5rem 0;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-section ul li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-section ul li a {
+  color: var(--footer-text);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-section ul li a:hover {
+  color: var(--footer-link-hover);
+}
+
+.social-links {
+  display: flex;
+  gap: 1rem;
+}
+
+.social-links a {
+  color: var(--footer-text);
+  font-size: 1.5rem;
+  transition: color 0.3s ease;
+}
+
+.social-links a:hover {
+  color: var(--footer-link-hover);
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 1rem;
+}
+
+.footer-bottom p {
+  font-size: 0.9rem;
+  margin: 0;
 }
