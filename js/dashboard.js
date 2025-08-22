@@ -66,10 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const pagesToPreload = [
     '/htmls/notes.html',
     '/htmls/spotlight.html',
+    '/htmls/dashboard.html',
     '/htmls/contactus.html',
     '/htmls/feedback.html',
     '/htmls/chat/chat_app.html',
-    '/htmls/bot/bot.html'
+    '/htmls/bot/bot.html',
+    '/htmls/profile.html',
+    '/htmls/setting.html',
   ];
 
   pagesToPreload.forEach(url => {

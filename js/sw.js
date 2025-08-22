@@ -4,6 +4,7 @@ const urlsToCache = [
   '/index.html', // Apne pages ke URLs daal
   '/htmls/notes.html',
   '/htmls/spotlight.html',
+  '/htmls/dashboard.html',
   '/htmls/contactus.html',
   '/htmls/feedback.html',
   '/htmls/chat/chat_app.html',
