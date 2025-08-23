@@ -1,18 +1,18 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NeoBranium - Home</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="index_css.css">
-<meta name="google-adsense-account" content="ca-pub-8525224825170740">
+  <meta name="google-adsense-account" content="ca-pub-8525224825170740">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8525224825170740"
      crossorigin="anonymous"></script>
 </head>
 <body>
-  <!-- Preloader with Instagram-style Logo -->
+  <!-- Preloader -->
   <div id="preloader">
     <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="preloader-logo" />
     <div class="loader"></div>
@@ -33,91 +33,75 @@
 
   <section class="hero">
     <div class="hero-text">
-      <h2 class="animate__animated animate__fadeInUp">NeoBranium - Online Learning Platform</h2>
+      <h2 class="animate__animated animate__fadeInUp">NeoBranium - Your Learning Hub</h2>
       <h1 class="type-effect animate__animated animate__fadeInUp animate__delay-1s"></h1>
-      <p class="animate__animated animate__slideInLeft animate__delay-2s">Explore competitive quizzes, upload or view notes, and level up your skills in Science & Math for Classes 9 and 10. Fun meets challenge here! 🔥</p>
-      <a href="/htmls/sign.html" class="animate__animated animate__bounceIn animate__delay-3s">Get Started 🚀</a>
+      <p class="animate__animated animate__fadeIn animate__delay-2s">Master Science & Math for Classes 9 and 10 with quizzes, notes, and AI support. Your journey starts here! ✨</p>
+      <a href="/htmls/sign.html" class="cta-button animate__animated animate__bounceIn animate__delay-3s">Get Started 🚀</a>
     </div>
     <div class="hero-img">
       <img src="/online-graduation_16847316.png" alt="Student Image" class="animate__animated animate__pulse" />
     </div>
   </section>
 
+  <!-- Feature Sections -->
+  <section class="features-container">
+    <div class="feature-card" id="dashboard">
+      <i class="fas fa-tachometer-alt feature-icon"></i>
+      <h3>Smart Dashboard</h3>
+      <p>A sleek hub with profile, settings, notes, live chat, and AI Assistant for Class 9 & 10.</p>
+    </div>
+    <div class="feature-card" id="motivation">
+      <i class="fas fa-lightbulb feature-icon"></i>
+      <h3>Daily Motivation</h3>
+      <p>Get tips like 25-minute sprints and quotes like “The only way to learn is to do it!”</p>
+    </div>
+    <div class="feature-card" id="notes">
+      <i class="fas fa-book feature-icon"></i>
+      <h3>Notes & Uploads</h3>
+      <p>Upload, view, or download PDF notes for Science & Math. Share your knowledge!</p>
+    </div>
+    <div class="feature-card" id="spotlight">
+      <i class="fas fa-star feature-icon"></i>
+      <h3>Spotlight & Leaderboard</h3>
+      <p>Shine in Spotlight and climb the leaderboard with your contributions!</p>
+    </div>
+    <div class="feature-card" id="quizzes">
+      <i class="fas fa-question feature-icon"></i>
+      <h3>Interactive Quizzes</h3>
+      <p>Test your skills with fun quizzes in Science & Math. Track your progress!</p>
+    </div>
+    <div class="feature-card" id="events">
+      <i class="fas fa-calendar-alt feature-icon"></i>
+      <h3>Events & Community</h3>
+      <p>Join webinars, quiz competitions, and stay updated with August 2025 deadlines.</p>
+    </div>
+    <div class="feature-card" id="upcoming">
+      <i class="fas fa-rocket feature-icon"></i>
+      <h3>Upcoming Features</h3>
+      <p>Progress tracking and user-suggested features coming soon. Share your ideas!</p>
+    </div>
+  </section>
+
   <div class="modal" id="warningModal">
     <div class="modal-content">
       <h2>Sign In Required</h2>
-      <p>You need to sign in to access these options. 🙌</p>
-      <button onclick="closeWarning()">Okay, Got It!</button>
+      <p>Please sign in to access these features. 🙌</p>
+      <button onclick="closeWarning()">Got It!</button>
     </div>
   </div>
 
   <footer>
     © 2025 NeoBranium | <span class="social-icons">
-      <a href="#" target="_blank">🌐</a>
-      <a href="#" target="_blank">📘</a>
-      <a href="#" target="_blank">▶️</a>
-      <a href="#" target="_blank">🐦</a>
-      <a href="#" target="_blank">💬</a>
+      <a href="#" target="_blank"><i class="fab fa-globe"></i></a>
+      <a href="#" target="_blank"><i class="fab fa-facebook"></i></a>
+      <a href="#" target="_blank"><i class="fab fa-youtube"></i></a>
+      <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
+      <a href="#" target="_blank"><i class="fab fa-discord"></i></a>
     </span>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
-  <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const preloader = document.getElementById('preloader');
-  preloader.style.display = 'flex';
-
-  // Toggle mobile menu
-  const menuToggle = document.querySelector('.menu-toggle');
-  const navMenu = document.querySelector('.nav-menu');
-  menuToggle.addEventListener('click', () => {
-    navMenu.classList.toggle('active');
-    menuToggle.textContent = navMenu.classList.contains('active') ? '✕' : '☰';
-  });
-});
-
-window.addEventListener('load', function() {
-  const preloader = document.getElementById('preloader');
-  const preloaderLogo = document.querySelector('.preloader-logo');
-
-  preloaderLogo.style.transform = 'scale(1.5)';
-  preloaderLogo.style.opacity = '0';
-
-  setTimeout(() => {
-    preloader.style.opacity = '0';
-    setTimeout(() => {
-      preloader.style.display = 'none';
-
-      var typed = new Typed('.type-effect', {
-        strings: ['Quizzez and AI Support for Students'],
-        typeSpeed: 50,
-        backSpeed: 10,
-        loop: false,
-        showCursor: true,
-        cursorChar: '|',
-        onBegin: function () {
-          document.querySelector('.type-effect').style.opacity = '1';
-        }
-      });
-    }, 500);
-  }, 1000);
-});
-
-function showWarning() {
-  document.getElementById("warningModal").style.display = "flex";
-}
-
-function closeWarning() {
-  document.getElementById("warningModal").style.display = "none";
-}
-
-window.onclick = function(e) {
-  const modal = document.getElementById("warningModal");
-  if (e.target == modal) {
-    modal.style.display = "none";
-  }
-};
-  </script>
+  <script src="index.js"></script>
 </body>
 </html>
