@@ -33,6 +33,14 @@ document.addEventListener('DOMContentLoaded', () => {
   cards.forEach(card => {
     cardObserver.observe(card);
   });
+
+  // AI Orb click: show a futuristic toast or modal (demo only)
+  const aiOrb = document.getElementById('ai-orb');
+  if (aiOrb) {
+    aiOrb.addEventListener('click', () => {
+      alert('👾 NeoBranium AI Assistant coming soon!');
+    });
+  }
 });
 
 window.addEventListener('load', () => {
@@ -47,16 +55,30 @@ window.addEventListener('load', () => {
     setTimeout(() => {
       preloader.style.display = 'none';
 
+      // Ensure .type-effect is visible before starting
+      const typeEffect = document.querySelector('.type-effect');
+      typeEffect.style.opacity = '1';
+
+      // Improved Typed.js config for full sentence effect
+      // index.js (inside window.addEventListener('load', ...))
       const typed = new Typed('.type-effect', {
-        strings: ['Master Science & Math with Ease'],
-        typeSpeed: 60,
-        backSpeed: 20,
-        loop: false,
-        showCursor: true,
-        cursorChar: '│',
-        onBegin: () => {
-          document.querySelector('.type-effect').style.opacity = '1';
-        }
+        strings: [
+          'Interactive Quizzes & Events',
+          'AI Assistant & Smart Dashboard',
+          'Daily Motivation & Leaderboard',
+          'Notes Upload/Download',
+          'User Profiles & Achievements',
+          'PDF Notes Sharing with Likes & Comments',
+          'Earn rewards by uploading notes and redeeming codes'
+        ],
+        typeSpeed: 50,
+        backSpeed: 25,
+        backDelay: 1800,
+        startDelay: 200,
+        loop: true,
+        showCursor: true, // Cursor dikhana zaroori hai
+        cursorChar: '|', // Default cursor character
+        autoInsertCss: true, // Automatically insert Typed.js cursor CSS
       });
     }, 600);
   }, 1200);
@@ -70,7 +92,7 @@ function closeWarning() {
   document.getElementById('warningModal').style.display = 'none';
 }
 
-window.onclick = function(e) {
+window.onclick = function (e) {
   const modal = document.getElementById('warningModal');
   if (e.target === modal) {
     modal.style.display = 'none';
