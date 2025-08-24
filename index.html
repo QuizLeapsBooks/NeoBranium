@@ -12,6 +12,9 @@
      crossorigin="anonymous"></script>
 </head>
 <body>
+  <!-- Particle Background Canvas -->
+  <canvas id="bg-particles"></canvas>
+
   <!-- Futuristic Floating Shapes -->
   <div class="futuristic-shape shape1"></div>
   <div class="futuristic-shape shape2"></div>
@@ -25,10 +28,10 @@
 
   <header>
     <div class="logo">
-      <img src="/online-graduation_16847316.png" alt="logo">
+      <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
       <span>NeoBranium</span>
     </div>
-    <button class="menu-toggle" aria-label="Toggle navigation">☰</button>
+    <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
     <nav class="nav-menu">
       <a onclick="showWarning()" href="#">Home</a>
       <a onclick="showWarning()" href="#">About</a>
@@ -44,6 +47,7 @@
       <a href="/htmls/sign.html" class="cta-button animate__animated animate__bounceIn animate__delay-3s">Get Started 🚀</a>
     </div>
     <div class="hero-img">
+      <div class="hero-img-glow"></div>
       <img src="/online-graduation_16847316.png" alt="Student Image" class="animate__animated animate__pulse" />
     </div>
   </section>
@@ -51,79 +55,86 @@
   <!-- Feature Sections -->
   <section class="features-container">
     <div class="feature-card" id="dashboard">
+      <div class="feature-glow"></div>
       <i class="fas fa-tachometer-alt feature-icon"></i>
       <h3>Smart Dashboard</h3>
       <p>A sleek hub with profile, settings, notes, live chat, and AI Assistant for Class 9 & 10.</p>
     </div>
     <div class="feature-card" id="motivation">
+      <div class="feature-glow"></div>
       <i class="fas fa-lightbulb feature-icon"></i>
       <h3>Daily Motivation</h3>
       <p>Get tips like 25-minute sprints and quotes like “The only way to learn is to do it!”</p>
     </div>
     <div class="feature-card" id="notes">
+      <div class="feature-glow"></div>
       <i class="fas fa-book feature-icon"></i>
       <h3>Notes & Uploads</h3>
       <p>Upload, view, or download PDF notes for Science & Math. Share your knowledge!</p>
     </div>
     <div class="feature-card" id="spotlight">
+      <div class="feature-glow"></div>
       <i class="fas fa-star feature-icon"></i>
       <h3>Spotlight & Leaderboard</h3>
       <p>Shine in Spotlight and climb the leaderboard with your contributions!</p>
     </div>
     <div class="feature-card" id="quizzes">
+      <div class="feature-glow"></div>
       <i class="fas fa-question feature-icon"></i>
       <h3>Interactive Quizzes</h3>
       <p>Test your skills with fun quizzes in Science & Math. Track your progress!</p>
     </div>
     <div class="feature-card" id="events">
+      <div class="feature-glow"></div>
       <i class="fas fa-calendar-alt feature-icon"></i>
       <h3>Events & Community</h3>
       <p>Join webinars, quiz competitions, and stay updated with August 2025 deadlines.</p>
     </div>
     <div class="feature-card" id="upcoming">
+      <div class="feature-glow"></div>
       <i class="fas fa-rocket feature-icon"></i>
       <h3>Upcoming Features</h3>
       <p>Progress tracking and user-suggested features coming soon. Share your ideas!</p>
     </div>
   </section>
 
-  <div class="modal" id="warningModal">
+  <!-- Warning Modal -->
+  <div class="modal" id="warningModal" role="dialog" aria-labelledby="warning-title" aria-hidden="true">
     <div class="modal-content">
-      <h2>Sign In Required</h2>
+      <h2 id="warning-title">Sign In Required</h2>
       <p>Please sign in to access these features. 🙌</p>
       <button onclick="closeWarning()">Got It!</button>
     </div>
   </div>
 
-  <!-- Floating "Learn More" Icon Button (replaces AI Assistant Orb) -->
+  <!-- Learn More Button -->
   <div id="learn-more-btn" title="Learn More">
     <i class="fas fa-circle-info"></i>
   </div>
 
   <!-- Learn More Dialog -->
-<div id="learn-more-dialog" class="modal">
-  <div class="modal-content">
-    <button class="close-dialog" id="close-learn-more" aria-label="Close">&times;</button>
-    <h2>About NeoBranium</h2>
-    <p>
-      NeoBranium is your futuristic e-learning hub for Science & Math (Classes 9 & 10).<br>
-      <strong>Features:</strong>
-      <ul>
-        <li>Smart Dashboard & AI Assistant</li>
-        <li>Daily Motivation & Leaderboard</li>
-        <li>Notes Upload/Download</li>
-        <li>Interactive Quizzes & Events</li>
-        <li>User Profiles & Achievements</li>
-        <li>PDF Notes Sharing with Likes & Comments</li>
-        <li>Secure Sign-in & Privacy Protection</li>
-        <li>AI Assistant & Problem Solver</li>
-        <li>Earn rewards by uploading notes and redeeming codes</li>
-      </ul>
-      <em>More features coming soon. Stay tuned!</em>
-    </p>
+  <div id="learn-more-dialog" class="modal" role="dialog" aria-labelledby="learn-more-title" aria-hidden="true">
+    <div class="modal-content">
+      <button class="close-dialog" id="close-learn-more" aria-label="Close dialog">&times;</button>
+      <h2 id="learn-more-title">About NeoBranium</h2>
+      <p>
+        NeoBranium is your futuristic e-learning hub for Science & Math (Classes 9 & 10).<br>
+        <strong>Features:</strong>
+        <ul>
+          <li>Smart Dashboard & AI Assistant</li>
+          <li>Daily Motivation & Leaderboard</li>
+          <li>Notes Upload/Download</li>
+          <li>Interactive Quizzes & Events</li>
+          <li>User Profiles & Achievements</li>
+          <li>PDF Notes Sharing with Likes & Comments</li>
+          <li>Secure Sign-in & Privacy Protection</li>
+          <li>AI Assistant & Problem Solver</li>
+          <li>Earn rewards by uploading notes and redeeming codes</li>
+        </ul>
+        <em>More features coming soon. Stay tuned!</em>
+      </p>
+    </div>
   </div>
-</div>
-
 
   <footer>
     © 2025 NeoBranium | <span class="social-icons">
@@ -146,15 +157,18 @@
 
     learnMoreBtn.addEventListener('click', () => {
       learnMoreDialog.style.display = 'flex';
+      learnMoreDialog.setAttribute('aria-hidden', 'false');
     });
 
     closeLearnMore.addEventListener('click', () => {
       learnMoreDialog.style.display = 'none';
+      learnMoreDialog.setAttribute('aria-hidden', 'true');
     });
 
     window.addEventListener('click', (e) => {
       if (e.target === learnMoreDialog) {
         learnMoreDialog.style.display = 'none';
+        learnMoreDialog.setAttribute('aria-hidden', 'true');
       }
     });
   </script>

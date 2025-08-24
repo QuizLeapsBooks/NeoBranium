@@ -8,13 +8,23 @@ document.addEventListener('DOMContentLoaded', () => {
   menuToggle.addEventListener('click', () => {
     navMenu.classList.toggle('active');
     menuToggle.textContent = navMenu.classList.contains('active') ? '✕' : '☰';
+    menuToggle.setAttribute('aria-expanded', navMenu.classList.contains('active'));
+  });
+
+  // Close menu on link click (mobile)
+  navMenu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      navMenu.classList.remove('active');
+      menuToggle.textContent = '☰';
+      menuToggle.setAttribute('aria-expanded', 'false');
+    });
   });
 
   // Scroll Animations with Intersection Observer
   const cards = document.querySelectorAll('.feature-card');
   const observerOptions = {
     root: null,
-    threshold: 0.15,
+    threshold: 0.1,
     rootMargin: '0px'
   };
 
@@ -22,23 +32,56 @@ document.addEventListener('DOMContentLoaded', () => {
     entries.forEach((entry, index) => {
       if (entry.isIntersecting) {
         setTimeout(() => {
-          entry.target.classList.add('visible');
-          entry.target.classList.add('animate__animated', 'animate__fadeInUp');
-        }, index * 150); // Staggered animation
+          entry.target.classList.add('visible', 'animate__animated', 'animate__fadeInUp');
+        }, index * 100);
         observer.unobserve(entry.target);
       }
     });
   }, observerOptions);
 
-  cards.forEach(card => {
-    cardObserver.observe(card);
-  });
+  cards.forEach(card => cardObserver.observe(card));
 
-  // AI Orb click: show a futuristic toast or modal (demo only)
-  const aiOrb = document.getElementById('ai-orb');
-  if (aiOrb) {
-    aiOrb.addEventListener('click', () => {
-      alert('👾 NeoBranium AI Assistant coming soon!');
+  // Particle Background
+  const canvas = document.getElementById('bg-particles');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const particles = [];
+    const particleCount = Math.floor(window.innerWidth / 10);
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 2 + 1,
+        speedX: Math.random() * 0.5 - 0.25,
+        speedY: Math.random() * 0.5 - 0.25
+      });
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.speedX;
+        p.y += p.speedY;
+        if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(171, 71, 188, 0.3)';
+        ctx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+
+    animateParticles();
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     });
   }
 });
@@ -55,13 +98,10 @@ window.addEventListener('load', () => {
     setTimeout(() => {
       preloader.style.display = 'none';
 
-      // Ensure .type-effect is visible before starting
       const typeEffect = document.querySelector('.type-effect');
       typeEffect.style.opacity = '1';
 
-      // Improved Typed.js config for full sentence effect
-      // index.js (inside window.addEventListener('load', ...))
-      const typed = new Typed('.type-effect', {
+      new Typed('.type-effect', {
         strings: [
           'Interactive Quizzes & Events',
           'AI Assistant & Smart Dashboard',
@@ -69,42 +109,46 @@ window.addEventListener('load', () => {
           'Notes Upload/Download',
           'User Profiles & Achievements',
           'PDF Notes Sharing with Likes & Comments',
-          'Earn rewards by uploading notes and redeeming codes'
+          'Earn rewards by uploading notes'
         ],
         typeSpeed: 50,
         backSpeed: 25,
-        backDelay: 1800,
+        backDelay: 1500,
         startDelay: 200,
         loop: true,
-        showCursor: true, // Cursor dikhana zaroori hai
-        cursorChar: '|', // Default cursor character
-        autoInsertCss: true, // Automatically insert Typed.js cursor CSS
+        showCursor: true,
+        cursorChar: ''
       });
-    }, 600);
-  }, 1200);
+    }, 500);
+  }, 1000);
 });
 
 function showWarning() {
-  document.getElementById('warningModal').style.display = 'flex';
+  const modal = document.getElementById('warningModal');
+  modal.style.display = 'flex';
+  modal.setAttribute('aria-hidden', 'false');
 }
 
 function closeWarning() {
-  document.getElementById('warningModal').style.display = 'none';
+  const modal = document.getElementById('warningModal');
+  modal.style.display = 'none';
+  modal.setAttribute('aria-hidden', 'true');
 }
 
-window.onclick = function (e) {
+window.addEventListener('click', (e) => {
   const modal = document.getElementById('warningModal');
   if (e.target === modal) {
     modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
   }
-};
+});
 
-// Smooth scroll for internal links
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function (e) {
+  anchor.addEventListener('click', (e) => {
     e.preventDefault();
-    document.querySelector(this.getAttribute('href')).scrollIntoView({
-      behavior: 'smooth'
-    });
+    const target = document.querySelector(anchor.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
   });
 });
