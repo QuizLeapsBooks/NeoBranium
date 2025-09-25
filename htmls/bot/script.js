@@ -11,6 +11,7 @@ const chatContainer = document.querySelector(".chat-body");
 const API_BASE_URL = window.location.hostname === "localhost"
     ? "http://localhost:3000"
     : "https://neobranium.onrender.com"; // Live backend URL
+    : "https://neobranium.web.app/htmls/bot/bot.html"; // Live backend URL
 
 // ========================
 // Function: Get Chat Response
