@@ -7,8 +7,6 @@ const urlsToCache = [
   '/htmls/dashboard.html',
   '/htmls/contactus.html',
   '/htmls/feedback.html',
-  '/htmls/chat/chat_app.html',
-  '/htmls/bot/bot.html',
   '/htmls/profile.html',
   '/htmls/setting.html',
  
