@@ -12,6 +12,9 @@ app.use('/htmls', express.static(path.join(__dirname, 'htmls')));
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
+// Simple memory to store user info per session (userId)
+let userMemory = {};
+
 function wrapCodeIfNeeded(userText, aiResponse) {
     const langMatch = userText.match(/python|js|javascript|java|c\+\+|c|html|css|react|nodejs|php|ruby|nextjs/i);
     if (langMatch && !/^```/.test(aiResponse)) {
@@ -32,24 +35,32 @@ function getQueryType(userText) {
 app.post('/api/chat', async (req, res) => {
     const userText = req.body.message || '';
     const history = req.body.history || [];
+    const userId = req.body.userId || "default";
+
+    if (!userMemory[userId]) userMemory[userId] = {};
+
+    // Detect name in user input
+    const nameMatch = userText.match(/my name is (.+)/i);
+    if (nameMatch) {
+        userMemory[userId].name = nameMatch[1].trim();
+    }
 
     if (!userText.trim()) return res.status(400).json({ reply: 'Please send a message.' });
 
-    // Base system prompt
     let systemPrompt = `
 You are NS-x, a virtual assistant created by Shubham Singh.
 You serve both NeoBranium and SkyCode users.
 Be friendly, concise, and easy to understand.
-Always stay on topic and do not repeat introductions.
+Always stay on topic.
 `;
 
     const queryType = getQueryType(userText);
     if (queryType === 'code') {
         systemPrompt += `
-You are an expert in web development, machine learning, AI, and programming.
+You are an expert in web development, AI, and programming.
 Answer coding questions with examples and always use proper code blocks.
 Use multiple languages if asked (Python, JS, Java, C++, etc.).
-Explain in an interactive and clear way suitable for SkyCode users.
+Explain clearly suitable for SkyCode users.
 `;
     } else if (queryType === 'scienceMath') {
         systemPrompt += `
@@ -57,11 +68,17 @@ You are an expert in science and math for class 9–10 students.
 Answers should be concise, NCERT-aligned, and easy to understand.
 Explain examples when needed, suitable for NeoBranium users.
 `;
+    } else {
+        systemPrompt += `Answer general questions concisely and clearly.`;
     }
 
     // Combine chat history for context
     let historyText = history.map(h => `${h.role === 'user' ? 'User' : 'AI'}: ${h.content}`).join('\n');
-    const prompt = `${systemPrompt}\n${historyText}\nUser: ${userText}`;
+
+    // Add user name info if known
+    let nameText = userMemory[userId].name ? `User's name is ${userMemory[userId].name}.\n` : '';
+
+    const prompt = `${systemPrompt}\n${historyText}\n${nameText}User: ${userText}`;
 
     try {
         const result = await model.generateContent(prompt);

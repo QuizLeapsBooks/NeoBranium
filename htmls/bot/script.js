@@ -1,4 +1,5 @@
 let chatHistory = []; // Store previous messages
+const userId = "default"; // Simple single user session ID
 
 // DOM Elements
 const chatInput = document.querySelector("#chat-input");
@@ -10,11 +11,9 @@ const API_BASE_URL = window.location.hostname === "localhost"
     ? "http://localhost:3000"
     : "https://neobranium.onrender.com";
 
-// Simple Markdown Parser for bold and code
+// Markdown parser
 function parseMarkdown(text) {
-    // Bold for **text**
     text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    // Code blocks (all languages)
     text = text.replace(/```(?:\w+)?\n([\s\S]*?)\n```/g,
         '<pre class="code-block">$1</pre>');
     return text.replace(/\n/g, '<br>');
@@ -34,13 +33,13 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Get Chat Response - Include previous chat history
+// Get chat response
 async function getChatResponse(userText) {
     try {
         const res = await fetch(`${API_BASE_URL}/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: userText, history: chatHistory })
+            body: JSON.stringify({ message: userText, history: chatHistory, userId })
         });
 
         if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
@@ -53,7 +52,7 @@ async function getChatResponse(userText) {
     }
 }
 
-// Add Message to Chat
+// Add message to chat
 function addMessageToChat(text, isUser, isThinking = false) {
     const messageDiv = document.createElement("div");
     messageDiv.classList.add(
@@ -69,11 +68,12 @@ function addMessageToChat(text, isUser, isThinking = false) {
     }
     chatContainer.appendChild(messageDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight;
-    if (isUser) chatHistory.push({ role: "user", content: text }); // Store user message
+    if (isUser) chatHistory.push({ role: "user", content: text });
+    else if (!isThinking) chatHistory.push({ role: "ai", content: text });
     return messageDiv;
 }
 
-// Handle Send
+// Handle send
 async function handleAPI() {
     const userText = chatInput.value.trim();
     if (!userText) return;
@@ -88,9 +88,6 @@ async function handleAPI() {
 
     thinkingMessage.remove();
     addMessageToChat(response, false);
-
-    // Store AI response in history
-    chatHistory.push({ role: "ai", content: response });
 
     sendButton.disabled = false;
 }
