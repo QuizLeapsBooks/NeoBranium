@@ -12,19 +12,35 @@ const API_BASE_URL = window.location.hostname === "localhost"
 
 // Simple Markdown Parser for bold and code
 function parseMarkdown(text) {
+    // Bold for **text**
     text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    text = text.replace(/```(?:js|javascript)?\n([\s\S]*?)\n```/g, '<pre class="code-block">$1</pre>');
+    // Code blocks (all languages)
+    text = text.replace(/```(?:\w+)?\n([\s\S]*?)\n```/g,
+        '<pre class="code-block">$1</pre>');
     return text.replace(/\n/g, '<br>');
 }
 
-// Get Chat Response - Include editor code and history
+// Add CSS for code blocks
+const style = document.createElement('style');
+style.textContent = `
+.code-block {
+    background: #f5f5f5;
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    overflow-x: auto;
+    white-space: pre-wrap;
+}
+`;
+document.head.appendChild(style);
+
+// Get Chat Response - Include previous chat history
 async function getChatResponse(userText) {
     try {
-        const currentCode = editor.getValue(); // Read editor code
         const res = await fetch(`${API_BASE_URL}/api/chat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: userText, code: currentCode, history: chatHistory })
+            body: JSON.stringify({ message: userText, history: chatHistory })
         });
 
         if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
@@ -37,7 +53,7 @@ async function getChatResponse(userText) {
     }
 }
 
-// Add Message to Chat - Use innerHTML for formatting, add colors
+// Add Message to Chat
 function addMessageToChat(text, isUser, isThinking = false) {
     const messageDiv = document.createElement("div");
     messageDiv.classList.add(
@@ -45,9 +61,9 @@ function addMessageToChat(text, isUser, isThinking = false) {
         isUser ? "user-message" : isThinking ? "thinking-message" : "ai-message"
     );
     if (isUser) {
-        messageDiv.innerHTML = `<span style="color: #ff4500;">${parseMarkdown(text)}</span>`; // Prompt in orange-red
+        messageDiv.innerHTML = `<span style="font-weight: bold;">${parseMarkdown(text)}</span>`;
     } else if (!isThinking) {
-        messageDiv.innerHTML = `<span style="color: #00ced1;">${parseMarkdown(text)}</span>`; // AI response in dark turquoise
+        messageDiv.innerHTML = parseMarkdown(text);
     } else {
         messageDiv.textContent = text;
     }
@@ -72,6 +88,9 @@ async function handleAPI() {
 
     thinkingMessage.remove();
     addMessageToChat(response, false);
+
+    // Store AI response in history
+    chatHistory.push({ role: "ai", content: response });
 
     sendButton.disabled = false;
 }
