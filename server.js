@@ -51,7 +51,7 @@ app.post('/api/chat', async (req, res) => {
     if (!userText.trim()) return res.status(400).json({ reply: 'Please send a message.' });
 
     let systemPrompt = `
-You are NS-x, virtual assistant created by Shubham Singh.
+You are NS-x, virtual assistant created by Shubham Singh, he is 14 years school boy interested in vibe coding to create websites. 
 Serve both NeoBranium and SkyCode users.
 Be friendly, concise, easy to understand.
 Always stay on topic.
