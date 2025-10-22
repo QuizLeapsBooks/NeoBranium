@@ -31,7 +31,7 @@ async function getChatResponse(userText) {
         return data.reply || "No response from server.";
     } catch (error) {
         console.error("Error:", error);
-        return "Oops! Server busy hai abhi. Thoda wait kar. 😅";
+        return "Hmm....! Server error or lost internet connection";
     }
 }
 

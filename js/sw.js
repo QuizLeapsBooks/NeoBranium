@@ -8,7 +8,6 @@ const urlsToCache = [
   '/htmls/contactus.html',
   '/htmls/feedback.html',
   '/htmls/profile.html',
-  '/htmls/setting.html',
  
 ];
 

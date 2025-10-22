@@ -50,6 +50,7 @@ body {
     flex-direction: column;
     backdrop-filter: blur(12px);
     transition: box-shadow 0.4s ease;
+    border-radius: 10px;
 }
 
 .chat-header {
@@ -66,6 +67,8 @@ body {
     text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     position: relative;
     overflow: hidden;
+    height: 10%;
+    border-radius: 10px;
 }
 
 .chat-header::before {
@@ -92,6 +95,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 1.2rem;
+    border-radius: 10px;
 }
 
 .chat-message {
