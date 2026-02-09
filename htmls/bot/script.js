@@ -7,7 +7,7 @@ const chatContainer = document.querySelector(".chat-body");
 // Backend URL
 const API_BASE_URL = window.location.hostname === "localhost"
     ? "http://localhost:3000"
-    : "https://neobranium.onrender.com";
+    : "https://neobranium-p527.onrender.com";
 
 // Markdown Parser
 function parseMarkdown(text) {
