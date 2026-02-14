@@ -60,31 +60,7 @@ window.addEventListener('load', function () {
   document.getElementById('spotlightSkeleton').style.display = 'flex';
 });
 
-// dashboard.js
-document.addEventListener('DOMContentLoaded', () => {
-  // Dashboard load hone ke baad background preload
-  const pagesToPreload = [
-    '/htmls/notes.html',
-    '/htmls/spotlight.html',
-    '/htmls/dashboard.html',
-    '/htmls/contactus.html',
-    '/htmls/feedback.html',
-    '/htmls/chat/chat_app.html',
-    '/htmls/bot/bot.html',
-    '/htmls/profile.html',
-    '/htmls/setting.html',
-  ];
 
-  pagesToPreload.forEach(url => {
-    fetch(url)
-      .then(response => response.text())
-      .then(html => {
-        localStorage.setItem(url, html); // Local storage mein save
-        console.log(`${url} preloaded and saved in local storage.`);
-      })
-      .catch(err => console.error(`Error preloading ${url}:`, err));
-  });
-});
 
 // Link click pe check kar - local se ya server se
 document.querySelectorAll('a[href]').forEach(link => {
