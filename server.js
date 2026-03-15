@@ -295,3 +295,9 @@ app.listen(PORT, () => {
     console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔑 Groq Model: ${GROQ_MODEL}`);
 });
+
+const Redis = require('ioredis');
+const redis = new Redis(process.env.REDIS_URL);
+
+redis.on('connect', () => console.log("Connected to Redis!"));
+redis.on('error', err => console.log("Redis connection error:", err));
