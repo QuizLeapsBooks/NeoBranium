@@ -1,77 +1,245 @@
-let chatHistory = []; // Store previous messages
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 
-const chatInput = document.querySelector("#chat-input");
-const sendButton = document.querySelector("#send-btn");
-const chatContainer = document.querySelector(".chat-body");
+// Configure marked for better code highlighting
+marked.setOptions({
+    breaks: true,
+    gfm: true,
+    highlight: function(code, lang) {
+        return code;
+    }
+});
 
-// Backend URL
-const API_BASE_URL = window.location.hostname === "localhost"
-    ? "http://localhost:3000"
-    : "https://neobranium-p527.onrender.com";
+class ChatAssistant {
+    constructor() {
+        this.chatHistory = [];
+        this.userId = this.generateUserId();
+        this.API_BASE_URL = this.getApiBaseUrl();
+        this.genAI = null;
+        this.isProcessing = false;
+        
+        // DOM Elements
+        this.chatInput = document.querySelector('#chat-input');
+        this.sendButton = document.querySelector('#send-btn');
+        this.chatContainer = document.querySelector('#chat-body');
+        
+        this.init();
+    }
+    
+    init() {
+        // Add welcome message
+        this.addWelcomeMessage();
+        
+        // Setup event listeners
+        this.setupEventListeners();
+        
+        // Check input state
+        this.toggleSendButton();
+        
+        // Load chat history from session
+        this.loadSessionHistory();
+    }
+    
+   getApiBaseUrl() {
+    if (
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1'
+    ) {
+        return 'http://localhost:3000/api';
+    }
 
-// Markdown Parser
-function parseMarkdown(text) {
-    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    text = text.replace(/```(?:\w+)?\n([\s\S]*?)\n```/g,
-        '<pre class="code-block">$1</pre>');
-    return text.replace(/\n/g, '<br>');
+    return 'https://your-backend-url.onrender.com/api';
 }
-
-// Get Chat Response
-async function getChatResponse(userText) {
-    try {
-        const res = await fetch(`${API_BASE_URL}/api/chat`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: userText, history: chatHistory })
+    
+    generateUserId() {
+        return 'user_' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    addWelcomeMessage() {
+        const welcomeMessage = `
+            <div class="message-content">
+                <p>✨ <strong>Welcome to NS-x AI Learning Assistant!</strong></p>
+                <p>I'm here to help you explore:</p>
+                <ul>
+                    <li>📐 Mathematics concepts</li>
+                    <li>🔬 Science explanations</li>
+                    <li>💻 Programming tutorials</li>
+                    <li>📚 Study tips & techniques</li>
+                </ul>
+                <p><em>What would you like to learn today?</em></p>
+            </div>
+        `;
+        this.addMessage(welcomeMessage, 'ai');
+    }
+    
+    setupEventListeners() {
+        // Send button click
+        this.sendButton.addEventListener('click', () => this.handleSend());
+        
+        // Input events
+        this.chatInput.addEventListener('input', () => {
+            this.toggleSendButton();
+            this.autoResizeTextarea();
         });
-        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-        const data = await res.json();
-        return data.reply || "No response from server.";
-    } catch (error) {
-        console.error("Error:", error);
-        return "Hmm....! Server error or lost internet connection";
+        
+        // Enter key (with Shift for new line)
+        this.chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.handleSend();
+            }
+        });
+    }
+    
+    autoResizeTextarea() {
+        this.chatInput.style.height = 'auto';
+        this.chatInput.style.height = Math.min(this.chatInput.scrollHeight, 150) + 'px';
+    }
+    
+    toggleSendButton() {
+        const hasText = this.chatInput.value.trim().length > 0;
+        this.sendButton.disabled = !hasText || this.isProcessing;
+    }
+    
+    async handleSend() {
+        if (this.isProcessing) return;
+        
+        const userText = this.chatInput.value.trim();
+        if (!userText) return;
+        
+        // Add user message
+        this.addMessage(this.escapeHtml(userText), 'user');
+        
+        // Clear input
+        this.chatInput.value = '';
+        this.autoResizeTextarea();
+        this.toggleSendButton();
+        
+        // Get AI response
+        await this.getAIResponse(userText);
+    }
+    
+    addMessage(content, type, isThinking = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message ${type}-message ${isThinking ? 'thinking-message' : ''}`;
+        
+        if (isThinking) {
+            messageDiv.innerHTML = '<span>Thinking</span>';
+        } else {
+            // Sanitize and render markdown
+            const cleanContent = DOMPurify.sanitize(content);
+            messageDiv.innerHTML = `<div class="message-content">${cleanContent}</div>`;
+        }
+        
+        this.chatContainer.appendChild(messageDiv);
+        this.scrollToBottom();
+        
+        // Store in history
+        if (!isThinking) {
+            this.chatHistory.push({
+                role: type === 'user' ? 'user' : 'assistant',
+                content: content
+            });
+            this.saveSessionHistory();
+        }
+        
+        return messageDiv;
+    }
+    
+    async getAIResponse(userText) {
+        this.isProcessing = true;
+        this.toggleSendButton();
+        
+        // Show thinking indicator
+        const thinkingMsg = this.addMessage('', 'ai', true);
+        
+        try {
+            const response = await fetch(`${this.API_BASE_URL}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: userText,
+                    history: this.chatHistory.slice(-10), // Last 10 messages for context
+                    userId: this.userId
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Remove thinking message
+            thinkingMsg.remove();
+            
+            // Add AI response
+            if (data.reply) {
+                const formattedResponse = marked.parse(data.reply);
+                this.addMessage(formattedResponse, 'ai');
+            } else {
+                this.addMessage('Sorry, I received an empty response.', 'ai');
+            }
+            
+        } catch (error) {
+            console.error('API Error:', error);
+            
+            // Remove thinking message
+            thinkingMsg.remove();
+            
+            // Show error message
+            const errorMessage = `
+                <div class="message-content error-message">
+                    <p>⚠️ <strong>Connection Error</strong></p>
+                    <p>I'm having trouble connecting to the server. Please:</p>
+                    <ul>
+                        <li>Check your internet connection</li>
+                        <li>Try refreshing the page</li>
+                        <li>Try again in a few moments</li>
+                    </ul>
+                </div>
+            `;
+            this.addMessage(errorMessage, 'ai');
+        } finally {
+            this.isProcessing = false;
+            this.toggleSendButton();
+        }
+    }
+    
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    scrollToBottom() {
+        this.chatContainer.scrollTo({
+            top: this.chatContainer.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+    
+    saveSessionHistory() {
+        sessionStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
+    }
+    
+    loadSessionHistory() {
+        const saved = sessionStorage.getItem('chatHistory');
+        if (saved) {
+            try {
+                this.chatHistory = JSON.parse(saved);
+                // Optionally restore messages to UI
+            } catch (e) {
+                console.warn('Failed to load chat history');
+            }
+        }
     }
 }
 
-// Add message
-function addMessageToChat(text, isUser, isThinking = false) {
-    const messageDiv = document.createElement("div");
-    messageDiv.classList.add(
-        "chat-message",
-        isUser ? "user-message" : isThinking ? "thinking-message" : "ai-message"
-    );
-    messageDiv.innerHTML = isThinking ? text : parseMarkdown(text);
-    chatContainer.appendChild(messageDiv);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-    if (isUser) chatHistory.push({ role: "user", content: text });
-    else if (!isThinking) chatHistory.push({ role: "ai", content: text });
-    return messageDiv;
-}
-
-// Handle Send
-async function handleAPI() {
-    const userText = chatInput.value.trim();
-    if (!userText) return;
-
-    addMessageToChat(userText, true);
-    chatInput.value = "";
-    sendButton.disabled = true;
-
-    const thinkingMessage = addMessageToChat("Thinking... 🤔", false, true);
-    const response = await getChatResponse(userText);
-    thinkingMessage.remove();
-    addMessageToChat(response, false);
-
-    sendButton.disabled = false;
-}
-
-// Events
-sendButton.addEventListener("click", handleAPI);
-chatInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleAPI();
-    }
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    new ChatAssistant();
 });

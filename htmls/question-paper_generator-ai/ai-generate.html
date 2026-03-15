@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NeoBranium AI Question Paper Generator</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- KaTeX CSS for math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
+</head>
+<body>
+  <div class="page-container">
+    <header class="header">
+      <div class="header-content">
+        <h1 class="page-title">NS-x AI Question Paper Generator</h1>
+        <p class="page-subtitle">Create professional exam papers instantly with NeoBranium's AI assistant</p>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <form id="paperForm" class="generator-form">
+        <!-- Exam Configuration -->
+        <div class="form-section">
+          <h2 class="section-title">📋 Exam Configuration</h2>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="classSelect">Class</label>
+              <select id="classSelect" required>
+                <option value="" disabled selected>Choose class</option>
+                <option>6</option><option>7</option><option>8</option>
+                <option>9</option><option>10</option><option>11</option><option>12</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="subjectInput">Subject</label>
+              <input type="text" id="subjectInput" required placeholder="e.g., Mathematics" />
+            </div>
+            <div class="form-group">
+              <label for="chapterInput">Chapter/Syllabus</label>
+              <input type="text" id="chapterInput" required placeholder="Chapter name or Full Syllabus" />
+            </div>
+            <div class="form-group">
+              <label for="examType">Exam Type</label>
+              <select id="examType" required>
+                <option value="" disabled selected>Choose exam type</option>
+                <option>Board Exam</option>
+                <option>School Exam</option>
+                <option>Competitive</option>
+                <option>Practice Test</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="difficultyLevel">Difficulty Level</label>
+              <select id="difficultyLevel" required>
+                <option value="" disabled selected>Choose difficulty</option>
+                <option>Easy</option>
+                <option>Medium</option>
+                <option>Hard</option>
+                <option>Mixed</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="totalMarks">Total Marks</label>
+              <input type="number" id="totalMarks" required min="10" placeholder="100" />
+            </div>
+            <div class="form-group">
+              <label for="examTime">Duration (minutes)</label>
+              <input type="number" id="examTime" required min="10" placeholder="180" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Question Structure -->
+        <div class="form-section">
+          <h2 class="section-title">📝 Question Structure</h2>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="mcqCount">MCQ Questions</label>
+              <input type="number" id="mcqCount" required min="0" value="10" />
+            </div>
+            <div class="form-group">
+              <label for="shortCount">Short Answer Questions</label>
+              <input type="number" id="shortCount" required min="0" value="5" />
+            </div>
+            <div class="form-group">
+              <label for="longCount">Long Answer Questions</label>
+              <input type="number" id="longCount" required min="0" value="5" />
+            </div>
+            <div class="form-group">
+              <label for="marksPerQuestion">Marks per Question</label>
+              <input type="number" id="marksPerQuestion" required min="1" value="2" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Extra Options -->
+        <div class="form-section">
+          <h2 class="section-title">⚙️ Additional Options</h2>
+          <div class="checkbox-container">
+            <label class="checkbox-item">
+              <input type="checkbox" id="includeRepeated" />
+              <span class="checkmark"></span>
+              Include Most Repeated Questions
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" id="includeNCERT" />
+              <span class="checkmark"></span>
+              Include NCERT Based Questions
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" id="includeNumericals" />
+              <span class="checkmark"></span>
+              Include Numericals
+            </label>
+            <label class="checkbox-item">
+              <input type="checkbox" id="includeCaseStudy" />
+              <span class="checkmark"></span>
+              Include Case Study
+            </label>
+          </div>
+        </div>
+
+        <!-- Generate Button -->
+        <div class="form-actions">
+          <button type="submit" id="generateBtn" class="btn btn-primary">
+            <span class="btn-icon">🚀</span>
+            Generate Paper
+          </button>
+        </div>
+      </form>
+
+      <!-- Loading State -->
+      <div id="loading" class="loading-state" hidden>
+        <div class="loading-spinner"></div>
+        <p>Generating your question paper... This may take a few moments.</p>
+      </div>
+
+      <!-- Results -->
+      <div id="resultArea" class="results-container" hidden>
+        <div class="results-header">
+          <h2 class="results-title">📄 Generated Question Paper</h2>
+          <div class="results-actions">
+            <button id="copyBtn" class="btn btn-secondary">
+              <span class="btn-icon">📋</span>
+              Copy
+            </button>
+            <button id="downloadPdfBtn" class="btn btn-secondary">
+              <span class="btn-icon">⬇️</span>
+              Download
+            </button>
+          </div>
+        </div>
+        <div id="generated-paper" class="exam-paper"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- KaTeX JS for math rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <!-- html2pdf.js for PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="js-generate.js"></script>
+</body>
+</html>
