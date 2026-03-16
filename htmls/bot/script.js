@@ -49,7 +49,7 @@ class ChatAssistant {
         return 'http://localhost:3000/api';
     }
 
-    return 'https://your-backend-url.onrender.com/api';
+    return 'https://neobranium.onrender.com/api';
 }
     
     generateUserId() {

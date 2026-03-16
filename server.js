@@ -17,27 +17,32 @@ const app = express();
 
 // Redis client for session storage
 const redisClient = createClient({
-    url: process.env.REDIS_URL || 'redis://localhost:6379'
+    url: process.env.REDIS_URL
 });
 
 // Connect to Redis
+console.log("Attempting Redis connection...");
 try {
     await redisClient.connect();
     console.log('✅ Redis connected successfully');
 } catch (error) {
     console.error('❌ Redis connection failed:', error.message);
-    process.exit(1); // Exit if Redis fails
+    console.log("Continuing without Redis session storage");
 }
 
 // Redis store for sessions
-const redisStore = new RedisStore({
-    client: redisClient,
-    prefix: "sess:"
-});
+let redisStore;
+
+if (redisClient.isReady) {
+    redisStore = new RedisStore({
+        client: redisClient,
+        prefix: "sess:"
+    });
+}
 
 // Session middleware
 app.use(session({
-    store: redisStore,
+    store: redisClient.isReady ? redisStore : undefined,
     secret: process.env.SESSION_SECRET || 'neobranium_secret_key',
     resave: false,
     saveUninitialized: false,
@@ -64,7 +69,10 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             scriptSrc: ["'self'", "'unsafe-inline'", "https://esm.run"],
-            connectSrc: ["'self'", "https://generativelanguage.googleapis.com"]
+            connectSrc: [
+                "'self'",
+                "https://api.groq.com"
+            ]
         }
     }
 }));
@@ -85,9 +93,9 @@ app.use(express.json({ limit: '10mb' }));
 // GROQ API INTEGRATION - Initialize Groq API key
 const groqApiKey = process.env.GROQ_API_KEY;
 if (!groqApiKey) {
-  console.error('❌ Missing GROQ_API_KEY in environment');
-  // Optionally process.exit(1) in non-dev environment,
-  // but if you want server to start and fail per-request, keep going.
+    console.error('❌ Missing GROQ_API_KEY in environment');
+    // Optionally process.exit(1) in non-dev environment,
+    // but if you want server to start and fail per-request, keep going.
 }
 
 // GROQ API INTEGRATION - Define model constant
@@ -160,13 +168,13 @@ app.post('/api/chat', async (req, res) => {
         memory.topics.add(queryType);
 
         // Build system prompt
-        const systemIdentity = `You are NS-x AI Learning Assistant from the NeoBranium platform. NeoBranium is a learning platform focused on science, mathematics, programming, quizzes, and study tools for students. NeoBranium was created by Shubham Singh, a student who enjoys science, mathematics, programming, and building educational tools for students. In all responses, act as a friendly private learning assistant and do not reveal private details (location, school, phone, email, personal life). If asked about who made you, who created you, who owns this AI, who is Shubham Singh, or what is NeoBranium, reply: "This AI assistant is part of the NeoBranium learning platform created by Shubham Singh. He is a student who enjoys science, mathematics, and programming and built this platform to help students learn more effectively."`; 
+        const systemIdentity = `You are NS-x AI Learning Assistant from the NeoBranium platform. NeoBranium is a learning platform focused on science, mathematics, programming, quizzes, and study tools for students. NeoBranium was created by Shubham Singh, a student who enjoys science, mathematics, programming, and building educational tools for students. In all responses, act as a friendly private learning assistant and do not reveal private details (location, school, phone, email, personal life). If asked about who made you, who created you, who owns this AI, who is Shubham Singh, or what is NeoBranium, reply: "This AI assistant is part of the NeoBranium learning platform created by Shubham Singh. He is a student who enjoys science, mathematics, and programming and built this platform to help students learn more effectively."`;
 
         const queryContext = queryType === 'code'
             ? 'You are a programming expert. Provide code examples with explanations.'
             : queryType === 'math' || queryType === 'science'
-            ? 'You are a STEM expert. Explain concepts clearly with examples.'
-            : 'You are a helpful learning assistant.';
+                ? 'You are a STEM expert. Explain concepts clearly with examples.'
+                : 'You are a helpful learning assistant.';
 
         const personalContext = memory.name
             ? `The user's name is ${memory.name}. `
@@ -295,10 +303,3 @@ app.listen(PORT, () => {
     console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔑 Groq Model: ${GROQ_MODEL}`);
 });
-
-import Redis from 'ioredis';
-
-const redis = new Redis(process.env.REDIS_URL);
-
-redis.on('connect', () => console.log("Connected to Redis!"));
-redis.on('error', err => console.log("Redis connection error:", err));
