@@ -212,24 +212,51 @@ app.post('/api/chat', async (req, res) => {
 
         console.log("FINAL GROQ REQUEST:", JSON.stringify(requestBody, null, 2));
 
-        // GROQ API INTEGRATION - Generate response via Groq API
-        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${groqApiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
-        });
+        // Check if API key is available
+        if (!groqApiKey) {
+            console.error('❌ Missing GROQ_API_KEY');
+            return res.status(500).json({ reply: 'AI service unavailable' });
+        }
+
+        let groqResponse;
+        try {
+            groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${groqApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+        } catch (fetchError) {
+            console.error('❌ Fetch error:', fetchError);
+            return res.status(500).json({ reply: 'AI request failed' });
+        }
 
         if (!groqResponse.ok) {
             const errorText = await groqResponse.text();
             console.error('❌ Groq API error:', groqResponse.status, errorText);
-            throw new Error(`Groq API failed: ${groqResponse.status} - ${errorText}`);
+            return res.status(500).json({ reply: 'AI request failed' });
         }
 
-        const groqData = await groqResponse.json();
+        let groqData;
+        try {
+            groqData = await groqResponse.json();
+        } catch (jsonError) {
+            console.error('❌ Failed to parse Groq response:', jsonError);
+            return res.status(500).json({ reply: 'AI request failed' });
+        }
+
+        if (!groqData.choices || groqData.choices.length === 0) {
+            console.error('❌ Groq API returned no choices:', groqData);
+            return res.status(500).json({ reply: 'AI request failed' });
+        }
+
         let text = groqData.choices[0].message.content;
+        if (!text) {
+            console.error('❌ Groq API returned empty content');
+            return res.status(500).json({ reply: 'AI request failed' });
+        }
 
         // Format and return
         text = formatResponse(text, queryType);
