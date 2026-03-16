@@ -15,6 +15,8 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 // Redis client for session storage
 const redisClient = createClient({
     url: process.env.REDIS_URL
@@ -85,7 +87,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
-        ? ['https://neobranium.web.app/htmls/bot/bot.html', 'https://neobranium.onrender.com/api']
+        ? 'https://neobranium.web.app'
         : allowedOrigins,
 }));
 
@@ -104,6 +106,23 @@ const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
 // In-memory user memory
 const userMemory = new Map();
+
+// Function to clean up old user memories
+function cleanupUserMemory() {
+    const now = Date.now();
+    const maxAge = 60 * 60 * 1000; // 1 hour
+    for (const [userId, memory] of userMemory) {
+        if (now - memory.sessionStart.getTime() > maxAge) {
+            userMemory.delete(userId);
+        }
+    }
+    if (userMemory.size > 1000) {
+        // If still too many, remove oldest
+        const entries = Array.from(userMemory.entries()).sort((a, b) => a[1].sessionStart - b[1].sessionStart);
+        const toRemove = entries.slice(0, entries.length - 500); // keep 500 newest
+        toRemove.forEach(([userId]) => userMemory.delete(userId));
+    }
+}
 
 // Helper functions
 const detectQueryType = (text) => {
@@ -153,6 +172,7 @@ app.post('/api/chat', async (req, res) => {
                 sessionStart: new Date(),
                 messageCount: 0
             });
+            cleanupUserMemory(); // Clean up old memories when adding new user
         }
 
         const memory = userMemory.get(userId);

@@ -120,7 +120,7 @@ class ChatAssistant {
         await this.getAIResponse(userText);
     }
     
-    addMessage(content, type, isThinking = false) {
+    addMessage(content, type, isThinking = false, rawContent = null) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `chat-message ${type}-message ${isThinking ? 'thinking-message' : ''}`;
         
@@ -139,7 +139,7 @@ class ChatAssistant {
         if (!isThinking) {
             this.chatHistory.push({
                 role: type === 'user' ? 'user' : 'assistant',
-                content: content
+                content: rawContent || content
             });
             this.saveSessionHistory();
         }
@@ -179,7 +179,7 @@ class ChatAssistant {
             // Add AI response
             if (data.reply) {
                 const formattedResponse = marked.parse(data.reply);
-                this.addMessage(formattedResponse, 'ai');
+                this.addMessage(formattedResponse, 'ai', false, data.reply);
             } else {
                 this.addMessage('Sorry, I received an empty response.', 'ai');
             }
