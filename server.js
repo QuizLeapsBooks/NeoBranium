@@ -71,7 +71,8 @@ app.use(helmet({
             scriptSrc: ["'self'", "'unsafe-inline'", "https://esm.run"],
             connectSrc: [
                 "'self'",
-                "https://api.groq.com"
+                "https://api.groq.com",
+                "https://neobranium.onrender.com"
             ]
         }
     }
