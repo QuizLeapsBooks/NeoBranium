@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 

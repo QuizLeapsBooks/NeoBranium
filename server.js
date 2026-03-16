@@ -85,7 +85,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
-        ? ['https://yourdomain.com', 'https://your-backend-url.onrender.com']
+        ? ['https://neobranium.web.app/htmls/bot/bot.html', 'https://neobranium.onrender.com/api']
         : allowedOrigins,
 }));
 
