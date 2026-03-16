@@ -296,7 +296,8 @@ app.listen(PORT, () => {
     console.log(`🔑 Groq Model: ${GROQ_MODEL}`);
 });
 
-const Redis = require('ioredis');
+import Redis from 'ioredis';
+
 const redis = new Redis(process.env.REDIS_URL);
 
 redis.on('connect', () => console.log("Connected to Redis!"));
