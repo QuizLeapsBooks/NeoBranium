@@ -173,7 +173,7 @@ function validateExamPaperResponse(text) {
 async function generatePaperWithRetry(prompt, maxRetries = 5) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const response = await fetch('http://localhost:3000/api/chat', {
+      const response = await fetch('https://neobranium.onrender.com', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: prompt, history: [] })
