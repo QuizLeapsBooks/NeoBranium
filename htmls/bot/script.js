@@ -6,7 +6,7 @@ import DOMPurify from 'dompurify';
 marked.setOptions({
     breaks: true,
     gfm: true,
-    highlight: function(code, lang) {
+    highlight: function (code, lang) {
         return code;
     }
 });
@@ -18,44 +18,44 @@ class ChatAssistant {
         this.API_BASE_URL = this.getApiBaseUrl();
         this.genAI = null;
         this.isProcessing = false;
-        
+
         // DOM Elements
         this.chatInput = document.querySelector('#chat-input');
         this.sendButton = document.querySelector('#send-btn');
         this.chatContainer = document.querySelector('#chat-body');
-        
+
         this.init();
     }
-    
+
     init() {
         // Add welcome message
         this.addWelcomeMessage();
-        
+
         // Setup event listeners
         this.setupEventListeners();
-        
+
         // Check input state
         this.toggleSendButton();
-        
+
         // Load chat history from session
         this.loadSessionHistory();
     }
-    
-   getApiBaseUrl() {
-    if (
-        window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1'
-    ) {
-        return 'http://localhost:3000/api';
+
+    getApiBaseUrl() {
+        if (
+            window.location.hostname === 'localhost' ||
+            window.location.hostname === '127.0.0.1'
+        ) {
+            return 'http://localhost:3000/api';
+        }
+
+        return 'https://neobranium.onrender.com/api';
     }
 
-    return 'https://neobranium.onrender.com/api';
-}
-    
     generateUserId() {
         return 'user_' + Math.random().toString(36).substr(2, 9);
     }
-    
+
     addWelcomeMessage() {
         const welcomeMessage = `
             <div class="message-content">
@@ -72,17 +72,17 @@ class ChatAssistant {
         `;
         this.addMessage(welcomeMessage, 'ai');
     }
-    
+
     setupEventListeners() {
         // Send button click
         this.sendButton.addEventListener('click', () => this.handleSend());
-        
+
         // Input events
         this.chatInput.addEventListener('input', () => {
             this.toggleSendButton();
             this.autoResizeTextarea();
         });
-        
+
         // Enter key (with Shift for new line)
         this.chatInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -91,39 +91,39 @@ class ChatAssistant {
             }
         });
     }
-    
+
     autoResizeTextarea() {
         this.chatInput.style.height = 'auto';
         this.chatInput.style.height = Math.min(this.chatInput.scrollHeight, 150) + 'px';
     }
-    
+
     toggleSendButton() {
         const hasText = this.chatInput.value.trim().length > 0;
         this.sendButton.disabled = !hasText || this.isProcessing;
     }
-    
+
     async handleSend() {
         if (this.isProcessing) return;
-        
+
         const userText = this.chatInput.value.trim();
         if (!userText) return;
-        
+
         // Add user message
         this.addMessage(this.escapeHtml(userText), 'user');
-        
+
         // Clear input
         this.chatInput.value = '';
         this.autoResizeTextarea();
         this.toggleSendButton();
-        
+
         // Get AI response
         await this.getAIResponse(userText);
     }
-    
+
     addMessage(content, type, isThinking = false, rawContent = null) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `chat-message ${type}-message ${isThinking ? 'thinking-message' : ''}`;
-        
+
         if (isThinking) {
             messageDiv.innerHTML = '<span>Thinking</span>';
         } else {
@@ -131,10 +131,10 @@ class ChatAssistant {
             const cleanContent = DOMPurify.sanitize(content);
             messageDiv.innerHTML = `<div class="message-content">${cleanContent}</div>`;
         }
-        
+
         this.chatContainer.appendChild(messageDiv);
         this.scrollToBottom();
-        
+
         // Store in history
         if (!isThinking) {
             this.chatHistory.push({
@@ -143,17 +143,17 @@ class ChatAssistant {
             });
             this.saveSessionHistory();
         }
-        
+
         return messageDiv;
     }
-    
+
     async getAIResponse(userText) {
         this.isProcessing = true;
         this.toggleSendButton();
-        
+
         // Show thinking indicator
         const thinkingMsg = this.addMessage('', 'ai', true);
-        
+
         try {
             const response = await fetch(`${this.API_BASE_URL}/chat`, {
                 method: 'POST',
@@ -166,16 +166,16 @@ class ChatAssistant {
                     userId: this.userId
                 })
             });
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const data = await response.json();
-            
+
             // Remove thinking message
             thinkingMsg.remove();
-            
+
             // Add AI response
             if (data.reply) {
                 const formattedResponse = marked.parse(data.reply);
@@ -183,13 +183,13 @@ class ChatAssistant {
             } else {
                 this.addMessage('Sorry, I received an empty response.', 'ai');
             }
-            
+
         } catch (error) {
             console.error('API Error:', error);
-            
+
             // Remove thinking message
             thinkingMsg.remove();
-            
+
             // Show error message
             const errorMessage = `
                 <div class="message-content error-message">
@@ -208,24 +208,24 @@ class ChatAssistant {
             this.toggleSendButton();
         }
     }
-    
+
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
-    
+
     scrollToBottom() {
         this.chatContainer.scrollTo({
             top: this.chatContainer.scrollHeight,
             behavior: 'smooth'
         });
     }
-    
+
     saveSessionHistory() {
         sessionStorage.setItem('chatHistory', JSON.stringify(this.chatHistory));
     }
-    
+
     loadSessionHistory() {
         const saved = sessionStorage.getItem('chatHistory');
         if (saved) {

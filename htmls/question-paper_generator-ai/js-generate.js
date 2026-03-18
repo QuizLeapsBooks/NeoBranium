@@ -105,21 +105,21 @@ Behavior:
   try {
     // Generate paper with retry logic to ensure completeness
     const reply = await generatePaperWithRetry(prompt);
-    
+
     // Format the reply to look like an exam paper
     const formattedReply = formatExamPaper(reply);
     resultText.innerHTML = formattedReply;
-    
+
     // Render mathematical expressions with KaTeX (only in the result container)
     const container = document.getElementById("generated-paper");
     try {
       if (window.renderMathInElement) {
         renderMathInElement(container, {
           delimiters: [
-            {left: "$$", right: "$$", display: true},
-            {left: "$", right: "$", display: false},
-            {left: "\\[", right: "\\]", display: true},
-            {left: "\\(", right: "\\)", display: false}
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\[", right: "\\]", display: true },
+            { left: "\\(", right: "\\)", display: false }
           ],
           throwOnError: false
         });
@@ -130,7 +130,7 @@ Behavior:
       console.error('Math rendering failed:', mathError);
       // Don't show error to user - math rendering failure shouldn't prevent paper display
     }
-    
+
     resultArea.hidden = false;
   } catch (err) {
     resultText.innerHTML = `<div style="color: var(--error-color); padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; margin: 1rem 0;">Unable to generate paper. Please check if the NeoBranium AI server is running. (${err.message})</div>`;
@@ -143,19 +143,19 @@ Behavior:
 // Function to validate if AI response contains complete exam paper
 function validateExamPaperResponse(text) {
   const lowerText = text.toLowerCase();
-  
+
   // Check for required sections
   const hasSectionA = lowerText.includes('section a') || lowerText.includes('multiple choice');
   const hasSectionB = lowerText.includes('section b') || lowerText.includes('short answer');
   const hasSectionC = lowerText.includes('section c') || lowerText.includes('long answer');
   const hasAnswerKey = lowerText.includes('answer key') || lowerText.includes('solution');
-  
+
   // Check for minimum content length (should be substantial)
   const hasMinimumLength = text.length > 500;
-  
+
   // Check for numbered questions
   const hasNumberedQuestions = /\d+\.\s/.test(text);
-  
+
   return {
     isComplete: hasSectionA && hasSectionB && hasSectionC && hasAnswerKey && hasMinimumLength && hasNumberedQuestions,
     missing: {
@@ -173,56 +173,110 @@ function validateExamPaperResponse(text) {
 async function generatePaperWithRetry(prompt, maxRetries = 5) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const response = await fetch('https://neobranium.onrender.com', {
+      // 1. Safe API Key Handling
+      let apiKey = localStorage.getItem('API_SECRET_KEY');
+      if (!apiKey) {
+        apiKey = prompt('Please enter the API Secret Key to generate papers:');
+        if (!apiKey || !apiKey.trim()) {
+          throw new Error('API Key is strictly required to connect to the server.');
+        }
+        localStorage.setItem('API_SECRET_KEY', apiKey.trim());
+      }
+      
+      // 2. Robust API URL Construction
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocalhost ? 'http://localhost:3000/api/chat' : 'https://neobranium.onrender.com/api/chat';
+      
+      if (!apiUrl || typeof apiUrl !== 'string') {
+          throw new Error('Invalid API URL configuration.');
+      }
+      
+      console.log(`[Attempt ${attempt}] Sending request to:`, apiUrl);
+
+      // 3. Safe Network Fetch
+      // Make absolutely sure there are no newlines or illegal characters in the header string
+      const cleanApiKey = apiKey.replace(/\r?\n|\r/g, '').trim();
+      const headers = { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${cleanApiKey}`
+      };
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
         body: JSON.stringify({ message: prompt, history: [] })
       });
 
+      // 4. Robust Response Handling & JSON Parsing
       if (!response.ok) {
         if (attempt === maxRetries) {
-          let errorMsg = 'Unable to generate paper. Please check if the NeoBranium AI server is running.';
-          try {
-            const errorData = await response.json();
-            if (errorData.error && (errorData.error.includes('quota') || errorData.error.includes('429'))) {
-              errorMsg = 'AI quota exceeded. The free tier allows only 20 requests per day. Please try again tomorrow or upgrade your plan at https://ai.google.dev.';
-            } else if (errorData.reply) {
-              errorMsg += `\n${errorData.reply}`;
+            let errorMsg = `Server returned status ${response.status}.`;
+            try {
+                // Safely parse JSON error, this might fail if the server returns HTML (e.g. 502 Bad Gateway)
+                const errorData = await response.json();
+                if (errorData.reply) {
+                    errorMsg = errorData.reply;
+                } else if (errorData.error) {
+                    errorMsg = errorData.error;
+                }
+            } catch (jsonErr) {
+               console.warn("Failed to parse JSON error response, using text fallback");
+               const textFallback = await response.text();
+               if(textFallback) errorMsg += ` ${textFallback.substring(0, 100)}...`;
             }
-          } catch (parseErr) {
-            const text = await response.text();
-            errorMsg += `\n${text}`;
-          }
-          throw new Error(errorMsg);
+            throw new Error(errorMsg);
         }
+        
+        console.warn(`[Attempt ${attempt}] HTTP Error ${response.status}. Retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 1500));
         continue; // Retry
       }
 
-      const data = await response.json();
-      let reply = data.reply || 'No response returned from AI.';
+      // 5. Safe Success Payload Parsing
+      let data;
+      try {
+          data = await response.json();
+      } catch (jsonErr) {
+          throw new Error('Server returned an invalid or malformed JSON response.');
+      }
+      
+      let reply = data.reply || '';
+      if (!reply) {
+          if (attempt === maxRetries) throw new Error('No response returned from AI.');
+          console.warn(`[Attempt ${attempt}] Empty reply geometry. Retrying...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+      }
+      
       reply = reply.replace(/```/g, '').trim();
 
-      // Validate response completeness
+      // 6. Validate response completeness
       const validation = validateExamPaperResponse(reply);
-      
+
       if (validation.isComplete) {
-        return reply; // Success
+        console.log(`[Attempt ${attempt}] Success! Generated a valid exam paper.`);
+        return reply;
       } else {
-        console.warn(`Attempt ${attempt}: Incomplete response. Missing:`, validation.missing);
+        console.warn(`[Attempt ${attempt}]: Incomplete response. Missing:`, validation.missing);
         if (attempt === maxRetries) {
-          throw new Error('Unable to generate complete exam paper after multiple attempts. The AI response was incomplete.');
+          throw new Error('Unable to generate complete exam paper after multiple attempts. The AI response was consistently incomplete.');
         }
         // Wait a bit before retry
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
         continue;
       }
     } catch (error) {
+      console.error(`Attempt ${attempt} failed with exception:`, error.message);
       if (attempt === maxRetries) {
-        throw error;
+        // Clear invalid API key state if we received an authorization failure inside the loop
+        if (error.message.includes('401') || error.message.toLowerCase().includes('unauthorized')) {
+            localStorage.removeItem('API_SECRET_KEY');
+            throw new Error('Invalid API Key provided. Please refresh the page and try again.');
+        }
+        throw new Error(error.message || 'A network or connectivity error occurred.');
       }
-      console.warn(`Attempt ${attempt} failed:`, error.message);
       // Wait before retry
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1500));
     }
   }
 }
@@ -299,7 +353,7 @@ function formatExamPaper(text) {
     if (line.toLowerCase().includes('introduction') || line.toLowerCase().includes('welcome')) {
       html += '<div class="exam-intro">';
       // Collect introduction paragraphs
-      while (i < lines.length && !lines[i+1]?.startsWith('##') && !lines[i+1]?.startsWith('#')) {
+      while (i < lines.length && !lines[i + 1]?.startsWith('##') && !lines[i + 1]?.startsWith('#')) {
         i++;
         if (lines[i]?.trim()) {
           html += `<p>${lines[i].trim()}</p>`;
@@ -329,7 +383,7 @@ function formatExamPaper(text) {
           i++;
           const optionLine = lines[i]?.trim();
           if (optionLine && (optionLine.startsWith('- A)') || optionLine.startsWith('- B)') ||
-              optionLine.startsWith('- C)') || optionLine.startsWith('- D)'))) {
+            optionLine.startsWith('- C)') || optionLine.startsWith('- D)'))) {
             const optionMatch = optionLine.match(/-\s*([A-D])\)\s*(.+)/);
             if (optionMatch) {
               html += `<div class="option">
