@@ -40,7 +40,7 @@ form.addEventListener('submit', async (e) => {
   if (includeCaseStudy) includeText += '- Case Study\n';
   if (!includeText) includeText = '- None';
 
-  const prompt = `You are a professional Indian exam paper setter AI.
+  const aiPrompt = `You are a professional Indian exam paper setter AI.
 
 Task:
 Generate a **full exam paper** strictly following these instructions:
@@ -104,7 +104,7 @@ Behavior:
 
   try {
     // Generate paper with retry logic to ensure completeness
-    const reply = await generatePaperWithRetry(prompt);
+    const reply = await generatePaperWithRetry(aiPrompt);
 
     // Format the reply to look like an exam paper
     const formattedReply = formatExamPaper(reply);
@@ -170,7 +170,7 @@ function validateExamPaperResponse(text) {
 }
 
 // Function to generate paper with retry logic
-async function generatePaperWithRetry(prompt, maxRetries = 5) {
+async function generatePaperWithRetry(aiPrompt, maxRetries = 5) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       // 1. Safe API Key Handling
@@ -204,7 +204,7 @@ async function generatePaperWithRetry(prompt, maxRetries = 5) {
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: headers,
-        body: JSON.stringify({ message: prompt, history: [] })
+        body: JSON.stringify({ message: aiPrompt, history: [] })
       });
 
       // 4. Robust Response Handling & JSON Parsing
