@@ -71,6 +71,15 @@ Requirements:
 7. Include introduction or instructions paragraph.
 8. Avoid cutting off text; return the **entire paper in one go**.
 9. Use markdown headings (\`##\`) and proper paragraphs for each section.
+- Do NOT include basic or trivial questions like simple linear equations (x+2=7)
+- Questions must be at CBSE Board / Olympiad level
+- Include HOTS (Higher Order Thinking Skills)
+- Avoid direct formula-based questions
+- Include multi-step problems
+- Ensure all MCQs are meaningful and not obvious
+- Include at least 2 case-study based questions
+- Ensure no repetition of concepts
+- Questions should require thinking, not direct substitution
 
 Extra Instructions for Rendering:
 - For MCQs, use \`- A) option\`, \`- B) option\`, \`- C) option\`, \`- D) option\`.
@@ -176,16 +185,16 @@ async function generatePaperWithRetry(aiPrompt, maxRetries = 5) {
       // 1. Safe Network Fetch
       const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const apiUrl = isLocalhost ? 'http://localhost:3000/api/chat' : 'https://neobranium.onrender.com/api/chat';
-      
+
       if (!apiUrl || typeof apiUrl !== 'string') {
-          throw new Error('Invalid API URL configuration.');
+        throw new Error('Invalid API URL configuration.');
       }
-      
+
       console.log(`[Attempt ${attempt}] Sending request to:`, apiUrl);
 
       // No longer sending API key from client as the backend uses its own environment variable
-      const headers = { 
-          'Content-Type': 'application/json'
+      const headers = {
+        'Content-Type': 'application/json'
       };
 
       const response = await fetch(apiUrl, {
@@ -197,23 +206,23 @@ async function generatePaperWithRetry(aiPrompt, maxRetries = 5) {
       // 4. Robust Response Handling & JSON Parsing
       if (!response.ok) {
         if (attempt === maxRetries) {
-            let errorMsg = `Server returned status ${response.status}.`;
-            try {
-                // Safely parse JSON error, this might fail if the server returns HTML (e.g. 502 Bad Gateway)
-                const errorData = await response.json();
-                if (errorData.reply) {
-                    errorMsg = errorData.reply;
-                } else if (errorData.error) {
-                    errorMsg = errorData.error;
-                }
-            } catch (jsonErr) {
-               console.warn("Failed to parse JSON error response, using text fallback");
-               const textFallback = await response.text();
-               if(textFallback) errorMsg += ` ${textFallback.substring(0, 100)}...`;
+          let errorMsg = `Server returned status ${response.status}.`;
+          try {
+            // Safely parse JSON error, this might fail if the server returns HTML (e.g. 502 Bad Gateway)
+            const errorData = await response.json();
+            if (errorData.reply) {
+              errorMsg = errorData.reply;
+            } else if (errorData.error) {
+              errorMsg = errorData.error;
             }
-            throw new Error(errorMsg);
+          } catch (jsonErr) {
+            console.warn("Failed to parse JSON error response, using text fallback");
+            const textFallback = await response.text();
+            if (textFallback) errorMsg += ` ${textFallback.substring(0, 100)}...`;
+          }
+          throw new Error(errorMsg);
         }
-        
+
         console.warn(`[Attempt ${attempt}] HTTP Error ${response.status}. Retrying...`);
         await new Promise(resolve => setTimeout(resolve, 1500));
         continue; // Retry
@@ -222,19 +231,19 @@ async function generatePaperWithRetry(aiPrompt, maxRetries = 5) {
       // 5. Safe Success Payload Parsing
       let data;
       try {
-          data = await response.json();
+        data = await response.json();
       } catch (jsonErr) {
-          throw new Error('Server returned an invalid or malformed JSON response.');
+        throw new Error('Server returned an invalid or malformed JSON response.');
       }
-      
+
       let reply = data.reply || '';
       if (!reply) {
-          if (attempt === maxRetries) throw new Error('No response returned from AI.');
-          console.warn(`[Attempt ${attempt}] Empty reply geometry. Retrying...`);
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          continue;
+        if (attempt === maxRetries) throw new Error('No response returned from AI.');
+        console.warn(`[Attempt ${attempt}] Empty reply geometry. Retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        continue;
       }
-      
+
       reply = reply.replace(/```/g, '').trim();
 
       // 6. Validate response completeness
@@ -255,9 +264,9 @@ async function generatePaperWithRetry(aiPrompt, maxRetries = 5) {
     } catch (error) {
       console.error(`Attempt ${attempt} failed with exception:`, error.message);
       if (attempt === maxRetries) {
-      if (attempt === maxRetries) {
-        throw new Error(error.message || 'A network or connectivity error occurred.');
-      }
+        if (attempt === maxRetries) {
+          throw new Error(error.message || 'A network or connectivity error occurred.');
+        }
       }
       // Wait before retry
       await new Promise(resolve => setTimeout(resolve, 1500));

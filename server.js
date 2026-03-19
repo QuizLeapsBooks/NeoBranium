@@ -151,7 +151,7 @@ if (!groqApiKey) {
 }
 
 // GROQ API INTEGRATION - Define model constant
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama3-70b-8192';
 
 // In-memory fallback if Redis is down
 const fallbackMemory = new Map();
@@ -233,7 +233,7 @@ const formatResponse = (text, queryType) => {
 // Main chat endpoint
 app.post('/api/chat', async (req, res) => {
     const isProd = process.env.NODE_ENV === 'production';
-    
+
     // 🛡️ SECURITY FIX: Ignore any Authorization header sent by the client.
     // The server uses its own GROQ_API_KEY from environment variables.
     if (req.headers.authorization) {
