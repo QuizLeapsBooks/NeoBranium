@@ -173,17 +173,7 @@ function validateExamPaperResponse(text) {
 async function generatePaperWithRetry(aiPrompt, maxRetries = 5) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      // 1. Safe API Key Handling
-      let apiKey = localStorage.getItem('API_SECRET_KEY');
-      if (!apiKey) {
-        apiKey = prompt('Please enter the API Secret Key to generate papers:');
-        if (!apiKey || !apiKey.trim()) {
-          throw new Error('API Key is strictly required to connect to the server.');
-        }
-        localStorage.setItem('API_SECRET_KEY', apiKey.trim());
-      }
-      
-      // 2. Robust API URL Construction
+      // 1. Safe Network Fetch
       const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const apiUrl = isLocalhost ? 'http://localhost:3000/api/chat' : 'https://neobranium.onrender.com/api/chat';
       
@@ -193,12 +183,9 @@ async function generatePaperWithRetry(aiPrompt, maxRetries = 5) {
       
       console.log(`[Attempt ${attempt}] Sending request to:`, apiUrl);
 
-      // 3. Safe Network Fetch
-      // Make absolutely sure there are no newlines or illegal characters in the header string
-      const cleanApiKey = apiKey.replace(/\r?\n|\r/g, '').trim();
+      // No longer sending API key from client as the backend uses its own environment variable
       const headers = { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${cleanApiKey}`
+          'Content-Type': 'application/json'
       };
 
       const response = await fetch(apiUrl, {
@@ -268,12 +255,9 @@ async function generatePaperWithRetry(aiPrompt, maxRetries = 5) {
     } catch (error) {
       console.error(`Attempt ${attempt} failed with exception:`, error.message);
       if (attempt === maxRetries) {
-        // Clear invalid API key state if we received an authorization failure inside the loop
-        if (error.message.includes('401') || error.message.toLowerCase().includes('unauthorized')) {
-            localStorage.removeItem('API_SECRET_KEY');
-            throw new Error('Invalid API Key provided. Please refresh the page and try again.');
-        }
+      if (attempt === maxRetries) {
         throw new Error(error.message || 'A network or connectivity error occurred.');
+      }
       }
       // Wait before retry
       await new Promise(resolve => setTimeout(resolve, 1500));

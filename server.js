@@ -140,7 +140,7 @@ const strictOriginCheck = (req, res, next) => {
 
 app.use(strictOriginCheck);
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '2mb' }));
 
 // GROQ API INTEGRATION - Initialize Groq API key
 const groqApiKey = process.env.GROQ_API_KEY;
@@ -233,23 +233,51 @@ const formatResponse = (text, queryType) => {
 // Main chat endpoint
 app.post('/api/chat', async (req, res) => {
     const isProd = process.env.NODE_ENV === 'production';
-    console.log('📨 Incoming chat request:', {
-        ip: req.ip,
-        userAgent: req.get('User-Agent'),
-        sessionId: req.session.id,
-        ...(isProd ? { msgLength: req.body?.message?.length || 0 } : { body: req.body })
-    });
+    
+    // 🛡️ SECURITY FIX: Ignore any Authorization header sent by the client.
+    // The server uses its own GROQ_API_KEY from environment variables.
+    if (req.headers.authorization) {
+        console.warn(`⚠️ Client sent Authorization header to /api/chat. Ignoring it. IP: ${req.ip}`);
+    }
 
     try {
         const { message, history = [] } = req.body;
-        // 🔒 Secure Fix: Use the server-generated session ID instead of trusting the client
-        const secureUserId = req.session.id || 'fallback';
 
-        if (!message?.trim()) {
+        // 🛡️ INPUT VALIDATION
+        if (typeof message !== 'string' || !message.trim()) {
             return res.status(400).json({
-                reply: 'Please provide a message.'
+                error: 'Bad Request',
+                reply: 'Please provide a valid text message.'
             });
         }
+
+        // Limit message length to 10k characters to prevent abuse
+        if (message.length > 10000) {
+            return res.status(400).json({
+                error: 'Payload Too Large',
+                reply: 'Message is too long. Please shorten your request.'
+            });
+        }
+
+        if (!Array.isArray(history)) {
+            return res.status(400).json({
+                error: 'Bad Request',
+                reply: 'Invalid conversation history format.'
+            });
+        }
+
+        // Limit history to last 15 messages to stay within reasonable context
+        const validatedHistory = history.slice(-15);
+
+        console.log('📨 Incoming chat request:', {
+            ip: req.ip,
+            userAgent: req.get('User-Agent'),
+            sessionId: req.session.id,
+            ...(isProd ? { msgLength: message.length } : { body: { message, historyCount: validatedHistory.length } })
+        });
+
+        // 🔒 Secure Fix: Use the server-generated session ID instead of trusting the client
+        const secureUserId = req.session.id || 'fallback';
 
         // Get or create user memory
         let memory = await getUserMemory(secureUserId);
@@ -304,7 +332,7 @@ app.post('/api/chat', async (req, res) => {
         const userContent = `${personalContext}User question: ${message}\n\nRespond in a helpful, educational manner. Use markdown for formatting.\nIf explaining code, always provide examples.\nBe encouraging and patient with learners.`;
         const messages = [
             { role: 'system', content: systemContent },
-            ...history,
+            ...validatedHistory,
             { role: 'user', content: userContent }
         ];
 
