@@ -151,7 +151,8 @@ if (!groqApiKey) {
 }
 
 // GROQ API INTEGRATION - Define model constant
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama3-70b-8192';
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+
 
 // In-memory fallback if Redis is down
 const fallbackMemory = new Map();
