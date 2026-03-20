@@ -276,150 +276,161 @@ async function generatePaperWithRetry(aiPrompt, maxRetries = 5) {
 
 // Format the AI response to look like a proper exam paper
 function formatExamPaper(text) {
-  // Split into lines for processing
+  // Get metadata from form to ensure accuracy in header
+  const classValue = document.getElementById('classSelect').value;
+  const subject = document.getElementById('subjectInput').value.trim();
+  const totalMarks = document.getElementById('totalMarks').value;
+  const examTime = document.getElementById('examTime').value;
+
   const lines = text.split('\n');
   let html = '';
   let inMcqSection = false;
   let inShortAnswerSection = false;
   let inLongAnswerSection = false;
   let inAnswerKey = false;
+  let currentSectionDivOpen = false;
+
+  // 1. Generate Premium Header
+  html += `<div class="exam-header-premium">
+    <h1>${subject} Examination</h1>
+    <div class="exam-meta-premium">
+      <div class="exam-meta-item">
+        <strong>Class:</strong> ${classValue}
+      </div>
+      <div class="exam-meta-item">
+        <strong>Time:</strong> ${examTime} Mins
+      </div>
+      <div class="exam-meta-item">
+        <strong>Marks:</strong> ${totalMarks}
+      </div>
+    </div>
+  </div>`;
 
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i].trim();
-
-    // Skip empty lines
     if (!line) continue;
 
-    // Handle main title
-    if (line.startsWith('# ')) {
-      const title = line.substring(2);
-      html += `<div class="exam-header">
-        <h1 class="exam-title">${title}</h1>
-        <div class="exam-meta">
-          <p><strong>Time:</strong> 3 hours</p>
-          <p><strong>Maximum Marks:</strong> 100</p>
-        </div>
-      </div>`;
-      continue;
-    }
+    // Skip top-level markdown headers as we handled it with premium header
+    if (line.startsWith('# ') && !line.startsWith('## ')) continue;
 
-    // Handle section headers
+    // Handle Section Titles
     if (line.startsWith('## ')) {
-      const sectionTitle = line.substring(3).toLowerCase();
+      const sectionTitle = line.substring(3).trim();
+      
+      // Close previous section container if open
+      if (currentSectionDivOpen) {
+        html += '</div>';
+      }
 
-      if (/section a.*mcq|multiple choice/i.test(sectionTitle)) {
-        html += `<div class="exam-section">
-          <h2 class="section-title">Section A: Multiple Choice Questions</h2>
-          <p class="section-instruction">Choose the correct answer for each question.</p>`;
-        inMcqSection = true;
-        inShortAnswerSection = false;
-        inLongAnswerSection = false;
-        inAnswerKey = false;
-      } else if (/section b.*short answer/i.test(sectionTitle)) {
-        html += `<div class="exam-section">
-          <h2 class="section-title">Section B: Short Answer Questions</h2>`;
-        inMcqSection = false;
-        inShortAnswerSection = true;
-        inLongAnswerSection = false;
-        inAnswerKey = false;
-      } else if (/section c.*long answer/i.test(sectionTitle)) {
-        html += `<div class="exam-section">
-          <h2 class="section-title">Section C: Long Answer Questions</h2>`;
-        inMcqSection = false;
-        inShortAnswerSection = false;
-        inLongAnswerSection = true;
-        inAnswerKey = false;
-      } else if (/answer key|solution/i.test(sectionTitle)) {
-        html += `<div class="exam-section answer-key">
-          <h2 class="section-title">Answer Key</h2>`;
+      const isAnswerKey = /answer key|solution/i.test(sectionTitle);
+      
+      if (isAnswerKey) {
+        html += `<div class="answer-key-section">
+          <h2 class="section-title-modern">🔑 Answer Key</h2>
+          <div class="answer-grid">`;
         inMcqSection = false;
         inShortAnswerSection = false;
         inLongAnswerSection = false;
         inAnswerKey = true;
       } else {
-        html += `<h3 class="subsection-title">${line.substring(3)}</h3>`;
+        html += `<div class="section-container">
+          <h2 class="section-title-modern">${sectionTitle}</h2>`;
+        
+        inMcqSection = /section a.*mcq|multiple choice/i.test(sectionTitle.toLowerCase());
+        inShortAnswerSection = /section b.*short answer/i.test(sectionTitle.toLowerCase());
+        inLongAnswerSection = /section c.*long answer/i.test(sectionTitle.toLowerCase());
+        inAnswerKey = false;
       }
+      
+      currentSectionDivOpen = true;
       continue;
     }
 
-    // Handle introduction text
-    if (line.toLowerCase().includes('introduction') || line.toLowerCase().includes('welcome')) {
-      html += '<div class="exam-intro">';
-      // Collect introduction paragraphs
-      while (i < lines.length && !lines[i + 1]?.startsWith('##') && !lines[i + 1]?.startsWith('#')) {
-        i++;
-        if (lines[i]?.trim()) {
-          html += `<p>${lines[i].trim()}</p>`;
+    // Handle General Instructions
+    if (line.toLowerCase().includes('instruction')) {
+      html += `<div class="section-instruction-modern">${line}</div>`;
+      continue;
+    }
+
+    // Handle Questions
+    const questionMatch = line.match(/^(\d+)\.\s*(.+)/);
+    if (questionMatch && !inAnswerKey) {
+      const qNum = questionMatch[1];
+      const qText = questionMatch[2];
+
+      html += `<div class="question-card">
+        <div class="question-header">
+          <span class="question-number">Question ${qNum}</span>
+        </div>
+        <p class="question-text">${qText}</p>`;
+
+      if (inMcqSection) {
+        html += `<div class="mcq-options-grid">`;
+        // Collect MCQ options
+        let optCount = 0;
+        while (i + 1 < lines.length && optCount < 4) {
+          i++;
+          const optLine = lines[i].trim();
+          if (!optLine) continue;
+
+          const optMatch = optLine.match(/^[-\*]?\s*([A-D])\)\s*(.+)/);
+          if (optMatch) {
+            html += `<div class="mcq-option">
+              <div class="option-indicator">${optMatch[1]}</div>
+              <div class="option-content">${optMatch[2]}</div>
+            </div>`;
+            optCount++;
+          } else {
+            i--; // Backtrack if not an option
+            break;
+          }
         }
+        html += '</div>';
       }
+      
       html += '</div>';
       continue;
     }
 
-    // Handle numbered questions
-    const questionMatch = line.match(/^(\d+)\.\s*(.+)/);
-    if (questionMatch) {
-      const questionNumber = questionMatch[1];
-      let questionText = questionMatch[2];
-
-      // Check if this is an MCQ question
-      if (inMcqSection) {
-        html += `<div class="question mcq-question">
-          <div class="question-text">
-            <strong>${questionNumber}.</strong> ${questionText}
-          </div>
-          <div class="options">`;
-
-        // Collect options (next few lines)
-        let optionCount = 0;
-        while (i + 1 < lines.length && optionCount < 4) {
-          i++;
-          const optionLine = lines[i]?.trim();
-          if (optionLine && (optionLine.startsWith('- A)') || optionLine.startsWith('- B)') ||
-            optionLine.startsWith('- C)') || optionLine.startsWith('- D)'))) {
-            const optionMatch = optionLine.match(/-\s*([A-D])\)\s*(.+)/);
-            if (optionMatch) {
-              html += `<div class="option">
-                <strong>${optionMatch[1]})</strong> ${optionMatch[2]}
-              </div>`;
-              optionCount++;
-            }
-          } else if (optionLine && !optionLine.startsWith('-') && optionCount > 0) {
-            // If we hit a non-option line after starting options, break
-            i--; // Go back one line
-            break;
-          }
-        }
-
-        html += '</div></div>';
-      } else {
-        // Regular question
-        html += `<div class="question">
-          <div class="question-text">
-            <strong>${questionNumber}.</strong> ${questionText}
-          </div>
+    // Handle Answer Key Content
+    if (inAnswerKey) {
+      const ansMatch = line.match(/^(\d+)\.\s*(.+)/);
+      if (ansMatch) {
+        html += `<div class="answer-item">
+          <span class="answer-label">Q${ansMatch[1]}</span>
+          <span class="answer-text">${ansMatch[2]}</span>
         </div>`;
+      } else if (line.includes(':')) {
+        // Handle "Section A: 1. A, 2. B" format
+        const sections = line.split(/Section [A-C]:/i);
+        sections.forEach(sec => {
+          if (!sec.trim()) return;
+          const items = sec.split(',').map(item => item.trim());
+          items.forEach(item => {
+            const m = item.match(/^(\d+)\.\s*(.+)/);
+            if (m) {
+              html += `<div class="answer-item">
+                <span class="answer-label">Q${m[1]}</span>
+                <span class="answer-badge">${m[2]}</span>
+              </div>`;
+            }
+          });
+        });
+      } else {
+        html += `<p class="answer-text">${line}</p>`;
       }
       continue;
     }
 
-    // Handle answer lines in MCQs
-    if (inMcqSection && line.startsWith('Answer:')) {
-      // Skip answer lines in MCQ section for now
-      continue;
-    }
-
-    // Handle general content
-    if (line.startsWith('- ')) {
-      html += `<div class="list-item">${line.substring(2)}</div>`;
-    } else if (line.length > 0) {
+    // Default: Para for everything else
+    if (line.length > 0) {
       html += `<p>${line}</p>`;
     }
   }
 
-  // Close any open sections
-  if (inMcqSection || inShortAnswerSection || inLongAnswerSection || inAnswerKey) {
-    html += '</div>';
+  // Close any trailing divs
+  if (currentSectionDivOpen) {
+    html += inAnswerKey ? '</div></div>' : '</div>';
   }
 
   return html;
