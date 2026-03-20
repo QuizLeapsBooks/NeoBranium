@@ -58,6 +58,37 @@ window.addEventListener('load', function () {
   document.getElementById('notesSkeleton').style.display = 'flex';
   document.getElementById('featuresSkeleton').style.display = 'flex';
   document.getElementById('spotlightSkeleton').style.display = 'flex';
+
+  // Add fade-in classes to main sections for staggered animation
+  const sections = document.querySelectorAll('main > section, main > h2, main > .row');
+  sections.forEach((section, index) => {
+    section.classList.add('fade-in-up');
+    section.classList.add(`delay-${(index % 4) + 1}`);
+  });
+});
+
+// FAB Menu Toggle Logic
+function setupFabToggle(btnId, menuId) {
+  const btn = document.getElementById(btnId);
+  const menu = document.getElementById(menuId);
+  if (btn && menu) {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menu.classList.toggle('active');
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupFabToggle('sidebarFabBtn', 'sidebarFabMenu');
+  setupFabToggle('bottomFabBtn', 'bottomFabMenu');
+
+  // Close menus when clicking outside
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.fab-menu').forEach(menu => {
+      menu.classList.remove('active');
+    });
+  });
 });
 
 

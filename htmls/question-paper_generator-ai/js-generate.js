@@ -109,44 +109,79 @@ Section C: 1. Full solution with steps
 Behavior:
 - Act like a **professional, precise, Indian school exam paper setter**.
 - Make the output **fully compatible with KaTeX rendering**.
-- Return the **full paper in markdown** without truncation.`;
+- Return the **full paper in markdown** without truncation.
+SYLLABUS STRICT MODE(VERY IMPORTANT):
 
+You MUST strictly follow NCERT syllabus boundaries.
+
+1. Only generate questions from:
+  - Selected Class: ${ classValue }
+  - Selected Subject: ${ subject }
+  - Selected Chapter: ${ chapter }
+
+  2. If "Full Syllabus" is selected:
+  - ONLY include chapters from that class (NCERT)
+    - DO NOT include topics from lower or higher classes
+
+  3. STRICTLY FORBIDDEN:
+   ❌ No Class 8 or 9 concepts(if Class 10 selected)
+   ❌ No Class 11 or 12 concepts
+   ❌ No out - of - syllabus or advanced topics
+
+4. Before generating questions:
+- Internally identify the NCERT chapter topics
+  - Stick ONLY to those topics
+
+5. Each question MUST belong clearly to a known NCERT topic.
+
+6. If any question is outside syllabus → REMOVE and REPLACE it.
+
+7. Do NOT assume extra knowledge beyond NCERT level.
+
+8. If chapter name is unclear:
+- First interpret it using NCERT standard chapter names
+- Then generate questions
+
+FINAL RULE:
+Act like a CBSE examiner who strictly follows NCERT syllabus.`;
+
+
+try {
+  // Generate paper with retry logic to ensure completeness
+  const reply = await generatePaperWithRetry(aiPrompt);
+
+  // Format the reply to look like an exam paper
+  const formattedReply = formatExamPaper(reply);
+  resultText.innerHTML = formattedReply;
+
+  // Render mathematical expressions with KaTeX (only in the result container)
+  const container = document.getElementById("generated-paper");
   try {
-    // Generate paper with retry logic to ensure completeness
-    const reply = await generatePaperWithRetry(aiPrompt);
-
-    // Format the reply to look like an exam paper
-    const formattedReply = formatExamPaper(reply);
-    resultText.innerHTML = formattedReply;
-
-    // Render mathematical expressions with KaTeX (only in the result container)
-    const container = document.getElementById("generated-paper");
-    try {
-      if (window.renderMathInElement) {
-        renderMathInElement(container, {
-          delimiters: [
-            { left: "$$", right: "$$", display: true },
-            { left: "$", right: "$", display: false },
-            { left: "\\[", right: "\\]", display: true },
-            { left: "\\(", right: "\\)", display: false }
-          ],
-          throwOnError: false
-        });
-      } else {
-        console.warn('KaTeX auto-render not loaded, math expressions will not be rendered');
-      }
-    } catch (mathError) {
-      console.error('Math rendering failed:', mathError);
-      // Don't show error to user - math rendering failure shouldn't prevent paper display
+    if (window.renderMathInElement) {
+      renderMathInElement(container, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false },
+          { left: "\\[", right: "\\]", display: true },
+          { left: "\\(", right: "\\)", display: false }
+        ],
+        throwOnError: false
+      });
+    } else {
+      console.warn('KaTeX auto-render not loaded, math expressions will not be rendered');
     }
-
-    resultArea.hidden = false;
-  } catch (err) {
-    resultText.innerHTML = `<div style="color: var(--error-color); padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; margin: 1rem 0;">Unable to generate paper. Please check if the NeoBranium AI server is running. (${err.message})</div>`;
-    resultArea.hidden = false;
-  } finally {
-    setLoading(false);
+  } catch (mathError) {
+    console.error('Math rendering failed:', mathError);
+    // Don't show error to user - math rendering failure shouldn't prevent paper display
   }
+
+  resultArea.hidden = false;
+} catch (err) {
+  resultText.innerHTML = `<div style="color: var(--error-color); padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; margin: 1rem 0;">Unable to generate paper. Please check if the NeoBranium AI server is running. (${err.message})</div>`;
+  resultArea.hidden = false;
+} finally {
+  setLoading(false);
+}
 });
 
 // Function to validate if AI response contains complete exam paper
@@ -316,14 +351,14 @@ function formatExamPaper(text) {
     // Handle Section Titles
     if (line.startsWith('## ')) {
       const sectionTitle = line.substring(3).trim();
-      
+
       // Close previous section container if open
       if (currentSectionDivOpen) {
         html += '</div>';
       }
 
       const isAnswerKey = /answer key|solution/i.test(sectionTitle);
-      
+
       if (isAnswerKey) {
         html += `<div class="answer-key-section">
           <h2 class="section-title-modern">🔑 Answer Key</h2>
@@ -335,13 +370,13 @@ function formatExamPaper(text) {
       } else {
         html += `<div class="section-container">
           <h2 class="section-title-modern">${sectionTitle}</h2>`;
-        
+
         inMcqSection = /section a.*mcq|multiple choice/i.test(sectionTitle.toLowerCase());
         inShortAnswerSection = /section b.*short answer/i.test(sectionTitle.toLowerCase());
         inLongAnswerSection = /section c.*long answer/i.test(sectionTitle.toLowerCase());
         inAnswerKey = false;
       }
-      
+
       currentSectionDivOpen = true;
       continue;
     }
@@ -387,7 +422,7 @@ function formatExamPaper(text) {
         }
         html += '</div>';
       }
-      
+
       html += '</div>';
       continue;
     }
@@ -465,5 +500,9 @@ downloadPdfBtn.addEventListener('click', () => {
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
   };
+  if (typeof html2pdf === 'undefined') {
+    alert('PDF generation tool is still loading or could not be loaded. Please try again in a moment.');
+    return;
+  }
   html2pdf().set(options).from(element).save();
 });
