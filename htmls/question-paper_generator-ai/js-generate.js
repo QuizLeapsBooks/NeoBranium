@@ -243,11 +243,15 @@ async function generatePaperWithRetry(aiPrompt, maxRetries = 5) {
         'Content-Type': 'application/json'
       };
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({ message: aiPrompt, history: [] })
-      });
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({ 
+            message: aiPrompt, 
+            history: [],
+            task: 'paper_generation'
+          })
+        });
 
       // 4. Robust Response Handling & JSON Parsing
       if (!response.ok) {

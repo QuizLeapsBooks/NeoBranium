@@ -212,10 +212,10 @@ async function saveUserMemory(userId, memoryData) {
 // Helper functions
 const detectQueryType = (text) => {
     const patterns = {
-        code: /write|code|programming|python|javascript|java|function|class|html|css/i,
-        math: /math|algebra|calculus|geometry|equation|solve|calculate/i,
-        science: /science|physics|chemistry|biology|experiment|lab|formula/i,
-        study: /study|learn|tips|technique|remember|understand|explain/i
+        code: /\b(write|code|programming|python|javascript|java|function|html|css|script|algorithm)\b/i,
+        math: /\b(math|algebra|calculus|geometry|equation|solve|calculate|arithmetic|real number)\b/i,
+        science: /\b(science|physics|chemistry|biology|experiment|lab|formula|atom|cell)\b/i,
+        study: /\b(study|learn|tips|technique|remember|understand|explain|exam|test|notes)\b/i
     };
 
     for (const [type, pattern] of Object.entries(patterns)) {
@@ -242,7 +242,7 @@ app.post('/api/chat', async (req, res) => {
     }
 
     try {
-        const { message, history = [] } = req.body;
+        const { message, history = [], task = 'general_chat' } = req.body;
 
         // 🛡️ INPUT VALIDATION
         if (typeof message !== 'string' || !message.trim()) {
@@ -310,14 +310,20 @@ app.post('/api/chat', async (req, res) => {
         // Save updated memory asynchronously (don't block the request)
         saveUserMemory(secureUserId, memory).catch(err => console.error("Memory track error:", err));
 
-        // Build system prompt
-        const systemIdentity = `You are NS-x AI Learning Assistant from the NeoBranium platform. NeoBranium is a learning platform focused on science, mathematics, programming, quizzes, and study tools for students. NeoBranium was created by Shubham Singh, a student who enjoys science, mathematics, programming, and building educational tools for students. In all responses, act as a friendly private learning assistant and do not reveal private details (location, school, phone, email, personal life). If asked about who made you, who created you, who owns this AI, who is Shubham Singh, or what is NeoBranium, reply: "This AI assistant is part of the NeoBranium learning platform created by Shubham Singh. He is a student who enjoys science, mathematics, and programming and built this platform to help students learn more effectively."`;
+        // Build system prompt based on task
+        let systemIdentity = `You are NS-x AI Learning Assistant from the NeoBranium platform. NeoBranium is a learning platform focused on science, mathematics, programming, quizzes, and study tools for students. NeoBranium was created by Shubham Singh, a student who enjoys science, mathematics, programming, and building educational tools for students. In all responses, act as a friendly private learning assistant and do not reveal private details (location, school, phone, email, personal life). If asked about who made you, who created you, who owns this AI, who is Shubham Singh, or what is NeoBranium, reply: "This AI assistant is part of the NeoBranium learning platform created by Shubham Singh. He is a student who enjoys science, mathematics, and programming and built this platform to help students learn more effectively."`;
 
-        const queryContext = queryType === 'code'
-            ? 'You are a programming expert. Provide code examples with explanations.'
-            : queryType === 'math' || queryType === 'science'
-                ? 'You are a STEM expert. Explain concepts clearly with examples.'
-                : 'You are a helpful learning assistant.';
+        let queryContext = '';
+        if (task === 'paper_generation') {
+            systemIdentity = `You are a professional Indian school exam paper setter AI for NeoBranium. Your task is to generate high-quality, NCERT-compliant exam papers.`;
+            queryContext = `Act as an expert examiner. Follow all formatting instructions for the exam paper strictly.`;
+        } else {
+            queryContext = queryType === 'code'
+                ? 'You are a programming expert. Provide code examples with explanations.'
+                : queryType === 'math' || queryType === 'science'
+                    ? 'You are a STEM expert. Explain concepts clearly with examples.'
+                    : 'You are a helpful learning assistant.';
+        }
 
         const personalContext = memory.name
             ? `The user's name is ${memory.name}. `
@@ -328,9 +334,12 @@ app.post('/api/chat', async (req, res) => {
             .map(h => `${h.role}: ${h.content}`)
             .join('\n');
 
-        // GROQ API INTEGRATION - Build messages array
+        // Build messages array
         const systemContent = `${systemIdentity} ${queryContext}`;
-        const userContent = `${personalContext}User question: ${message}\n\nRespond in a helpful, educational manner. Use markdown for formatting.\nIf explaining code, always provide examples.\nBe encouraging and patient with learners.`;
+        
+        const userContent = task === 'paper_generation'
+            ? message // Keep specialized task prompts clean from chat instructions
+            : `${personalContext}User question: ${message}\n\nRespond in a helpful, educational manner. Use markdown for formatting.\nIf explaining code, always provide examples.\nBe encouraging and patient with learners.`;
         const messages = [
             { role: 'system', content: systemContent },
             ...validatedHistory,
