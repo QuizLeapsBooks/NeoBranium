@@ -59,19 +59,78 @@ document.addEventListener("DOMContentLoaded", () => {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             localStorage.setItem("loggedInUserId", user.uid);
+            localStorage.removeItem("guestMode"); // Clear guest mode if logged in
+            
+            // Set startTime if not already set
+            if (!localStorage.getItem("startTime")) {
+                localStorage.setItem("startTime", Date.now().toString());
+            }
+
             const userData = await loadUserData(user);
             updateUserDisplay(userData, user);
             document.dispatchEvent(new CustomEvent("userLoaded", { detail: { user, userData } }));
         } else {
+            const isGuest = localStorage.getItem("guestMode") === "true";
+            const accessGranted = localStorage.getItem("accessGranted") === "true";
+
+            if (isGuest && accessGranted) {
+                console.log("Guest access active");
+                
+                // Set startTime if not already set
+                if (!localStorage.getItem("startTime")) {
+                    localStorage.setItem("startTime", Date.now().toString());
+                }
+
+                // Redirect guest away from profile and settings
+                const path = window.location.pathname;
+                if (path.includes("profile.html") || path.includes("setting.html")) {
+                    console.log("Guest tried to access restricted page, redirecting to sign.html");
+                    window.location.href = "/htmls/sign.html";
+                    return;
+                }
+
+                updateUserDisplay({ username: "Guest", bio: "Browsing as Guest" }, { displayName: "Guest" });
+                return;
+            }
             localStorage.removeItem("loggedInUserId");
-            window.location.href = "/index.html";
+            // Only redirect if not already on index.html
+            const path = window.location.pathname;
+            if (path !== "/index.html" && path !== "/" && !path.endsWith("index.html")) {
+                window.location.href = "/index.html";
+            }
         }
     });
+
+    // --- Usage Limit System ---
+    const checkUsageLimit = () => {
+        const startTime = localStorage.getItem("startTime");
+        if (!startTime) return;
+
+        const totalUsageMs = Date.now() - parseInt(startTime);
+        const totalUsageMin = Math.floor(totalUsageMs / 60000);
+
+        if (totalUsageMin >= 60) {
+            localStorage.clear();
+            alert("Time limit finished");
+            window.location.href = "/index.html";
+        }
+    };
+
+    // Check immediately and then every 1 minute
+    checkUsageLimit();
+    setInterval(checkUsageLimit, 60000);
+    // --------------------------
 
     const logout = document.getElementById("logout");
     if (logout) {
         logout.addEventListener("click", async () => {
             try {
+                if (localStorage.getItem("guestMode") === "true") {
+                    localStorage.removeItem("guestMode");
+                    localStorage.removeItem("accessGranted");
+                    window.location.href = "/index.html";
+                    return;
+                }
                 await signOut(auth);
                 localStorage.removeItem("loggedInUserId");
                 window.location.href = "/index.html";

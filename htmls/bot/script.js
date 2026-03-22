@@ -1,6 +1,6 @@
-
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
+import { canSendMessage, incrementChatCount } from '../../js/usage-limits.js';
 
 // Configure marked for better code highlighting
 marked.setOptions({
@@ -105,6 +105,11 @@ class ChatAssistant {
     async handleSend() {
         if (this.isProcessing) return;
 
+        // Check chat limit before sending
+        if (!canSendMessage()) {
+            return;
+        }
+
         const userText = this.chatInput.value.trim();
         if (!userText) return;
 
@@ -118,6 +123,9 @@ class ChatAssistant {
 
         // Get AI response
         await this.getAIResponse(userText);
+        
+        // Increment chat count after successful send
+        incrementChatCount();
     }
 
     addMessage(content, type, isThinking = false, rawContent = null) {

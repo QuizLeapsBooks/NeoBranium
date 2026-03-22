@@ -84,71 +84,108 @@ document.addEventListener('DOMContentLoaded', () => {
       canvas.height = window.innerHeight;
     });
   }
+
+  // --- Guest Mode & Usage Limit Logic ---
+  const guestBtn = document.getElementById('guestBtn');
+  if (guestBtn) {
+    const startTime = localStorage.getItem("startTime");
+    if (startTime) {
+      const totalUsageMs = Date.now() - parseInt(startTime);
+      const totalUsageMin = Math.floor(totalUsageMs / 60000);
+      if (totalUsageMin >= 60) {
+        guestBtn.style.display = 'none';
+        console.log("Usage limit reached. Hiding guest button.");
+      }
+    }
+
+    if (guestBtn.style.display !== 'none') {
+      guestBtn.addEventListener('click', () => {
+        localStorage.setItem('guestMode', 'true');
+        localStorage.setItem('accessGranted', 'true');
+        if (!localStorage.getItem('startTime')) {
+          localStorage.setItem('startTime', Date.now().toString());
+        }
+        window.location.href = '/htmls/dashboard.html';
+      });
+    }
+  }
 });
 
 window.addEventListener('load', () => {
   const preloader = document.getElementById('preloader');
   const preloaderLogo = document.querySelector('.preloader-logo');
 
-  preloaderLogo.style.transform = 'scale(1.5)';
-  preloaderLogo.style.opacity = '0';
+  if (preloaderLogo) {
+    preloaderLogo.style.transform = 'scale(1.5)';
+    preloaderLogo.style.opacity = '0';
+  }
 
   setTimeout(() => {
-    preloader.style.opacity = '0';
-    setTimeout(() => {
-      preloader.style.display = 'none';
+    if (preloader) {
+      preloader.style.opacity = '0';
+      setTimeout(() => {
+        preloader.style.display = 'none';
 
-      const typeEffect = document.querySelector('.type-effect');
-      typeEffect.style.opacity = '1';
-
-      new Typed('.type-effect', {
-        strings: [
-          'Interactive Quizzes & Events',
-          'AI Assistant & Smart Dashboard',
-          'Daily Motivation & Leaderboard',
-          'Notes Upload/Download',
-          'User Profiles & Achievements',
-          'PDF Notes Sharing with Likes & Comments',
-          'Earn rewards by uploading notes'
-        ],
-        typeSpeed: 50,
-        backSpeed: 25,
-        backDelay: 1500,
-        startDelay: 200,
-        loop: true,
-        showCursor: true,
-        cursorChar: ''
-      });
-    }, 500);
+        const typeEffect = document.querySelector('.type-effect');
+        if (typeEffect) {
+          typeEffect.style.opacity = '1';
+          new Typed('.type-effect', {
+            strings: [
+              'Interactive Quizzes & Events',
+              'AI Assistant & Smart Dashboard',
+              'Daily Motivation & Leaderboard',
+              'Notes Upload/Download',
+              'User Profiles & Achievements',
+              'PDF Notes Sharing with Likes & Comments',
+              'Earn rewards by uploading notes'
+            ],
+            typeSpeed: 50,
+            backSpeed: 25,
+            backDelay: 1500,
+            startDelay: 200,
+            loop: true,
+            showCursor: true,
+            cursorChar: ''
+          });
+        }
+      }, 500);
+    }
   }, 1000);
 });
 
 function showWarning() {
   const modal = document.getElementById('warningModal');
-  modal.style.display = 'flex';
-  modal.setAttribute('aria-hidden', 'false');
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden', 'false');
+  }
 }
 
 function closeWarning() {
   const modal = document.getElementById('warningModal');
-  modal.style.display = 'none';
-  modal.setAttribute('aria-hidden', 'true');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+  }
 }
 
 window.addEventListener('click', (e) => {
   const modal = document.getElementById('warningModal');
-  if (e.target === modal) {
+  if (modal && e.target === modal) {
     modal.style.display = 'none';
     modal.setAttribute('aria-hidden', 'true');
   }
 });
 
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', (e) => {
-    e.preventDefault();
-    const target = document.querySelector(anchor.getAttribute('href'));
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth' });
-    }
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetQuery = anchor.getAttribute('href');
+      const target = document.querySelector(targetQuery);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
   });
 });

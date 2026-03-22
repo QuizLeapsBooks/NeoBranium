@@ -2,6 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebas
 import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+import { canSendMessage, incrementChatCount } from "../../js/usage-limits.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -43,7 +44,31 @@ onAuthStateChanged(auth, async (user) => {
                 document.getElementById("userInitial").innerText = "U";
             }
         } else {
-            console.log("No user logged in, redirecting to index.html");
+            const isGuest = localStorage.getItem("guestMode") === "true";
+            const accessGranted = localStorage.getItem("accessGranted") === "true";
+
+            if (isGuest && accessGranted) {
+                console.log("Guest access active in chat");
+                currentUser = { uid: "guest", username: "Guest" };
+                document.getElementById("usernameDisplay").innerText = `Welcome, Guest!`;
+                document.getElementById("userInitial").innerText = "G";
+
+                // Restriction for guest: Disable chat input
+                const messageInput = document.getElementById("message-input");
+                const sendButton = document.getElementById("send-button");
+                if (messageInput) {
+                    messageInput.disabled = true;
+                    messageInput.placeholder = "Sign in to chat";
+                    messageInput.classList.add("cursor-not-allowed", "opacity-50");
+                }
+                if (sendButton) {
+                    sendButton.disabled = true;
+                    sendButton.classList.add("cursor-not-allowed", "opacity-50");
+                }
+                return;
+            }
+
+            console.log("No user or guest access, redirecting to index.html");
             window.location.href = "/index.html";
         }
     } catch (error) {
@@ -55,6 +80,12 @@ onAuthStateChanged(auth, async (user) => {
 // Send message
 document.getElementById("chat-form").addEventListener("submit", async (e) => {
     e.preventDefault();
+    
+    // Check chat limit before sending
+    if (!canSendMessage()) {
+        return;
+    }
+
     const messageInput = document.getElementById("message-input");
     const messageText = messageInput.value.trim();
     if (messageText && currentUser) {
@@ -69,6 +100,9 @@ document.getElementById("chat-form").addEventListener("submit", async (e) => {
             await push(messagesRef, messageData);
             console.log("Message sent:", messageData);
             messageInput.value = ""; // Clear input
+            
+            // Increment chat count after successful send
+            incrementChatCount();
         } catch (error) {
             console.error("Error sending message:", error);
             alert("Failed to send message: " + error.message);

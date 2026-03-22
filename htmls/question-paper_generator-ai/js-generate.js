@@ -1,3 +1,5 @@
+import { canGeneratePaper, incrementPaperCount } from '../../js/usage-limits.js';
+
 const form = document.getElementById('paperForm');
 const generateBtn = document.getElementById('generateBtn');
 const loading = document.getElementById('loading');
@@ -15,6 +17,12 @@ const setLoading = (isBusy) => {
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
+  
+  // Check paper generation limit
+  if (!canGeneratePaper()) {
+      return;
+  }
+
   setLoading(true);
 
   const classValue = document.getElementById('classSelect').value;
@@ -153,6 +161,9 @@ try {
   // Format the reply to look like an exam paper
   const formattedReply = formatExamPaper(reply);
   resultText.innerHTML = formattedReply;
+
+  // Increment paper generation count
+  incrementPaperCount();
 
   // Render mathematical expressions with KaTeX (only in the result container)
   const container = document.getElementById("generated-paper");

@@ -1,3 +1,13 @@
+(function() {
+  const loggedInUserId = localStorage.getItem("loggedInUserId");
+  const isGuest = localStorage.getItem("guestMode") === "true";
+  const accessGranted = localStorage.getItem("accessGranted") === "true";
+
+  if (!loggedInUserId && !(isGuest && accessGranted)) {
+    window.location.href = "/index.html";
+  }
+})();
+
 function openSubjectModal(cls) {
   const modal = new bootstrap.Modal(document.getElementById('subjectModal'));
   modal.show();
@@ -5,11 +15,20 @@ function openSubjectModal(cls) {
 
 function goToSubjectPage() {
   const subject = document.getElementById('subjectSelect').value;
-  if (subject) {
-    window.location.href = `/htmls/quiz_htmls/${subject}.html`;
-  } else {
+  if (!subject) {
     alert("Please select a subject first.");
+    return;
   }
+
+  let targetPage = "";
+  if (subject === "maths") {
+    targetPage = "/htmls/quiz_htmls/class9-10maths.html";
+  } else {
+    // Other subjects (science, biology, physics, chemistry) all use the combined science quiz for now
+    targetPage = "/htmls/quiz_htmls/class9-10science.html";
+  }
+
+  window.location.href = targetPage;
 }
 
 // Toggle sidebar logic for mobile
