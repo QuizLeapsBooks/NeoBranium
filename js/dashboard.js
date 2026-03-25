@@ -112,20 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-// Link click pe check kar - local se ya server se
-document.querySelectorAll('a[href]').forEach(link => {
-  link.addEventListener('click', event => {
-    const url = link.getAttribute('href');
-    const savedPage = localStorage.getItem(url);
-    if (savedPage) {
-      event.preventDefault();
-      document.open();
-      document.write(savedPage);
-      document.close();
-      console.log(`${url} loaded from local storage.`);
-    } // Else normal load hoga server se
-  });
-});
+// Removed fragile document.write loading logic to improve security and reliability.
+// Standard browser navigation and caching should be used instead.
 
 // Service Worker register kar
 if ('serviceWorker' in navigator) {

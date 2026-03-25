@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
     entries.forEach((entry, index) => {
       if (entry.isIntersecting) {
         setTimeout(() => {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
           entry.target.classList.add('visible', 'animate__animated', 'animate__fadeInUp');
         }, index * 100);
         observer.unobserve(entry.target);
@@ -71,8 +73,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(171, 71, 188, 0.3)';
+        ctx.fillStyle = 'rgba(0, 245, 255, 0.15)';
         ctx.fill();
+        
+        // Add subtle glow to larger particles
+        if (p.radius > 2) {
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = 'rgba(0, 245, 255, 0.5)';
+        } else {
+          ctx.shadowBlur = 0;
+        }
       });
       requestAnimationFrame(animateParticles);
     }

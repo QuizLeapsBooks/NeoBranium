@@ -180,21 +180,4 @@ export function showStatus(msg, isError = false) {
     }
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    // Check if the screen width is less than 768px (typical for mobile devices)
-    if (window.innerWidth <= 768) {
-        // Get the document element
-        const elem = document.documentElement;
-        
-        // Request full screen mode
-        if (elem.requestFullscreen) {
-            elem.requestFullscreen();
-        } else if (elem.mozRequestFullScreen) { // Firefox
-            elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullscreen) { // Chrome, Safari, Opera
-            elem.webkitRequestFullscreen();
-        } else if (elem.msRequestFullscreen) { // IE/Edge
-            elem.msRequestFullscreen();
-        }
-    }
-});
+// Removed semi-intrusive full-screen request on page load

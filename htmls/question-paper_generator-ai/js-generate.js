@@ -228,9 +228,8 @@ function validateExamPaperResponse(text) {
 async function generatePaperWithRetry(aiPrompt, maxRetries = 5) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      // 1. Safe Network Fetch
-      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const apiUrl = isLocalhost ? 'http://localhost:3000/api/chat' : 'https://neobranium.onrender.com/api/chat';
+      // 1. Dynamic Network Fetch (Works on localhost and production)
+      const apiUrl = `${window.location.origin}/api/chat`;
 
       if (!apiUrl || typeof apiUrl !== 'string') {
         throw new Error('Invalid API URL configuration.');
