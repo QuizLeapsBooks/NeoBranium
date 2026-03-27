@@ -17,10 +17,10 @@ const setLoading = (isBusy) => {
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  
+
   // Check paper generation limit
   if (!canGeneratePaper()) {
-      return;
+    return;
   }
 
   setLoading(true);
@@ -123,9 +123,9 @@ SYLLABUS STRICT MODE(VERY IMPORTANT):
 You MUST strictly follow NCERT syllabus boundaries.
 
 1. Only generate questions from:
-  - Selected Class: ${ classValue }
-  - Selected Subject: ${ subject }
-  - Selected Chapter: ${ chapter }
+  - Selected Class: ${classValue}
+  - Selected Subject: ${subject}
+  - Selected Chapter: ${chapter}
 
   2. If "Full Syllabus" is selected:
   - ONLY include chapters from that class (NCERT)
@@ -154,45 +154,45 @@ FINAL RULE:
 Act like a CBSE examiner who strictly follows NCERT syllabus.`;
 
 
-try {
-  // Generate paper with retry logic to ensure completeness
-  const reply = await generatePaperWithRetry(aiPrompt);
-
-  // Format the reply to look like an exam paper
-  const formattedReply = formatExamPaper(reply);
-  resultText.innerHTML = formattedReply;
-
-  // Increment paper generation count
-  incrementPaperCount();
-
-  // Render mathematical expressions with KaTeX (only in the result container)
-  const container = document.getElementById("generated-paper");
   try {
-    if (window.renderMathInElement) {
-      renderMathInElement(container, {
-        delimiters: [
-          { left: "$$", right: "$$", display: true },
-          { left: "$", right: "$", display: false },
-          { left: "\\[", right: "\\]", display: true },
-          { left: "\\(", right: "\\)", display: false }
-        ],
-        throwOnError: false
-      });
-    } else {
-      console.warn('KaTeX auto-render not loaded, math expressions will not be rendered');
-    }
-  } catch (mathError) {
-    console.error('Math rendering failed:', mathError);
-    // Don't show error to user - math rendering failure shouldn't prevent paper display
-  }
+    // Generate paper with retry logic to ensure completeness
+    const reply = await generatePaperWithRetry(aiPrompt);
 
-  resultArea.hidden = false;
-} catch (err) {
-  resultText.innerHTML = `<div style="color: var(--error-color); padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; margin: 1rem 0;">Unable to generate paper. Please check if the NeoBranium AI server is running. (${err.message})</div>`;
-  resultArea.hidden = false;
-} finally {
-  setLoading(false);
-}
+    // Format the reply to look like an exam paper
+    const formattedReply = formatExamPaper(reply);
+    resultText.innerHTML = formattedReply;
+
+    // Increment paper generation count
+    incrementPaperCount();
+
+    // Render mathematical expressions with KaTeX (only in the result container)
+    const container = document.getElementById("generated-paper");
+    try {
+      if (window.renderMathInElement) {
+        renderMathInElement(container, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\[", right: "\\]", display: true },
+            { left: "\\(", right: "\\)", display: false }
+          ],
+          throwOnError: false
+        });
+      } else {
+        console.warn('KaTeX auto-render not loaded, math expressions will not be rendered');
+      }
+    } catch (mathError) {
+      console.error('Math rendering failed:', mathError);
+      // Don't show error to user - math rendering failure shouldn't prevent paper display
+    }
+
+    resultArea.hidden = false;
+  } catch (err) {
+    resultText.innerHTML = `<div style="color: var(--error-color); padding: 1rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; margin: 1rem 0;">Unable to generate paper. Please check if the NeoBranium AI server is running. (${err.message})</div>`;
+    resultArea.hidden = false;
+  } finally {
+    setLoading(false);
+  }
 });
 
 // Function to validate if AI response contains complete exam paper
@@ -228,8 +228,10 @@ function validateExamPaperResponse(text) {
 async function generatePaperWithRetry(aiPrompt, maxRetries = 5) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      // 1. Dynamic Network Fetch (Works on localhost and production)
-      const apiUrl = `${window.location.origin}/api/chat`;
+      // 1. Safe Network Fetch
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const apiUrl = isLocalhost ? 'http://localhost:3000/api/chat' : 'https://neobranium.onrender.com/api/chat';
+
 
       if (!apiUrl || typeof apiUrl !== 'string') {
         throw new Error('Invalid API URL configuration.');
@@ -242,15 +244,15 @@ async function generatePaperWithRetry(aiPrompt, maxRetries = 5) {
         'Content-Type': 'application/json'
       };
 
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: headers,
-          body: JSON.stringify({ 
-            message: aiPrompt, 
-            history: [],
-            task: 'paper_generation'
-          })
-        });
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          message: aiPrompt,
+          history: [],
+          task: 'paper_generation'
+        })
+      });
 
       // 4. Robust Response Handling & JSON Parsing
       if (!response.ok) {

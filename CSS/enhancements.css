@@ -383,3 +383,88 @@ input:focus {
   font-size: 0.9rem;
   margin: 0;
 }
+
+/* --- New Animation Utilities --- */
+
+/* Gradient Shift for Welcome Banner */
+.anim-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradientMove 8s ease infinite;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Floating animation for icons/images */
+.anim-float {
+  animation: floatAnim 3s ease-in-out infinite;
+}
+
+@keyframes floatAnim {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+
+/* Shimmer effect for primary buttons */
+.anim-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.anim-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-20deg);
+  animation: shimmerAnim 3s infinite linear;
+}
+
+@keyframes shimmerAnim {
+  0% { left: -100%; }
+  20% { left: 200%; }
+  100% { left: 200%; }
+}
+
+/* Pulse Glow effect */
+.anim-pulse-glow {
+  animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.4); } /* matching --link-color mostly, purple */
+  70% { box-shadow: 0 0 0 10px rgba(147, 51, 234, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
+}
+
+/* Staggered Fade-in Items */
+.staggered-item {
+  opacity: 0;
+  transform: translateY(15px);
+  animation: fadeUpStagger 0.6s ease-out forwards;
+}
+
+.staggered-item:nth-child(1) { animation-delay: 0.1s; }
+.staggered-item:nth-child(2) { animation-delay: 0.2s; }
+.staggered-item:nth-child(3) { animation-delay: 0.3s; }
+.staggered-item:nth-child(4) { animation-delay: 0.4s; }
+.staggered-item:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes fadeUpStagger {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
