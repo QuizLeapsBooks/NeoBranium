@@ -757,6 +757,4 @@ body.dark-mode .skeleton-button {
   }
 }
 
-#shortcutBtn {
-  margin: 0.5rem;
-}
+/* shortcutBtn styling removed for generalized quick-actions component */
