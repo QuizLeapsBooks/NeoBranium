@@ -243,7 +243,10 @@
 
   <script type="module" src="/js/auth.js"></script>
   <script type="module">
-    import { auth, loadUserData, updateUserDisplay, showStatus } from '/js/auth.js';
+    import { auth, loadUserData, updateUserDisplay, showStatus, checkAccess } from '/js/auth.js';
+
+    // Immediate access check for guest protection
+    checkAccess(true);
 
     const usernameDisplay = document.getElementById('usernameDisplay');
     const bioDisplay = document.getElementById('bioDisplay');

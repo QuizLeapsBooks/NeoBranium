@@ -1,4 +1,7 @@
-import { auth, loadUserData, updateUserProfile, changeUserPassword, showStatus } from "/js/auth.js";
+import { auth, loadUserData, updateUserProfile, changeUserPassword, showStatus, checkAccess } from "/js/auth.js";
+
+// Immediate access check for guest protection
+checkAccess(true);
 
 const firstNameInput = document.getElementById("firstName");
 const saveFirstNameBtn = document.getElementById("saveFirstNameBtn");

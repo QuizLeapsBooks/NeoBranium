@@ -1,6 +1,7 @@
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { canSendMessage, incrementChatCount } from '../../js/usage-limits.js';
+import { isGuestUser } from '../../js/auth.js';
 
 // Configure marked for better code highlighting
 marked.setOptions({
@@ -33,6 +34,21 @@ class ChatAssistant {
 
         // Setup event listeners
         this.setupEventListeners();
+
+        // Guest restriction check
+        if (isGuestUser()) {
+            this.chatInput.disabled = true;
+            this.chatInput.placeholder = "Sign in to use AI Assistant";
+            this.chatInput.style.transition = "all 0.5s ease-in-out";
+            this.chatInput.style.opacity = "0.6";
+            this.chatInput.classList.add("cursor-not-allowed");
+            
+            this.sendButton.disabled = true;
+            this.sendButton.style.transition = "all 0.5s ease-in-out";
+            this.sendButton.style.opacity = "0.5";
+            this.sendButton.classList.add("cursor-not-allowed");
+            return; // Don't proceed to auto-resize or history load
+        }
 
         // Check input state
         this.toggleSendButton();
@@ -104,6 +120,12 @@ class ChatAssistant {
 
     async handleSend() {
         if (this.isProcessing) return;
+
+        // Hardened Guest Check: Prevent bypass via DevTools
+        if (isGuestUser()) {
+            alert("You're in guest mode. Sign in to use the AI Assistant.");
+            return;
+        }
 
         // Check chat limit before sending
         if (!canSendMessage()) {

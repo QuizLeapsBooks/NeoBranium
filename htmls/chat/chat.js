@@ -3,6 +3,7 @@ import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com
 import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 import { canSendMessage, incrementChatCount } from "../../js/usage-limits.js";
+import { isGuestUser } from "../../js/auth.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -44,10 +45,7 @@ onAuthStateChanged(auth, async (user) => {
                 document.getElementById("userInitial").innerText = "U";
             }
         } else {
-            const isGuest = localStorage.getItem("guestMode") === "true";
-            const accessGranted = localStorage.getItem("accessGranted") === "true";
-
-            if (isGuest && accessGranted) {
+            if (isGuestUser()) {
                 console.log("Guest access active in chat");
                 currentUser = { uid: "guest", username: "Guest" };
                 document.getElementById("usernameDisplay").innerText = `Welcome, Guest!`;
@@ -59,11 +57,15 @@ onAuthStateChanged(auth, async (user) => {
                 if (messageInput) {
                     messageInput.disabled = true;
                     messageInput.placeholder = "Sign in to chat";
-                    messageInput.classList.add("cursor-not-allowed", "opacity-50");
+                    messageInput.style.transition = "all 0.5s ease-in-out";
+                    messageInput.style.opacity = "0.5";
+                    messageInput.classList.add("cursor-not-allowed");
                 }
                 if (sendButton) {
                     sendButton.disabled = true;
-                    sendButton.classList.add("cursor-not-allowed", "opacity-50");
+                    sendButton.style.transition = "all 0.5s ease-in-out";
+                    sendButton.style.opacity = "0.5";
+                    sendButton.classList.add("cursor-not-allowed");
                 }
                 return;
             }
@@ -80,6 +82,12 @@ onAuthStateChanged(auth, async (user) => {
 // Send message
 document.getElementById("chat-form").addEventListener("submit", async (e) => {
     e.preventDefault();
+    
+    // Hardened Guest Check: Prevent bypass via DevTools
+    if (isGuestUser()) {
+        alert("You're in guest mode. Sign in to send messages.");
+        return;
+    }
     
     // Check chat limit before sending
     if (!canSendMessage()) {

@@ -95,29 +95,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- Guest Mode & Usage Limit Logic ---
+  // --- Guest Mode Logic ---
   const guestBtn = document.getElementById('guestBtn');
   if (guestBtn) {
-    const startTime = localStorage.getItem("startTime");
-    if (startTime) {
-      const totalUsageMs = Date.now() - parseInt(startTime);
-      const totalUsageMin = Math.floor(totalUsageMs / 60000);
-      if (totalUsageMin >= 60) {
-        guestBtn.style.display = 'none';
-        console.log("Usage limit reached. Hiding guest button.");
+    guestBtn.addEventListener('click', () => {
+      localStorage.setItem('guestMode', 'true');
+      localStorage.setItem('accessGranted', 'true');
+      if (!localStorage.getItem('startTime')) {
+        localStorage.setItem('startTime', Date.now().toString());
       }
-    }
-
-    if (guestBtn.style.display !== 'none') {
-      guestBtn.addEventListener('click', () => {
-        localStorage.setItem('guestMode', 'true');
-        localStorage.setItem('accessGranted', 'true');
-        if (!localStorage.getItem('startTime')) {
-          localStorage.setItem('startTime', Date.now().toString());
-        }
-        window.location.href = '/htmls/dashboard.html';
-      });
-    }
+      // Redirect using the absolute path to ensure accuracy
+      window.location.href = '/htmls/dashboard.html';
+    });
   }
 });
 

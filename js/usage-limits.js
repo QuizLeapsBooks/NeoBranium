@@ -20,7 +20,7 @@ const LIMITS = {
             COUNT: 'paperCount',
             START_TIME: 'paperStartTime'
         },
-        ALERT: "Monthly paper generation limit reached"
+        ALERT: "Monthly limit reached"
     }
 };
 

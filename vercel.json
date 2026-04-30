@@ -12,6 +12,10 @@
       "dest": "/server/server.js"
     },
     {
+      "src": "/dashboard.html",
+      "dest": "/htmls/dashboard.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/$1"
     }

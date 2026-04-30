@@ -30,6 +30,63 @@ export async function loadUserData(user) {
     }
 }
 
+export function isGuestUser() {
+    const isGuest = localStorage.getItem("guestMode") === "true";
+    const accessGranted = localStorage.getItem("accessGranted") === "true";
+    return isGuest && accessGranted;
+}
+
+export function checkAccess(requiredAuth = false) {
+    if (requiredAuth && isGuestUser()) {
+        console.info("Guest access restriction: Redirecting to sign-in page.");
+        window.location.href = "/htmls/sign.html";
+        return false;
+    }
+    return true;
+}
+
+function injectGuestBanner() {
+    if (!document.getElementById("guest-banner")) {
+        const banner = document.createElement("div");
+        banner.id = "guest-banner";
+        banner.innerHTML = "You're in guest mode. <a href='/htmls/sign.html' style='color: #a5b4fc; text-decoration: underline; font-weight: bold; margin-left: 5px; transition: color 0.3s ease;'>Sign in</a> to unlock all features.";
+        
+        banner.style.position = "fixed";
+        banner.style.top = "15px";
+        banner.style.left = "50%";
+        banner.style.transform = "translateX(-50%)";
+        banner.style.background = "rgba(15, 23, 42, 0.7)";
+        banner.style.backdropFilter = "blur(12px)";
+        banner.style.webkitBackdropFilter = "blur(12px)";
+        banner.style.border = "1px solid rgba(99, 102, 241, 0.3)";
+        banner.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)";
+        banner.style.color = "#e2e8f0";
+        banner.style.padding = "8px 24px";
+        banner.style.borderRadius = "20px";
+        banner.style.fontSize = "0.95rem";
+        banner.style.zIndex = "9999";
+        banner.style.display = "flex";
+        banner.style.alignItems = "center";
+        banner.style.justifyContent = "center";
+        banner.style.animation = "fadeInDown 0.5s ease-out";
+        
+        if (!document.getElementById("guest-banner-styles")) {
+            const style = document.createElement("style");
+            style.id = "guest-banner-styles";
+            style.innerHTML = `
+                @keyframes fadeInDown {
+                    from { opacity: 0; transform: translate(-50%, -20px); }
+                    to { opacity: 1; transform: translate(-50%, 0); }
+                }
+                #guest-banner a:hover { color: #818cf8 !important; }
+            `;
+            document.head.appendChild(style);
+        }
+
+        document.body.appendChild(banner);
+    }
+}
+
 export function updateUserDisplay(userData, user) {
     const usernameDisplay = document.getElementById("usernameDisplay");
     const initialAvatar = document.getElementById("initialAvatar");
@@ -58,10 +115,12 @@ export function updateUserDisplay(userData, user) {
 document.addEventListener("DOMContentLoaded", () => {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
+            // User is logged in
             localStorage.setItem("loggedInUserId", user.uid);
             localStorage.removeItem("guestMode"); // Clear guest mode if logged in
-            
-            // Set startTime if not already set
+            localStorage.removeItem("accessGranted"); // Clear access granted when logged in
+
+            // Initialize start time for logged-in users
             if (!localStorage.getItem("startTime")) {
                 localStorage.setItem("startTime", Date.now().toString());
             }
@@ -70,30 +129,30 @@ document.addEventListener("DOMContentLoaded", () => {
             updateUserDisplay(userData, user);
             document.dispatchEvent(new CustomEvent("userLoaded", { detail: { user, userData } }));
         } else {
-            const isGuest = localStorage.getItem("guestMode") === "true";
-            const accessGranted = localStorage.getItem("accessGranted") === "true";
-
-            if (isGuest && accessGranted) {
+            // No user logged in, check for Guest Mode
+            if (isGuestUser()) {
                 console.log("Guest access active");
                 
-                // Set startTime if not already set
+                // Initialize start time for guest users
                 if (!localStorage.getItem("startTime")) {
                     localStorage.setItem("startTime", Date.now().toString());
                 }
-
-                // Redirect guest away from profile and settings
+                
+                injectGuestBanner();
+                
+                // Redirection for guest users on restricted pages
                 const path = window.location.pathname;
                 if (path.includes("profile.html") || path.includes("setting.html")) {
-                    console.log("Guest tried to access restricted page, redirecting to sign.html");
-                    window.location.href = "/htmls/sign.html";
+                    checkAccess(true);
                     return;
                 }
 
                 updateUserDisplay({ username: "Guest", bio: "Browsing as Guest" }, { displayName: "Guest" });
                 return;
             }
+
+            // Not logged in and not a guest -> Redirect to index.html
             localStorage.removeItem("loggedInUserId");
-            // Only redirect if not already on index.html
             const path = window.location.pathname;
             if (path !== "/index.html" && path !== "/" && !path.endsWith("index.html")) {
                 window.location.href = "/index.html";
@@ -103,6 +162,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- Usage Limit System ---
     const checkUsageLimit = () => {
+        const isGuest = localStorage.getItem("guestMode") === "true";
+        const isLoggedIn = localStorage.getItem("loggedInUserId") !== null;
+        
+        // Only enforce limit if user is actively using the system
+        if (!isGuest && !isLoggedIn) return;
+
         const startTime = localStorage.getItem("startTime");
         if (!startTime) return;
 
