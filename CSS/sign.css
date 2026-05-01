@@ -352,12 +352,28 @@ form {
   position: absolute;
 }
 
-.submit-btn.loading .btn-text {
+.submit-btn.loading .btn-text,
+.google-btn.loading span,
+.google-btn.loading img {
   opacity: 0;
 }
 
-.submit-btn.loading .spinner {
+.submit-btn.loading .spinner,
+.google-btn.loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(79, 70, 229, 0.3);
+  border-radius: 50%;
+  border-top-color: #4f46e5;
+  animation: spin 1s ease-in-out infinite;
   display: block !important;
+}
+
+.submit-btn.loading .spinner {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
 }
 
 .hidden {

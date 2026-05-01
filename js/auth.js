@@ -13,11 +13,13 @@ const firebaseConfig = {
     appId: "1:59188872045:web:450a70b28e4be5db335064",
 };
 
-// Initialize Firebase
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth();
-export const db = getFirestore();
-export const storage = getStorage();
+// Initialize Firebase (Singleton pattern)
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+export { app, auth, db, storage };
 
 export async function loadUserData(user) {
     try {
@@ -113,49 +115,56 @@ export function updateUserDisplay(userData, user) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Single source of truth for Auth State
     onAuthStateChanged(auth, async (user) => {
+        const path = window.location.pathname;
+        const isLandingPage = path === "/" || path === "/index.html" || (path.endsWith("/index.html") && !path.includes("/htmls/"));
+        const isAuthPage = path.includes("sign.html") || path.includes("verify-email.html");
+        const isEntryPage = isLandingPage || isAuthPage;
+
         if (user) {
-            // User is logged in
+            // --- LOGGED IN ---
             localStorage.setItem("loggedInUserId", user.uid);
-            localStorage.removeItem("guestMode"); // Clear guest mode if logged in
-            localStorage.removeItem("accessGranted"); // Clear access granted when logged in
+            localStorage.removeItem("guestMode");
+            localStorage.removeItem("accessGranted");
 
-            // Initialize start time for logged-in users
-            if (!localStorage.getItem("startTime")) {
-                localStorage.setItem("startTime", Date.now().toString());
-            }
-
-            const userData = await loadUserData(user);
-            updateUserDisplay(userData, user);
-            document.dispatchEvent(new CustomEvent("userLoaded", { detail: { user, userData } }));
-        } else {
-            // No user logged in, check for Guest Mode
-            if (isGuestUser()) {
-                console.log("Guest access active");
-                
-                // Initialize start time for guest users
-                if (!localStorage.getItem("startTime")) {
-                    localStorage.setItem("startTime", Date.now().toString());
-                }
-                
-                injectGuestBanner();
-                
-                // Redirection for guest users on restricted pages
-                const path = window.location.pathname;
-                if (path.includes("profile.html") || path.includes("setting.html")) {
-                    checkAccess(true);
+            // Redirect if on landing/auth pages
+            if (isEntryPage) {
+                // If they need verification, don't auto-redirect to dashboard yet
+                if (!user.emailVerified && !user.providerData.some(p => p.providerId === 'google.com')) {
+                    if (!path.includes("verify-email.html")) {
+                        window.location.replace("/htmls/verify-email.html");
+                    }
                     return;
                 }
-
-                updateUserDisplay({ username: "Guest", bio: "Browsing as Guest" }, { displayName: "Guest" });
+                window.location.replace("/htmls/dashboard.html");
                 return;
             }
 
-            // Not logged in and not a guest -> Redirect to index.html
+            // Normal page load for authenticated routes
+            const userData = await loadUserData(user);
+            updateUserDisplay(userData, user);
+            document.dispatchEvent(new CustomEvent("userLoaded", { detail: { user, userData } }));
+            document.body.style.opacity = "1";
+        } else {
+            // --- NOT LOGGED IN ---
+            if (isGuestUser()) {
+                if (isEntryPage) {
+                    window.location.replace("/htmls/dashboard.html");
+                    return;
+                }
+                injectGuestBanner();
+                updateUserDisplay({ username: "Guest", bio: "Browsing as Guest" }, { displayName: "Guest" });
+                document.body.style.opacity = "1";
+                return;
+            }
+
             localStorage.removeItem("loggedInUserId");
-            const path = window.location.pathname;
-            if (path !== "/index.html" && path !== "/" && !path.endsWith("index.html")) {
-                window.location.href = "/index.html";
+            // Only allow entry pages
+            if (!isEntryPage) {
+                window.location.replace("/index.html");
+            } else {
+                document.body.style.opacity = "1";
             }
         }
     });

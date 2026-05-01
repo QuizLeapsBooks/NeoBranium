@@ -153,8 +153,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Gemini API Setup
-            const GEMINI_API_KEY = '[GCP_API_KEY]'; // Replace with actual API key
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+            const GEMINI_API_KEY = '[GCP_API_KEY]';
+            const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
             // Extract base64 content without the data URL prefix
             const base64Data = currentBase64.split(',')[1];
@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const payload = {
                 contents: [{
                     parts: [
-                        { text: "Identify and solve the question in the image. \n1. First, state the 'Extracted Question'. \n2. Then, provide the 'Step-by-step Solution' with the final answer clearly highlighted. \nKeep the total response under 200 words. Be direct, concise, and do not use LaTeX symbols (use plain text for math like sqrt, ^, etc.). Avoid conversational phrases." },
+                        { text: "Solve the question in the image accurately. \n\nRequired Format: \n1. **Question**: [Quote question] \n2. **Solution**: [Detailed step-by-step math] \n3. **Final Answer**: [Highlight final result] \n\nGuidelines: \n- Use plain text (sqrt, ^2, etc.). \n- Be extremely thorough and provide the FULL solution. Do not stop halfway." },
                         {
                             inlineData: {
                                 mimeType: mimeType,
@@ -173,8 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     ]
                 }],
                 generationConfig: {
-                    temperature: 0.2,
-                    maxOutputTokens: 400
+                    temperature: 0.1,
+                    maxOutputTokens: 2048 // Sufficient for full solutions
                 }
             };
 
@@ -199,11 +199,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error("No response candidates returned from the API.");
             }
 
-            // Simple Markdown parser for basic formatting (Bold, Italic, Newlines)
+            // Enhanced parser for Bold, Italic, and Newlines
             lastGeneratedText = resultText;
             let formattedHTML = resultText
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\*\*\s*(.*?)\s*\*\*/g, '<strong>$1</strong>') // Bold
+                .replace(/\*\s*(.*?)\s*\*/g, '<em>$1</em>') // Italic
                 .replace(/\n\n/g, '</p><p style="margin-top: 10px;">')
                 .replace(/\n/g, '<br>');
 

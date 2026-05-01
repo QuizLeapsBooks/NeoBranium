@@ -1,6 +1,5 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+import { auth, db } from "./auth.js";
 import {
-  getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
@@ -11,26 +10,11 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 import {
-  getFirestore,
   setDoc,
   getDoc,
   doc,
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyA1iWJdGtmrox9RAHgWBxaK4p8KGf7ji_Y",
-  authDomain: "neobranium.firebaseapp.com",
-  projectId: "neobranium",
-  storageBucket: "neobranium.appspot.com",
-  messagingSenderId: "59188872045",
-  appId: "1:59188872045:web:450a70b28e4be5db335064",
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
 
 // ==========================================
@@ -104,31 +88,21 @@ function setLoading(buttonId, isLoading) {
 const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const isValidPhone = (phone) => /^\+[0-9]{10,15}$/.test(phone);
 
-// ==========================================
-// Auth State Monitoring
-// ==========================================
-onAuthStateChanged(auth, (user) => {
-  if (user && user.emailVerified === true) {
-    // If user is verified and logged in, redirect away from sign.html immediately
-    localStorage.setItem("loggedInUserId", user.uid);
-    // Add small delay to prevent rapid flickering during redirect loops
-    setTimeout(() => {
-      window.location.replace("/htmls/dashboard.html");
-    }, 100);
-  }
-});
+// Note: onAuthStateChanged is handled globally by auth.js. 
+// This file only handles the specific login/signup actions on sign.html.
 
-// Check redirect result for Google Auth fallback
+// Check redirect result for Google Auth fallback on page load
 getRedirectResult(auth).then(async (result) => {
   if (result && result.user) {
-    const user = result.user;
-    await handleGoogleUserFirestore(user);
-    showToast("Google Login Successful!", "success");
-    setTimeout(() => window.location.replace("/htmls/dashboard.html"), 1500);
+    console.log("Processing redirect result for user:", result.user.uid);
+    await handleGoogleUserFirestore(result.user);
+    localStorage.setItem("loggedInUserId", result.user.uid);
+    showToast("Login Successful!", "success");
+    // auth.js will handle the redirect once onAuthStateChanged fires
   }
 }).catch((error) => {
-  console.error("Redirect Auth Error:", error);
-  showToast("Authentication failed after redirect.");
+  console.error("Redirect Auth Error Details:", error);
+  showToast("Authentication failed: " + (error.message || "Unknown error"));
 });
 
 // ==========================================
@@ -219,12 +193,11 @@ document.getElementById("login-form")?.addEventListener("submit", async (e) => {
 // Google Authentication
 // ==========================================
 async function handleGoogleUserFirestore(user) {
-  // CRITICAL: Check if user exists before writing to prevent overwriting data
   const userRef = doc(db, "users", user.uid);
   const userSnap = await getDoc(userRef);
 
   if (!userSnap.exists()) {
-    // First time login - create record
+    // First time login - create record with consistent schema
     const [fname, ...lnameArr] = (user.displayName || "User").split(" ");
     const lname = lnameArr.join(" ");
     
@@ -235,6 +208,8 @@ async function handleGoogleUserFirestore(user) {
       email: user.email,
       phone: user.phoneNumber || "",
       photoURL: user.photoURL || "",
+      bio: "Hey there! I'm using NeoBranium.",
+      notificationPref: "all",
       createdAt: Date.now()
     });
     console.log("New Google user created in Firestore");
@@ -251,12 +226,15 @@ async function signInWithGoogle(btnId) {
   try {
     // Attempt popup auth first
     const result = await signInWithPopup(auth, googleProvider);
-    await handleGoogleUserFirestore(result.user);
+    console.log("Popup login successful for:", result.user.email);
     
-    showToast("Google Login Successful!", "success");
+    await handleGoogleUserFirestore(result.user);
     localStorage.setItem("loggedInUserId", result.user.uid);
-    setTimeout(() => window.location.replace("/htmls/dashboard.html"), 1000);
+    
+    showToast("Login Successful!", "success");
+    // Global auth.js listener will handle the dashboard redirect automatically
   } catch (error) {
+    console.error("Sign-In Error Details:", error);
     console.error("Popup Auth Error:", error);
     
     // Handle specific popup errors
