@@ -103,14 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFabToggle('sidebarFabBtn', 'sidebarFabMenu');
   setupFabToggle('bottomFabBtn', 'bottomFabMenu');
 
-  // NeoTutor Coming Soon Alert
-  const neoTutorBtn = document.getElementById('neoTutorBtn');
-  if (neoTutorBtn) {
-    neoTutorBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      alert("NeoTutor (AI Image Problem Solver) - Coming Soon!\n\nNeoTutor is an advanced AI tool that allows you to upload a photo of any Class 10 question and get a step-by-step solution instantly. We are fine-tuning the experience to ensure maximum accuracy for you!");
-    });
-  }
+  // NeoTutor link is now active and redirects to /htmls/doubt/index.html
 
   // Close menus when clicking outside
   document.addEventListener('click', () => {

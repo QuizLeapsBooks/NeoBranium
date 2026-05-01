@@ -1,5 +1,7 @@
-import { db } from "/js/auth.js";
+import { db, storage } from "/js/auth.js";
+import DOMPurify from "dompurify";
 import { collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+import { ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const loggedInUserId = localStorage.getItem('loggedInUserId');
@@ -26,6 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentBase64 = null;
     let lastGeneratedText = "";
     const historyDataMap = new Map();
+
+    const getApiBaseUrl = () => {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            return 'http://localhost:3000/api';
+        }
+        return '/api';
+    };
+
+    const API_BASE_URL = getApiBaseUrl();
 
     // --- File Upload Handling ---
 
@@ -71,9 +82,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function handleFiles(file) {
-        // Check if file is an image
-        if (!file.type.startsWith('image/')) {
-            alert('Please upload an image file (PNG, JPG, JPEG).');
+        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+        const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg'];
+
+        // Validate File Type
+        if (!ALLOWED_TYPES.includes(file.type)) {
+            alert('Invalid file format. Please upload a PNG or JPEG image.');
+            return;
+        }
+
+        // Validate File Size
+        if (file.size > MAX_SIZE) {
+            alert('File is too large. Maximum allowed size is 5MB.');
             return;
         }
 
@@ -88,6 +108,11 @@ document.addEventListener('DOMContentLoaded', () => {
             previewContainer.classList.remove('hidden');
             solveBtn.disabled = false;
         };
+
+        reader.onerror = () => {
+            alert('Error reading file. Please try again.');
+        };
+
         reader.readAsDataURL(file);
     }
 
@@ -117,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentFile || !currentBase64) return;
 
         // --- Usage Limit Check ---
-        const SOLVE_LIMIT = 5;
+        const SOLVE_LIMIT = 10;
         const RESET_TIME_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
         let solveCount = parseInt(localStorage.getItem('solveCount')) || 0;
@@ -141,80 +166,62 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('solveStartTime', solveStartTime.toString());
         // -------------------------
 
-        // Print base64 string to console
-        console.log("Image Base64 Data:", currentBase64);
-
         // UI Loading State
         solveBtn.disabled = true;
         btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing image...';
         btnText.style.opacity = '1';
-        loadingSpinner.classList.add('hidden'); // We use text-based spinner now
+        loadingSpinner.classList.add('hidden');
         outputContainer.classList.add('hidden');
 
         try {
-            // Gemini API Setup
-            const GEMINI_API_KEY = '[GCP_API_KEY]';
-            const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-
             // Extract base64 content without the data URL prefix
             const base64Data = currentBase64.split(',')[1];
             const mimeType = currentFile.type;
 
-            const payload = {
-                contents: [{
-                    parts: [
-                        { text: "Solve the question in the image accurately. \n\nRequired Format: \n1. **Question**: [Quote question] \n2. **Solution**: [Detailed step-by-step math] \n3. **Final Answer**: [Highlight final result] \n\nGuidelines: \n- Use plain text (sqrt, ^2, etc.). \n- Be extremely thorough and provide the FULL solution. Do not stop halfway." },
-                        {
-                            inlineData: {
-                                mimeType: mimeType,
-                                data: base64Data
-                            }
-                        }
-                    ]
-                }],
-                generationConfig: {
-                    temperature: 0.1,
-                    maxOutputTokens: 2048 // Sufficient for full solutions
-                }
-            };
-
-            const response = await fetch(API_URL, {
+            const response = await fetch(`${API_BASE_URL}/gemini-solve`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    base64: base64Data,
+                    mimeType: mimeType
+                })
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(`API Error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+                throw new Error(errorData.error || `Server Error: ${response.status}`);
             }
 
             const data = await response.json();
 
-            // Extract text from Gemini response
-            let resultText = "Could not generate an answer.";
-            if (data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts) {
-                resultText = data.candidates[0].content.parts[0].text;
-            } else {
-                throw new Error("No response candidates returned from the API.");
+            if (!data.success) {
+                throw new Error(data.error || "Failed to solve image");
             }
 
-            // Enhanced parser for Bold, Italic, and Newlines
+            const resultText = data.result;
             lastGeneratedText = resultText;
-            let formattedHTML = resultText
+
+            // Enhanced parser for Bold, Italic, and Newlines
+            const rawHTML = resultText
                 .replace(/\*\*\s*(.*?)\s*\*\*/g, '<strong>$1</strong>') // Bold
                 .replace(/\*\s*(.*?)\s*\*/g, '<em>$1</em>') // Italic
                 .replace(/\n\n/g, '</p><p style="margin-top: 10px;">')
                 .replace(/\n/g, '<br>');
 
-            outputContent.innerHTML = `<p>${formattedHTML}</p>`;
+            // Sanitize HTML to prevent XSS while preserving allowed formatting
+            const cleanHTML = DOMPurify.sanitize(`<p>${rawHTML}</p>`, {
+                ALLOWED_TAGS: ['p', 'strong', 'em', 'br', 'span', 'i', 'ul', 'li', 'ol'],
+                ALLOWED_ATTR: ['style']
+            });
+
+            outputContent.innerHTML = cleanHTML;
 
         } catch (error) {
-            console.error("Gemini API Error:", error);
+            console.error("Gemini Solve Error:", error);
             outputContent.innerHTML = `<div style="color: #ef4444; padding: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
                 <p><i class="fa-solid fa-triangle-exclamation"></i> <strong>Error processing image</strong></p>
                 <p style="font-size: 13px; margin-top: 8px;">${error.message}</p>
-                <p style="font-size: 12px; margin-top: 8px;"><em>Note: Don't forget to replace 'YOUR_API_KEY_HERE' in script.js with a valid Gemini API key.</em></p>
+                <p style="font-size: 12px; margin-top: 8px;"><em>If this error persists, please refresh the page or try again later.</em></p>
             </div>`;
         } finally {
             // Restore Button UI
@@ -275,10 +282,24 @@ document.addEventListener('DOMContentLoaded', () => {
         else btnUnsolved.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
 
         try {
+            // 1. Upload image to Firebase Storage
+            const storagePath = `users/${loggedInUserId}/doubts/${Date.now()}.jpg`;
+            const storageRef = ref(storage, storagePath);
+            
+            // Upload the base64 string (without the data URL prefix)
+            const base64Data = currentBase64.split(',')[1];
+            await uploadString(storageRef, base64Data, 'base64', {
+                contentType: 'image/jpeg'
+            });
+
+            // 2. Get the download URL
+            const downloadURL = await getDownloadURL(storageRef);
+
+            // 3. Save to Firestore with the image URL
             const collectionName = status === 'solved' ? 'solvedDoubts' : 'unsolvedDoubts';
             await addDoc(collection(db, `users/${loggedInUserId}/${collectionName}`), {
                 questionText: lastGeneratedText,
-                image: currentBase64,
+                image: downloadURL,
                 timestamp: Date.now()
             });
 
