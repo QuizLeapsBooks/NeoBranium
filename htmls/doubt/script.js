@@ -285,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 1. Upload image to Firebase Storage
             const storagePath = `users/${loggedInUserId}/doubts/${Date.now()}.jpg`;
             const storageRef = ref(storage, storagePath);
-            
+
             // Upload the base64 string (without the data URL prefix)
             const base64Data = currentBase64.split(',')[1];
             await uploadString(storageRef, base64Data, 'base64', {
