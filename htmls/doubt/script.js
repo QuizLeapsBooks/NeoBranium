@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location.href = '/htmls/sign.html';
         return;
     }
+
+    // --- UI Elements ---
     const uploadArea = document.getElementById('uploadArea');
     const fileInput = document.getElementById('fileInput');
     const uploadContent = document.getElementById('uploadContent');
@@ -24,10 +26,87 @@ document.addEventListener('DOMContentLoaded', () => {
     const outputContent = document.getElementById('outputContent');
     const copyBtn = document.getElementById('copyBtn');
 
+    const aiStatus = document.getElementById('aiStatus');
+
+    // Follow-up elements
+    const floatingAskBtn = document.getElementById('floatingAskBtn');
+    const followUpSection = document.getElementById('followUpSection');
+    const followUpContent = document.getElementById('followUpContent');
+    const followUpInput = document.getElementById('followUpInput');
+    const sendFollowUpBtn = document.getElementById('sendFollowUp');
+    const closeFollowUpBtn = document.getElementById('closeFollowUp');
+
+    let isFollowUpLoading = false;
+
     let currentFile = null;
     let currentBase64 = null;
     let lastGeneratedText = "";
     const historyDataMap = new Map();
+
+    // --- Particle Background ---
+    const initParticles = () => {
+        const canvas = document.getElementById('bg-particles');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const particleCount = Math.floor(window.innerWidth / 15);
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 2 + 0.5,
+                speedX: Math.random() * 0.4 - 0.2,
+                speedY: Math.random() * 0.4 - 0.2
+            });
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.speedX;
+                p.y += p.speedY;
+                if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 245, 255, 0.15)';
+                ctx.fill();
+
+                if (p.radius > 1.5) {
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = 'rgba(0, 245, 255, 0.4)';
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    };
+    initParticles();
+
+    // --- Typed.js for AI Status ---
+    let typedStatus = null;
+    const updateStatus = (text, isLoop = false) => {
+        if (typedStatus) typedStatus.destroy();
+        typedStatus = new Typed('#aiStatus', {
+            strings: [text],
+            typeSpeed: 5, // Instant
+            showCursor: false,
+            loop: isLoop
+        });
+    };
+
+    updateStatus('Quantum System Online. Waiting for input...', false);
 
     const getApiBaseUrl = () => {
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
@@ -38,16 +117,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const API_BASE_URL = getApiBaseUrl();
 
-    // --- File Upload Handling ---
+    // --- Smooth Reveal Effect ---
+    const revealContent = (element, html) => {
+        element.classList.remove('reveal-active');
+        element.style.opacity = '0';
+        element.innerHTML = html;
 
-    // Click to open file dialog
+        setTimeout(() => {
+            element.classList.add('reveal-active');
+        }, 10);
+    };
+
+    // --- File Upload Handling ---
     uploadArea.addEventListener('click', (e) => {
         if (e.target !== removeImageBtn && !removeImageBtn.contains(e.target)) {
             fileInput.click();
         }
     });
 
-    // Drag and Drop Events
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
         uploadArea.addEventListener(eventName, preventDefaults, false);
     });
@@ -85,28 +172,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const MAX_SIZE = 5 * 1024 * 1024; // 5MB
         const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg'];
 
-        // Validate File Type
         if (!ALLOWED_TYPES.includes(file.type)) {
             alert('Invalid file format. Please upload a PNG or JPEG image.');
             return;
         }
 
-        // Validate File Size
         if (file.size > MAX_SIZE) {
             alert('File is too large. Maximum allowed size is 5MB.');
             return;
         }
 
         currentFile = file;
+        updateStatus('Analyzing image metadata...', false);
 
-        // Preview image and convert to base64
         const reader = new FileReader();
         reader.onload = (e) => {
-            currentBase64 = e.target.result; // Save base64 string
+            currentBase64 = e.target.result;
             imagePreview.src = currentBase64;
             uploadContent.classList.add('hidden');
             previewContainer.classList.remove('hidden');
             solveBtn.disabled = false;
+            updateStatus('Target acquired. Ready to analyze.', false);
         };
 
         reader.onerror = () => {
@@ -116,7 +202,6 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsDataURL(file);
     }
 
-    // Remove Image
     removeImageBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         resetUpload();
@@ -132,6 +217,8 @@ document.addEventListener('DOMContentLoaded', () => {
         solveBtn.disabled = true;
         outputContainer.classList.add('hidden');
         outputContent.innerHTML = '';
+        uploadArea.classList.remove('processing');
+        updateStatus('System Reset. Waiting for input...', false);
 
         const feedbackSection = document.getElementById('feedbackSection');
         if (feedbackSection) feedbackSection.style.display = 'block';
@@ -141,40 +228,34 @@ document.addEventListener('DOMContentLoaded', () => {
     solveBtn.addEventListener('click', async () => {
         if (!currentFile || !currentBase64) return;
 
-        // --- Usage Limit Check ---
-        const SOLVE_LIMIT = 10;
-        const RESET_TIME_MS = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+        const SOLVE_LIMIT = 15;
+        const RESET_TIME_MS = 24 * 60 * 60 * 1000;
 
         let solveCount = parseInt(localStorage.getItem('solveCount')) || 0;
         let solveStartTime = parseInt(localStorage.getItem('solveStartTime')) || Date.now();
 
-        // Check if 24 hours have passed since the first solve in the current window
         if (Date.now() - solveStartTime >= RESET_TIME_MS) {
             solveCount = 0;
             solveStartTime = Date.now();
         }
 
-        // Enforce limit
         if (solveCount >= SOLVE_LIMIT) {
             alert("Daily limit reached");
             return;
         }
 
-        // Increment count and save to localStorage
         solveCount++;
         localStorage.setItem('solveCount', solveCount.toString());
         localStorage.setItem('solveStartTime', solveStartTime.toString());
-        // -------------------------
 
         // UI Loading State
         solveBtn.disabled = true;
-        btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing image...';
-        btnText.style.opacity = '1';
-        loadingSpinner.classList.add('hidden');
+        uploadArea.classList.add('processing');
+        btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+        updateStatus('Consulting Gemini AI Neural Network...', true);
         outputContainer.classList.add('hidden');
 
         try {
-            // Extract base64 content without the data URL prefix
             const base64Data = currentBase64.split(',')[1];
             const mimeType = currentFile.type;
 
@@ -200,49 +281,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const resultText = data.result;
             lastGeneratedText = resultText;
+            updateStatus('Solution synthesized. Rendering output...', false);
 
-            // Enhanced parser for Bold, Italic, and Newlines
             const rawHTML = resultText
-                .replace(/\*\*\s*(.*?)\s*\*\*/g, '<strong>$1</strong>') // Bold
-                .replace(/\*\s*(.*?)\s*\*/g, '<em>$1</em>') // Italic
+                .replace(/\*\*\s*(.*?)\s*\*\*/g, '<strong>$1</strong>')
+                .replace(/\*\s*(.*?)\s*\*/g, '<em>$1</em>')
                 .replace(/\n\n/g, '</p><p style="margin-top: 10px;">')
                 .replace(/\n/g, '<br>');
 
-            // Sanitize HTML to prevent XSS while preserving allowed formatting
             const cleanHTML = DOMPurify.sanitize(`<p>${rawHTML}</p>`, {
                 ALLOWED_TAGS: ['p', 'strong', 'em', 'br', 'span', 'i', 'ul', 'li', 'ol'],
                 ALLOWED_ATTR: ['style']
             });
 
-            outputContent.innerHTML = cleanHTML;
+            revealContent(outputContent, cleanHTML);
 
         } catch (error) {
             console.error("Gemini Solve Error:", error);
-            outputContent.innerHTML = `<div style="color: #ef4444; padding: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 8px;">
-                <p><i class="fa-solid fa-triangle-exclamation"></i> <strong>Error processing image</strong></p>
-                <p style="font-size: 13px; margin-top: 8px;">${error.message}</p>
-                <p style="font-size: 12px; margin-top: 8px;"><em>If this error persists, please refresh the page or try again later.</em></p>
+            updateStatus('System Error detected.', false);
+            outputContent.innerHTML = `<div style="color: #ff4d4d; padding: 20px; background: rgba(255, 77, 77, 0.1); border-radius: 12px; border: 1px solid rgba(255, 77, 77, 0.3);">
+                <p><i class="fa-solid fa-triangle-exclamation"></i> <strong>Critical Analysis Failure</strong></p>
+                <p style="font-size: 13px; margin-top: 10px;">${error.message}</p>
             </div>`;
         } finally {
-            // Restore Button UI
             solveBtn.disabled = false;
-            btnText.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Solve Question';
-            btnText.style.opacity = '1';
-            loadingSpinner.classList.add('hidden');
+            uploadArea.classList.remove('processing');
+            btnText.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Analyze Question';
             outputContainer.classList.remove('hidden');
 
-            // Reset feedback buttons
             const btnSolved = document.getElementById('btnSolved');
             const btnUnsolved = document.getElementById('btnUnsolved');
             if (btnSolved && btnUnsolved) {
                 btnSolved.disabled = false;
                 btnUnsolved.disabled = false;
-                btnUnsolved.style.display = 'inline-block';
-                btnSolved.innerHTML = 'Doubt Solved ✅';
+                btnUnsolved.style.display = 'inline-flex';
+                btnSolved.innerHTML = '<i class="fa-solid fa-check"></i> Solved';
                 btnSolved.className = 'feedback-btn solved-btn';
             }
 
-            // Scroll to output
+            outputContainer.classList.remove('hidden');
+            followUpSection.classList.remove('hidden');
             outputContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     });
@@ -252,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const textToCopy = outputContent.innerText;
         navigator.clipboard.writeText(textToCopy).then(() => {
             const originalIcon = copyBtn.innerHTML;
-            copyBtn.innerHTML = '<i class="fa-solid fa-check" style="color: #10b981;"></i>';
+            copyBtn.innerHTML = '<i class="fa-solid fa-check" style="color: #00ff9d;"></i>';
             setTimeout(() => {
                 copyBtn.innerHTML = originalIcon;
             }, 2000);
@@ -278,24 +356,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const originalSolvedText = btnSolved.innerHTML;
         const originalUnsolvedText = btnUnsolved.innerHTML;
 
-        if (status === 'solved') btnSolved.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-        else btnUnsolved.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        if (status === 'solved') btnSolved.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+        else btnUnsolved.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
         try {
-            // 1. Upload image to Firebase Storage
+            updateStatus('Archiving query to Knowledge Base...', false);
             const storagePath = `users/${loggedInUserId}/doubts/${Date.now()}.jpg`;
             const storageRef = ref(storage, storagePath);
 
-            // Upload the base64 string (without the data URL prefix)
             const base64Data = currentBase64.split(',')[1];
             await uploadString(storageRef, base64Data, 'base64', {
                 contentType: 'image/jpeg'
             });
 
-            // 2. Get the download URL
             const downloadURL = await getDownloadURL(storageRef);
 
-            // 3. Save to Firestore with the image URL
             const collectionName = status === 'solved' ? 'solvedDoubts' : 'unsolvedDoubts';
             await addDoc(collection(db, `users/${loggedInUserId}/${collectionName}`), {
                 questionText: lastGeneratedText,
@@ -303,19 +378,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 timestamp: Date.now()
             });
 
-            btnSolved.innerHTML = 'Saved! ✅';
+            btnSolved.innerHTML = 'Archived ✅';
             btnUnsolved.style.display = 'none';
+            updateStatus('Query archived successfully.', false);
             if (status === 'unsolved') {
-                btnSolved.innerHTML = 'Saved! ❌';
+                btnSolved.innerHTML = 'Logged ❌';
                 btnSolved.classList.replace('solved-btn', 'unsolved-btn');
             }
         } catch (error) {
             console.error("Error saving doubt:", error);
-            btnSolved.innerHTML = 'Error Saving';
+            btnSolved.innerHTML = 'Save Failed';
             btnSolved.disabled = false;
             btnUnsolved.disabled = false;
-            if (status === 'unsolved') btnUnsolved.innerHTML = originalUnsolvedText;
-            alert("Firestore Error: " + error.message); // Added for debugging
+            updateStatus('Archive failure.', false);
+            alert("Archive Error: " + error.message);
         }
     }
 
@@ -326,7 +402,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (viewHistoryBtn) {
         viewHistoryBtn.addEventListener('click', () => {
             historyModal.classList.remove('hidden');
-            // Check which tab is active
             const activeTabBtn = document.querySelector('.tab-btn.active');
             const target = activeTabBtn ? activeTabBtn.getAttribute('data-tab') : 'solved-tab';
             const collectionName = target === 'solved-tab' ? 'solvedDoubts' : 'unsolvedDoubts';
@@ -341,17 +416,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Tab Switching
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             tabBtns.forEach(b => b.classList.remove('active'));
-            tabContents.forEach(c => c.classList.add('hidden', 'active'));
-            tabContents.forEach(c => c.classList.remove('active')); // Reset active
+            tabContents.forEach(c => c.classList.add('hidden'));
 
             btn.classList.add('active');
             const target = btn.getAttribute('data-tab');
-            document.getElementById(target).classList.remove('hidden');
-            document.getElementById(target).classList.add('active');
+            const targetContent = document.getElementById(target);
+            targetContent.classList.remove('hidden');
 
             const collectionName = target === 'solved-tab' ? 'solvedDoubts' : 'unsolvedDoubts';
             const listId = target === 'solved-tab' ? 'solvedList' : 'unsolvedList';
@@ -363,14 +436,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const listEl = document.getElementById(listElementId);
         if (!listEl) return;
 
-        listEl.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin" style="font-size: 24px; color: var(--primary);"></i></div>';
+        listEl.innerHTML = '<div style="text-align:center; padding: 40px;"><i class="fa-solid fa-microchip fa-spin" style="font-size: 32px; color: var(--primary);"></i><p style="margin-top:15px; color: var(--text-dim);">Retrieving Records...</p></div>';
 
         try {
             const q = query(collection(db, `users/${loggedInUserId}/${collectionName}`), orderBy("timestamp", "desc"));
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
-                listEl.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 20px;">No history found.</p>';
+                listEl.innerHTML = '<p style="text-align:center; color: var(--text-dim); padding: 40px;">No records found in Knowledge Base.</p>';
                 return;
             }
 
@@ -384,10 +457,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const date = new Date(data.timestamp).toLocaleString();
                 const textSrc = data.questionText || "No response generated";
-                const snippet = textSrc.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...';
+                const snippet = textSrc.replace(/<[^>]*>?/gm, '').substring(0, 120) + '...';
 
                 html += `
-                    <div class="history-item" data-id="${docId}" style="cursor: pointer; transition: transform 0.2s, background 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.background='rgba(255,255,255,0.05)';" onmouseout="this.style.transform='none'; this.style.background='rgba(0,0,0,0.2)';">
+                    <div class="history-item" data-id="${docId}" style="cursor: pointer;">
                         <img src="${data.image}" alt="Doubt Image">
                         <div class="history-item-content">
                             <span class="history-item-date">${date}</span>
@@ -398,7 +471,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             listEl.innerHTML = html;
 
-            // Attach click listeners to open the doubt
             const historyItems = listEl.querySelectorAll('.history-item');
             historyItems.forEach(item => {
                 item.addEventListener('click', () => {
@@ -409,21 +481,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (error) {
             console.error("Error loading history:", error);
-            listEl.innerHTML = '<p style="text-align:center; color: #ef4444; padding: 20px;">Error loading history: ' + error.message + '</p>';
+            listEl.innerHTML = '<p style="text-align:center; color: var(--error); padding: 40px;">Connection Failure: ' + error.message + '</p>';
         }
     }
 
     function openDoubt(data) {
-        // Close modal
         historyModal.classList.add('hidden');
-
-        // Load Image
         currentBase64 = data.image;
         imagePreview.src = currentBase64;
         uploadContent.classList.add('hidden');
         previewContainer.classList.remove('hidden');
 
-        // Load Output
         let formattedHTML = data.questionText
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
@@ -432,14 +500,129 @@ document.addEventListener('DOMContentLoaded', () => {
         outputContent.innerHTML = `<p>${formattedHTML}</p>`;
         outputContainer.classList.remove('hidden');
 
-        // Update Buttons
         solveBtn.disabled = true;
+        updateStatus('Historical Record Loaded.', false);
 
-        // Hide feedback section since it's already saved
         const feedbackSection = document.getElementById('feedbackSection');
         if (feedbackSection) feedbackSection.style.display = 'none';
 
-        // Scroll to output
         outputContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+
+    // --- Follow-up Feature Logic ---
+
+    // 1. Text Selection Logic
+    document.addEventListener('mouseup', (e) => {
+        if (floatingAskBtn.contains(e.target) || followUpSection.contains(e.target)) return;
+
+        const selection = window.getSelection();
+        const selectedText = selection.toString().trim();
+
+        if (selectedText && outputContent.contains(selection.anchorNode)) {
+            const range = selection.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+
+            floatingAskBtn.style.top = `${window.scrollY + rect.top - 45}px`;
+            floatingAskBtn.style.left = `${window.scrollX + rect.left + (rect.width / 2) - 50}px`;
+            floatingAskBtn.classList.remove('hidden');
+        } else {
+            floatingAskBtn.classList.add('hidden');
+        }
+    });
+
+    // 2. Floating Button Click Handler
+    floatingAskBtn.addEventListener('click', () => {
+        const selectedText = window.getSelection().toString().trim();
+        if (!selectedText) return;
+
+        floatingAskBtn.classList.add('hidden');
+        handleFollowUp(selectedText);
+    });
+
+    // 3. Custom Input Handler
+    const submitCustomDoubt = () => {
+        const query = followUpInput.value.trim();
+        if (!query || isFollowUpLoading) return;
+
+        followUpInput.value = '';
+        handleFollowUp(query);
+    };
+
+    sendFollowUpBtn.addEventListener('click', submitCustomDoubt);
+    followUpInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') submitCustomDoubt();
+    });
+
+    // 4. Follow-up API Interaction
+    async function handleFollowUp(userDoubt) {
+        if (isFollowUpLoading) return;
+
+        followUpSection.classList.remove('hidden');
+        followUpSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        const userMsgDiv = document.createElement('div');
+        userMsgDiv.style.marginBottom = '15px';
+        userMsgDiv.innerHTML = `<strong style="color:var(--primary)">Q:</strong> ${userDoubt}`;
+        followUpContent.appendChild(userMsgDiv);
+
+        isFollowUpLoading = true;
+        sendFollowUpBtn.disabled = true;
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'ai-typing';
+        loadingDiv.innerHTML = '<div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div>';
+        followUpContent.appendChild(loadingDiv);
+
+        followUpContent.scrollTop = followUpContent.scrollHeight;
+
+        try {
+            const fullSolution = outputContent.innerText;
+            const response = await fetch(`${API_BASE_URL}/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: `
+                    Original Solution:
+                    ${fullSolution}
+
+                    User doubt:
+                    ${userDoubt}
+
+                    Explain in simple steps for a student.
+                    `
+                })
+            });
+
+            if (!response.ok) throw new Error('Network error');
+            const data = await response.json();
+
+            loadingDiv.remove();
+
+            const aiMsgDiv = document.createElement('div');
+            aiMsgDiv.style.padding = '12px';
+            aiMsgDiv.style.background = 'rgba(0, 245, 255, 0.05)';
+            aiMsgDiv.style.borderLeft = '3px solid var(--primary)';
+            aiMsgDiv.style.borderRadius = '0 8px 8px 0';
+            aiMsgDiv.style.marginBottom = '20px';
+
+            const formattedResult = data.reply
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+
+            revealContent(aiMsgDiv, formattedResult);
+            followUpContent.appendChild(aiMsgDiv);
+
+        } catch (error) {
+            console.error('Follow-up Error:', error);
+            loadingDiv.innerHTML = '<span style="color:var(--error)">Failed to get response. Please try again.</span>';
+        } finally {
+            isFollowUpLoading = false;
+            sendFollowUpBtn.disabled = false;
+            followUpContent.scrollTop = followUpContent.scrollHeight;
+        }
+    }
+
+    closeFollowUpBtn.addEventListener('click', () => {
+        followUpSection.classList.add('hidden');
+        followUpContent.innerHTML = '';
+    });
 });

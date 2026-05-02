@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Doubt Solver | NeoBranium</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <script type="importmap">
@@ -19,37 +19,61 @@
 </head>
 
 <body>
-    <div class="bg-blob blob-1"></div>
-    <div class="bg-blob blob-2"></div>
+    <!-- Particle Background -->
+    <canvas id="bg-particles"></canvas>
+    
+    <!-- Futuristic Floating Shapes -->
+    <div class="futuristic-shape shape1"></div>
+    <div class="futuristic-shape shape2"></div>
+    <div class="futuristic-shape shape3"></div>
+
+    <!-- Floating AI Ask Button -->
+    <button id="floatingAskBtn" class="floating-ask-btn hidden">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Ask AI
+    </button>
 
     <div class="container">
         <header>
-            <div class="logo">
-                <i class="fa-solid fa-robot"></i>
+            <div class="brand-header">
+                <div class="logo">
+                    <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
+                    <span>NeoBranium</span>
+                </div>
+                <button id="viewHistoryBtn" class="history-btn">
+                    <i class="fa-solid fa-clock-rotate-left"></i> History
+                </button>
             </div>
-            <h1>NeoTutor - AI Doubt Solver</h1>
-            <p>Upload a screenshot or photo of your question and let AI solve it instantly.</p>
-            <button id="viewHistoryBtn" class="history-btn"><i class="fa-solid fa-chart-simple"></i> View
-                History</button>
+            <div class="hero-content">
+                <h1 class="glow-text">NeoTutor AI Solver</h1>
+                <div class="status-badge">
+                    <span class="status-dot"></span>
+                    <span id="aiStatus" class="typewriter">Ready to assist...</span>
+                </div>
+                <p class="sub-text">Upload your question and experience the future of learning.</p>
+            </div>
         </header>
 
         <main class="solver-layout">
             <div class="left-panel">
                 <!-- Upload Section -->
                 <div class="upload-area" id="uploadArea">
+                    <div class="scanner-line"></div>
                     <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg" hidden>
 
                     <div class="upload-content" id="uploadContent">
-                        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
-                        <h3>Drag & Drop or <span>Click to Upload</span></h3>
-                        <p>Supports JPG, JPEG, PNG</p>
+                        <div class="icon-box">
+                            <i class="fa-solid fa-microchip upload-icon"></i>
+                        </div>
+                        <h3>Initialize <span>Quantum Scan</span></h3>
+                        <p>Drag image or click to upload</p>
                     </div>
 
                     <!-- Preview Section -->
                     <div class="preview-container hidden" id="previewContainer">
                         <img id="imagePreview" src="" alt="Uploaded Question">
+                        <div class="image-overlay"></div>
                         <button id="removeImageBtn" class="remove-btn" aria-label="Remove image">
-                            <i class="fa-solid fa-xmark"></i>
+                            <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
                 </div>
@@ -57,7 +81,7 @@
                 <!-- Action Button -->
                 <button id="solveBtn" class="solve-btn" disabled>
                     <span class="btn-text">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i> Solve Question
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Analyze Question
                     </span>
                     <div class="spinner hidden" id="loadingSpinner"></div>
                 </button>
@@ -67,20 +91,44 @@
                 <!-- Output Section -->
                 <div class="output-container hidden" id="outputContainer">
                     <div class="output-header">
-                        <h3><i class="fa-solid fa-check-double"></i> Solution</h3>
-                        <button class="copy-btn" id="copyBtn" title="Copy to clipboard">
+                        <h3><i class="fa-solid fa-brain"></i> AI Logic Output</h3>
+                        <button class="copy-btn" id="copyBtn" title="Copy Solution">
                             <i class="fa-regular fa-copy"></i>
                         </button>
                     </div>
-                    <div class="output-content" id="outputContent">
-                        <!-- Solution will be rendered here -->
+                    <div class="output-content-wrapper">
+                        <div class="output-content" id="outputContent">
+                            <!-- Solution will be rendered here -->
+                        </div>
                     </div>
+
+                    <!-- Follow-up Section -->
+                    <div id="followUpSection" class="follow-up-section hidden">
+                        <div class="follow-up-header">
+                            <h4><i class="fa-solid fa-comments"></i> Follow-up Answer</h4>
+                            <button id="closeFollowUp" class="close-follow-up"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div id="followUpContent" class="follow-up-content">
+                            <!-- Follow-up responses will appear here -->
+                        </div>
+                        <div class="follow-up-input-wrapper">
+                            <input type="text" id="followUpInput" placeholder="Ask a follow-up question...">
+                            <button id="sendFollowUp" class="send-follow-up-btn">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Feedback Section -->
                     <div class="feedback-section" id="feedbackSection">
-                        <p>Did this answer your question?</p>
+                        <p>Was this solution helpful?</p>
                         <div class="feedback-buttons">
-                            <button id="btnSolved" class="feedback-btn solved-btn">Doubt Solved ✅</button>
-                            <button id="btnUnsolved" class="feedback-btn unsolved-btn">Not Understood ❌</button>
+                            <button id="btnSolved" class="feedback-btn solved-btn">
+                                <i class="fa-solid fa-check"></i> Solved
+                            </button>
+                            <button id="btnUnsolved" class="feedback-btn unsolved-btn">
+                                <i class="fa-solid fa-xmark"></i> Unsolved
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -92,12 +140,12 @@
     <div id="historyModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Your Doubt History</h2>
+                <h2><i class="fa-solid fa-database"></i> Knowledge Base History</h2>
                 <button id="closeModalBtn" class="close-modal"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-tabs">
-                <button class="tab-btn active" data-tab="solved-tab">Solved Doubts</button>
-                <button class="tab-btn" data-tab="unsolved-tab">Unsolved Doubts</button>
+                <button class="tab-btn active" data-tab="solved-tab">Successful Queries</button>
+                <button class="tab-btn" data-tab="unsolved-tab">Pending Analysis</button>
             </div>
             <div class="modal-body">
                 <div id="solved-tab" class="tab-content active">
@@ -110,6 +158,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
     <script type="module" src="script.js"></script>
 </body>
 

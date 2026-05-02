@@ -81,7 +81,7 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://esm.run", "https://www.gstatic.com"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://esm.run", "https://www.gstatic.com", "https://cdn.jsdelivr.net"],
             connectSrc: [
                 "'self'",
                 "https://api.groq.com",
@@ -104,6 +104,8 @@ const allowedOrigins = [
     'http://localhost:5501',
     'http://127.0.0.1:5500',
     'http://127.0.0.1:5501',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
     ...((process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean))
 ];
 
@@ -421,8 +423,8 @@ app.post('/api/chat', async (req, res) => {
 
 // Gemini Image Solving API with Session-based Rate Limiting
 app.post('/api/gemini-solve', async (req, res) => {
-    // 1. Enforce Server-Side Daily Limit (10 per 24h)
-    const DAILY_LIMIT = 10;
+    // 1. Enforce Server-Side Daily Limit (15 per 24h)
+    const DAILY_LIMIT = 15;
     const WINDOW_MS = 24 * 60 * 60 * 1000;
     const now = Date.now();
 
