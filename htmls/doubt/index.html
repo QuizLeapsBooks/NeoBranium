@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Doubt Solver | NeoBranium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "dompurify": "https://esm.run/dompurify"
+            }
+        }
+    </script>
+    <script type="module" src="/js/auth.js"></script>
+</head>
+
+<body>
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <h1>NeoTutor - AI Doubt Solver</h1>
+            <p>Upload a screenshot or photo of your question and let AI solve it instantly.</p>
+            <button id="viewHistoryBtn" class="history-btn"><i class="fa-solid fa-chart-simple"></i> View
+                History</button>
+        </header>
+
+        <main class="solver-layout">
+            <div class="left-panel">
+                <!-- Upload Section -->
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg" hidden>
+
+                    <div class="upload-content" id="uploadContent">
+                        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                        <h3>Drag & Drop or <span>Click to Upload</span></h3>
+                        <p>Supports JPG, JPEG, PNG</p>
+                    </div>
+
+                    <!-- Preview Section -->
+                    <div class="preview-container hidden" id="previewContainer">
+                        <img id="imagePreview" src="" alt="Uploaded Question">
+                        <button id="removeImageBtn" class="remove-btn" aria-label="Remove image">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button id="solveBtn" class="solve-btn" disabled>
+                    <span class="btn-text">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Solve Question
+                    </span>
+                    <div class="spinner hidden" id="loadingSpinner"></div>
+                </button>
+            </div>
+
+            <div class="right-panel">
+                <!-- Output Section -->
+                <div class="output-container hidden" id="outputContainer">
+                    <div class="output-header">
+                        <h3><i class="fa-solid fa-check-double"></i> Solution</h3>
+                        <button class="copy-btn" id="copyBtn" title="Copy to clipboard">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="output-content" id="outputContent">
+                        <!-- Solution will be rendered here -->
+                    </div>
+                    <!-- Feedback Section -->
+                    <div class="feedback-section" id="feedbackSection">
+                        <p>Did this answer your question?</p>
+                        <div class="feedback-buttons">
+                            <button id="btnSolved" class="feedback-btn solved-btn">Doubt Solved ✅</button>
+                            <button id="btnUnsolved" class="feedback-btn unsolved-btn">Not Understood ❌</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- History Modal -->
+    <div id="historyModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Your Doubt History</h2>
+                <button id="closeModalBtn" class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-tabs">
+                <button class="tab-btn active" data-tab="solved-tab">Solved Doubts</button>
+                <button class="tab-btn" data-tab="unsolved-tab">Unsolved Doubts</button>
+            </div>
+            <div class="modal-body">
+                <div id="solved-tab" class="tab-content active">
+                    <div id="solvedList" class="history-list"></div>
+                </div>
+                <div id="unsolved-tab" class="tab-content hidden">
+                    <div id="unsolvedList" class="history-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
