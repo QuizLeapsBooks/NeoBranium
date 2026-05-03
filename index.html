@@ -4,11 +4,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NeoBranium - Home</title>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
-    integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <title>NeoBranium - Learn Smarter with AI</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
   <link rel="stylesheet" href="index_css.css">
   <meta name="google-adsense-account" content="ca-pub-8525224825170740">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8525224825170740"
@@ -16,13 +16,10 @@
 </head>
 
 <body>
-  <!-- Particle Background Canvas -->
-  <canvas id="bg-particles"></canvas>
-
-  <!-- Futuristic Floating Shapes -->
-  <div class="futuristic-shape shape1"></div>
-  <div class="futuristic-shape shape2"></div>
-  <div class="futuristic-shape shape3"></div>
+  <!-- Blurred Background Blobs -->
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
 
   <!-- Preloader -->
   <div id="preloader">
@@ -31,154 +28,331 @@
   </div>
 
   <header>
-    <div class="logo">
-      <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
-      <span>NeoBranium</span>
+    <div class="header-container">
+      <div class="logo">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
+        <span>NeoBranium</span>
+      </div>
+
+      <div class="header-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="globalSearchInput" placeholder="Search chapters, topics..." autocomplete="off">
+        <div id="globalSearchResults" class="search-results-dropdown"></div>
+      </div>
+
+      <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+
+      <nav class="nav-menu">
+        <a href="index.html">Home</a>
+        <div class="nav-item">
+          <a href="Notes/notes-science-class10.html">Notes <i class="fas fa-chevron-down"
+              style="font-size: 0.7rem;"></i></a>
+          <div class="dropdown-menu">
+            <div class="dropdown-submenu">
+              <h5>Class 9</h5>
+              <ul>
+                <li><a href="Notes/notes-science-class9.html">Science</a></li>
+                <li><a href="htmls/classs9-10mathematics.html">Mathematics</a></li>
+              </ul>
+            </div>
+            <div class="dropdown-submenu"
+              style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;">
+              <h5>Class 10</h5>
+              <ul>
+                <li><a href="Notes/notes-science-class10.html">Science</a></li>
+                <li><a href="htmls/classs9-10mathematics.html">Mathematics</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <a href="IQ/top-question.html">Top Questions</a>
+        <a href="blog/blog.html">Blog</a>
+        <a href="htmls/sign.html" class="login-btn">Login / Sign Up</a>
+      </nav>
     </div>
-    <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
-    <nav class="nav-menu">
-      <a onclick="showWarning()" href="#">Home</a>
-      <a onclick="showWarning()" href="#">About</a>
-      <a onclick="showWarning()" href="#">Contact</a>
-    </nav>
   </header>
 
-  <section class="hero">
-    <div class="hero-text">
-      <h2 class="animate__animated animate__fadeInUp">NeoBranium Platform</h2>
-      <h1 class="type-effect animate__animated animate__fadeInUp animate__delay-1s"></h1>
-      <p class="animate__animated animate__fadeIn animate__delay-2s">The ultimate destination for Class 9 & 10 students to master Science & Math through interactive AI-powered learning. ✨</p>
-      <div class="hero-btns animate__animated animate__fadeInUp animate__delay-3s">
-        <a href="/htmls/sign.html" class="cta-button">Get Started 🚀</a>
-        <button id="guestBtn" class="guest-button">Guest Mode 🔓</button>
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-text">
+          <h1 class="animate__animated animate__fadeInUp">Learn Smarter with <span class="typing-effect" id="typing"></span></h1>
+          <p class="animate__animated animate__fadeInUp animate__delay-1s">Get instant explanations, solve doubts,
+            explore notes and prepare better for your exams with our AI-powered platform.</p>
+
+          <div class="hero-btns animate__animated animate__fadeInUp animate__delay-2s">
+            <a href="htmls/sign.html" class="btn btn-primary">Get Started <i class="fas fa-arrow-right"></i></a>
+            <button id="guestBtn" class="btn btn-secondary">Explore More <i class="fas fa-book-open"></i></button>
+          </div>
+
+          <div class="trust-line animate__animated animate__fadeIn animate__delay-3s">
+            <div class="trust-item"><i class="fas fa-check-circle"></i> AI Powered</div>
+            <div class="trust-item"><i class="fas fa-check-circle"></i> Trusted by Students</div>
+            <div class="trust-item"><i class="fas fa-check-circle"></i> Useful for Exams</div>
+          </div>
+        </div>
+
+        <div class="hero-image animate__animated animate__fadeInRight">
+          <div class="illustration-placeholder">
+            <img src="/online-graduation_16847316.png" alt="Education AI Illustration">
+            <!-- Decorative elements can be added via CSS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Explore by Class Section -->
+    <section class="section-container">
+      <div class="section-header">
+        <h2>Explore by Class</h2>
+        <a href="Notes/notes-science-class10.html" class="view-all">View all Classes <i
+            class="fas fa-arrow-right"></i></a>
+      </div>
+      <div class="class-grid">
+        <div class="class-card">
+          <div class="class-icon"><i class="fas fa-book-bookmark"></i></div>
+          <h3>Class 9</h3>
+          <p>Science & Mathematics</p>
+          <div class="quiz-list">
+            <div class="quiz-category">
+              <span class="category-title">Science</span>
+              <ul>
+                <li><a href="htmls/quiz_htmls/class9_biology-chapter-1.html" target="_blank">🧬 Cell Structure</a></li>
+                <li><a href="htmls/quiz_htmls/class9_biology-chapter-2.html" target="_blank">🌱 Tissues</a></li>
+                <li><a href="htmls/quiz_htmls/class9-physics-chapter-1.html" target="_blank">⚛️ Matter & Atoms</a></li>
+                <li><a href="htmls/quiz_htmls/class9-science-quiz.html" target="_blank">🧪 Chemical Reactions</a></li>
+              </ul>
+            </div>
+            <div class="quiz-category">
+              <span class="category-title">Mathematics</span>
+              <ul>
+                <li><a href="htmls/classs9-10mathematics.html" target="_blank">📐 Number Systems</a></li>
+                <li><a href="htmls/classs9-10mathematics.html" target="_blank">➕ Polynomials</a></li>
+                <li><a href="htmls/classs9-10mathematics.html" target="_blank">📊 Linear Equations</a></li>
+                <li><a href="htmls/classs9-10mathematics.html" target="_blank">🔺 Geometry Basics</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <div class="class-card">
+          <div class="class-icon"><i class="fas fa-graduation-cap"></i></div>
+          <h3>Class 10</h3>
+          <p>Science & Mathematics</p>
+          <div class="quiz-list">
+            <div class="quiz-category">
+              <span class="category-title">Science</span>
+              <ul>
+                <li><a href="htmls/quiz_htmls/class10-biology-chapetr-1.html" target="_blank">🧬 Life Processes</a></li>
+                <li><a href="htmls/quiz_htmls/class10-biology-chapter-2.html" target="_blank">🌿 Reproduction</a></li>
+                <li><a href="htmls/quiz_htmls/class10-physics-chapter-1.html" target="_blank">⚡ Electricity</a></li>
+                <li><a href="htmls/quiz_htmls/class10-chemistry-chapter-1.html" target="_blank">🧪 Chemical Reactions</a></li>
+              </ul>
+            </div>
+            <div class="quiz-category">
+              <span class="category-title">Mathematics</span>
+              <ul>
+                <li><a href="htmls/classs9-10mathematics.html" target="_blank">📐 Real Numbers</a></li>
+                <li><a href="htmls/classs9-10mathematics.html" target="_blank">🔢 Quadratic Equations</a></li>
+                <li><a href="htmls/classs9-10mathematics.html" target="_blank">📉 Arithmetic Progression</a></li>
+                <li><a href="htmls/classs9-10mathematics.html" target="_blank">📐 Trigonometry</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Top Questions & AI Solver -->
+    <section class="section-container dual-section">
+      <div class="top-questions">
+        <div class="section-header">
+          <h2>Top Questions</h2>
+          <a href="IQ/top-question.html" class="view-all">View all <i class="fas fa-arrow-right"></i></a>
+        </div>
+        <div class="questions-list">
+          <div class="question-item"
+            onclick="openQuestionModal('Explain Newton\'s First Law of Motion with example.', 'Newton\'s First Law, also known as the Law of Inertia, states that an object at rest stays at rest and an object in motion stays in motion with the same speed and in the same direction unless acted upon by an unbalanced force.')">
+            <span class="q-num">1</span>
+            <p>Explain Newton's First Law of Motion with example.</p>
+            <span class="q-tag physics">Physics</span>
+          </div>
+          <div class="question-item"
+            onclick="openQuestionModal('How do plants prepare their food?', 'Plants prepare their food through a process called photosynthesis, using sunlight, water, and carbon dioxide to create glucose.')">
+            <span class="q-num">2</span>
+            <p>How do plants prepare their food?</p>
+            <span class="q-tag biology">Biology</span>
+          </div>
+          <div class="question-item"
+            onclick="openQuestionModal('Solve: 2x + 5 = 15', '2x + 5 = 15 => 2x = 10 => x = 5')">
+            <span class="q-num">3</span>
+            <p>Solve: 2x + 5 = 15</p>
+            <span class="q-tag math">Math</span>
+          </div>
+          <div class="question-item"
+            onclick="openQuestionModal('What is the chemical formula of water?', 'The chemical formula of water is H2O.')">
+            <span class="q-num">4</span>
+            <p>What is the chemical formula of water?</p>
+            <span class="q-tag chemistry">Chemistry</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ai-solver-card">
+        <div class="solver-content">
+          <h3>Stuck on a Question?</h3>
+          <h2>Try <span class="highlight">AI Doubt Solver</span></h2>
+          <p>Upload your question and get step-by-step explanations in seconds.</p>
+          <a href="htmls/sign.html" class="btn btn-primary btn-large"><i class="fas fa-cloud-upload-alt"></i> Solve
+            Your Doubt</a>
+        </div>
+        <div class="solver-img">
+          <i class="fas fa-robot"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- Blog Preview Section -->
+    <section class="section-container">
+      <div class="section-header">
+        <h2>Latest from Blog</h2>
+        <a href="blog/blog.html" class="view-all">View all <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <div class="blog-grid">
+        <div class="blog-card" onclick="window.location.href='blog/blog.html#resilience'">
+          <img src="/home/shubham/.gemini/antigravity/brain/d3ca1717-4091-4f47-9943-45f1a90becdf/resilience_blog_image_1777793471543.png" alt="Resilience">
+          <div class="blog-info">
+            <span class="blog-tag">Mindset</span>
+            <h3>Beyond the Grades: What to do when you feel like giving up</h3>
+            <p>A letter to every student who feels the weight of the world on their shoulders...</p>
+            <span class="blog-date">May 03, 2026 • 8 min read</span>
+          </div>
+        </div>
+        <div class="blog-card" onclick="window.location.href='blog/blog.html#passion'">
+          <img src="/home/shubham/.gemini/antigravity/brain/d3ca1717-4091-4f47-9943-45f1a90becdf/passion_blog_image_1777793534095.png" alt="Passion">
+          <div class="blog-info">
+            <span class="blog-tag">Self-Discovery</span>
+            <h3>The Spark Within: Finding your true passion through curiosity</h3>
+            <p>How one question changed everything. Discover how to ignite your own flame...</p>
+            <span class="blog-date">May 02, 2026 • 10 min read</span>
+          </div>
+        </div>
+        <div class="blog-card" onclick="window.location.href='blog/blog.html#failure'">
+          <img src="/home/shubham/.gemini/antigravity/brain/d3ca1717-4091-4f47-9943-45f1a90becdf/failure_blog_image_1777793635774.png" alt="Growth">
+          <div class="blog-info">
+            <span class="blog-tag">Success</span>
+            <h3>The Beauty of Falling: Why failure is your best teacher</h3>
+            <p>Every setback is a setup for a comeback. Learn why your "losses" are actually wins...</p>
+            <span class="blog-date">May 01, 2026 • 6 min read</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Choose Us Section -->
+    <section class="section-container trust-section">
+      <div class="trust-grid">
+        <div class="trust-card">
+          <div class="trust-icon"><i class="fas fa-book-open"></i></div>
+          <h3>NCERT Focused</h3>
+          <p>Content specifically designed for Class 9 & 10 exams.</p>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon"><i class="fas fa-bolt"></i></div>
+          <h3>Fast AI Explanations</h3>
+          <p>Get your doubts solved instantly with our AI.</p>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon"><i class="fas fa-file-alt"></i></div>
+          <h3>Exam Ready</h3>
+          <p>Important questions and materials for your finals.</p>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon"><i class="fas fa-smile"></i></div>
+          <h3>Student Friendly</h3>
+          <p>A clean, easy-to-use interface built for students.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Question Modal -->
+  <div id="questionModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeQuestionModal()">&times;</span>
+      <div id="modalQuestionTitle" class="modal-q-title"></div>
+      <div id="modalQuestionAnswer" class="modal-q-answer"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeQuestionModal()">Close</button>
+        <a href="htmls/sign.html" class="btn btn-primary">Ask Follow up</a>
       </div>
     </div>
-    <div class="hero-img">
-      <div class="hero-img-glow"></div>
-      <img src="/online-graduation_16847316.png" alt="NeoBranium Illustration" class="animate__animated animate__zoomIn" />
-    </div>
-  </section>
+  </div>
 
-  <!-- Feature Sections -->
-  <section class="features-container">
-    <div class="feature-card" id="dashboard">
-      <div class="feature-glow"></div>
-      <i class="fas fa-tachometer-alt feature-icon"></i>
-      <h3>Smart Dashboard</h3>
-      <p>A sleek hub with profile, settings, notes, live chat, and AI Assistant for Class 9 & 10.</p>
-    </div>
-    <div class="feature-card" id="motivation">
-      <div class="feature-glow"></div>
-      <i class="fas fa-lightbulb feature-icon"></i>
-      <h3>Daily Motivation</h3>
-      <p>Get tips like 25-minute sprints and quotes like “The only way to learn is to do it!”</p>
-    </div>
-    <div class="feature-card" id="notes">
-      <div class="feature-glow"></div>
-      <i class="fas fa-book feature-icon"></i>
-      <h3>Notes & Uploads</h3>
-      <p>Upload, view, or download PDF notes for Science & Math. Share your knowledge!</p>
-    </div>
-    <div class="feature-card" id="spotlight">
-      <div class="feature-glow"></div>
-      <i class="fas fa-star feature-icon"></i>
-      <h3>Spotlight & Leaderboard</h3>
-      <p>Shine in Spotlight and climb the leaderboard with your contributions!</p>
-    </div>
-    <div class="feature-card" id="quizzes">
-      <div class="feature-glow"></div>
-      <i class="fas fa-question feature-icon"></i>
-      <h3>Interactive Quizzes</h3>
-      <p>Test your skills with fun quizzes in Science & Math. Track your progress!</p>
-    </div>
-    <div class="feature-card" id="events">
-      <div class="feature-glow"></div>
-      <i class="fas fa-calendar-alt feature-icon"></i>
-      <h3>Events & Community</h3>
-      <p>Join webinars, quiz competitions, and stay updated with August 2025 deadlines.</p>
-    </div>
-    <div class="feature-card" id="upcoming">
-      <div class="feature-glow"></div>
-      <i class="fas fa-rocket feature-icon"></i>
-      <h3>Upcoming Features</h3>
-      <p>Progress tracking and user-suggested features coming soon. Share your ideas!</p>
-    </div>
-  </section>
-
-  <!-- Warning Modal -->
+  <!-- Warning Modal (Preserved) -->
   <div class="modal" id="warningModal" role="dialog" aria-labelledby="warning-title" aria-hidden="true">
     <div class="modal-content">
       <h2 id="warning-title">Sign In Required</h2>
       <p>Please sign in to access these features. 🙌</p>
-      <button onclick="closeWarning()">Got It!</button>
-    </div>
-  </div>
-
-  <!-- Learn More Button -->
-  <div id="learn-more-btn" title="Learn More">
-    <i class="fas fa-circle-info"></i>
-  </div>
-
-  <!-- Learn More Dialog -->
-  <div id="learn-more-dialog" class="modal" role="dialog" aria-labelledby="learn-more-title" aria-hidden="true">
-    <div class="modal-content">
-      <button class="close-dialog" id="close-learn-more" aria-label="Close dialog">&times;</button>
-      <h2 id="learn-more-title">About NeoBranium</h2>
-      <p>
-        NeoBranium is your futuristic e-learning hub for Science & Math (Classes 9 & 10).<br>
-        <strong>Features:</strong>
-      <ul>
-        <li>Smart Dashboard & AI Assistant</li>
-        <li>Daily Motivation & Leaderboard</li>
-        <li>Notes Upload/Download</li>
-        <li>Interactive Quizzes & Events</li>
-        <li>User Profiles & Achievements</li>
-        <li>PDF Notes Sharing with Likes & Comments</li>
-        <li>Secure Sign-in & Privacy Protection</li>
-        <li>AI Assistant & Problem Solver</li>
-        <li>Earn rewards by uploading notes and redeeming codes</li>
-      </ul>
-      <em>More features coming soon. Stay tuned!</em>
-      </p>
+      <button onclick="closeWarning()" class="btn btn-primary">Got It!</button>
     </div>
   </div>
 
   <footer>
-    © 2025 NeoBranium | <span class="social-icons">
-      <a href="#" target="_blank"><i class="fab fa-globe"></i></a>
-      <a href="#" target="_blank"><i class="fab fa-facebook"></i></a>
-      <a href="#" target="_blank"><i class="fab fa-youtube"></i></a>
-      <a href="#" target="_blank"><i class="fab fa-twitter"></i></a>
-      <a href="#" target="_blank"><i class="fab fa-discord"></i></a>
-    </span>
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="logo">
+          <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
+          <span>NeoBranium</span>
+        </div>
+        <p>A next-gen learning platform for students of all classes.</p>
+        <div class="social-links">
+          <a href="#"><i class="fab fa-facebook"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-youtube"></i></a>
+          <a href="#"><i class="fab fa-twitter"></i></a>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="Notes/notes-science-class10.html">Notes</a></li>
+          <li><a href="IQ/top-question.html">Top Questions</a></li>
+          <li><a href="blog/blog.html">Blog</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="/about">About Us</a></li>
+          <li><a href="/htmls/contactus.html">Contact Us</a></li>
+          <li><a href="/htmls/privacy_policy&terms_conditions.html">Privacy Policy</a></li>
+          <li><a href="/htmls/privacy.html">Terms & Conditions</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-newsletter">
+        <h4>Stay Updated</h4>
+        <p>Subscribe to our newsletter for latest updates.</p>
+        <div class="newsletter-form">
+          <input type="email" placeholder="Enter your email">
+          <button class="btn btn-primary">Subscribe</button>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 NeoBranium. All rights reserved.</p>
+    </div>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
   <script src="index.js"></script>
-  <script>
-    // Learn More Dialog Logic
-    const learnMoreBtn = document.getElementById('learn-more-btn');
-    const learnMoreDialog = document.getElementById('learn-more-dialog');
-    const closeLearnMore = document.getElementById('close-learn-more');
-
-    learnMoreBtn.addEventListener('click', () => {
-      learnMoreDialog.style.display = 'flex';
-      learnMoreDialog.setAttribute('aria-hidden', 'false');
-    });
-
-    closeLearnMore.addEventListener('click', () => {
-      learnMoreDialog.style.display = 'none';
-      learnMoreDialog.setAttribute('aria-hidden', 'true');
-    });
-
-    window.addEventListener('click', (e) => {
-      if (e.target === learnMoreDialog) {
-        learnMoreDialog.style.display = 'none';
-        learnMoreDialog.setAttribute('aria-hidden', 'true');
-      }
-    });
-  </script>
+  <script src="search.js"></script>
 </body>
 
 </html>

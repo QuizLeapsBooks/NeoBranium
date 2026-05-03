@@ -1,0 +1,218 @@
+/* Specific styles for Notes page */
+
+.notes-page {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+  padding: 2rem 5%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Sidebar Styling */
+.notes-sidebar {
+  position: sticky;
+  top: 100px;
+  height: fit-content;
+}
+
+.sidebar-content {
+  background: var(--bg-white);
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+}
+
+.sidebar-content h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: var(--primary);
+  border-bottom: 2px solid var(--bg-light);
+  padding-bottom: 0.5rem;
+}
+
+.sidebar-content ul {
+  list-style: none;
+}
+
+.sidebar-content li {
+  margin-bottom: 0.8rem;
+}
+
+.sidebar-content a {
+  text-decoration: none;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: var(--transition);
+  display: block;
+}
+
+.sidebar-content a:hover {
+  color: var(--primary);
+  padding-left: 5px;
+}
+
+/* Notes Container */
+.notes-container {
+  background: var(--bg-white);
+  padding: 3rem;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+}
+
+.breadcrumb {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin-bottom: 2rem;
+}
+
+.breadcrumb a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.chapter-section {
+  margin-bottom: 4rem;
+}
+
+.chapter-section h2 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+}
+
+.chapter-summary {
+  font-style: italic;
+  color: var(--text-dim);
+  margin-bottom: 2rem;
+  font-size: 1.05rem;
+}
+
+.chapter-section h3 {
+  font-size: 1.4rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chapter-section p, .chapter-section li {
+  line-height: 1.8;
+  font-size: 1.05rem;
+  color: var(--text-main);
+  margin-bottom: 1rem;
+}
+
+.chapter-section ul, .chapter-section ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Specialized Boxes */
+.formula-box {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(14, 165, 233, 0.05) 100%);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid var(--primary);
+  margin: 2rem 0;
+}
+
+.formula-box h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  color: var(--primary);
+}
+
+.mistake-box {
+  background: #fffbeb;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border-left: 4px solid #f59e0b;
+  margin: 2rem 0;
+}
+
+.mistake-box h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  color: #854d0e;
+}
+
+.exam-questions {
+  background: #f8fafc;
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  margin-top: 3rem;
+}
+
+.exam-questions h3 {
+  margin-top: 0;
+  color: var(--text-main);
+}
+
+.exam-questions li {
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .notes-page {
+    grid-template-columns: 1fr;
+  }
+  .notes-sidebar {
+    position: relative;
+    top: 0;
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .notes-container {
+    padding: 1.5rem;
+  }
+  .chapter-section h2 {
+    font-size: 1.8rem;
+  }
+}
+
+/* Formula Table Styles */
+.formula-table-container {
+  overflow-x: auto;
+  margin-top: 2rem;
+}
+
+.formula-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--bg-white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.formula-table th, .formula-table td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.formula-table th {
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+}
+
+.formula-table tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.formula-table tr:hover {
+  background: #f1f5f9;
+}

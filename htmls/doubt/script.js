@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
         solveBtn.disabled = true;
         uploadArea.classList.add('processing');
         btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-        updateStatus('Consulting Gemini AI Neural Network...', true);
+        updateStatus('Consulting NeoTutor AI Neural Network...', true);
         outputContainer.classList.add('hidden');
 
         try {
@@ -297,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
             revealContent(outputContent, cleanHTML);
 
         } catch (error) {
-            console.error("Gemini Solve Error:", error);
+            console.error("NeoTutor Solve Error:", error);
             updateStatus('System Error detected.', false);
             outputContent.innerHTML = `<div style="color: #ff4d4d; padding: 20px; background: rgba(255, 77, 77, 0.1); border-radius: 12px; border: 1px solid rgba(255, 77, 77, 0.3);">
                 <p><i class="fa-solid fa-triangle-exclamation"></i> <strong>Critical Analysis Failure</strong></p>
@@ -511,21 +511,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Follow-up Feature Logic ---
 
-    // 1. Text Selection Logic
+    // 1. Text Selection Logic - Improved
     document.addEventListener('mouseup', (e) => {
+        // Ignore clicks on the button itself and follow-up section
         if (floatingAskBtn.contains(e.target) || followUpSection.contains(e.target)) return;
 
         const selection = window.getSelection();
         const selectedText = selection.toString().trim();
 
-        if (selectedText && outputContent.contains(selection.anchorNode)) {
+        // Check if selection is in output content
+        if (selectedText && selection.rangeCount > 0) {
             const range = selection.getRangeAt(0);
-            const rect = range.getBoundingClientRect();
-
-            floatingAskBtn.style.top = `${window.scrollY + rect.top - 45}px`;
-            floatingAskBtn.style.left = `${window.scrollX + rect.left + (rect.width / 2) - 50}px`;
-            floatingAskBtn.classList.remove('hidden');
+            const commonAncestor = range.commonAncestorContainer;
+            
+            // More reliable check: see if the selected range is inside outputContent
+            const isInOutputContent = outputContent.contains(commonAncestor) || 
+                                     outputContent.contains(range.startContainer) ||
+                                     outputContent.contains(range.endContainer);
+            
+            if (isInOutputContent) {
+                const rect = range.getBoundingClientRect();
+                
+                // Position the button above the selection, centered
+                floatingAskBtn.style.position = 'fixed';
+                floatingAskBtn.style.top = `${rect.top + window.scrollY - 50}px`;
+                floatingAskBtn.style.left = `${rect.left + window.scrollX + (rect.width / 2) - 55}px`;
+                floatingAskBtn.classList.remove('hidden');
+                
+                // Ensure button stays visible
+                floatingAskBtn.style.zIndex = '2000';
+            } else {
+                floatingAskBtn.classList.add('hidden');
+            }
         } else {
+            floatingAskBtn.classList.add('hidden');
+        }
+    });
+
+    // Also hide the button when clicking elsewhere
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.output-content') && !floatingAskBtn.contains(e.target)) {
             floatingAskBtn.classList.add('hidden');
         }
     });

@@ -1,0 +1,228 @@
+/* Specific styles for Top Questions (IQ) page */
+
+.iq-hero {
+  padding: 4rem 5% 2rem;
+  text-align: center;
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(14, 165, 233, 0.05) 100%);
+  margin-bottom: 2rem;
+}
+
+.iq-hero h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.iq-hero .highlight {
+  color: var(--primary);
+}
+
+.iq-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  background: var(--bg-white);
+  padding: 2rem;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filter-group span {
+  font-weight: 700;
+  color: var(--text-main);
+  min-width: 80px;
+}
+
+.filter-btn {
+  padding: 0.5rem 1.5rem;
+  border-radius: 50px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-light);
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.filter-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.filter-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.questions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 2rem;
+  min-height: 400px;
+}
+
+.q-card {
+  background: var(--bg-white);
+  padding: 2rem;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.q-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary);
+}
+
+.q-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+
+.q-tag {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  text-transform: uppercase;
+}
+
+.q-tag.science {
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary);
+}
+
+.q-tag.math {
+  background: rgba(14, 165, 233, 0.1);
+  color: var(--secondary);
+}
+
+.difficulty-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.8rem;
+  border-radius: 4px;
+}
+
+.difficulty-tag.easy { background: #dcfce7; color: #166534; }
+.difficulty-tag.medium { background: #fef9c3; color: #854d0e; }
+.difficulty-tag.hard { background: #fee2e2; color: #991b1b; }
+
+.q-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+  color: var(--text-main);
+}
+
+.q-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.2rem;
+}
+
+.q-chapter {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.important-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-dim);
+  font-size: 1.2rem;
+  transition: var(--transition);
+}
+
+.important-btn:hover {
+  color: #f59e0b;
+  transform: scale(1.2);
+}
+
+.important-btn.starred {
+  color: #f59e0b;
+}
+
+/* Modal Enhancements */
+.iq-modal {
+  max-width: 800px;
+}
+
+.modal-header {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.solution-container {
+  background: var(--bg-light);
+  padding: 2rem;
+  border-radius: 16px;
+  margin: 1.5rem 0 2rem;
+}
+
+.solution-container h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+
+.solution-body {
+  line-height: 1.8;
+  color: var(--text-main);
+  font-size: 1.05rem;
+}
+
+.solution-body b {
+  color: var(--primary);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 5rem;
+  color: var(--text-dim);
+  font-size: 1.2rem;
+  background: var(--bg-white);
+  border-radius: 20px;
+  border: 2px dashed var(--border-color);
+}
+
+@media (max-width: 768px) {
+  .iq-hero h1 { font-size: 2.2rem; }
+  .iq-filters { padding: 1.5rem; }
+  .questions-grid { grid-template-columns: 1fr; }
+  .modal-actions { flex-direction: column; }
+  .modal-actions .btn { width: 100%; justify-content: center; }
+}
