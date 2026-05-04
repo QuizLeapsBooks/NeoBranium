@@ -1,143 +1,143 @@
 {
   "rewrites": [
     {
-      "src": "/api/(.*)",
+      "source": "/api/(.*)",
       "dest": "/api/$1"
     },
     {
-      "src": "/top-questions",
+      "source": "/top-questions",
       "dest": "/IQ/top-question.html"
     },
     {
-      "src": "/blog",
+      "source": "/blog",
       "dest": "/blog/blog.html"
     },
     {
-      "src": "/notes",
+      "source": "/notes",
       "dest": "/Notes/notes-science-class9.html"
     },
     {
-      "src": "/notes/class10-science",
+      "source": "/notes/class10-science",
       "dest": "/Notes/notes-science-class10.html"
     },
     {
-      "src": "/notes/class9-science-chapter1",
+      "source": "/notes/class9-science-chapter1",
       "dest": "/Notes/notes-science-class9.html#ch1"
     },
     {
-      "src": "/notes/class9-science-chapter2",
+      "source": "/notes/class9-science-chapter2",
       "dest": "/Notes/notes-science-class9.html#ch2"
     },
     {
-      "src": "/notes/class9-science-chapter3",
+      "source": "/notes/class9-science-chapter3",
       "dest": "/Notes/notes-science-class9.html#ch3"
     },
     {
-      "src": "/notes/class9-science-chapter4",
+      "source": "/notes/class9-science-chapter4",
       "dest": "/Notes/notes-science-class9.html#ch4"
     },
     {
-      "src": "/notes/class9-science-bio-chapter1",
+      "source": "/notes/class9-science-bio-chapter1",
       "dest": "/Notes/notes-science-class9.html#bio-ch1"
     },
     {
-      "src": "/notes/class9-science-bio-chapter2",
+      "source": "/notes/class9-science-bio-chapter2",
       "dest": "/Notes/notes-science-class9.html#bio-ch2"
     },
     {
-      "src": "/notes/class9-science-bio-chapter3",
+      "source": "/notes/class9-science-bio-chapter3",
       "dest": "/Notes/notes-science-class9.html#bio-ch3"
     },
     {
-      "src": "/notes/class9-science-bio-chapter4",
+      "source": "/notes/class9-science-bio-chapter4",
       "dest": "/Notes/notes-science-class9.html#bio-ch4"
     },
     {
-      "src": "/notes/class9-science-bio-chapter5",
+      "source": "/notes/class9-science-bio-chapter5",
       "dest": "/Notes/notes-science-class9.html#bio-ch5"
     },
     {
-      "src": "/notes/class9-science-phy-chapter1",
+      "source": "/notes/class9-science-phy-chapter1",
       "dest": "/Notes/notes-science-class9.html#phy-ch1"
     },
     {
-      "src": "/notes/class9-science-phy-chapter2",
+      "source": "/notes/class9-science-phy-chapter2",
       "dest": "/Notes/notes-science-class9.html#phy-ch2"
     },
     {
-      "src": "/notes/class9-science-phy-chapter3",
+      "source": "/notes/class9-science-phy-chapter3",
       "dest": "/Notes/notes-science-class9.html#phy-ch3"
     },
     {
-      "src": "/notes/class9-science-phy-chapter4",
+      "source": "/notes/class9-science-phy-chapter4",
       "dest": "/Notes/notes-science-class9.html#phy-ch4"
     },
     {
-      "src": "/notes/class9-science-phy-chapter5",
+      "source": "/notes/class9-science-phy-chapter5",
       "dest": "/Notes/notes-science-class9.html#phy-ch5"
     },
     {
-      "src": "/notes/class9-science-formulas",
+      "source": "/notes/class9-science-formulas",
       "dest": "/Notes/notes-science-class9.html#phy-formulas"
     },
     {
-      "src": "/notes/class10-science-chapter1",
+      "source": "/notes/class10-science-chapter1",
       "dest": "/Notes/notes-science-class10.html#ch1"
     },
     {
-      "src": "/notes/class10-science-chapter2",
+      "source": "/notes/class10-science-chapter2",
       "dest": "/Notes/notes-science-class10.html#ch2"
     },
     {
-      "src": "/notes/class10-science-chapter3",
+      "source": "/notes/class10-science-chapter3",
       "dest": "/Notes/notes-science-class10.html#ch3"
     },
     {
-      "src": "/notes/class10-science-chapter4",
+      "source": "/notes/class10-science-chapter4",
       "dest": "/Notes/notes-science-class10.html#ch4"
     },
     {
-      "src": "/notes/class10-science-phy-chapter1",
+      "source": "/notes/class10-science-phy-chapter1",
       "dest": "/Notes/notes-science-class10.html#phy-ch1"
     },
     {
-      "src": "/notes/class10-science-phy-chapter2",
+      "source": "/notes/class10-science-phy-chapter2",
       "dest": "/Notes/notes-science-class10.html#phy-ch2"
     },
     {
-      "src": "/notes/class10-science-phy-chapter3",
+      "source": "/notes/class10-science-phy-chapter3",
       "dest": "/Notes/notes-science-class10.html#phy-ch3"
     },
     {
-      "src": "/notes/class10-science-phy-chapter4",
+      "source": "/notes/class10-science-phy-chapter4",
       "dest": "/Notes/notes-science-class10.html#phy-ch4"
     },
     {
-      "src": "/notes/class10-science-bio-chapter1",
+      "source": "/notes/class10-science-bio-chapter1",
       "dest": "/Notes/notes-science-class10.html#bio-ch1"
     },
     {
-      "src": "/notes/class10-science-bio-chapter2",
+      "source": "/notes/class10-science-bio-chapter2",
       "dest": "/Notes/notes-science-class10.html#bio-ch2"
     },
     {
-      "src": "/notes/class10-science-bio-chapter3",
+      "source": "/notes/class10-science-bio-chapter3",
       "dest": "/Notes/notes-science-class10.html#bio-ch3"
     },
     {
-      "src": "/notes/class10-science-bio-chapter4",
+      "source": "/notes/class10-science-bio-chapter4",
       "dest": "/Notes/notes-science-class10.html#bio-ch4"
     },
     {
-      "src": "/notes/class10-science-bio-chapter5",
+      "source": "/notes/class10-science-bio-chapter5",
       "dest": "/Notes/notes-science-class10.html#bio-ch5"
     },
     {
-      "src": "/notes/class10-science-formulas",
+      "source": "/notes/class10-science-formulas",
       "dest": "/Notes/notes-science-class10.html#formulas"
     },
     {
-      "src": "/(.*)",
+      "source": "/(.*)",
       "dest": "/$1"
     }
   ]
