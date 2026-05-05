@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI Doubt Solver | NeoBranium</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -17,7 +16,6 @@
     </script>
     <script type="module" src="/js/auth.js"></script>
 </head>
-
 <body>
     <!-- Particle Background -->
     <canvas id="bg-particles"></canvas>
@@ -40,7 +38,7 @@
                     <span>NeoBranium</span>
                 </div>
                 <button id="viewHistoryBtn" class="history-btn">
-                    <i class="fa-solid fa-clock-rotate-left"></i> History
+                    <i class="fa-solid fa-clock-rotate-left"></i> <span class="btn-label">History</span>
                 </button>
             </div>
             <div class="hero-content">
@@ -66,6 +64,9 @@
                         </div>
                         <h3>Initialize <span>Quantum Scan</span></h3>
                         <p>Drag image or click to upload</p>
+                        <div class="upload-hint-mobile">
+                            <i class="fa-solid fa-arrow-up-from-bracket"></i> Tap to upload
+                        </div>
                     </div>
 
                     <!-- Preview Section -->
@@ -161,5 +162,4 @@
     <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
     <script type="module" src="script.js"></script>
 </body>
-
 </html>

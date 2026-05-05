@@ -22,6 +22,10 @@
     box-sizing: border-box;
 }
 
+html {
+    font-size: 16px;
+}
+
 body {
     font-family: var(--font-inter);
     background-color: var(--bg-light);
@@ -33,6 +37,7 @@ body {
     padding: clamp(10px, 4vw, 40px);
     position: relative;
     overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* --- Background Blobs --- */
@@ -44,7 +49,7 @@ body {
     height: 100%;
     z-index: -1;
     pointer-events: none;
-    display: none;
+    display: block;
 }
 
 .futuristic-shape {
@@ -85,12 +90,13 @@ body {
     width: 100%;
     max-width: 1400px;
     background: var(--bg-white);
-    border-radius: 16px;
+    border-radius: clamp(12px, 2vw, 16px);
     border: 1px solid var(--border-color);
-    padding: clamp(20px, 4vw, 40px);
+    padding: clamp(16px, 4vw, 40px);
     box-shadow: var(--card-shadow);
     position: relative;
     overflow: hidden;
+    animation: slideUp 0.5s ease-out;
 }
 
 @keyframes slideUp {
@@ -100,27 +106,30 @@ body {
 
 /* --- Header --- */
 header {
-    margin-bottom: 40px;
+    margin-bottom: clamp(20px, 4vw, 40px);
 }
 
 .brand-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin-bottom: clamp(20px, 3vw, 30px);
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .logo {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: clamp(8px, 2vw, 12px);
     font-family: var(--font-outfit);
     font-weight: 800;
-    font-size: 1.5rem;
+    font-size: clamp(1rem, 3vw, 1.5rem);
 }
 
 .logo img {
-    width: 42px;
+    width: clamp(30px, 8vw, 42px);
+    height: clamp(30px, 8vw, 42px);
     filter: drop-shadow(0 0 10px var(--primary));
 }
 
@@ -134,15 +143,16 @@ header {
     background: rgba(37, 99, 235, 0.08);
     border: 1px solid rgba(37, 99, 235, 0.2);
     color: var(--primary);
-    padding: 10px 20px;
+    padding: clamp(8px, 2vw, 10px) clamp(16px, 3vw, 20px);
     border-radius: 50px;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: clamp(0.8rem, 2vw, 0.9rem);
     cursor: pointer;
     transition: var(--transition);
     display: flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
 }
 
 .history-btn:hover {
@@ -153,35 +163,43 @@ header {
     box-shadow: var(--card-shadow);
 }
 
+.history-btn:active {
+    transform: translateY(0);
+}
+
 .hero-content {
     text-align: center;
 }
 
 .glow-text {
     font-family: var(--font-outfit);
-    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
     font-weight: 800;
-    margin-bottom: 12px;
+    margin-bottom: clamp(8px, 2vw, 12px);
     color: var(--text-main);
+    word-wrap: break-word;
 }
 
 .status-badge {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: clamp(6px, 2vw, 10px);
     background: rgba(37, 99, 235, 0.1);
-    padding: 8px 16px;
+    padding: clamp(6px, 2vw, 8px) clamp(12px, 3vw, 16px);
     border-radius: 20px;
     border: 1px solid rgba(37, 99, 235, 0.2);
-    margin-bottom: 20px;
+    margin-bottom: clamp(12px, 3vw, 20px);
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 .status-dot {
-    width: 8px;
-    height: 8px;
+    width: clamp(6px, 1.5vw, 8px);
+    height: clamp(6px, 1.5vw, 8px);
     background: var(--primary);
     border-radius: 50%;
     animation: pulse 2s infinite;
+    flex-shrink: 0;
 }
 
 @keyframes pulse {
@@ -191,14 +209,14 @@ header {
 
 .typewriter {
     font-family: var(--font-inter);
-    font-size: 0.95rem;
+    font-size: clamp(0.8rem, 2vw, 0.95rem);
     color: var(--text-dim);
     letter-spacing: 0;
 }
 
 .sub-text {
     color: var(--text-dim);
-    font-size: 1.1rem;
+    font-size: clamp(0.9rem, 2.5vw, 1.1rem);
     max-width: 600px;
     margin: 0 auto;
 }
@@ -206,139 +224,27 @@ header {
 /* --- Main Layout --- */
 .solver-layout {
     display: grid;
-    grid-template-columns: minmax(300px, 1fr) minmax(300px, 1.2fr);
-    gap: 30px;
+    grid-template-columns: minmax(280px, 1fr) minmax(300px, 1.2fr);
+    gap: clamp(16px, 3vw, 30px);
     align-items: stretch;
 }
 
-@media (max-width: 1024px) {
-    .solver-layout {
-        grid-template-columns: 1fr;
-        gap: 25px;
-    }
-    
-    .container {
-        padding: 20px;
-        margin: 10px;
-        border-radius: 12px;
-    }
-
-    .hero-content {
-        margin-bottom: 30px;
-    }
+.left-panel {
+    min-width: 0;
 }
 
-@media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-
-    .container {
-        padding: 16px;
-        margin: 5px;
-    }
-
-    .glow-text {
-        font-size: 1.8rem;
-    }
-
-    .upload-area {
-        min-height: 250px;
-    }
-
-    .solve-btn {
-        padding: 12px 20px;
-        font-size: 0.95rem;
-    }
-
-    .feedback-buttons {
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .feedback-btn {
-        padding: 10px 20px;
-        width: 100%;
-    }
-
-    .modal-content {
-        max-width: 90%;
-        margin: 20px;
-    }
-}
-
-@media (max-width: 600px) {
-    .glow-text { 
-        font-size: 1.5rem; 
-    }
-
-    .brand-header { 
-        flex-direction: column; 
-        gap: 15px; 
-        text-align: center; 
-    }
-
-    .history-btn { 
-        width: 100%; 
-        justify-content: center; 
-    }
-
-    .logo {
-        font-size: 1.2rem;
-    }
-
-    .logo img {
-        width: 35px;
-    }
-
-    .hero-content p {
-        font-size: 0.95rem;
-    }
-
-    .status-badge {
-        font-size: 0.85rem;
-        padding: 6px 12px;
-    }
-
-    .upload-content h3 {
-        font-size: 1.2rem;
-    }
-
-    .upload-icon {
-        font-size: 28px;
-    }
-
-    .output-content-wrapper {
-        padding: 16px;
-    }
-
-    .modal-tabs {
-        flex-direction: column;
-    }
-
-    .tab-btn {
-        padding: 12px;
-        border-bottom: none;
-        border-left: 3px solid transparent;
-    }
-
-    .tab-btn.active {
-        border-left-color: var(--primary);
-    }
-
-    .follow-up-input-wrapper {
-        padding: 12px 15px;
-    }
+.right-panel {
+    min-width: 0;
 }
 
 /* --- Quantum Scanner (Upload Area) --- */
 .upload-area {
     width: 100%;
     aspect-ratio: 4/3;
-    min-height: 300px;
+    min-height: clamp(200px, 40vh, 300px);
     background: var(--bg-light);
     border: 2px dashed var(--border-color);
-    border-radius: 12px;
+    border-radius: clamp(8px, 2vw, 12px);
     position: relative;
     overflow: hidden;
     cursor: pointer;
@@ -388,12 +294,13 @@ header {
     text-align: center;
     z-index: 5;
     transition: all 0.3s;
+    padding: 20px;
 }
 
 .icon-box {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 20px;
+    width: clamp(60px, 15vw, 80px);
+    height: clamp(60px, 15vw, 80px);
+    margin: 0 auto clamp(12px, 3vw, 20px);
     background: rgba(37, 99, 235, 0.1);
     border-radius: 12px;
     display: flex;
@@ -409,13 +316,13 @@ header {
 }
 
 .upload-icon {
-    font-size: 32px;
+    font-size: clamp(24px, 7vw, 32px);
     color: var(--primary);
 }
 
 .upload-content h3 {
     font-family: var(--font-outfit);
-    font-size: 1.5rem;
+    font-size: clamp(1rem, 3.5vw, 1.5rem);
     margin-bottom: 8px;
 }
 
@@ -425,7 +332,17 @@ header {
 
 .upload-content p {
     color: var(--text-dim);
-    font-size: 0.95rem;
+    font-size: clamp(0.8rem, 2vw, 0.95rem);
+}
+
+.upload-hint-mobile {
+    display: none;
+    color: var(--primary);
+    font-size: 0.85rem;
+    margin-top: 12px;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
 }
 
 /* --- Preview Container --- */
@@ -460,10 +377,10 @@ header {
 
 .remove-btn {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 45px;
-    height: 45px;
+    top: clamp(10px, 3vw, 20px);
+    right: clamp(10px, 3vw, 20px);
+    width: clamp(36px, 8vw, 45px);
+    height: clamp(36px, 8vw, 45px);
     background: rgba(255, 77, 77, 0.2);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 77, 77, 0.5);
@@ -473,7 +390,7 @@ header {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 18px;
+    font-size: clamp(14px, 3vw, 18px);
     transition: all 0.3s;
     z-index: 20;
 }
@@ -487,14 +404,14 @@ header {
 /* --- Action Button --- */
 .solve-btn {
     width: 100%;
-    margin-top: 24px;
-    padding: 14px 24px;
-    border-radius: 10px;
+    margin-top: clamp(16px, 3vw, 24px);
+    padding: clamp(12px, 3vw, 14px) clamp(20px, 4vw, 24px);
+    border-radius: clamp(8px, 2vw, 10px);
     border: none;
     background: var(--primary);
     color: #fff;
     font-family: var(--font-outfit);
-    font-size: 1rem;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
     font-weight: 700;
     cursor: pointer;
     position: relative;
@@ -545,7 +462,7 @@ header {
 .output-container {
     background: var(--bg-white);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: clamp(8px, 2vw, 12px);
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -558,17 +475,19 @@ header {
 }
 
 .output-header {
-    padding: 20px 25px;
+    padding: clamp(12px, 3vw, 20px) clamp(16px, 3vw, 25px);
     background: var(--bg-light);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .output-header h3 {
     font-family: var(--font-outfit);
-    font-size: 1.1rem;
+    font-size: clamp(0.95rem, 2.5vw, 1.1rem);
     color: var(--primary);
     display: flex;
     align-items: center;
@@ -579,20 +498,23 @@ header {
     background: transparent;
     border: none;
     color: var(--text-dim);
-    font-size: 1.2rem;
+    font-size: clamp(1rem, 3vw, 1.2rem);
     cursor: pointer;
     transition: all 0.2s;
+    padding: 8px;
+    border-radius: 6px;
 }
 
 .copy-btn:hover {
-    color: #fff;
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--primary);
     transform: scale(1.1);
 }
 
 .output-content-wrapper {
     flex: 1;
     overflow-y: auto;
-    padding: 25px;
+    padding: clamp(12px, 3vw, 25px);
     scrollbar-width: thin;
     scrollbar-color: var(--primary) transparent;
 }
@@ -610,9 +532,11 @@ header {
 }
 
 .output-content {
-    font-size: 1.05rem;
+    font-size: clamp(0.9rem, 2vw, 1.05rem);
     line-height: 1.7;
     color: var(--text-main);
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .output-content strong {
@@ -626,26 +550,27 @@ header {
 
 /* --- Feedback Section --- */
 .feedback-section {
-    padding: 20px 25px;
+    padding: clamp(12px, 3vw, 20px) clamp(16px, 3vw, 25px);
     background: var(--bg-light);
     border-top: 1px solid var(--border-color);
     text-align: center;
 }
 
 .feedback-section p {
-    font-size: 0.95rem;
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
     color: var(--text-dim);
-    margin-bottom: 15px;
+    margin-bottom: clamp(10px, 2vw, 15px);
 }
 
 .feedback-buttons {
     display: flex;
     justify-content: center;
-    gap: 15px;
+    gap: clamp(8px, 2vw, 15px);
+    flex-wrap: wrap;
 }
 
 .feedback-btn {
-    padding: 12px 25px;
+    padding: clamp(10px, 2.5vw, 12px) clamp(20px, 4vw, 25px);
     border-radius: 12px;
     border: none;
     font-weight: 700;
@@ -655,6 +580,10 @@ header {
     display: flex;
     align-items: center;
     gap: 8px;
+    font-size: clamp(0.85rem, 2vw, 1rem);
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
 }
 
 .solved-btn {
@@ -694,7 +623,7 @@ header {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: clamp(10px, 3vw, 20px);
 }
 
 .modal-content {
@@ -702,7 +631,7 @@ header {
     width: 100%;
     max-width: 700px;
     max-height: 85vh;
-    border-radius: 16px;
+    border-radius: clamp(12px, 2vw, 16px);
     border: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
@@ -711,7 +640,7 @@ header {
 }
 
 .modal-header {
-    padding: 25px 30px;
+    padding: clamp(16px, 3vw, 25px) clamp(20px, 4vw, 30px);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -720,7 +649,7 @@ header {
 
 .modal-header h2 {
     font-family: var(--font-outfit);
-    font-size: 1.3rem;
+    font-size: clamp(1rem, 3vw, 1.3rem);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -731,9 +660,10 @@ header {
     background: transparent;
     border: none;
     color: var(--text-dim);
-    font-size: 24px;
+    font-size: clamp(20px, 5vw, 24px);
     cursor: pointer;
     transition: all 0.2s;
+    padding: 4px;
 }
 
 .close-modal:hover {
@@ -749,16 +679,17 @@ header {
 
 .tab-btn {
     flex: 1;
-    padding: 16px;
+    padding: clamp(12px, 3vw, 16px);
     border: none;
     background: transparent;
     color: var(--text-dim);
     font-family: var(--font-outfit);
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: clamp(0.8rem, 2vw, 0.95rem);
     cursor: pointer;
     transition: var(--transition);
     border-bottom: 3px solid transparent;
+    white-space: nowrap;
 }
 
 .tab-btn.active {
@@ -768,20 +699,21 @@ header {
 }
 
 .modal-body {
-    padding: 25px;
+    padding: clamp(16px, 3vw, 25px);
     overflow-y: auto;
     flex: 1;
 }
 
 .history-item {
     display: flex;
-    gap: 20px;
+    gap: clamp(10px, 2vw, 20px);
     background: var(--bg-light);
-    padding: 16px;
-    border-radius: 10px;
+    padding: clamp(10px, 2vw, 16px);
+    border-radius: clamp(8px, 2vw, 10px);
     border: 1px solid var(--border-color);
-    margin-bottom: 15px;
+    margin-bottom: clamp(10px, 2vw, 15px);
     transition: var(--transition);
+    cursor: pointer;
 }
 
 .history-item:hover {
@@ -792,18 +724,20 @@ header {
 }
 
 .history-item img {
-    width: 90px;
-    height: 90px;
+    width: clamp(60px, 12vw, 90px);
+    height: clamp(60px, 12vw, 90px);
     object-fit: cover;
-    border-radius: 12px;
+    border-radius: clamp(8px, 2vw, 12px);
+    flex-shrink: 0;
 }
 
 .history-item-content {
     flex: 1;
+    min-width: 0;
 }
 
 .history-item-date {
-    font-size: 0.75rem;
+    font-size: clamp(0.7rem, 1.5vw, 0.75rem);
     color: var(--primary);
     margin-bottom: 5px;
     display: block;
@@ -811,9 +745,10 @@ header {
 }
 
 .history-item-text {
-    font-size: 0.9rem;
+    font-size: clamp(0.8rem, 2vw, 0.9rem);
     color: var(--text-main);
     line-height: 1.5;
+    word-wrap: break-word;
 }
 
 /* --- Utilities --- */
@@ -821,7 +756,7 @@ header {
 
 /* --- Scrollbar Customization --- */
 ::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -844,11 +779,11 @@ header {
     background: var(--primary);
     color: #fff;
     border: none;
-    padding: 10px 16px;
+    padding: clamp(8px, 2vw, 10px) clamp(12px, 3vw, 16px);
     border-radius: 50px;
     font-family: var(--font-outfit);
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: clamp(0.75rem, 2vw, 0.85rem);
     cursor: pointer;
     box-shadow: var(--card-shadow);
     display: flex;
@@ -856,6 +791,7 @@ header {
     gap: 8px;
     animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: auto;
+    touch-action: manipulation;
 }
 
 @keyframes popIn {
@@ -864,10 +800,10 @@ header {
 }
 
 .follow-up-section {
-    margin: 0 25px 25px;
+    margin: 0 clamp(12px, 3vw, 25px) clamp(12px, 3vw, 25px);
     background: var(--bg-light);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: clamp(8px, 2vw, 12px);
     overflow: hidden;
     animation: slideIn 0.3s ease-out;
 }
@@ -878,7 +814,7 @@ header {
 }
 
 .follow-up-header {
-    padding: 12px 20px;
+    padding: clamp(10px, 2vw, 12px) clamp(16px, 3vw, 20px);
     background: rgba(37, 99, 235, 0.05);
     display: flex;
     justify-content: space-between;
@@ -889,7 +825,7 @@ header {
 .follow-up-header h4 {
     color: var(--primary);
     font-family: var(--font-outfit);
-    font-size: 0.9rem;
+    font-size: clamp(0.8rem, 2vw, 0.9rem);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -900,8 +836,9 @@ header {
     border: none;
     color: var(--text-dim);
     cursor: pointer;
-    font-size: 16px;
+    font-size: clamp(14px, 3vw, 16px);
     transition: color 0.2s;
+    padding: 4px;
 }
 
 .close-follow-up:hover {
@@ -909,10 +846,10 @@ header {
 }
 
 .follow-up-content {
-    padding: 20px;
-    max-height: 400px;
+    padding: clamp(12px, 3vw, 20px);
+    max-height: 300px;
     overflow-y: auto;
-    font-size: 0.95rem;
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
     color: var(--text-main);
     line-height: 1.6;
     scrollbar-width: thin;
@@ -920,7 +857,7 @@ header {
 
 .follow-up-input-wrapper {
     display: flex;
-    padding: 15px 20px;
+    padding: clamp(10px, 2vw, 15px) clamp(16px, 3vw, 20px);
     gap: 10px;
     background: rgba(255, 255, 255, 0.5);
     border-top: 1px solid var(--border-color);
@@ -931,10 +868,11 @@ header {
     background: var(--bg-white);
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    padding: 10px 15px;
+    padding: clamp(8px, 2vw, 10px) clamp(12px, 2vw, 15px);
     color: var(--text-main);
     font-family: var(--font-inter);
-    font-size: 0.95rem;
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
+    min-width: 0;
 }
 
 .follow-up-input-wrapper input:focus {
@@ -947,14 +885,15 @@ header {
     background: var(--primary);
     color: #fff;
     border: none;
-    width: 42px;
-    height: 42px;
+    width: clamp(38px, 8vw, 42px);
+    height: clamp(38px, 8vw, 42px);
     border-radius: 8px;
     cursor: pointer;
     transition: var(--transition);
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .send-follow-up-btn:hover {
@@ -976,8 +915,8 @@ header {
 }
 
 .ai-dot {
-    width: 8px;
-    height: 8px;
+    width: clamp(6px, 1.5vw, 8px);
+    height: clamp(6px, 1.5vw, 8px);
     background: var(--primary);
     border-radius: 50%;
     box-shadow: 0 0 10px var(--primary);
@@ -1007,3 +946,210 @@ header {
     50% { opacity: 0; }
 }
 
+/* --- Responsive Breakpoints --- */
+@media (max-width: 1024px) {
+    .solver-layout {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+    
+    .container {
+        padding: clamp(16px, 3vw, 20px);
+        margin: 10px;
+        border-radius: 12px;
+    }
+
+    .hero-content {
+        margin-bottom: 30px;
+    }
+    
+    .output-container {
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 8px;
+    }
+
+    .container {
+        padding: 16px;
+        margin: 4px;
+        border-radius: 10px;
+    }
+
+    .glow-text {
+        font-size: clamp(1.5rem, 7vw, 1.8rem);
+    }
+
+    .upload-area {
+        min-height: 220px;
+        border-width: 1.5px;
+    }
+
+    .solve-btn {
+        padding: 14px 20px;
+        font-size: 0.95rem;
+    }
+
+    .feedback-btn {
+        padding: 12px 20px;
+        min-width: 100%;
+    }
+
+    .modal-content {
+        max-width: 95%;
+        margin: 10px;
+    }
+    
+    .modal-body {
+        padding: 16px;
+    }
+
+    .follow-up-content {
+        max-height: 250px;
+    }
+    
+    .upload-hint-mobile {
+        display: flex;
+    }
+    
+    .upload-content p {
+        display: none;
+    }
+    
+    .brand-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .history-btn {
+        width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 4px;
+    }
+
+    .container {
+        padding: 12px;
+        margin: 2px;
+        border-radius: 8px;
+    }
+
+    .glow-text { 
+        font-size: clamp(1.3rem, 6vw, 1.5rem); 
+    }
+
+    .brand-header { 
+        flex-direction: column; 
+        gap: 12px; 
+        text-align: center; 
+    }
+
+    .history-btn { 
+        width: 100%; 
+        justify-content: center; 
+    }
+
+    .logo {
+        font-size: clamp(1rem, 4vw, 1.2rem);
+        justify-content: center;
+    }
+
+    .logo img {
+        width: 30px;
+        height: 30px;
+    }
+
+    .hero-content p {
+        font-size: 0.9rem;
+    }
+
+    .status-badge {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+
+    .upload-content h3 {
+        font-size: 1.1rem;
+    }
+
+    .upload-icon {
+        font-size: 26px;
+    }
+
+    .output-content-wrapper {
+        padding: 14px;
+    }
+
+    .modal-tabs {
+        flex-direction: row;
+    }
+
+    .tab-btn {
+        padding: 12px 8px;
+        font-size: 0.8rem;
+    }
+
+    .follow-up-input-wrapper {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+    
+    .output-container {
+        min-height: 250px;
+    }
+    
+    .icon-box {
+        width: 55px;
+        height: 55px;
+    }
+    
+    .solver-layout {
+        gap: 16px;
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) {
+    .upload-area:hover {
+        transform: none;
+    }
+    
+    .history-btn:hover {
+        transform: none;
+    }
+    
+    .solve-btn:hover:not(:disabled) {
+        transform: none;
+    }
+    
+    .feedback-btn:hover {
+        transform: none;
+    }
+    
+    .history-item:hover {
+        transform: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    body {
+        background: white;
+        padding: 0;
+    }
+    
+    .container {
+        box-shadow: none;
+        border: none;
+    }
+    
+    .upload-area, .solve-btn, .feedback-section, .floating-ask-btn {
+        display: none;
+    }
+}
