@@ -449,15 +449,15 @@ app.post('/api/gemini-solve', async (req, res) => {
         const geminiApiKey = process.env.GEMINI_API_KEY;
 
         if (!geminiApiKey) {
-            console.error('❌ Missing GEMINI_API_KEY in environment');
-            return res.status(500).json({ success: false, error: 'Gemini API key not configured' });
+            console.error('❌ Server Side Error - Contact NeoBranium Support');
+            return res.status(500).json({ success: false, error: 'Server Side Error' });
         }
 
         if (!base64 || !mimeType) {
             return res.status(400).json({ success: false, error: 'Missing image data or mimeType' });
         }
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
