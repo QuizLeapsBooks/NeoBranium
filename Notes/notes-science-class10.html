@@ -11,6 +11,67 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
   <link rel="stylesheet" href="../index_css.css">
   <link rel="stylesheet" href="notes.css">
+  <style>
+    /* Additional high-value styles without touching original structure */
+    .quick-summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0 1.5rem 0;
+    }
+
+    .summary-card {
+      background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      border-left: 4px solid var(--primary-color, #4361ee);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .summary-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .summary-card h4 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.2rem;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .summary-card h4 i {
+      color: var(--primary-color, #4361ee);
+      font-size: 1.2rem;
+    }
+
+    .summary-card p {
+      font-size: 0.9rem;
+      color: #475569;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .badge-chapter {
+      display: inline-block;
+      background: #e6f0ff;
+      color: #1e40af;
+      font-size: 0.7rem;
+      border-radius: 20px;
+      padding: 0.2rem 0.6rem;
+      margin-top: 0.6rem;
+      font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+      .quick-summary-cards {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -38,7 +99,8 @@
       <nav class="nav-menu">
         <a href="../index.html">Home</a>
         <div class="nav-item">
-          <a href="notes-science-class10.html" class="active">Notes <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i></a>
+          <a href="notes-science-class10.html" class="active">Notes <i class="fas fa-chevron-down"
+              style="font-size: 0.7rem;"></i></a>
           <div class="dropdown-menu">
             <div class="dropdown-submenu">
               <h5>Class 9</h5>
@@ -47,7 +109,8 @@
                 <li><a href="../htmls/classs9-10mathematics.html">Mathematics</a></li>
               </ul>
             </div>
-            <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;">
+            <div class="dropdown-submenu"
+              style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;">
               <h5>Class 10</h5>
               <ul>
                 <li><a href="notes-science-class10.html">Science</a></li>
@@ -97,6 +160,74 @@
         <a href="../index.html">Home</a> / <a href="notes-science-class10.html">Notes</a> / Class 10 Science
       </nav>
 
+      <!-- ===== HIGH-VALUE ADDITION: Chapter Summary Cards (No existing content changed) ===== -->
+      <div class="quick-summary-cards">
+        <div class="summary-card">
+          <h4><i class="fas fa-flask"></i> Chemical Reactions</h4>
+          <p>Balancing equations, types: combination, decomposition, displacement, redox. Corrosion & rancidity
+            explained.</p>
+          <span class="badge-chapter">Must-Know: Redox</span>
+        </div>
+        <div class="summary-card">
+          <h4><i class="fas fa-vial"></i> Acids, Bases & Salts</h4>
+          <p>pH scale (0-14), neutralization, chlor-alkali, important salts: Baking soda, Washing soda, Plaster of
+            Paris.</p>
+          <span class="badge-chapter">pH of human body ~7.4</span>
+        </div>
+        <div class="summary-card">
+          <h4><i class="fas fa-cogs"></i> Metals & Non-metals</h4>
+          <p>Reactivity series, ionic compounds, metallurgy steps: enrichment → reduction → refining.</p>
+          <span class="badge-chapter">Aqua Regia: 3:1 ratio</span>
+        </div>
+        <div class="summary-card">
+          <h4><i class="fas fa-dragon"></i> Carbon Compounds</h4>
+          <p>Catenation, covalent bonds, saturated/unsaturated hydrocarbons, soaps vs detergents, esterification.</p>
+          <span class="badge-chapter">Homologous series</span>
+        </div>
+        <div class="summary-card">
+          <h4><i class="fas fa-heartbeat"></i> Life Processes</h4>
+          <p>Nutrition, respiration (aerobic/anaerobic), transportation (double circulation), excretion & nephron.</p>
+          <span class="badge-chapter">ATP: energy currency</span>
+        </div>
+        <div class="summary-card">
+          <h4><i class="fas fa-brain"></i> Control & Coordination</h4>
+          <p>Neurons, reflex arc, brain regions, plant hormones (Auxin, Gibberellins), animal hormones (insulin,
+            adrenaline).</p>
+          <span class="badge-chapter">Fight or flight</span>
+        </div>
+        <div class="summary-card">
+          <h4><i class="fas fa-seedling"></i> Reproduction</h4>
+          <p>Asexual vs sexual, flower structure, human reproductive system, contraception methods, DNA copying.</p>
+          <span class="badge-chapter">Placenta functions</span>
+        </div>
+        <div class="summary-card">
+          <h4><i class="fas fa-dna"></i> Heredity</h4>
+          <p>Mendel's laws, monohybrid cross (3:1), sex determination (XY system), acquired vs inherited traits.</p>
+          <span class="badge-chapter">Genotype vs Phenotype</span>
+        </div>
+        <div class="summary-card">
+          <h4><i class="fas fa-globe"></i> Our Environment</h4>
+          <p>Ecosystem, 10% energy law, biomagnification, ozone depletion, biodegradable waste, 3 R’s.</p>
+          <span class="badge-chapter">CFCs & ozone</span>
+        </div>
+        <div class="summary-card">
+          <h4><i class="fas fa-sun"></i> Light & Optics</h4>
+          <p>Mirror/lens formula, power of lens (Dioptre), refraction, human eye defects (myopia, hypermetropia).</p>
+          <span class="badge-chapter">Sign convention</span>
+        </div>
+        <div class="summary-card">
+          <h4><i class="fas fa-bolt"></i> Electricity</h4>
+          <p>Ohm’s law (V=IR), series/parallel resistance, Joule’s heating, electric power (P=VI).</p>
+          <span class="badge-chapter">kWh = 3.6×10⁶ J</span>
+        </div>
+        <div class="summary-card">
+          <h4><i class="fas fa-magnet"></i> Magnetic Effects</h4>
+          <p>Right-hand thumb rule, solenoid, Fleming’s left-hand rule (motor), domestic circuits, earthing.</p>
+          <span class="badge-chapter">Short circuit prevention</span>
+        </div>
+      </div>
+      <!-- ===== END OF HIGH-VALUE CARDS ===== -->
+
       <!-- Chapter 1 -->
       <section id="ch1" class="chapter-section">
         <h2>Chapter 1: Chemical Reactions and Equations</h2>
@@ -104,14 +235,20 @@
 
         <h3>Key Concepts</h3>
         <ul>
-          <li><strong>Chemical Equation:</strong> Representation of a reaction using symbols. It must be <strong>balanced</strong> to satisfy the Law of Conservation of Mass.</li>
+          <li><strong>Chemical Equation:</strong> Representation of a reaction using symbols. It must be
+            <strong>balanced</strong> to satisfy the Law of Conservation of Mass.
+          </li>
           <li><strong>Types of Reactions:</strong>
             <ul>
               <li><strong>Combination:</strong> Two or more reactants form one product (A + B → AB).</li>
-              <li><strong>Decomposition:</strong> A single reactant breaks down into two or more products (AB → A + B). Types: Thermal, Electrolytic, Photolytic.</li>
-              <li><strong>Displacement:</strong> A more reactive element displaces a less reactive one (A + BC → AC + B).</li>
+              <li><strong>Decomposition:</strong> A single reactant breaks down into two or more products (AB → A + B).
+                Types: Thermal, Electrolytic, Photolytic.</li>
+              <li><strong>Displacement:</strong> A more reactive element displaces a less reactive one (A + BC → AC +
+                B).</li>
               <li><strong>Double Displacement:</strong> Exchange of ions between two compounds (AB + CD → AD + CB).</li>
-              <li><strong>Redox:</strong> Simultaneous <strong>Oxidation</strong> (gain of oxygen/loss of electrons) and <strong>Reduction</strong> (loss of oxygen/gain of electrons).</li>
+              <li><strong>Redox:</strong> Simultaneous <strong>Oxidation</strong> (gain of oxygen/loss of electrons) and
+                <strong>Reduction</strong> (loss of oxygen/gain of electrons).
+              </li>
             </ul>
           </li>
           <li><strong>Corrosion:</strong> Degradation of metals by air/moisture (e.g., Rusting of iron).</li>
@@ -122,14 +259,17 @@
         <ul>
           <li><strong>Precipitate:</strong> An insoluble solid that emerges from a liquid solution.</li>
           <li><strong>Exothermic Reaction:</strong> Heat is released along with products (e.g., Respiration).</li>
-          <li><strong>Endothermic Reaction:</strong> Heat is absorbed to carry out the reaction (e.g., Photosynthesis).</li>
+          <li><strong>Endothermic Reaction:</strong> Heat is absorbed to carry out the reaction (e.g., Photosynthesis).
+          </li>
         </ul>
 
         <div class="formula-box">
           <h3>Important Equations to Remember</h3>
           <ul>
-            <li><strong>Photosynthesis:</strong> 6CO<sub>2</sub> + 12H<sub>2</sub>O → C<sub>6</sub>H<sub>12</sub>O<sub>6</sub> + 6O<sub>2</sub> + 6H<sub>2</sub>O</li>
-            <li><strong>Rusting:</strong> 4Fe + 3O<sub>2</sub> + xH<sub>2</sub>O → 2Fe<sub>2</sub>O<sub>3</sub>.xH<sub>2</sub>O</li>
+            <li><strong>Photosynthesis:</strong> 6CO<sub>2</sub> + 12H<sub>2</sub>O →
+              C<sub>6</sub>H<sub>12</sub>O<sub>6</sub> + 6O<sub>2</sub> + 6H<sub>2</sub>O</li>
+            <li><strong>Rusting:</strong> 4Fe + 3O<sub>2</sub> + xH<sub>2</sub>O →
+              2Fe<sub>2</sub>O<sub>3</sub>.xH<sub>2</sub>O</li>
           </ul>
         </div>
 
@@ -141,7 +281,8 @@
 
         <div class="mistake-box">
           <h3>Common Mistakes</h3>
-          <p>When balancing equations, NEVER change the <strong>subscript</strong> (the small number) of a molecule. Only change the <strong>coefficient</strong> (the number in front).</p>
+          <p>When balancing equations, NEVER change the <strong>subscript</strong> (the small number) of a molecule.
+            Only change the <strong>coefficient</strong> (the number in front).</p>
         </div>
 
         <div class="exam-questions">
@@ -159,7 +300,8 @@
       <!-- Chapter 2 -->
       <section id="ch2" class="chapter-section">
         <h2>Chapter 2: Acids, Bases and Salts</h2>
-        <p class="chapter-summary">Understanding the chemical properties of acids and bases and the magic of the pH scale.</p>
+        <p class="chapter-summary">Understanding the chemical properties of acids and bases and the magic of the pH
+          scale.</p>
 
         <h3>Key Concepts</h3>
         <ul>
@@ -173,14 +315,18 @@
             </ul>
           </li>
           <li><strong>Neutralization:</strong> Acid + Base → Salt + Water.</li>
-          <li><strong>Chlor-alkali Process:</strong> Electrolysis of brine (NaCl) to produce Chlorine, Hydrogen, and NaOH.</li>
+          <li><strong>Chlor-alkali Process:</strong> Electrolysis of brine (NaCl) to produce Chlorine, Hydrogen, and
+            NaOH.</li>
         </ul>
 
         <h3>Important Definitions</h3>
         <ul>
-          <li><strong>Olfactory Indicators:</strong> Substances whose odor changes in acidic or basic media (e.g., Onion, Vanilla).</li>
-          <li><strong>Water of Crystallization:</strong> Fixed number of water molecules present in one formula unit of a salt (e.g., CuSO<sub>4</sub>.5H<sub>2</sub>O).</li>
-          <li><strong>Universal Indicator:</strong> A mixture of several indicators that shows different colors at different concentrations of hydrogen ions.</li>
+          <li><strong>Olfactory Indicators:</strong> Substances whose odor changes in acidic or basic media (e.g.,
+            Onion, Vanilla).</li>
+          <li><strong>Water of Crystallization:</strong> Fixed number of water molecules present in one formula unit of
+            a salt (e.g., CuSO<sub>4</sub>.5H<sub>2</sub>O).</li>
+          <li><strong>Universal Indicator:</strong> A mixture of several indicators that shows different colors at
+            different concentrations of hydrogen ions.</li>
         </ul>
 
         <div class="formula-box">
@@ -201,14 +347,16 @@
 
         <div class="mistake-box">
           <h3>Common Mistakes</h3>
-          <p>Always add <strong>Acid to Water</strong> slowly with stirring, NEVER Water to Acid. Adding water to acid can cause the mixture to splash out due to extreme heat.</p>
+          <p>Always add <strong>Acid to Water</strong> slowly with stirring, NEVER Water to Acid. Adding water to acid
+            can cause the mixture to splash out due to extreme heat.</p>
         </div>
 
         <div class="exam-questions">
           <h3>Important Questions</h3>
           <ol>
             <li>Why does dry HCl gas not change the color of dry litmus paper?</li>
-            <li>What is the 'common name' of Calcium Sulphate Hemihydrate? Why should it be stored in moisture-proof containers?</li>
+            <li>What is the 'common name' of Calcium Sulphate Hemihydrate? Why should it be stored in moisture-proof
+              containers?</li>
             <li>Fresh milk has a pH of 6. How does its pH change as it turns into curd?</li>
           </ol>
         </div>
@@ -223,24 +371,30 @@
 
         <h3>Key Concepts</h3>
         <ul>
-          <li><strong>Properties:</strong> Metals are malleable, ductile, and good conductors. Non-metals are usually brittle and insulators.</li>
+          <li><strong>Properties:</strong> Metals are malleable, ductile, and good conductors. Non-metals are usually
+            brittle and insulators.</li>
           <li><strong>Chemical Properties:</strong>
             <ul>
               <li>Metals react with oxygen to form <strong>Basic Oxides</strong>.</li>
               <li>Amphoteric Oxides: React with both acids and bases (e.g., Al<sub>2</sub>O<sub>3</sub>).</li>
             </ul>
           </li>
-          <li><strong>Reactivity Series:</strong> A list of metals arranged in decreasing order of reactivity (K > Na > Ca > ... > Au).</li>
-          <li><strong>Ionic Compounds:</strong> Formed by transfer of electrons from metal to non-metal. They have high melting points and conduct electricity in molten state.</li>
-          <li><strong>Metallurgy:</strong> Processes like Roasting (heating in excess air) and Calcination (heating in limited air).</li>
+          <li><strong>Reactivity Series:</strong> A list of metals arranged in decreasing order of reactivity (K > Na >
+            Ca > ... > Au).</li>
+          <li><strong>Ionic Compounds:</strong> Formed by transfer of electrons from metal to non-metal. They have high
+            melting points and conduct electricity in molten state.</li>
+          <li><strong>Metallurgy:</strong> Processes like Roasting (heating in excess air) and Calcination (heating in
+            limited air).</li>
         </ul>
 
         <h3>Important Definitions</h3>
         <ul>
           <li><strong>Malleability:</strong> Ability of metals to be beaten into thin sheets.</li>
           <li><strong>Ductility:</strong> Ability of metals to be drawn into wires (Gold is the most ductile).</li>
-          <li><strong>Aqua Regia:</strong> Freshly prepared mixture of conc. HCl and conc. HNO<sub>3</sub> in 3:1 ratio (can dissolve gold).</li>
-          <li><strong>Alloy:</strong> Homogeneous mixture of two or more metals or a metal and a non-metal (e.g., Steel, Brass).</li>
+          <li><strong>Aqua Regia:</strong> Freshly prepared mixture of conc. HCl and conc. HNO<sub>3</sub> in 3:1 ratio
+            (can dissolve gold).</li>
+          <li><strong>Alloy:</strong> Homogeneous mixture of two or more metals or a metal and a non-metal (e.g., Steel,
+            Brass).</li>
         </ul>
 
         <h3>Extraction Step-by-Step</h3>
@@ -252,7 +406,9 @@
 
         <div class="mistake-box">
           <h3>Common Mistakes</h3>
-          <p><strong>Iron</strong> is a metal, but it doesn't react with cold or hot water—it only reacts with <strong>Steam</strong> to form oxide and hydrogen.</p>
+          <p><strong>Iron</strong> is a metal, but it doesn't react with cold or hot water—it only reacts with
+            <strong>Steam</strong> to form oxide and hydrogen.
+          </p>
         </div>
 
         <div class="exam-questions">
@@ -274,30 +430,37 @@
 
         <h3>Key Concepts</h3>
         <ul>
-          <li><strong>Covalent Bonding:</strong> Sharing of electrons between atoms. Carbon always forms 4 bonds (Tetravalency).</li>
-          <li><strong>Versatile Nature:</strong> Due to Catenation (self-linking) and Tetravalency, carbon forms millions of compounds.</li>
+          <li><strong>Covalent Bonding:</strong> Sharing of electrons between atoms. Carbon always forms 4 bonds
+            (Tetravalency).</li>
+          <li><strong>Versatile Nature:</strong> Due to Catenation (self-linking) and Tetravalency, carbon forms
+            millions of compounds.</li>
           <li><strong>Hydrocarbons:</strong>
             <ul>
               <li><strong>Saturated:</strong> Alkanes (C<sub>n</sub>H<sub>2n+2</sub>) - Single bonds.</li>
               <li><strong>Unsaturated:</strong> Alkenes (double bond) and Alkynes (triple bond).</li>
             </ul>
           </li>
-          <li><strong>Homologous Series:</strong> Group of compounds with same functional group where adjacent members differ by -CH<sub>2</sub> group.</li>
-          <li><strong>Soaps vs Detergents:</strong> Soaps are sodium salts of long-chain fatty acids (don't work in hard water). Detergents work in both soft and hard water.</li>
+          <li><strong>Homologous Series:</strong> Group of compounds with same functional group where adjacent members
+            differ by -CH<sub>2</sub> group.</li>
+          <li><strong>Soaps vs Detergents:</strong> Soaps are sodium salts of long-chain fatty acids (don't work in hard
+            water). Detergents work in both soft and hard water.</li>
         </ul>
 
         <h3>Important Definitions</h3>
         <ul>
           <li><strong>Isomers:</strong> Compounds with same molecular formula but different structural formulas.</li>
-          <li><strong>Esterification:</strong> Reaction between alcohol and carboxylic acid to form a sweet-smelling ester.</li>
+          <li><strong>Esterification:</strong> Reaction between alcohol and carboxylic acid to form a sweet-smelling
+            ester.</li>
           <li><strong>Saponification:</strong> Alkaline hydrolysis of an ester to form soap and alcohol.</li>
         </ul>
 
         <div class="formula-box">
           <h3>Chemical Properties</h3>
           <ul>
-            <li><strong>Combustion:</strong> Carbon compounds burn in oxygen to give CO<sub>2</sub>, H<sub>2</sub>O, and heat.</li>
-            <li><strong>Addition Reaction:</strong> Unsaturated hydrocarbons become saturated (e.g., Hydrogenation of vegetable oils).</li>
+            <li><strong>Combustion:</strong> Carbon compounds burn in oxygen to give CO<sub>2</sub>, H<sub>2</sub>O, and
+              heat.</li>
+            <li><strong>Addition Reaction:</strong> Unsaturated hydrocarbons become saturated (e.g., Hydrogenation of
+              vegetable oils).</li>
           </ul>
         </div>
 
@@ -309,7 +472,8 @@
 
         <div class="mistake-box">
           <h3>Common Mistakes</h3>
-          <p>Don't confuse <strong>Ethane</strong> (C<sub>2</sub>H<sub>6</sub>) with <strong>Ethene</strong> (C<sub>2</sub>H<sub>4</sub>). Always count the bonds—carbon must ALWAYS have exactly 4 lines around it!</p>
+          <p>Don't confuse <strong>Ethane</strong> (C<sub>2</sub>H<sub>6</sub>) with <strong>Ethene</strong>
+            (C<sub>2</sub>H<sub>4</sub>). Always count the bonds—carbon must ALWAYS have exactly 4 lines around it!</p>
         </div>
 
         <div class="exam-questions">
@@ -324,24 +488,21 @@
 
       <hr>
 
-      </section>
-
-      <hr>
-
       <!-- Biology Section Start -->
       <section id="bio-ch1" class="chapter-section">
         <h2>Chapter 1: Life Processes</h2>
-        <p class="chapter-summary">The essential functions like nutrition, respiration, and transportation that keep us alive.</p>
+        <p class="chapter-summary">The essential functions like nutrition, respiration, and transportation that keep us
+          alive.</p>
 
         <h3>Key Concepts</h3>
         <ul>
-          <li><strong>Nutrition:</strong> 
+          <li><strong>Nutrition:</strong>
             <ul>
               <li><strong>Autotrophic:</strong> Making food from inorganic sources (Photosynthesis).</li>
               <li><strong>Heterotrophic:</strong> Depending on others (Holozoic, Saprophytic, Parasitic).</li>
             </ul>
           </li>
-          <li><strong>Respiration:</strong> Breaking down food to release energy. 
+          <li><strong>Respiration:</strong> Breaking down food to release energy.
             <ul>
               <li><strong>Aerobic:</strong> In presence of oxygen (yields more ATP).</li>
               <li><strong>Anaerobic:</strong> In absence of oxygen (e.g., in yeast or muscle cells).</li>
@@ -353,25 +514,29 @@
               <li><strong>Plants:</strong> Xylem (Water) and Phloem (Food/Translocation).</li>
             </ul>
           </li>
-          <li><strong>Excretion:</strong> Removal of metabolic waste. The <strong>Nephron</strong> is the structural and functional unit of the kidney.</li>
+          <li><strong>Excretion:</strong> Removal of metabolic waste. The <strong>Nephron</strong> is the structural and
+            functional unit of the kidney.</li>
         </ul>
 
         <h3>Important Definitions</h3>
         <ul>
-          <li><strong>Villi:</strong> Finger-like projections in the small intestine that increase surface area for absorption.</li>
+          <li><strong>Villi:</strong> Finger-like projections in the small intestine that increase surface area for
+            absorption.</li>
           <li><strong>Translocation:</strong> Transport of soluble products of photosynthesis through phloem.</li>
           <li><strong>Hemodialysis:</strong> Artificial removal of waste from blood when kidneys fail.</li>
         </ul>
 
         <h3>Real-life Examples</h3>
         <ul>
-          <li><strong>Cramps:</strong> Caused by the buildup of <strong>Lactic Acid</strong> during sudden heavy exercise (anaerobic respiration).</li>
+          <li><strong>Cramps:</strong> Caused by the buildup of <strong>Lactic Acid</strong> during sudden heavy
+            exercise (anaerobic respiration).</li>
           <li><strong>Heart Valve:</strong> Prevents backflow of blood, ensuring one-way flow.</li>
         </ul>
 
         <div class="mistake-box">
           <h3>Common Mistakes</h3>
-          <p>Don't confuse <strong>Photosynthesis</strong> (food making) with <strong>Respiration</strong> (energy releasing). Plants do BOTH!</p>
+          <p>Don't confuse <strong>Photosynthesis</strong> (food making) with <strong>Respiration</strong> (energy
+            releasing). Plants do BOTH!</p>
         </div>
 
         <div class="exam-questions">
@@ -392,15 +557,22 @@
 
         <h3>Key Concepts</h3>
         <ul>
-          <li><strong>Nervous System:</strong> Composed of neurons. Signals travel as electrical impulses across a <strong>Synapse</strong>.</li>
+          <li><strong>Nervous System:</strong> Composed of neurons. Signals travel as electrical impulses across a
+            <strong>Synapse</strong>.
+          </li>
           <li><strong>Human Brain:</strong>
             <ul>
               <li><strong>Forebrain (Cerebrum):</strong> Thinking, memory, logic.</li>
-              <li><strong>Midbrain & Hindbrain:</strong> Involuntary actions (Cerebellum for balance, Medulla for BP/Vomiting).</li>
+              <li><strong>Midbrain & Hindbrain:</strong> Involuntary actions (Cerebellum for balance, Medulla for
+                BP/Vomiting).</li>
             </ul>
           </li>
-          <li><strong>Plant Coordination:</strong> Hormones like <strong>Auxin</strong> (growth), <strong>Gibberellins</strong> (stem growth), <strong>Cytokinins</strong> (cell division), and <strong>Abscisic Acid</strong> (inhibiting growth/wilting).</li>
-          <li><strong>Animal Hormones:</strong> Secreted by endocrine glands (Thyroid → Thyroxine, Pancreas → Insulin).</li>
+          <li><strong>Plant Coordination:</strong> Hormones like <strong>Auxin</strong> (growth),
+            <strong>Gibberellins</strong> (stem growth), <strong>Cytokinins</strong> (cell division), and
+            <strong>Abscisic Acid</strong> (inhibiting growth/wilting).
+          </li>
+          <li><strong>Animal Hormones:</strong> Secreted by endocrine glands (Thyroid → Thyroxine, Pancreas → Insulin).
+          </li>
         </ul>
 
         <h3>Important Definitions</h3>
@@ -412,13 +584,16 @@
 
         <h3>Real-life Examples</h3>
         <ul>
-          <li><strong>Adrenaline Rush:</strong> The "Fight or Flight" hormone that prepares your body for emergencies.</li>
-          <li><strong>Diabetes:</strong> Caused by insufficient production of <strong>Insulin</strong> by the pancreas.</li>
+          <li><strong>Adrenaline Rush:</strong> The "Fight or Flight" hormone that prepares your body for emergencies.
+          </li>
+          <li><strong>Diabetes:</strong> Caused by insufficient production of <strong>Insulin</strong> by the pancreas.
+          </li>
         </ul>
 
         <div class="mistake-box">
           <h3>Common Mistakes</h3>
-          <p>The <strong>Spinal Cord</strong> handles reflex actions, but the <strong>Brain</strong> is still informed. Reflexes are faster because they don't wait for "thinking" time.</p>
+          <p>The <strong>Spinal Cord</strong> handles reflex actions, but the <strong>Brain</strong> is still informed.
+            Reflexes are faster because they don't wait for "thinking" time.</p>
         </div>
 
         <div class="exam-questions">
@@ -439,33 +614,43 @@
 
         <h3>Key Concepts</h3>
         <ul>
-          <li><strong>Asexual Reproduction:</strong> Fission (Amoeba), Budding (Hydra), Spore formation (Rhizopus), Fragmentation (Spirogyra), and Vegetative Propagation.</li>
-          <li><strong>Sexual Reproduction in Plants:</strong> Involves Pollen (male) and Ovule (female). Double fertilization leads to seed formation.</li>
-          <li><strong>Human Reproduction:</strong> 
+          <li><strong>Asexual Reproduction:</strong> Fission (Amoeba), Budding (Hydra), Spore formation (Rhizopus),
+            Fragmentation (Spirogyra), and Vegetative Propagation.</li>
+          <li><strong>Sexual Reproduction in Plants:</strong> Involves Pollen (male) and Ovule (female). Double
+            fertilization leads to seed formation.</li>
+          <li><strong>Human Reproduction:</strong>
             <ul>
               <li><strong>Male:</strong> Testes produce sperm and testosterone.</li>
-              <li><strong>Female:</strong> Ovaries produce eggs, estrogen, and progesterone. Menstrual cycle occurs if egg isn't fertilized.</li>
+              <li><strong>Female:</strong> Ovaries produce eggs, estrogen, and progesterone. Menstrual cycle occurs if
+                egg isn't fertilized.</li>
             </ul>
           </li>
-          <li><strong>Reproductive Health:</strong> Methods of contraception (Mechanical barriers, Hormonal pills, IUCDs, Surgical methods).</li>
+          <li><strong>Reproductive Health:</strong> Methods of contraception (Mechanical barriers, Hormonal pills,
+            IUCDs, Surgical methods).</li>
         </ul>
 
         <h3>Important Definitions</h3>
         <ul>
-          <li><strong>Placenta:</strong> Disc-like tissue that provides nutrition and oxygen to the embryo from the mother's blood.</li>
-          <li><strong>Puberty:</strong> Period during which reproductive organs become functional and secondary sexual characters appear.</li>
-          <li><strong>DNA Copying:</strong> Basic process in reproduction that ensures inheritance with some variation.</li>
+          <li><strong>Placenta:</strong> Disc-like tissue that provides nutrition and oxygen to the embryo from the
+            mother's blood.</li>
+          <li><strong>Puberty:</strong> Period during which reproductive organs become functional and secondary sexual
+            characters appear.</li>
+          <li><strong>DNA Copying:</strong> Basic process in reproduction that ensures inheritance with some variation.
+          </li>
         </ul>
 
         <h3>Real-life Examples</h3>
         <ul>
-          <li><strong>Grafting/Layering:</strong> Used in agriculture to grow seedless plants like roses or bananas.</li>
+          <li><strong>Grafting/Layering:</strong> Used in agriculture to grow seedless plants like roses or bananas.
+          </li>
           <li><strong>IUCD (Copper-T):</strong> A contraceptive device placed in the uterus to prevent pregnancy.</li>
         </ul>
 
         <div class="mistake-box">
           <h3>Common Mistakes</h3>
-          <p>In flowering plants, <strong>Pollination</strong> is just the transfer of pollen, whereas <strong>Fertilization</strong> is the actual fusion of male and female gametes.</p>
+          <p>In flowering plants, <strong>Pollination</strong> is just the transfer of pollen, whereas
+            <strong>Fertilization</strong> is the actual fusion of male and female gametes.
+          </p>
         </div>
 
         <div class="exam-questions">
@@ -486,14 +671,17 @@
 
         <h3>Key Concepts</h3>
         <ul>
-          <li><strong>Mendel’s Contribution:</strong> Used pea plants (Pisum sativum) to study inheritance. 
+          <li><strong>Mendel’s Contribution:</strong> Used pea plants (Pisum sativum) to study inheritance.
             <ul>
               <li><strong>Law of Dominance:</strong> One trait masks the other in the first generation (F1).</li>
               <li><strong>Monohybrid Cross:</strong> Ratio 3:1 (Phenotype) and 1:2:1 (Genotype).</li>
             </ul>
           </li>
-          <li><strong>Sex Determination:</strong> In humans, males have <strong>XY</strong> and females have <strong>XX</strong> chromosomes. The father determines the sex of the child.</li>
-          <li><strong>Acquired vs Inherited Traits:</strong> Acquired traits (e.g., learning a language) aren't passed on; only genetic changes (Inherited) are.</li>
+          <li><strong>Sex Determination:</strong> In humans, males have <strong>XY</strong> and females have
+            <strong>XX</strong> chromosomes. The father determines the sex of the child.
+          </li>
+          <li><strong>Acquired vs Inherited Traits:</strong> Acquired traits (e.g., learning a language) aren't passed
+            on; only genetic changes (Inherited) are.</li>
         </ul>
 
         <h3>Important Definitions</h3>
@@ -511,7 +699,8 @@
 
         <div class="mistake-box">
           <h3>Common Mistakes</h3>
-          <p>The <strong>mother</strong> is NOT responsible for the sex of the baby. Since she only has X chromosomes, the baby's sex depends on whether the father's sperm carries an X or a Y chromosome.</p>
+          <p>The <strong>mother</strong> is NOT responsible for the sex of the baby. Since she only has X chromosomes,
+            the baby's sex depends on whether the father's sperm carries an X or a Y chromosome.</p>
         </div>
 
         <div class="exam-questions">
@@ -533,34 +722,42 @@
         <h3>Key Concepts</h3>
         <ul>
           <li><strong>Ecosystem:</strong> Interaction of biotic (living) and abiotic (non-living) components.</li>
-          <li><strong>Food Chain & Web:</strong> Transfer of energy from one organism to another. Energy flow is <strong>unidirectional</strong>.</li>
+          <li><strong>Food Chain & Web:</strong> Transfer of energy from one organism to another. Energy flow is
+            <strong>unidirectional</strong>.
+          </li>
           <li><strong>10% Law:</strong> Only 10% of energy is transferred to the next trophic level.</li>
-          <li><strong>Ozone Layer:</strong> Protects Earth from UV rays. Depleted by <strong>CFCs</strong> (Chlorofluorocarbons).</li>
-          <li><strong>Waste Management:</strong> Reducing plastic, using biodegradable materials, and the 3 Rs (Reduce, Reuse, Recycle).</li>
+          <li><strong>Ozone Layer:</strong> Protects Earth from UV rays. Depleted by <strong>CFCs</strong>
+            (Chlorofluorocarbons).</li>
+          <li><strong>Waste Management:</strong> Reducing plastic, using biodegradable materials, and the 3 Rs (Reduce,
+            Reuse, Recycle).</li>
         </ul>
 
         <h3>Important Definitions</h3>
         <ul>
-          <li><strong>Biomagnification:</strong> Increase in concentration of harmful chemicals (like pesticides) at higher trophic levels.</li>
+          <li><strong>Biomagnification:</strong> Increase in concentration of harmful chemicals (like pesticides) at
+            higher trophic levels.</li>
           <li><strong>Trophic Level:</strong> Each step or level of the food chain.</li>
           <li><strong>Biodegradable:</strong> Substances that can be broken down by bacteria/fungi.</li>
         </ul>
 
         <h3>Real-life Examples</h3>
         <ul>
-          <li><strong>DDT in Fish:</strong> An example of biomagnification where top predators have the highest toxin levels.</li>
+          <li><strong>DDT in Fish:</strong> An example of biomagnification where top predators have the highest toxin
+            levels.</li>
           <li><strong>Global Warming:</strong> Warming of Earth due to excessive CO2 trapping heat.</li>
         </ul>
 
         <div class="mistake-box">
           <h3>Common Mistakes</h3>
-          <p>The <strong>Ozone Layer</strong> depletion is NOT the same as <strong>Global Warming</strong>. Ozone depletion allows UV rays in, while Global Warming traps heat inside.</p>
+          <p>The <strong>Ozone Layer</strong> depletion is NOT the same as <strong>Global Warming</strong>. Ozone
+            depletion allows UV rays in, while Global Warming traps heat inside.</p>
         </div>
 
         <div class="exam-questions">
           <h3>Important Questions</h3>
           <ol>
-            <li>What are trophic levels? Give an example of a food chain and state the different trophic levels in it.</li>
+            <li>What are trophic levels? Give an example of a food chain and state the different trophic levels in it.
+            </li>
             <li>What is the 10% law in an ecosystem?</li>
             <li>What is ozone and how does it affect any ecosystem?</li>
           </ol>
@@ -585,7 +782,7 @@
           </li>
           <li><strong>Refraction:</strong> Bending of light when passing from one medium to another.</li>
           <li><strong>Refractive Index:</strong> Measure of how much light slows down in a medium (n = c/v).</li>
-          <li><strong>Lenses:</strong> 
+          <li><strong>Lenses:</strong>
             <ul>
               <li><strong>Convex:</strong> Converging lens.</li>
               <li><strong>Concave:</strong> Diverging lens.</li>
@@ -595,8 +792,10 @@
 
         <h3>Important Definitions</h3>
         <ul>
-          <li><strong>Principal Focus:</strong> The point where parallel rays meet (or appear to meet) after reflection/refraction.</li>
-          <li><strong>Power of Lens (P):</strong> Reciprocal of focal length (P = 1/f). Unit: <strong>Dioptre (D)</strong>.</li>
+          <li><strong>Principal Focus:</strong> The point where parallel rays meet (or appear to meet) after
+            reflection/refraction.</li>
+          <li><strong>Power of Lens (P):</strong> Reciprocal of focal length (P = 1/f). Unit: <strong>Dioptre
+              (D)</strong>.</li>
           <li><strong>Magnification (m):</strong> Ratio of height of image to height of object.</li>
         </ul>
 
@@ -617,14 +816,16 @@
 
         <div class="mistake-box">
           <h3>Common Mistakes</h3>
-          <p>Always follow the <strong>Cartesian Sign Convention</strong>. Distance 'u' is ALWAYS negative. For a convex lens, 'f' is positive; for a concave lens, 'f' is negative.</p>
+          <p>Always follow the <strong>Cartesian Sign Convention</strong>. Distance 'u' is ALWAYS negative. For a convex
+            lens, 'f' is positive; for a concave lens, 'f' is negative.</p>
         </div>
 
         <div class="exam-questions">
           <h3>Important Questions</h3>
           <ol>
             <li>Define the principal focus of a concave mirror.</li>
-            <li>A ray of light traveling in air enters obliquely into water. Does it bend towards or away from the normal? (Answer: Towards).</li>
+            <li>A ray of light traveling in air enters obliquely into water. Does it bend towards or away from the
+              normal? (Answer: Towards).</li>
             <li>What is the power of a lens of focal length -2.0 m? (Answer: -0.5 D).</li>
           </ol>
         </div>
@@ -660,13 +861,15 @@
 
         <h3>Real-life Examples</h3>
         <ul>
-          <li><strong>Rainbow:</strong> Caused by dispersion, refraction, and internal reflection of sunlight by water droplets.</li>
+          <li><strong>Rainbow:</strong> Caused by dispersion, refraction, and internal reflection of sunlight by water
+            droplets.</li>
           <li><strong>Blue Sky:</strong> Blue light has shorter wavelength and is scattered most by air molecules.</li>
         </ul>
 
         <div class="mistake-box">
           <h3>Common Mistakes</h3>
-          <p>Don't confuse <strong>Refraction</strong> with <strong>Scattering</strong>. Stars twinkle because of refraction, but the sky is blue because of scattering.</p>
+          <p>Don't confuse <strong>Refraction</strong> with <strong>Scattering</strong>. Stars twinkle because of
+            refraction, but the sky is blue because of scattering.</p>
         </div>
 
         <div class="exam-questions">
@@ -687,8 +890,10 @@
 
         <h3>Key Concepts</h3>
         <ul>
-          <li><strong>Ohm's Law:</strong> Current (I) is directly proportional to Potential Difference (V) at constant temperature (V = IR).</li>
-          <li><strong>Resistance (R):</strong> Property to resist flow of current. Depends on length, area, and material (R = ρl/A).</li>
+          <li><strong>Ohm's Law:</strong> Current (I) is directly proportional to Potential Difference (V) at constant
+            temperature (V = IR).</li>
+          <li><strong>Resistance (R):</strong> Property to resist flow of current. Depends on length, area, and material
+            (R = ρl/A).</li>
           <li><strong>Circuit Connections:</strong>
             <ul>
               <li><strong>Series:</strong> Rₛ = R₁ + R₂ + R₃ (Current remains same).</li>
@@ -702,7 +907,8 @@
         <h3>Important Definitions</h3>
         <ul>
           <li><strong>Ampere (A):</strong> SI unit of current. Flow of 1 Coulomb of charge per second.</li>
-          <li><strong>Resistivity (ρ):</strong> Resistance of a conductor of unit length and unit area of cross-section.</li>
+          <li><strong>Resistivity (ρ):</strong> Resistance of a conductor of unit length and unit area of cross-section.
+          </li>
           <li><strong>Kilowatt-hour (kWh):</strong> Commercial unit of electrical energy (1 unit = 3.6 × 10⁶ J).</li>
         </ul>
 
@@ -716,7 +922,8 @@
         </div>
 
         <h3>Solved Example</h3>
-        <p><strong>Q:</strong> A current of 0.5 A is drawn by a filament of an electric bulb for 10 minutes. Find the amount of electric charge that flows through the circuit.</p>
+        <p><strong>Q:</strong> A current of 0.5 A is drawn by a filament of an electric bulb for 10 minutes. Find the
+          amount of electric charge that flows through the circuit.</p>
         <p><strong>Solution:</strong><br>
           I = 0.5 A, t = 10 mins = 600 s<br>
           Q = I × t = 0.5 × 600 = <strong>300 C</strong>
@@ -730,7 +937,8 @@
 
         <div class="mistake-box">
           <h3>Common Mistakes</h3>
-          <p>While calculating resistance in <strong>Parallel</strong>, students often forget to <strong>invert</strong> the final result. If 1/Rp = 1/2, then Rp = 2 Ω.</p>
+          <p>While calculating resistance in <strong>Parallel</strong>, students often forget to <strong>invert</strong>
+            the final result. If 1/Rp = 1/2, then Rp = 2 Ω.</p>
         </div>
 
         <div class="exam-questions">
@@ -747,33 +955,43 @@
 
       <section id="phy-ch4" class="chapter-section">
         <h2>Chapter 4: Magnetic Effects of Electric Current</h2>
-        <p class="chapter-summary">Understanding how electricity creates magnetism and the principles behind motors and safety.</p>
+        <p class="chapter-summary">Understanding how electricity creates magnetism and the principles behind motors and
+          safety.</p>
 
         <h3>Key Concepts</h3>
         <ul>
-          <li><strong>Magnetic Field:</strong> Region around a magnet where force can be detected. Field lines emerge from North and enter South.</li>
-          <li><strong>Right-Hand Thumb Rule:</strong> Used to find the direction of magnetic field around a straight conductor.</li>
-          <li><strong>Solenoid:</strong> A coil of many circular turns of insulated copper wire. Acts like a bar magnet.</li>
-          <li><strong>Fleming's Left-Hand Rule:</strong> Used for <strong>Electric Motors</strong> (Force on a current-carrying conductor).</li>
-          <li><strong>Domestic Circuits:</strong> Live wire (Red), Neutral (Black), and Earth (Green). Fuse and Earthing are key safety measures.</li>
+          <li><strong>Magnetic Field:</strong> Region around a magnet where force can be detected. Field lines emerge
+            from North and enter South.</li>
+          <li><strong>Right-Hand Thumb Rule:</strong> Used to find the direction of magnetic field around a straight
+            conductor.</li>
+          <li><strong>Solenoid:</strong> A coil of many circular turns of insulated copper wire. Acts like a bar magnet.
+          </li>
+          <li><strong>Fleming's Left-Hand Rule:</strong> Used for <strong>Electric Motors</strong> (Force on a
+            current-carrying conductor).</li>
+          <li><strong>Domestic Circuits:</strong> Live wire (Red), Neutral (Black), and Earth (Green). Fuse and Earthing
+            are key safety measures.</li>
         </ul>
 
         <h3>Important Definitions</h3>
         <ul>
-          <li><strong>Electromagnet:</strong> A temporary magnet formed by placing a soft iron core inside a solenoid.</li>
+          <li><strong>Electromagnet:</strong> A temporary magnet formed by placing a soft iron core inside a solenoid.
+          </li>
           <li><strong>Short Circuit:</strong> When Live and Neutral wires come in direct contact.</li>
           <li><strong>Overloading:</strong> Connecting too many appliances to a single socket.</li>
         </ul>
 
         <h3>Real-life Examples</h3>
         <ul>
-          <li><strong>Electric Motor:</strong> Converts electrical energy to mechanical energy (used in fans, mixers).</li>
-          <li><strong>Earthing:</strong> Protects us from electric shocks by providing a low-resistance path to the ground.</li>
+          <li><strong>Electric Motor:</strong> Converts electrical energy to mechanical energy (used in fans, mixers).
+          </li>
+          <li><strong>Earthing:</strong> Protects us from electric shocks by providing a low-resistance path to the
+            ground.</li>
         </ul>
 
         <div class="mistake-box">
           <h3>Common Mistakes</h3>
-          <p>Don't confuse the <strong>Left-Hand Rule</strong> (Force/Motor) with the <strong>Right-Hand Rule</strong> (Induced Current). Remember: <b>L</b>eft is for <b>L</b>oad (Motor).</p>
+          <p>Don't confuse the <strong>Left-Hand Rule</strong> (Force/Motor) with the <strong>Right-Hand Rule</strong>
+            (Induced Current). Remember: <b>L</b>eft is for <b>L</b>oad (Motor).</p>
         </div>
 
         <div class="exam-questions">
@@ -791,8 +1009,9 @@
       <!-- Final Formula Revision Table -->
       <section id="formulas" class="chapter-section">
         <h2>Class 10 Science: Final Formula Table</h2>
-        <p class="chapter-summary">A compiled list of all mathematical formulas from Physics and Chemistry that are essential for Board Exams.</p>
-        
+        <p class="chapter-summary">A compiled list of all mathematical formulas from Physics and Chemistry that are
+          essential for Board Exams.</p>
+
         <div class="formula-table-container">
           <table class="formula-table">
             <thead>
@@ -868,14 +1087,177 @@
 
         <div class="mistake-box" style="margin-top: 2rem;">
           <h3>Board Exam Tip</h3>
-          <p>Always mention the <strong>SI Units</strong> in your final answer. For example, Force in Newtons (N), Power in Watts (W), and Resistance in Ohms (Ω). Missing units can cost you 0.5 to 1 mark!</p>
+          <p>Always mention the <strong>SI Units</strong> in your final answer. For example, Force in Newtons (N), Power
+            in Watts (W), and Resistance in Ohms (Ω). Missing units can cost you 0.5 to 1 mark!</p>
         </div>
       </section>
     </div>
   </main>
 
-  <footer>
-    <div class="footer-container">
+  <!-- ============================================= -->
+  <!-- FOOTER SECTION WITH ALL CHAPTER SUMMARY CARDS -->
+  <!-- Each card contains chapter name + direct jump link -->
+  <!-- ============================================= -->
+
+  <footer class="chapter-summary-footer">
+    <div class="footer-chapter-container">
+      <h2 class="footer-chapter-heading">
+        <i class="fas fa-book-open"></i> Complete Chapter Index – Class 10 Science
+      </h2>
+      <p class="footer-chapter-subheading">Quick jump to any chapter summary | CBSE Board Exam 2025-26</p>
+
+      <div class="chapter-summary-grid">
+
+        <!-- Chemistry Chapters -->
+        <div class="subject-section">
+          <h3 class="subject-title chemistry-title"><i class="fas fa-flask"></i> Chemistry</h3>
+          <div class="chapter-cards">
+            <a href="#ch1" class="chapter-jump-card">
+              <div class="card-icon">⚗️</div>
+              <div class="card-info">
+                <h4>Ch 1: Chemical Reactions & Equations</h4>
+                <p>Balancing, types of reactions, redox, corrosion, rancidity</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="#ch2" class="chapter-jump-card">
+              <div class="card-icon">🧪</div>
+              <div class="card-info">
+                <h4>Ch 2: Acids, Bases and Salts</h4>
+                <p>pH scale, neutralization, important salts, chlor-alkali process</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="#ch3" class="chapter-jump-card">
+              <div class="card-icon">🔩</div>
+              <div class="card-info">
+                <h4>Ch 3: Metals and Non-metals</h4>
+                <p>Reactivity series, ionic compounds, metallurgy, alloys</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="#ch4" class="chapter-jump-card">
+              <div class="card-icon">🌿</div>
+              <div class="card-info">
+                <h4>Ch 4: Carbon and its Compounds</h4>
+                <p>Covalent bonds, hydrocarbons, homologous series, soaps/detergents</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Biology Chapters -->
+        <div class="subject-section">
+          <h3 class="subject-title biology-title"><i class="fas fa-leaf"></i> Biology</h3>
+          <div class="chapter-cards">
+            <a href="#bio-ch1" class="chapter-jump-card">
+              <div class="card-icon">❤️</div>
+              <div class="card-info">
+                <h4>Ch 1: Life Processes</h4>
+                <p>Nutrition, respiration, transportation, excretion, double circulation</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="#bio-ch2" class="chapter-jump-card">
+              <div class="card-icon">🧠</div>
+              <div class="card-info">
+                <h4>Ch 2: Control & Coordination</h4>
+                <p>Neurons, reflex action, brain, plant & animal hormones</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="#bio-ch3" class="chapter-jump-card">
+              <div class="card-icon">🌱</div>
+              <div class="card-info">
+                <h4>Ch 3: How do Organisms Reproduce?</h4>
+                <p>Asexual/sexual reproduction, flower structure, contraception</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="#bio-ch4" class="chapter-jump-card">
+              <div class="card-icon">🧬</div>
+              <div class="card-info">
+                <h4>Ch 4: Heredity</h4>
+                <p>Mendel's laws, monohybrid cross, sex determination, traits</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="#bio-ch5" class="chapter-jump-card">
+              <div class="card-icon">🌍</div>
+              <div class="card-info">
+                <h4>Ch 5: Our Environment</h4>
+                <p>Ecosystem, 10% energy law, biomagnification, ozone depletion</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Physics Chapters -->
+        <div class="subject-section">
+          <h3 class="subject-title physics-title"><i class="fas fa-atom"></i> Physics</h3>
+          <div class="chapter-cards">
+            <a href="#phy-ch1" class="chapter-jump-card">
+              <div class="card-icon">💡</div>
+              <div class="card-info">
+                <h4>Ch 1: Light – Reflection & Refraction</h4>
+                <p>Mirror/lens formula, power of lens, refractive index, sign convention</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="#phy-ch2" class="chapter-jump-card">
+              <div class="card-icon">👁️</div>
+              <div class="card-info">
+                <h4>Ch 2: The Human Eye & Colourful World</h4>
+                <p>Defects of vision, dispersion, rainbow, scattering, twinkling of stars</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="#phy-ch3" class="chapter-jump-card">
+              <div class="card-icon">⚡</div>
+              <div class="card-info">
+                <h4>Ch 3: Electricity</h4>
+                <p>Ohm's law, series/parallel resistance, Joule's heating, electric power</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="#phy-ch4" class="chapter-jump-card">
+              <div class="card-icon">🧲</div>
+              <div class="card-info">
+                <h4>Ch 4: Magnetic Effects of Electric Current</h4>
+                <p>Fleming's rules, solenoid, electric motor, domestic circuits, earthing</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="#formulas" class="chapter-jump-card">
+              <div class="card-icon">📐</div>
+              <div class="card-info">
+                <h4>Quick Formula Table</h4>
+                <p>All physics & chemistry formulas in one place for quick revision</p>
+                <span class="jump-badge">Jump to Formulas →</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Extra Revision Links -->
+      <div class="footer-revision-links">
+        <div class="revision-box">
+          <i class="fas fa-chart-simple"></i>
+          <span>📊 Board Exam Weightage: Chemistry (25%) | Biology (30%) | Physics (25%)</span>
+        </div>
+        <div class="revision-box">
+          <i class="fas fa-clock"></i>
+          <span>⏱️ Last Minute Revision: Click any card above to jump directly to the chapter</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Original Footer Content (kept as requested) -->
+    <div class="footer-container"
+      style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 2rem;">
       <div class="footer-brand">
         <div class="logo">
           <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
@@ -889,6 +1271,7 @@
           <li><a href="../index.html">Home</a></li>
           <li><a href="notes-science-class10.html">Notes</a></li>
           <li><a href="../blog/blog.html">Blog</a></li>
+          <li><a href="../IQ/top-question.html">Top Questions</a></li>
         </ul>
       </div>
       <div class="footer-bottom">
@@ -896,6 +1279,11 @@
       </div>
     </div>
   </footer>
+
+  <!-- Additional CSS for the footer cards (add inside your existing style tag or separate CSS) -->
+  <style>
+
+  </style>
 
   <script src="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.js"></script>
   <script>

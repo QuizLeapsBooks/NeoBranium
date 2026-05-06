@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class 10 Science Notes Directory | NeoBranium</title>
+  <meta name="description" content="Complete chapter-wise notes directory for Class 10 Science. Access detailed notes for Chemistry, Biology, and Physics chapters with one click. CBSE board 2025-26.">
+  <meta name="keywords" content="class 10 science notes, chapter wise notes, chemistry notes, biology notes, physics notes, CBSE notes">
+  <meta name="author" content="NeoBranium">
+  <meta name="robots" content="index, follow">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+  <link rel="stylesheet" href="../index_css.css">
+  
+  <style>
+    /* Additional styles for directory page */
+    .directory-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: white;
+      padding: 3rem 2rem;
+      text-align: center;
+      margin-top: 1rem;
+      border-radius: 24px;
+    }
+    .directory-hero h1 {
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+    }
+    .directory-hero p {
+      color: #94a3b8;
+      font-size: 1rem;
+    }
+    .subject-section {
+      margin: 2.5rem 0;
+    }
+    .subject-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 3px solid;
+    }
+    .subject-header i {
+      font-size: 1.8rem;
+    }
+    .subject-header h2 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin: 0;
+    }
+    .chemistry-border { border-bottom-color: #10b981; }
+    .biology-border { border-bottom-color: #3b82f6; }
+    .physics-border { border-bottom-color: #f59e0b; }
+    .chemistry-icon { color: #10b981; }
+    .biology-icon { color: #3b82f6; }
+    .physics-icon { color: #f59e0b; }
+    
+    /* Chapter Cards Grid */
+    .chapters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .chapter-card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+      border: 1px solid #e2e8f0;
+      text-decoration: none;
+      display: block;
+      cursor: pointer;
+    }
+    .chapter-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+      border-color: #cbd5e1;
+    }
+    .card-header {
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .card-header h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0;
+      color: #0f172a;
+    }
+    .chapter-number {
+      background: #e2e8f0;
+      padding: 0.25rem 0.7rem;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #475569;
+    }
+    .card-body {
+      padding: 1rem 1.5rem;
+    }
+    .card-body p {
+      color: #475569;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin: 0 0 0.75rem 0;
+    }
+    .topics-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .topic-tag {
+      background: #f1f5f9;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      color: #334155;
+    }
+    .card-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .read-link {
+      color: #3b82f6;
+      font-size: 0.8rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .read-link i {
+      font-size: 0.7rem;
+      transition: transform 0.2s;
+    }
+    .chapter-card:hover .read-link i {
+      transform: translateX(4px);
+    }
+    .search-container {
+      margin: 1.5rem 0;
+      display: flex;
+      justify-content: center;
+    }
+    .search-box-dir {
+      background: white;
+      border-radius: 50px;
+      padding: 0.7rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      width: 100%;
+      max-width: 450px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border: 1px solid #e2e8f0;
+    }
+    .search-box-dir i {
+      color: #94a3b8;
+    }
+    .search-box-dir input {
+      border: none;
+      outline: none;
+      width: 100%;
+      font-size: 0.9rem;
+      background: transparent;
+    }
+    .search-box-dir input::placeholder {
+      color: #94a3b8;
+    }
+    @media (max-width: 768px) {
+      .directory-hero h1 { font-size: 1.5rem; }
+      .chapters-grid { grid-template-columns: 1fr; }
+      .subject-header h2 { font-size: 1.3rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Preloader -->
+  <div id="preloader">
+    <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="preloader-logo" />
+    <div class="loader"></div>
+  </div>
+
+  <header>
+    <div class="header-container">
+      <div class="logo" onclick="window.location.href='../index.html'">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
+        <span>NeoBranium</span>
+      </div>
+      <div class="header-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="globalSearchInput" placeholder="Search notes..." autocomplete="off">
+        <div id="globalSearchResults" class="search-results-dropdown"></div>
+      </div>
+      <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+      <nav class="nav-menu">
+        <a href="../index.html">Home</a>
+        <div class="nav-item">
+          <a href="notes-science-class10.html" class="active">Notes <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i></a>
+          <div class="dropdown-menu">
+            <div class="dropdown-submenu"><h5>Class 9</h5><ul><li><a href="notes-science-class9.html">Science</a></li></ul></div>
+            <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;"><h5>Class 10</h5><ul><li><a href="notes-science-class10.html">Science</a></li></ul></div>
+          </div>
+        </div>
+        <a href="../IQ/top-question.html">Top Questions</a>
+        <a href="../blog/blog.html">Blog</a>
+        <a href="../htmls/sign.html" class="login-btn">Login / Sign Up</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="notes-container" style="max-width: 1400px; margin: 0 auto; padding: 2rem;">
+      
+      <!-- Hero Section -->
+      <div class="directory-hero">
+        <h1><i class="fas fa-book-open"></i> Class 10 Science Notes Directory</h1>
+        <p>Complete chapter-wise notes for CBSE Board Exam 2025-26 | Click any card to access detailed notes</p>
+      </div>
+      
+      <!-- Search -->
+      <div class="search-container">
+        <div class="search-box-dir">
+          <i class="fas fa-search"></i>
+          <input type="text" id="dirSearchInput" placeholder="Search by chapter name, subject, or topic...">
+          <i class="fas fa-times" id="clearSearch" style="cursor: pointer; display: none;"></i>
+        </div>
+      </div>
+
+      <!-- Chemistry Section -->
+      <div class="subject-section" id="chemistry-section">
+        <div class="subject-header chemistry-border">
+          <i class="fas fa-flask chemistry-icon"></i>
+          <h2>Chemistry Notes</h2>
+        </div>
+        <div id="chemistryGrid" class="chapters-grid"></div>
+      </div>
+
+      <!-- Biology Section -->
+      <div class="subject-section" id="biology-section">
+        <div class="subject-header biology-border">
+          <i class="fas fa-leaf biology-icon"></i>
+          <h2>Biology Notes</h2>
+        </div>
+        <div id="biologyGrid" class="chapters-grid"></div>
+      </div>
+
+      <!-- Physics Section -->
+      <div class="subject-section" id="physics-section">
+        <div class="subject-header physics-border">
+          <i class="fas fa-atom physics-icon"></i>
+          <h2>Physics Notes</h2>
+        </div>
+        <div id="physicsGrid" class="chapters-grid"></div>
+      </div>
+
+      <!-- Empty Message -->
+      <div id="emptyMessage" style="display: none; text-align: center; padding: 3rem; background: white; border-radius: 24px; margin: 2rem 0;">
+        <i class="fas fa-folder-open" style="font-size: 3rem; color: #94a3b8; margin-bottom: 1rem;"></i>
+        <p style="color: #64748b;">No notes found matching your search.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="logo">
+          <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
+          <span>NeoBranium</span>
+        </div>
+        <p>A next-gen learning platform for students of all classes.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="notes-science-class10.html">Notes</a></li>
+          <li><a href="../blog/blog.html">Blog</a></li>
+          <li><a href="../IQ/top-question.html">Top Questions</a></li>
+        </ul>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 NeoBranium. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Chapter data with URLs
+    const chapters = [
+      // Chemistry Chapters
+      { id: 1, number: 1, title: "Chemical Reactions & Equations", subject: "Chemistry", url: "/Notes/10-CH1.html", topics: ["Balancing Equations", "Types of Reactions", "Redox", "Corrosion", "Rancidity"], description: "Balancing chemical equations, types of reactions (combination, decomposition, displacement, redox), corrosion and rancidity." },
+      { id: 2, number: 2, title: "Acids, Bases and Salts", subject: "Chemistry", url: "/Notes/10-CH2.html", topics: ["pH Scale", "Neutralization", "Chlor-alkali", "Baking Soda", "Washing Soda", "POP"], description: "Properties of acids and bases, pH scale, neutralization reactions, important salts and their uses." },
+      { id: 3, number: 3, title: "Metals and Non-metals", subject: "Chemistry", url: "/Notes/10-CH3.html", topics: ["Reactivity Series", "Ionic Compounds", "Metallurgy", "Roasting", "Calcination", "Alloys"], description: "Physical and chemical properties, reactivity series, extraction of metals, ionic compounds, corrosion prevention." },
+      { id: 4, number: 4, title: "Carbon and its Compounds", subject: "Chemistry", url: "/Notes/10-CH4.html", topics: ["Covalent Bonding", "Catenation", "Hydrocarbons", "Homologous Series", "Soaps & Detergents"], description: "Covalent bonds, saturated and unsaturated hydrocarbons, functional groups, ethanol, ethanoic acid, soaps vs detergents." },
+      
+      // Biology Chapters
+      { id: 5, number: 1, title: "Life Processes", subject: "Biology", url: "/Notes/10-BI1.html", topics: ["Nutrition", "Photosynthesis", "Respiration", "Double Circulation", "Excretion", "Nephron"], description: "Nutrition (autotrophic/heterotrophic), respiration (aerobic/anaerobic), transportation in humans and plants, excretion." },
+      { id: 6, number: 2, title: "Control and Coordination", subject: "Biology", url: "/Notes/10-BI2.html", topics: ["Neuron", "Reflex Action", "Human Brain", "Plant Hormones", "Animal Hormones"], description: "Nervous system, reflex arc, brain structure, plant hormones (auxin, gibberellins), endocrine system." },
+      { id: 7, number: 3, title: "How do Organisms Reproduce?", subject: "Biology", url: "/Notes/10-BI3.html", topics: ["Asexual Reproduction", "Sexual Reproduction", "Flower Structure", "Contraception"], description: "Asexual and sexual reproduction, flower structure, human reproductive system, contraception methods." },
+      { id: 8, number: 4, title: "Heredity", subject: "Biology", url: "/Notes/10-BI4.html", topics: ["Mendel's Laws", "Monohybrid Cross", "Sex Determination", "Traits"], description: "Mendel's experiments, laws of inheritance, monohybrid cross, sex determination in humans." },
+      { id: 9, number: 5, title: "Our Environment", subject: "Biology", url: "/Notes/10-BI5.html", topics: ["Ecosystem", "10% Law", "Biomagnification", "Ozone Depletion"], description: "Ecosystem components, food chain, 10% energy law, biomagnification, ozone layer depletion." },
+      
+      // Physics Chapters
+      { id: 10, number: 1, title: "Light - Reflection and Refraction", subject: "Physics", url: "/Notes/10-PH1.html", topics: ["Mirror Formula", "Lens Formula", "Refractive Index", "Sign Convention"], description: "Laws of reflection, spherical mirrors, mirror formula, refraction, lens formula, power of lens." },
+      { id: 11, number: 2, title: "The Human Eye and Colourful World", subject: "Physics", url: "/Notes/10-PH2.html", topics: ["Defects of Vision", "Dispersion", "Rainbow", "Scattering"], description: "Structure of human eye, defects of vision (myopia, hypermetropia), dispersion, rainbow formation, scattering of light." },
+      { id: 12, number: 3, title: "Electricity", subject: "Physics", url: "/Notes/10-PH3.html", topics: ["Ohm's Law", "Resistance", "Series & Parallel", "Heating Effect", "Electric Power"], description: "Ohm's law, resistance and resistivity, series and parallel circuits, Joule's heating, electric power calculation." },
+      { id: 13, number: 4, title: "Magnetic Effects of Electric Current", subject: "Physics", url: "/Notes/10-PH4.html", topics: ["Magnetic Field", "Solenoid", "Fleming's Rules", "Electric Motor", "Generator", "Domestic Circuits"], description: "Magnetic field lines, right-hand thumb rule, solenoid, electric motor, electromagnetic induction, generator, domestic circuits." }
+    ];
+
+    function renderChapters(filterText = '') {
+      const chemistryGrid = document.getElementById('chemistryGrid');
+      const biologyGrid = document.getElementById('biologyGrid');
+      const physicsGrid = document.getElementById('physicsGrid');
+      const emptyMessage = document.getElementById('emptyMessage');
+      
+      chemistryGrid.innerHTML = '';
+      biologyGrid.innerHTML = '';
+      physicsGrid.innerHTML = '';
+
+      let filtered = chapters;
+      if (filterText) {
+        const searchLower = filterText.toLowerCase();
+        filtered = chapters.filter(ch => 
+          ch.title.toLowerCase().includes(searchLower) ||
+          ch.subject.toLowerCase().includes(searchLower) ||
+          ch.topics.some(t => t.toLowerCase().includes(searchLower)) ||
+          ch.description.toLowerCase().includes(searchLower)
+        );
+      }
+
+      if (filtered.length === 0) {
+        emptyMessage.style.display = 'block';
+        // Hide all sections
+        document.getElementById('chemistry-section').style.display = 'none';
+        document.getElementById('biology-section').style.display = 'none';
+        document.getElementById('physics-section').style.display = 'none';
+        return;
+      } else {
+        emptyMessage.style.display = 'none';
+        document.getElementById('chemistry-section').style.display = 'block';
+        document.getElementById('biology-section').style.display = 'block';
+        document.getElementById('physics-section').style.display = 'block';
+      }
+
+      filtered.forEach(chapter => {
+        const card = createChapterCard(chapter);
+        if (chapter.subject === 'Chemistry') chemistryGrid.appendChild(card);
+        else if (chapter.subject === 'Biology') biologyGrid.appendChild(card);
+        else if (chapter.subject === 'Physics') physicsGrid.appendChild(card);
+      });
+    }
+
+    function createChapterCard(chapter) {
+      const card = document.createElement('a');
+      card.className = 'chapter-card';
+      card.href = chapter.url;
+      card.innerHTML = `
+        <div class="card-header">
+          <h3>Ch ${chapter.number}: ${escapeHtml(chapter.title)}</h3>
+          <span class="chapter-number">${chapter.subject}</span>
+        </div>
+        <div class="card-body">
+          <div class="topics-list">
+            ${chapter.topics.slice(0, 4).map(t => `<span class="topic-tag">${escapeHtml(t)}</span>`).join('')}
+            ${chapter.topics.length > 4 ? '<span class="topic-tag">+ more</span>' : ''}
+          </div>
+          <p>${escapeHtml(chapter.description)}</p>
+        </div>
+        <div class="card-footer">
+          <span class="read-link"><i class="fas fa-eye"></i> Read Full Notes <i class="fas fa-arrow-right"></i></span>
+        </div>
+      `;
+      return card;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      });
+    }
+
+    // Search functionality
+    const searchInput = document.getElementById('dirSearchInput');
+    const clearBtn = document.getElementById('clearSearch');
+    
+    searchInput.addEventListener('input', function() {
+      const value = this.value;
+      if (value.length > 0) {
+        clearBtn.style.display = 'block';
+      } else {
+        clearBtn.style.display = 'none';
+      }
+      renderChapters(value);
+    });
+    
+    clearBtn.addEventListener('click', function() {
+      searchInput.value = '';
+      clearBtn.style.display = 'none';
+      renderChapters('');
+    });
+
+    // Preloader
+    window.addEventListener('load', () => {
+      const preloader = document.getElementById('preloader');
+      setTimeout(() => {
+        if (preloader) {
+          preloader.style.opacity = '0';
+          setTimeout(() => preloader.style.display = 'none', 500);
+        }
+      }, 800);
+      renderChapters('');
+    });
+
+    // Global search from header (if exists)
+    const globalSearchInput = document.getElementById('globalSearchInput');
+    if (globalSearchInput) {
+      globalSearchInput.addEventListener('input', function() {
+        if (searchInput) {
+          searchInput.value = this.value;
+          renderChapters(this.value);
+          if (this.value.length > 0) {
+            clearBtn.style.display = 'block';
+          } else {
+            clearBtn.style.display = 'none';
+          }
+        }
+      });
+    }
+  </script>
+  <script src="/search.js"></script>
+</body>
+
+</html>

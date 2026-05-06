@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class 10 Physics Chapter 3: Electricity | Detailed NCERT Notes | NeoBranium</title>
+  <meta name="description" content="Most repeated and exam-focused notes for Class 10 Science Chapter 11 (Physics Chapter 3) - Electricity. Includes Ohm's law, resistance, resistors in series and parallel, heating effect of electric current, electric power, and previous year numerical questions. CBSE board 2025-26.">
+  <meta name="keywords" content="class 10 physics chapter 3, electricity, Ohm's law, resistance, series and parallel circuits, heating effect of current, Joule's law, electric power, kilowatt-hour, NCERT notes, board exam numericals">
+  <meta name="author" content="NeoBranium">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://neobranium.com/notes/class10-physics-ch3-detailed.html">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+  <link rel="stylesheet" href="../index_css.css">
+  <link rel="stylesheet" href="notes.css">
+  
+  <style>
+    .highlight-box {
+      background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+      border-left: 5px solid #f59e0b;
+      padding: 1.2rem;
+      margin: 1.5rem 0;
+      border-radius: 12px;
+    }
+    .repeated-tag {
+      display: inline-block;
+      background: #dc2626;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 30px;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .pyq-box {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 16px;
+      padding: 1.3rem;
+      margin: 1.8rem 0;
+    }
+    .key-memorize {
+      background: #fef3c7;
+      padding: 1rem 1.3rem;
+      border-radius: 14px;
+      border-left: 4px solid #d97706;
+      margin: 1.3rem 0;
+    }
+    .formula-box-custom {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 1rem;
+      border-radius: 12px;
+      font-family: monospace;
+      text-align: center;
+      margin: 1rem 0;
+    }
+    .formula-box-custom h4 {
+      margin: 0 0 0.5rem 0;
+      color: #fbbf24;
+    }
+    .defect-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin: 1rem 0;
+    }
+    .defect-table th {
+      background: #1e293b;
+      color: white;
+      padding: 12px;
+    }
+    .defect-table td {
+      padding: 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .badge-mostimp {
+      background: #16a34a;
+      color: white;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.7rem;
+      border-radius: 20px;
+      display: inline-block;
+      margin-top: 0.3rem;
+    }
+    .numerical-box {
+      background: #eef2ff;
+      padding: 1rem;
+      border-radius: 12px;
+      margin: 1rem 0;
+      border-left: 4px solid #4361ee;
+    }
+    .numerical-box strong {
+      color: #1e40af;
+    }
+    
+    /* Footer Chapter Summary Cards Styles */
+    .chapter-summary-footer {
+      background: #f8fafc;
+      margin-top: 4rem;
+      padding: 2rem 1rem 1rem;
+    }
+    .footer-chapter-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .footer-chapter-heading {
+      font-size: 1.8rem;
+      text-align: center;
+      margin-bottom: 0.5rem;
+      color: #0f172a;
+    }
+    .footer-chapter-subheading {
+      text-align: center;
+      color: #475569;
+      margin-bottom: 2.5rem;
+    }
+    .chapter-summary-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    .subject-section {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 1.2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .subject-title {
+      font-size: 1.4rem;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      border-bottom: 3px solid;
+      display: inline-block;
+    }
+    .chemistry-title { border-bottom-color: #10b981; color: #065f46; }
+    .biology-title { border-bottom-color: #3b82f6; color: #1e3a8a; }
+    .physics-title { border-bottom-color: #f59e0b; color: #92400e; }
+    .chapter-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+    .chapter-jump-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      padding: 1rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .chapter-jump-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      border-color: #94a3b8;
+    }
+    .card-icon {
+      font-size: 2rem;
+      min-width: 50px;
+      text-align: center;
+    }
+    .card-info h4 {
+      margin: 0 0 0.3rem;
+      font-size: 1rem;
+      color: #1e293b;
+    }
+    .card-info p {
+      margin: 0 0 0.4rem;
+      font-size: 0.8rem;
+      color: #475569;
+    }
+    .jump-badge {
+      font-size: 0.7rem;
+      color: #3b82f6;
+      font-weight: 500;
+    }
+    .footer-revision-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin: 2rem 0 1rem;
+    }
+    .revision-box {
+      background: #eef2ff;
+      padding: 0.75rem 1.2rem;
+      border-radius: 40px;
+      font-size: 0.85rem;
+      color: #1e40af;
+    }
+    @media (max-width: 768px) {
+      .chapter-cards { grid-template-columns: 1fr; }
+      .footer-chapter-heading { font-size: 1.4rem; }
+      .revision-box { font-size: 0.7rem; text-align: center; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="preloader">
+    <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="preloader-logo" />
+    <div class="loader"></div>
+  </div>
+
+  <header>
+    <div class="header-container">
+      <div class="logo" onclick="window.location.href='../index.html'">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
+        <span>NeoBranium</span>
+      </div>
+      <div class="header-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="globalSearchInput" placeholder="Search notes..." autocomplete="off">
+        <div id="globalSearchResults" class="search-results-dropdown"></div>
+      </div>
+      <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+      <nav class="nav-menu">
+        <a href="../index.html">Home</a>
+        <div class="nav-item">
+          <a href="notes-science-class10.html" class="active">Notes <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i></a>
+          <div class="dropdown-menu">
+            <div class="dropdown-submenu"><h5>Class 9</h5><ul><li><a href="notes-science-class9.html">Science</a></li></ul></div>
+            <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;"><h5>Class 10</h5><ul><li><a href="notes-science-class10.html">Science</a></li></ul></div>
+          </div>
+        </div>
+        <a href="../IQ/top-question.html">Top Questions</a>
+        <a href="../blog/blog.html">Blog</a>
+        <a href="../htmls/sign.html" class="login-btn">Login / Sign Up</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="notes-page">
+    <aside class="notes-sidebar">
+      <div class="sidebar-content">
+        <h3>📖 Chapter Contents</h3>
+        <ul>
+          <li><a href="#intro">Introduction</a></li>
+          <li><a href="#current-charge">Electric Current & Charge</a></li>
+          <li><a href="#ohms-law">Ohm's Law <span class="repeated-tag" style="font-size:0.6rem;">HOT</span></a></li>
+          <li><a href="#resistance">Resistance & Resistivity</a></li>
+          <li><a href="#series-parallel">Series & Parallel Circuits</a></li>
+          <li><a href="#heating-effect">Heating Effect of Current</a></li>
+          <li><a href="#electric-power">Electric Power</a></li>
+          <li><a href="#pyqs">Previous Year Numericals</a></li>
+          <li><a href="#quick-revision">Quick Revision Table</a></li>
+        </ul>
+        <div style="margin-top: 2rem; background:#eef2ff; padding:1rem; border-radius:12px;">
+          <p style="font-size:0.85rem; margin:0;"><i class="fas fa-chart-line"></i> <strong>Board Weightage:</strong> 8-10 marks (Ohm's law numericals + series/parallel + power calculation)</p>
+        </div>
+      </div>
+    </aside>
+
+    <div class="notes-container">
+      <nav class="breadcrumb">
+        <a href="../index.html">Home</a> / <a href="notes-science-class10.html">Notes</a> / Chapter 11: Electricity
+      </nav>
+
+      <section id="intro">
+        <h1>Electricity <span class="repeated-tag">High Weightage Chapter</span></h1>
+        <p class="chapter-summary">Complete detailed notes covering electric current, potential difference, Ohm's law, resistance, resistors in series and parallel, heating effect of electric current, Joule's law, electric power, and previous year numericals with solved examples.</p>
+        <div class="highlight-box">
+          <i class="fas fa-star" style="color:#f59e0b;"></i> <strong>Why this chapter is important?</strong> Every year 4-6 questions appear including numerical problems on Ohm's law, equivalent resistance in series/parallel, heat produced, and electric power calculation. This chapter has the highest weightage for numericals in board exams.
+        </div>
+      </section>
+
+      <section id="current-charge">
+        <h2>1. Electric Current and Charge</h2>
+        <p><strong>Electric Current (I):</strong> Flow of electric charge through a conductor. Current flows from positive to negative terminal (conventional direction).</p>
+        <div class="formula-box-custom">
+          <h4>📐 Formula</h4>
+          <strong>I = Q / t</strong><br>
+          Where: I = Current (Amperes/A), Q = Charge (Coulombs/C), t = Time (seconds/s)<br>
+          1 Ampere = 1 Coulomb / 1 second
+        </div>
+        <p><strong>Potential Difference (V):</strong> Work done to move a unit charge from one point to another.</p>
+        <div class="formula-box-custom">
+          <strong>V = W / Q</strong><br>
+          Unit: Volt (V) = Joule/Coulomb<br>
+          1 Volt = 1 Joule / 1 Coulomb
+        </div>
+        <div class="badge-mostimp">⭐ Battery provides potential difference (electromotive force) that drives current through a circuit.</div>
+      </section>
+
+      <section id="ohms-law">
+        <h2>2. Ohm's Law <span class="repeated-tag">Most Repeated</span></h2>
+        <p>At constant temperature, the current (I) flowing through a conductor is directly proportional to the potential difference (V) across its ends.</p>
+        <div class="formula-box-custom">
+          <strong>V ∝ I  →  V = I × R</strong><br>
+          Where R = Resistance (Ohms/Ω)
+        </div>
+        <div class="key-memorize">
+          <strong>📌 Important:</strong> Ohm's law is valid only for metallic conductors at constant temperature. Does NOT apply to semiconductors, diodes, or electrolytes.
+        </div>
+        <div class="numerical-box">
+          <strong>🔢 Solved Example:</strong> A current of 0.5 A flows through a resistor when a potential difference of 10 V is applied. Calculate the resistance.<br>
+          <strong>Solution:</strong> R = V/I = 10/0.5 = <strong>20 Ω</strong>
+        </div>
+      </section>
+
+      <section id="resistance">
+        <h2>3. Resistance and Resistivity</h2>
+        <p><strong>Resistance (R):</strong> Property of a conductor to oppose the flow of current. Depends on:</p>
+        <ul>
+          <li><strong>Length (l):</strong> R ∝ l (longer wire → more resistance)</li>
+          <li><strong>Area (A):</strong> R ∝ 1/A (thicker wire → less resistance)</li>
+          <li><strong>Material (ρ):</strong> Resistivity (nature of material)</li>
+        </ul>
+        <div class="formula-box-custom">
+          <strong>R = ρ × l / A</strong><br>
+          Where ρ (rho) = Resistivity (Ω·m), l = length (m), A = cross-sectional area (m²)
+        </div>
+        <p><strong>Resistivity (ρ):</strong> Resistance of a conductor of unit length and unit area of cross-section.<br>
+        <strong>Factors affecting resistivity:</strong> Nature of material and temperature. Does NOT depend on length or area.</p>
+        <div class="badge-mostimp">⭐ Good conductors (Cu, Al) have low resistivity (~1.6 × 10⁻⁸ Ω·m). Insulators (Rubber, Glass) have very high resistivity (>10¹² Ω·m).</div>
+      </section>
+
+      <section id="series-parallel">
+        <h2>4. Resistors in Series and Parallel <span class="repeated-tag">Board Favourite</span></h2>
+        
+        <h3>🔗 Series Combination</h3>
+        <p>Resistors connected end-to-end. Same current flows through all resistors.</p>
+        <div class="formula-box-custom">
+          <strong>R<sub>s</sub> = R<sub>1</sub> + R<sub>2</sub> + R<sub>3</sub> + ...</strong><br>
+          V = V<sub>1</sub> + V<sub>2</sub> + V<sub>3</sub> (Voltage divides)<br>
+          Current I is same throughout
+        </div>
+        <div class="numerical-box">
+          <strong>Example:</strong> Three resistors 2Ω, 3Ω, 5Ω in series. Equivalent resistance = 2+3+5 = <strong>10Ω</strong>
+        </div>
+
+        <h3>🔀 Parallel Combination</h3>
+        <p>Resistors connected across the same two points. Same voltage across all resistors.</p>
+        <div class="formula-box-custom">
+          <strong>1/R<sub>p</sub> = 1/R<sub>1</sub> + 1/R<sub>2</sub> + 1/R<sub>3</sub> + ...</strong><br>
+          I = I<sub>1</sub> + I<sub>2</sub> + I<sub>3</sub> (Current divides)<br>
+          Voltage V is same across all
+        </div>
+        <div class="numerical-box">
+          <strong>Example:</strong> Two resistors 4Ω and 6Ω in parallel.<br>
+          1/R<sub>p</sub> = 1/4 + 1/6 = (3+2)/12 = 5/12 → R<sub>p</sub> = <strong>2.4Ω</strong>
+        </div>
+        <div class="key-memorize">
+          <strong>⚠️ Common Mistake:</strong> For parallel combination, R<sub>p</sub> is always less than the smallest individual resistance. Don't forget to <strong>invert</strong> after adding fractions!
+        </div>
+      </section>
+
+      <section id="heating-effect">
+        <h2>5. Heating Effect of Electric Current (Joule's Law)</h2>
+        <p>When current flows through a resistor, electrical energy is converted into heat energy.</p>
+        <div class="formula-box-custom">
+          <strong>H = I² × R × t</strong><br>
+          Where: H = Heat produced (Joules), I = Current (A), R = Resistance (Ω), t = Time (s)
+        </div>
+        <p>Alternative formulas (using Ohm's law):<br>
+        H = V × I × t  or  H = (V²/R) × t</p>
+        
+        <h3>Applications of Heating Effect:</h3>
+        <ul>
+          <li><strong>Electric Iron, Heater, Toaster:</strong> Nichrome alloy used (high resistivity, high melting point)</li>
+          <li><strong>Electric Bulb:</strong> Tungsten filament (high melting point, glows at high temperature)</li>
+          <li><strong>Fuse Wire:</strong> Low melting point alloy — melts on overloading, protecting circuit</li>
+        </ul>
+        <div class="numerical-box">
+          <strong>🔢 Solved Example:</strong> A current of 2 A flows through a 10 Ω resistor for 5 minutes. Calculate heat produced.<br>
+          <strong>Solution:</strong> t = 5 × 60 = 300 s<br>
+          H = I²Rt = (2)² × 10 × 300 = 4 × 10 × 300 = <strong>12,000 J</strong>
+        </div>
+      </section>
+
+      <section id="electric-power">
+        <h2>6. Electric Power</h2>
+        <p><strong>Electric Power (P):</strong> Rate at which electrical energy is consumed or dissipated.</p>
+        <div class="formula-box-custom">
+          <strong>P = V × I = I² × R = V² / R</strong><br>
+          Unit: Watt (W) = Joule/second<br>
+          1 kilowatt (kW) = 1000 W
+        </div>
+        <p><strong>Electrical Energy Consumed:</strong> E = P × t</p>
+        <div class="formula-box-custom">
+          <strong>Commercial Unit: Kilowatt-hour (kWh)</strong><br>
+          1 kWh = 1000 W × 3600 s = 3.6 × 10⁶ J<br>
+          1 kWh = 1 unit (electricity bill calculation)
+        </div>
+        <div class="numerical-box">
+          <strong>🔢 Solved Example:</strong> A 100 W bulb is used for 10 hours daily. Calculate energy consumed in kWh and cost at ₹5 per unit.<br>
+          <strong>Solution:</strong><br>
+          Energy = (100/1000) kW × 10 h = 1 kWh per day<br>
+          Monthly consumption (30 days) = 30 kWh<br>
+          Cost = 30 × ₹5 = <strong>₹150</strong>
+        </div>
+        <div class="badge-mostimp">⭐ A device with higher power consumes more energy in the same time. Power rating is usually written on electrical appliances (e.g., 60W bulb, 2000W heater).</div>
+      </section>
+
+      <section id="pyqs">
+        <h2>7. Most Repeated Previous Year Numericals (2020-2025)</h2>
+        <div class="pyq-box">
+          <h4><i class="fas fa-question-circle"></i> Top Board Numericals</h4>
+          <ol>
+            <li><strong>Calculate the resistance of a copper wire of length 2 m and area 0.5 mm². Resistivity of copper = 1.6 × 10⁻⁸ Ω·m.</strong><br>
+            <strong>Answer:</strong> R = ρl/A = (1.6×10⁻⁸ × 2) / (0.5×10⁻⁶) = <strong>0.064 Ω</strong></li>
+            
+            <li><strong>Three resistors 2Ω, 3Ω, and 5Ω are connected in series. Find equivalent resistance and current when connected to a 10V battery.</strong><br>
+            <strong>Answer:</strong> Rₛ = 2+3+5=10Ω; I = V/R = 10/10 = <strong>1A</strong></li>
+            
+            <li><strong>Two resistors 4Ω and 6Ω are connected in parallel. Calculate equivalent resistance and total current when 12V is applied.</strong><br>
+            <strong>Answer:</strong> 1/Rₚ = 1/4+1/6=5/12 → Rₚ=2.4Ω; I = V/R = 12/2.4 = <strong>5A</strong></li>
+            
+            <li><strong>A 100W, 200V bulb is connected to a 200V supply. Calculate the current drawn and resistance of the bulb.</strong><br>
+            <strong>Answer:</strong> I = P/V = 100/200 = 0.5A; R = V/I = 200/0.5 = 400Ω</li>
+            
+            <li><strong>An electric iron consumes energy at 1500W. How many units does it consume in 2 hours?</strong><br>
+            <strong>Answer:</strong> Energy = (1500/1000)kW × 2h = 3 kWh = <strong>3 units</strong></li>
+            
+            <li><strong>A current of 2A passes through a resistor of 5Ω for 10 minutes. Calculate heat produced.</strong><br>
+            <strong>Answer:</strong> H = I²Rt = 4 × 5 × 600 = <strong>12,000 J</strong></li>
+          </ol>
+        </div>
+      </section>
+
+      <section id="quick-revision">
+        <h2>8. Quick Revision Table – All Formulas at a Glance</h2>
+        <div class="formula-table-container">
+          <table class="formula-table">
+            <thead>
+              <tr>
+                <th>Concept</th>
+                <th>Formula</th>
+                <th>Units</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Ohm's Law</td>
+                <td>V = I × R</td>
+                <td>V(Volt), I(Ampere), R(Ohm)</td>
+              </tr>
+              <tr>
+                <td>Charge</td>
+                <td>Q = I × t</td>
+                <td>Q(Coulomb), I(A), t(s)</td>
+              </tr>
+              <tr>
+                <td>Resistance (Resistivity)</td>
+                <td>R = ρ × l / A</td>
+                <td>R(Ω), ρ(Ω·m), l(m), A(m²)</td>
+              </tr>
+              <tr>
+                <td>Series Resistance</td>
+                <td>Rₛ = R₁ + R₂ + R₃</td>
+                <td>Rₛ > each individual</td>
+              </tr>
+              <tr>
+                <td>Parallel Resistance</td>
+                <td>1/Rₚ = 1/R₁ + 1/R₂ + 1/R₃</td>
+                <td>Rₚ < smallest resistor</td>
+              </tr>
+              <tr>
+                <td>Joule's Heating</td>
+                <td>H = I²Rt = VIt = (V²/R)t</td>
+                <td>H(Joule), I(A), R(Ω), t(s)</td>
+              </tr>
+              <tr>
+                <td>Electric Power</td>
+                <td>P = VI = I²R = V²/R</td>
+                <td>P(Watt), V(V), I(A)</td>
+              </tr>
+              <tr>
+                <td>Electrical Energy</td>
+                <td>E = P × t</td>
+                <td>E(kWh), P(kW), t(h)</td>
+              </tr>
+              <tr>
+                <td>1 kWh (1 unit)</td>
+                <td>3.6 × 10⁶ J</td>
+                <td>Commercial energy unit</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="key-memorize">
+          <strong>🎯 Quick Exam Tips:</strong><br>
+          • In series: Current same, Voltage divides, Equivalent R increases<br>
+          • In parallel: Voltage same, Current divides, Equivalent R decreases<br>
+          • Fuse wire has low melting point → melts on overloading<br>
+          • Tungsten used in bulbs → high melting point, glows without melting<br>
+          • Nichrome used in heaters → high resistivity, does not oxidize easily
+        </div>
+      </section>
+
+      <div style="background: linear-gradient(145deg, #1e293b, #0f172a); color:white; border-radius: 20px; padding: 1.8rem; margin: 2rem 0; text-align:center;">
+        <i class="fas fa-calculator" style="font-size: 2rem; margin-bottom:0.5rem; display:inline-block;"></i>
+        <h3 style="margin:0.5rem 0;">Practice More Numerical Questions</h3>
+        <p style="margin-bottom:0;">Master Ohm's law, series/parallel combinations, and power calculations for board exams</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================= -->
+  <!-- FOOTER SECTION WITH ALL CHAPTER SUMMARY CARDS -->
+  <!-- Each card contains chapter name + direct jump link -->
+  <!-- ============================================= -->
+  <footer class="chapter-summary-footer">
+    <div class="footer-chapter-container">
+      <h2 class="footer-chapter-heading">
+        <i class="fas fa-book-open"></i> Complete Chapter Index – Class 10 Science
+      </h2>
+      <p class="footer-chapter-subheading">Quick jump to any chapter summary | CBSE Board Exam 2025-26</p>
+      
+      <div class="chapter-summary-grid">
+        
+        <!-- Chemistry Chapters -->
+        <div class="subject-section">
+          <h3 class="subject-title chemistry-title"><i class="fas fa-flask"></i> Chemistry</h3>
+          <div class="chapter-cards">
+            <a href="/Notes/10-CH1.html" class="chapter-jump-card">
+              <div class="card-icon">⚗️</div>
+              <div class="card-info">
+                <h4>Ch 1: Chemical Reactions & Equations</h4>
+                <p>Balancing, types of reactions, redox, corrosion, rancidity</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-CH2.html" class="chapter-jump-card">
+              <div class="card-icon">🧪</div>
+              <div class="card-info">
+                <h4>Ch 2: Acids, Bases and Salts</h4>
+                <p>pH scale, neutralization, important salts, chlor-alkali process</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-CH3.html" class="chapter-jump-card">
+              <div class="card-icon">🔩</div>
+              <div class="card-info">
+                <h4>Ch 3: Metals and Non-metals</h4>
+                <p>Reactivity series, ionic compounds, metallurgy, alloys</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-CH4.html" class="chapter-jump-card">
+              <div class="card-icon">🌿</div>
+              <div class="card-info">
+                <h4>Ch 4: Carbon and its Compounds</h4>
+                <p>Covalent bonds, hydrocarbons, homologous series, soaps/detergents</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Biology Chapters -->
+        <div class="subject-section">
+          <h3 class="subject-title biology-title"><i class="fas fa-leaf"></i> Biology</h3>
+          <div class="chapter-cards">
+            <a href="/Notes/10-BI1.html" class="chapter-jump-card">
+              <div class="card-icon">❤️</div>
+              <div class="card-info">
+                <h4>Ch 1: Life Processes</h4>
+                <p>Nutrition, respiration, transportation, excretion, double circulation</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-BI2.html" class="chapter-jump-card">
+              <div class="card-icon">🧠</div>
+              <div class="card-info">
+                <h4>Ch 2: Control & Coordination</h4>
+                <p>Neurons, reflex action, brain, plant & animal hormones</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-BI3.html" class="chapter-jump-card">
+              <div class="card-icon">🌱</div>
+              <div class="card-info">
+                <h4>Ch 3: How do Organisms Reproduce?</h4>
+                <p>Asexual/sexual reproduction, flower structure, contraception</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-BI4.html" class="chapter-jump-card">
+              <div class="card-icon">🧬</div>
+              <div class="card-info">
+                <h4>Ch 4: Heredity</h4>
+                <p>Mendel's laws, monohybrid cross, sex determination, traits</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-BI5.html" class="chapter-jump-card">
+              <div class="card-icon">🌍</div>
+              <div class="card-info">
+                <h4>Ch 5: Our Environment</h4>
+                <p>Ecosystem, 10% energy law, biomagnification, ozone depletion</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Physics Chapters -->
+        <div class="subject-section">
+          <h3 class="subject-title physics-title"><i class="fas fa-atom"></i> Physics</h3>
+          <div class="chapter-cards">
+            <a href="/Notes/10-PH1.html" class="chapter-jump-card">
+              <div class="card-icon">💡</div>
+              <div class="card-info">
+                <h4>Ch 1: Light – Reflection & Refraction</h4>
+                <p>Mirror/lens formula, power of lens, refractive index, sign convention</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-PH2.html" class="chapter-jump-card">
+              <div class="card-icon">👁️</div>
+              <div class="card-info">
+                <h4>Ch 2: The Human Eye & Colourful World</h4>
+                <p>Defects of vision, dispersion, rainbow, scattering, twinkling of stars</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-PH3.html" class="chapter-jump-card">
+              <div class="card-icon">⚡</div>
+              <div class="card-info">
+                <h4>Ch 3: Electricity</h4>
+                <p>Ohm's law, series/parallel resistance, Joule's heating, electric power</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-PH4.html" class="chapter-jump-card">
+              <div class="card-icon">🧲</div>
+              <div class="card-info">
+                <h4>Ch 4: Magnetic Effects of Electric Current</h4>
+                <p>Fleming's rules, solenoid, electric motor, domestic circuits, earthing</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-PH5.html" class="chapter-jump-card">
+              <div class="card-icon">📐</div>
+              <div class="card-info">
+                <h4>Quick Formula Table</h4>
+                <p>All physics & chemistry formulas in one place for quick revision</p>
+                <span class="jump-badge">Jump to Formulas →</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-revision-links">
+        <div class="revision-box"><i class="fas fa-chart-simple"></i> 📊 Board Exam Weightage: Chemistry (25%) | Biology (30%) | Physics (25%)</div>
+        <div class="revision-box"><i class="fas fa-clock"></i> ⏱️ Last Minute Revision: Click any card above to jump directly to the chapter</div>
+      </div>
+    </div>
+    
+    <div class="footer-container" style="margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 2rem;">
+      <div class="footer-brand">
+        <div class="logo"><img src="/online-graduation_16847316.png" alt="NeoBranium Logo"><span>NeoBranium</span></div>
+        <p>A next-gen learning platform for students of all classes.</p>
+      </div>
+      <div class="footer-links"><h4>Quick Links</h4><ul><li><a href="../index.html">Home</a></li><li><a href="notes-science-class10.html">Notes</a></li><li><a href="../blog/blog.html">Blog</a></li></ul></div>
+      <div class="footer-bottom"><p>&copy; 2026 NeoBranium. All rights reserved.</p></div>
+    </div>
+  </footer>
+
+  <script>
+    window.addEventListener('load', () => {
+      const preloader = document.getElementById('preloader');
+      if(preloader) { setTimeout(() => { preloader.style.opacity = '0'; setTimeout(() => preloader.style.display = 'none', 500); }, 800); }
+    });
+  </script>
+  <script src="/search.js"></script>
+</body>
+</html>

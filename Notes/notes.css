@@ -102,14 +102,16 @@
   gap: 0.5rem;
 }
 
-.chapter-section p, .chapter-section li {
+.chapter-section p,
+.chapter-section li {
   line-height: 1.8;
   font-size: 1.05rem;
   color: var(--text-main);
   margin-bottom: 1rem;
 }
 
-.chapter-section ul, .chapter-section ol {
+.chapter-section ul,
+.chapter-section ol {
   padding-left: 1.5rem;
   margin-bottom: 1.5rem;
 }
@@ -166,6 +168,7 @@
   .notes-page {
     grid-template-columns: 1fr;
   }
+
   .notes-sidebar {
     position: relative;
     top: 0;
@@ -177,6 +180,7 @@
   .notes-container {
     padding: 1.5rem;
   }
+
   .chapter-section h2 {
     font-size: 1.8rem;
   }
@@ -197,7 +201,8 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.formula-table th, .formula-table td {
+.formula-table th,
+.formula-table td {
   padding: 1rem;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
@@ -215,4 +220,144 @@
 
 .formula-table tr:hover {
   background: #f1f5f9;
+}
+
+.chapter-summary-footer {
+  background: #f8fafc;
+  margin-top: 4rem;
+  padding: 2rem 1rem 1rem;
+}
+
+.footer-chapter-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.footer-chapter-heading {
+  font-size: 1.8rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  color: #0f172a;
+}
+
+.footer-chapter-subheading {
+  text-align: center;
+  color: #475569;
+  margin-bottom: 2.5rem;
+}
+
+.chapter-summary-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.subject-section {
+  background: white;
+  border-radius: 1.5rem;
+  padding: 1.2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.subject-title {
+  font-size: 1.4rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 3px solid;
+  display: inline-block;
+}
+
+.chemistry-title {
+  border-bottom-color: #10b981;
+  color: #065f46;
+}
+
+.biology-title {
+  border-bottom-color: #3b82f6;
+  color: #1e3a8a;
+}
+
+.physics-title {
+  border-bottom-color: #f59e0b;
+  color: #92400e;
+}
+
+.chapter-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.chapter-jump-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.chapter-jump-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  border-color: #94a3b8;
+}
+
+.card-icon {
+  font-size: 2rem;
+  min-width: 50px;
+  text-align: center;
+}
+
+.card-info h4 {
+  margin: 0 0 0.3rem;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.card-info p {
+  margin: 0 0 0.4rem;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.jump-badge {
+  font-size: 0.7rem;
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+.footer-revision-links {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  margin: 2rem 0 1rem;
+}
+
+.revision-box {
+  background: #eef2ff;
+  padding: 0.75rem 1.2rem;
+  border-radius: 40px;
+  font-size: 0.85rem;
+  color: #1e40af;
+}
+
+@media (max-width: 768px) {
+  .chapter-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-chapter-heading {
+    font-size: 1.4rem;
+  }
+
+  .revision-box {
+    font-size: 0.7rem;
+    text-align: center;
+  }
 }

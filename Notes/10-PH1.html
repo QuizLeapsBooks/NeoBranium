@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class 10 Physics Chapter 1: Light – Reflection and Refraction | Detailed NCERT Notes | NeoBranium</title>
+  <meta name="description" content="Most repeated and exam-focused notes for Class 10 Science Chapter 9 (Physics Chapter 1) - Light: Reflection and Refraction. Includes laws of reflection, spherical mirrors, mirror formula, sign convention, refraction, lens formula, power of lens, and previous year questions. CBSE board 2025-26.">
+  <meta name="keywords" content="class 10 physics chapter 1, light reflection and refraction, spherical mirrors, concave mirror, convex mirror, mirror formula, lens formula, sign convention, refractive index, power of lens, NCERT notes, board exam">
+  <meta name="author" content="NeoBranium">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://neobranium.com/notes/class10-physics-ch1-detailed.html">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+  <link rel="stylesheet" href="../index_css.css">
+  <link rel="stylesheet" href="notes.css">
+  
+  <style>
+    .highlight-box {
+      background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+      border-left: 5px solid #f59e0b;
+      padding: 1.2rem;
+      margin: 1.5rem 0;
+      border-radius: 12px;
+    }
+    .repeated-tag {
+      display: inline-block;
+      background: #dc2626;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 30px;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .pyq-box {
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      border-radius: 16px;
+      padding: 1.3rem;
+      margin: 1.8rem 0;
+    }
+    .key-memorize {
+      background: #fef3c7;
+      padding: 1rem 1.3rem;
+      border-radius: 14px;
+      border-left: 4px solid #d97706;
+      margin: 1.3rem 0;
+    }
+    .formula-box-custom {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 1rem;
+      border-radius: 12px;
+      font-family: monospace;
+      text-align: center;
+    }
+    .table-mnemonics {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .table-mnemonics th {
+      background: #1e293b;
+      color: white;
+      padding: 10px;
+    }
+    .table-mnemonics td {
+      padding: 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .badge-mostimp {
+      background: #16a34a;
+      color: white;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.7rem;
+      border-radius: 20px;
+      display: inline-block;
+      margin-top: 0.3rem;
+    }
+    .mirror-table, .lens-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+    }
+    .mirror-table th, .mirror-table td, .lens-table th, .lens-table td {
+      border: 1px solid #cbd5e1;
+      padding: 10px;
+      text-align: left;
+    }
+    .mirror-table th, .lens-table th {
+      background: #e2e8f0;
+    }
+    
+    /* Footer Chapter Summary Cards Styles */
+    .chapter-summary-footer {
+      background: #f8fafc;
+      margin-top: 4rem;
+      padding: 2rem 1rem 1rem;
+    }
+    .footer-chapter-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .footer-chapter-heading {
+      font-size: 1.8rem;
+      text-align: center;
+      margin-bottom: 0.5rem;
+      color: #0f172a;
+    }
+    .footer-chapter-subheading {
+      text-align: center;
+      color: #475569;
+      margin-bottom: 2.5rem;
+    }
+    .chapter-summary-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    .subject-section {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 1.2rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .subject-title {
+      font-size: 1.4rem;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+      border-bottom: 3px solid;
+      display: inline-block;
+    }
+    .chemistry-title { border-bottom-color: #10b981; color: #065f46; }
+    .biology-title { border-bottom-color: #3b82f6; color: #1e3a8a; }
+    .physics-title { border-bottom-color: #f59e0b; color: #92400e; }
+    .chapter-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+    .chapter-jump-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 1rem;
+      padding: 1rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .chapter-jump-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      border-color: #94a3b8;
+    }
+    .card-icon {
+      font-size: 2rem;
+      min-width: 50px;
+      text-align: center;
+    }
+    .card-info h4 {
+      margin: 0 0 0.3rem;
+      font-size: 1rem;
+      color: #1e293b;
+    }
+    .card-info p {
+      margin: 0 0 0.4rem;
+      font-size: 0.8rem;
+      color: #475569;
+    }
+    .jump-badge {
+      font-size: 0.7rem;
+      color: #3b82f6;
+      font-weight: 500;
+    }
+    .footer-revision-links {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin: 2rem 0 1rem;
+    }
+    .revision-box {
+      background: #eef2ff;
+      padding: 0.75rem 1.2rem;
+      border-radius: 40px;
+      font-size: 0.85rem;
+      color: #1e40af;
+    }
+    @media (max-width: 768px) {
+      .chapter-cards { grid-template-columns: 1fr; }
+      .footer-chapter-heading { font-size: 1.4rem; }
+      .revision-box { font-size: 0.7rem; text-align: center; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="preloader">
+    <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="preloader-logo" />
+    <div class="loader"></div>
+  </div>
+
+  <header>
+    <div class="header-container">
+      <div class="logo" onclick="window.location.href='../index.html'">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
+        <span>NeoBranium</span>
+      </div>
+      <div class="header-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="globalSearchInput" placeholder="Search notes..." autocomplete="off">
+        <div id="globalSearchResults" class="search-results-dropdown"></div>
+      </div>
+      <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+      <nav class="nav-menu">
+        <a href="../index.html">Home</a>
+        <div class="nav-item">
+          <a href="notes-science-class10.html" class="active">Notes <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i></a>
+          <div class="dropdown-menu">
+            <div class="dropdown-submenu"><h5>Class 9</h5><ul><li><a href="notes-science-class9.html">Science</a></li></ul></div>
+            <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;"><h5>Class 10</h5><ul><li><a href="notes-science-class10.html">Science</a></li></ul></div>
+          </div>
+        </div>
+        <a href="../IQ/top-question.html">Top Questions</a>
+        <a href="../blog/blog.html">Blog</a>
+        <a href="../htmls/sign.html" class="login-btn">Login / Sign Up</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="notes-page">
+    <aside class="notes-sidebar">
+      <div class="sidebar-content">
+        <h3>📖 Chapter Contents</h3>
+        <ul>
+          <li><a href="#intro">Introduction</a></li>
+          <li><a href="#reflection">Laws of Reflection</a></li>
+          <li><a href="#spherical-mirrors">Spherical Mirrors <span class="repeated-tag" style="font-size:0.6rem;">HOT</span></a></li>
+          <li><a href="#mirror-terms">Important Mirror Terms</a></li>
+          <li><a href="#mirror-formula">Mirror Formula & Magnification</a></li>
+          <li><a href="#sign-convention">Sign Convention <span class="repeated-tag" style="font-size:0.6rem;">Must Know</span></a></li>
+          <li><a href="#refraction">Refraction of Light</a></li>
+          <li><a href="#lenses">Lenses & Lens Formula</a></li>
+          <li><a href="#pyqs">Previous Year Questions</a></li>
+          <li><a href="#quick-revision">Quick Revision Table</a></li>
+        </ul>
+        <div style="margin-top: 2rem; background:#eef2ff; padding:1rem; border-radius:12px;">
+          <p style="font-size:0.85rem; margin:0;"><i class="fas fa-chart-line"></i> <strong>Board Weightage:</strong> 8-10 marks (numericals on mirror/lens formula + ray diagrams + refractive index)</p>
+        </div>
+      </div>
+    </aside>
+
+    <div class="notes-container">
+      <nav class="breadcrumb">
+        <a href="../index.html">Home</a> / <a href="notes-science-class10.html">Notes</a> / Chapter 9: Light – Reflection and Refraction
+      </nav>
+
+      <section id="intro">
+        <h1>Light – Reflection and Refraction <span class="repeated-tag">High Weightage Chapter</span></h1>
+        <p class="chapter-summary">Complete detailed notes covering laws of reflection, spherical mirrors, mirror formula, sign convention, refraction, refractive index, lenses, lens formula, power of lens, and most repeated board exam questions with numericals.</p>
+        <div class="highlight-box">
+          <i class="fas fa-star" style="color:#f59e0b;"></i> <strong>Why this chapter is important?</strong> Every year 4-6 questions appear including numerical problems on mirror/lens formula, ray diagrams, definition of refractive index, and power of lens.
+        </div>
+      </section>
+
+      <section id="reflection">
+        <h2>1. Reflection of Light</h2>
+        <p>When light falls on a surface and bounces back, it is called <strong>reflection</strong>.</p>
+        <div class="key-memorize">
+          <strong>📌 Laws of Reflection:</strong><br>
+          1️⃣ The angle of incidence (i) is equal to the angle of reflection (r).<br>
+          2️⃣ The incident ray, reflected ray, and the normal all lie in the same plane.
+        </div>
+        <p><strong>Types of Reflection:</strong> Regular reflection (smooth surface) and Diffused reflection (rough surface).</p>
+      </section>
+
+      <section id="spherical-mirrors">
+        <h2>2. Spherical Mirrors <span class="repeated-tag">Board Favourite</span></h2>
+        <p>A spherical mirror is a part of a hollow sphere. Two types:</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0;">
+          <div style="background:#e0e7ff; padding:1rem; border-radius:12px;">
+            <h3 style="color:#1e3a8a;">🔍 Concave Mirror</h3>
+            <ul>
+              <li>Reflecting surface curved inward</li>
+              <li>Converging mirror</li>
+              <li>Used in torches, headlights, shaving mirrors, dentist mirrors</li>
+              <li>Can form real/virtual, magnified/diminished images</li>
+            </ul>
+          </div>
+          <div style="background:#f1f5f9; padding:1rem; border-radius:12px;">
+            <h3 style="color:#475569;">🪞 Convex Mirror</h3>
+            <ul>
+              <li>Reflecting surface curved outward</li>
+              <li>Diverging mirror</li>
+              <li>Used as rear-view mirrors in vehicles (gives wider field of view)</li>
+              <li>Always forms virtual, erect, and diminished image</li>
+            </ul>
+          </div>
+        </div>
+        <div class="badge-mostimp">⭐ Rear-view mirrors in vehicles are convex because they give a wider field of view and always form an erect image.</div>
+      </section>
+
+      <section id="mirror-terms">
+        <h2>3. Important Terms for Spherical Mirrors</h2>
+        <ul>
+          <li><strong>Pole (P):</strong> Center of the mirror surface</li>
+          <li><strong>Center of Curvature (C):</strong> Center of the hollow sphere</li>
+          <li><strong>Radius of Curvature (R):</strong> Distance from pole to center of curvature</li>
+          <li><strong>Principal Focus (F):</strong> Point where parallel rays converge (concave) or appear to diverge (convex)</li>
+          <li><strong>Focal Length (f):</strong> Distance from pole to focus. <strong>f = R/2</strong></li>
+        </ul>
+        
+        <h3>📊 Image Formation by Concave Mirror (Exam Important)</h3>
+        <table class="mirror-table">
+          <thead><tr><th>Position of Object</th><th>Position of Image</th><th>Nature & Size</th></tr></thead>
+          <tbody>
+            <tr><td>At infinity</td><td>At focus (F)</td><td>Real, inverted, highly diminished</td></tr>
+            <tr><td>Beyond C</td><td>Between F and C</td><td>Real, inverted, diminished</td></tr>
+            <tr><td>At C</td><td>At C</td><td>Real, inverted, same size</td></tr>
+            <tr><td>Between C and F</td><td>Beyond C</td><td>Real, inverted, enlarged</td></tr>
+            <tr><td>At F</td><td>At infinity</td><td>Real, inverted, highly enlarged</td></tr>
+            <tr><td>Between P and F</td><td>Behind mirror</td><td>Virtual, erect, enlarged</td></tr>
+          </tbody>
+        </table>
+        
+        <h3>📊 Image Formation by Convex Mirror</h3>
+        <p>For a convex mirror, regardless of object position, image is always formed <strong>behind the mirror</strong>, virtual, erect, and diminished.</p>
+      </section>
+
+      <section id="mirror-formula">
+        <h2>4. Mirror Formula and Magnification</h2>
+        <div class="formula-box-custom">
+          <strong>🔢 Mirror Formula:</strong> 1/v + 1/u = 1/f<br>
+          Where: u = object distance, v = image distance, f = focal length
+        </div>
+        <div class="formula-box-custom" style="margin-top: 1rem;">
+          <strong>📏 Magnification (m):</strong> m = h<sub>i</sub>/h<sub>o</sub> = -v/u<br>
+          • m > 1 → Image enlarged<br>
+          • m < 1 → Image diminished<br>
+          • m positive → Virtual & erect image<br>
+          • m negative → Real & inverted image
+        </div>
+        <div class="key-memorize">
+          <strong>🎯 Solved Example:</strong> An object is placed at 20 cm from a concave mirror of focal length 10 cm. Find image distance and magnification.<br>
+          <strong>Solution:</strong> u = -20 cm, f = -10 cm<br>
+          1/v + 1/(-20) = 1/(-10) → 1/v = -1/10 + 1/20 = -1/20 → v = -20 cm<br>
+          m = -v/u = -(-20)/(-20) = -1 → Image is real, inverted, same size.
+        </div>
+      </section>
+
+      <section id="sign-convention">
+        <h2>5. Sign Convention (Cartesian Sign Convention) <span class="repeated-tag">Must Memorize</span></h2>
+        <div class="highlight-box">
+          <strong>⚠️ Important Rules for Sign Convention:</strong><br>
+          ✅ All distances are measured from the <strong>pole (P)</strong> of the mirror.<br>
+          ✅ Distances measured in the direction of incident light → <strong>Positive</strong><br>
+          ✅ Distances measured opposite to incident light → <strong>Negative</strong><br>
+          ✅ Object distance (u) is ALWAYS <strong>negative</strong>.<br>
+          ✅ Focal length (f) → Concave mirror = negative, Convex mirror = positive.
+        </div>
+      </section>
+
+      <section id="refraction">
+        <h2>6. Refraction of Light</h2>
+        <p>The bending of light when it passes from one transparent medium to another is called <strong>refraction</strong>.</p>
+        <div class="key-memorize">
+          <strong>📌 Laws of Refraction:</strong><br>
+          1️⃣ The incident ray, refracted ray, and normal lie in the same plane.<br>
+          2️⃣ <strong>Snell's Law:</strong> sin i / sin r = constant = n<sub>21</sub> (refractive index)
+        </div>
+        
+        <h3>🔢 Refractive Index (n)</h3>
+        <p>Refractive index = speed of light in vacuum / speed of light in medium = c/v</p>
+        <ul>
+          <li>n < 1 → light travels faster in medium than in vacuum (impossible, so n ≥ 1 always)</li>
+          <li>Higher n → optically denser medium (light slows down more)</li>
+        </ul>
+        <div class="badge-mostimp">⭐ Refractive index of water = 1.33, glass = 1.5, diamond = 2.42</div>
+        
+        <h3>🔍 Real and Apparent Depth</h3>
+        <p>Due to refraction, an object in water appears raised. Apparent depth = Real depth / n</p>
+      </section>
+
+      <section id="lenses">
+        <h2>7. Lenses – Convex and Concave</h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0;">
+          <div style="background:#dcfce7; padding:1rem; border-radius:12px;">
+            <h3>🔵 Convex Lens (Converging)</h3>
+            <ul>
+              <li>Thicker at center, thinner at edges</li>
+              <li>Converges light rays</li>
+              <li>Used in magnifying glass, camera, human eye lens</li>
+              <li>f = positive</li>
+            </ul>
+          </div>
+          <div style="background:#fee2e2; padding:1rem; border-radius:12px;">
+            <h3>🔴 Concave Lens (Diverging)</h3>
+            <ul>
+              <li>Thinner at center, thicker at edges</li>
+              <li>Diverges light rays</li>
+              <li>Used in myopia correction (spectacles)</li>
+              <li>f = negative</li>
+            </ul>
+          </div>
+        </div>
+        
+        <h3>📐 Lens Formula and Power</h3>
+        <div class="formula-box-custom">
+          <strong>Lens Formula:</strong> 1/v - 1/u = 1/f<br>
+          <strong>Power of Lens (P):</strong> P = 1/f (where f is in meters)<br>
+          Unit of Power: <strong>Dioptre (D)</strong><br>
+          Power of convex lens = positive, Concave lens = negative
+        </div>
+        
+        <h3>📊 Image Formation by Convex Lens</h3>
+        <table class="lens-table">
+          <thead><tr><th>Object Position</th><th>Image Position</th><th>Nature & Size</th></tr></thead>
+          <tbody>
+            <tr><td>At infinity</td><td>At focus (F)</td><td>Real, inverted, highly diminished</td></tr>
+            <tr><td>Beyond 2F</td><td>Between F and 2F</td><td>Real, inverted, diminished</td></tr>
+            <tr><td>At 2F</td><td>At 2F</td><td>Real, inverted, same size</td></tr>
+            <tr><td>Between F and 2F</td><td>Beyond 2F</td><td>Real, inverted, enlarged</td></tr>
+            <tr><td>At F</td><td>At infinity</td><td>Real, inverted, highly enlarged</td></tr>
+            <tr><td>Between F and O</td><td>Same side as object</td><td>Virtual, erect, enlarged</td></tr>
+          </tbody>
+        </table>
+        
+        <h3>📊 Image Formation by Concave Lens</h3>
+        <p>Always forms virtual, erect, and diminished image between optical center and focus.</p>
+      </section>
+
+      <section id="pyqs">
+        <h2>8. Most Repeated Previous Year Questions (2020-2025)</h2>
+        <div class="pyq-box">
+          <h4><i class="fas fa-question-circle"></i> Top Board Questions</h4>
+          <ol>
+            <li><strong>Define the principal focus of a concave mirror.</strong> (Answer: It is the point on principal axis where parallel rays converge after reflection.)</li>
+            <li><strong>A ray of light traveling in air enters obliquely into water. Does it bend towards or away from the normal? Why?</strong> (Answer: Towards the normal because water is optically denser than air.)</li>
+            <li><strong>What is the power of a lens of focal length -2.0 m? What type of lens is it?</strong> (Answer: P = 1/f = 1/(-2) = -0.5 D; Concave lens.)</li>
+            <li><strong>An object is placed at 15 cm from a convex lens of focal length 10 cm. Find the nature and position of the image.</strong> (Answer: 1/v - 1/(-15) = 1/10 → v = 30 cm; Real, inverted, enlarged.)</li>
+            <li><strong>Why do we prefer a convex mirror as a rear-view mirror in vehicles?</strong> (Answer: It gives a wider field of view and always produces an erect, diminished image.)</li>
+            <li><strong>State Snell's law of refraction. Write the formula for refractive index of medium 2 with respect to medium 1.</strong> (Answer: sin i / sin r = constant = n<sub>21</sub>)</li>
+          </ol>
+        </div>
+      </section>
+
+      <section id="quick-revision">
+        <h2>9. Quick Revision Table – At a Glance</h2>
+        <div class="formula-table-container">
+          <table class="formula-table">
+            <thead><tr><th>Concept</th><th>Formula</th><th>Key Point</th></tr></thead>
+            <tbody>
+              <tr><td>Mirror Formula</td><td>1/v + 1/u = 1/f</td><td>Sign convention important</td></tr>
+              <tr><td>Magnification (Mirror)</td><td>m = h<sub>i</sub>/h<sub>o</sub> = -v/u</td><td>m negative → real image</td></tr>
+              <tr><td>Lens Formula</td><td>1/v - 1/u = 1/f</td><td>For convex f (+), concave f (-)</td></tr>
+              <tr><td>Power of Lens</td><td>P = 1/f (meter)</td><td>Unit: Dioptre (D)</td></tr>
+              <tr><td>Refractive Index</td><td>n = c/v = sin i / sin r</td><td>n = real depth / apparent depth</td></tr>
+              <tr><td>Relation f and R</td><td>f = R/2</td><td>For spherical mirrors</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="key-memorize">
+          <strong>🎯 Quick Tips for Numericals:</strong><br>
+          • u is always negative for both mirrors and lenses (object in front).<br>
+          • For convex lens, f is positive; concave lens, f is negative.<br>
+          • For concave mirror, f negative; convex mirror, f positive.<br>
+          • v positive → image on opposite side (real); v negative → image on same side (virtual).
+        </div>
+      </section>
+
+      <div style="background: linear-gradient(145deg, #1e293b, #0f172a); color:white; border-radius: 20px; padding: 1.8rem; margin: 2rem 0; text-align:center;">
+        <i class="fas fa-calculator" style="font-size: 2rem; margin-bottom:0.5rem; display:inline-block;"></i>
+        <h3 style="margin:0.5rem 0;">Practice More Numerical Questions</h3>
+        <p style="margin-bottom:0;">Bookmark this page – most detailed notes for CBSE 2025 exams.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================= -->
+  <!-- FOOTER SECTION WITH ALL CHAPTER SUMMARY CARDS -->
+  <!-- Each card contains chapter name + direct jump link -->
+  <!-- ============================================= -->
+  <footer class="chapter-summary-footer">
+    <div class="footer-chapter-container">
+      <h2 class="footer-chapter-heading">
+        <i class="fas fa-book-open"></i> Complete Chapter Index – Class 10 Science
+      </h2>
+      <p class="footer-chapter-subheading">Quick jump to any chapter summary | CBSE Board Exam 2025-26</p>
+      
+      <div class="chapter-summary-grid">
+        
+        <!-- Chemistry Chapters -->
+        <div class="subject-section">
+          <h3 class="subject-title chemistry-title"><i class="fas fa-flask"></i> Chemistry</h3>
+          <div class="chapter-cards">
+            <a href="/Notes/10-CH1.html" class="chapter-jump-card">
+              <div class="card-icon">⚗️</div>
+              <div class="card-info">
+                <h4>Ch 1: Chemical Reactions & Equations</h4>
+                <p>Balancing, types of reactions, redox, corrosion, rancidity</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-CH2.html" class="chapter-jump-card">
+              <div class="card-icon">🧪</div>
+              <div class="card-info">
+                <h4>Ch 2: Acids, Bases and Salts</h4>
+                <p>pH scale, neutralization, important salts, chlor-alkali process</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-CH3.html" class="chapter-jump-card">
+              <div class="card-icon">🔩</div>
+              <div class="card-info">
+                <h4>Ch 3: Metals and Non-metals</h4>
+                <p>Reactivity series, ionic compounds, metallurgy, alloys</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-CH4.html" class="chapter-jump-card">
+              <div class="card-icon">🌿</div>
+              <div class="card-info">
+                <h4>Ch 4: Carbon and its Compounds</h4>
+                <p>Covalent bonds, hydrocarbons, homologous series, soaps/detergents</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Biology Chapters -->
+        <div class="subject-section">
+          <h3 class="subject-title biology-title"><i class="fas fa-leaf"></i> Biology</h3>
+          <div class="chapter-cards">
+            <a href="/Notes/10-BI1.html" class="chapter-jump-card">
+              <div class="card-icon">❤️</div>
+              <div class="card-info">
+                <h4>Ch 1: Life Processes</h4>
+                <p>Nutrition, respiration, transportation, excretion, double circulation</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-BI2.html" class="chapter-jump-card">
+              <div class="card-icon">🧠</div>
+              <div class="card-info">
+                <h4>Ch 2: Control & Coordination</h4>
+                <p>Neurons, reflex action, brain, plant & animal hormones</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-BI3.html" class="chapter-jump-card">
+              <div class="card-icon">🌱</div>
+              <div class="card-info">
+                <h4>Ch 3: How do Organisms Reproduce?</h4>
+                <p>Asexual/sexual reproduction, flower structure, contraception</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-BI4.html" class="chapter-jump-card">
+              <div class="card-icon">🧬</div>
+              <div class="card-info">
+                <h4>Ch 4: Heredity</h4>
+                <p>Mendel's laws, monohybrid cross, sex determination, traits</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-BI5.html" class="chapter-jump-card">
+              <div class="card-icon">🌍</div>
+              <div class="card-info">
+                <h4>Ch 5: Our Environment</h4>
+                <p>Ecosystem, 10% energy law, biomagnification, ozone depletion</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Physics Chapters -->
+        <div class="subject-section">
+          <h3 class="subject-title physics-title"><i class="fas fa-atom"></i> Physics</h3>
+          <div class="chapter-cards">
+            <a href="/Notes/10-PH1.html" class="chapter-jump-card">
+              <div class="card-icon">💡</div>
+              <div class="card-info">
+                <h4>Ch 1: Light – Reflection & Refraction</h4>
+                <p>Mirror/lens formula, power of lens, refractive index, sign convention</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-PH2.html" class="chapter-jump-card">
+              <div class="card-icon">👁️</div>
+              <div class="card-info">
+                <h4>Ch 2: The Human Eye & Colourful World</h4>
+                <p>Defects of vision, dispersion, rainbow, scattering, twinkling of stars</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-PH3.html" class="chapter-jump-card">
+              <div class="card-icon">⚡</div>
+              <div class="card-info">
+                <h4>Ch 3: Electricity</h4>
+                <p>Ohm's law, series/parallel resistance, Joule's heating, electric power</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-PH4.html" class="chapter-jump-card">
+              <div class="card-icon">🧲</div>
+              <div class="card-info">
+                <h4>Ch 4: Magnetic Effects of Electric Current</h4>
+                <p>Fleming's rules, solenoid, electric motor, domestic circuits, earthing</p>
+                <span class="jump-badge">Jump to Chapter →</span>
+              </div>
+            </a>
+            <a href="/Notes/10-PH5.html" class="chapter-jump-card">
+              <div class="card-icon">📐</div>
+              <div class="card-info">
+                <h4>Quick Formula Table</h4>
+                <p>All physics & chemistry formulas in one place for quick revision</p>
+                <span class="jump-badge">Jump to Formulas →</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-revision-links">
+        <div class="revision-box"><i class="fas fa-chart-simple"></i> 📊 Board Exam Weightage: Chemistry (25%) | Biology (30%) | Physics (25%)</div>
+        <div class="revision-box"><i class="fas fa-clock"></i> ⏱️ Last Minute Revision: Click any card above to jump directly to the chapter</div>
+      </div>
+    </div>
+    
+    <div class="footer-container" style="margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 2rem;">
+      <div class="footer-brand">
+        <div class="logo"><img src="/online-graduation_16847316.png" alt="NeoBranium Logo"><span>NeoBranium</span></div>
+        <p>A next-gen learning platform for students of all classes.</p>
+      </div>
+      <div class="footer-links"><h4>Quick Links</h4><ul><li><a href="../index.html">Home</a></li><li><a href="notes-science-class10.html">Notes</a></li><li><a href="../blog/blog.html">Blog</a></li></ul></div>
+      <div class="footer-bottom"><p>&copy; 2026 NeoBranium. All rights reserved.</p></div>
+    </div>
+  </footer>
+
+  <script>
+    window.addEventListener('load', () => {
+      const preloader = document.getElementById('preloader');
+      if(preloader) { setTimeout(() => { preloader.style.opacity = '0'; setTimeout(() => preloader.style.display = 'none', 500); }, 800); }
+    });
+  </script>
+  <script src="/search.js"></script>
+</body>
+</html>
