@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Class 10 Biology Chapter 4: Heredity | Detailed NCERT Notes | NeoBranium</title>
+    <meta name="description"
+        content="Most repeated and exam-focused notes for Class 10 Science Chapter 8 (Biology Chapter 4) - Heredity. Includes Mendel's laws of inheritance, monohybrid and dihybrid crosses, sex determination (XY system), acquired vs inherited traits, and previous year questions. CBSE board 2025-26.">
+    <meta name="keywords"
+        content="class 10 biology chapter 4, heredity, Mendel's laws, monohybrid cross, dihybrid cross, dominant and recessive traits, sex determination, XX XY, acquired traits, inherited traits, CBSE notes, board exam">
+    <meta name="author" content="NeoBranium">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://neobranium.com/notes/class10-biology-ch4-detailed.html">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="stylesheet" href="../index_css.css">
+    <link rel="stylesheet" href="notes.css">
+
+    <style>
+        .highlight-box {
+            background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+            border-left: 5px solid #f59e0b;
+            padding: 1.2rem;
+            margin: 1.5rem 0;
+            border-radius: 12px;
+        }
+
+        .repeated-tag {
+            display: inline-block;
+            background: #dc2626;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            margin-left: 0.75rem;
+            vertical-align: middle;
+        }
+
+        .pyq-box {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 16px;
+            padding: 1.3rem;
+            margin: 1.8rem 0;
+        }
+
+        .key-memorize {
+            background: #fef3c7;
+            padding: 1rem 1.3rem;
+            border-radius: 14px;
+            border-left: 4px solid #d97706;
+            margin: 1.3rem 0;
+        }
+
+        .badge-mostimp {
+            background: #16a34a;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 0.3rem;
+        }
+
+        .cross-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin: 1rem 0;
+        }
+
+        .cross-table th {
+            background: #1e293b;
+            color: white;
+            padding: 10px;
+        }
+
+        .cross-table td {
+            padding: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: center;
+        }
+
+        .punnet-box {
+            background: #f1f5f9;
+            padding: 1rem;
+            border-radius: 12px;
+            font-family: monospace;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .term-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            margin: 0.6rem 0;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .term-card strong {
+            color: #1e3a8a;
+        }
+
+        /* Footer Chapter Summary Cards Styles */
+        .chapter-summary-footer {
+            background: #f8fafc;
+            margin-top: 4rem;
+            padding: 2rem 1rem 1rem;
+        }
+
+        .footer-chapter-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-chapter-heading {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            color: #0f172a;
+        }
+
+        .footer-chapter-subheading {
+            text-align: center;
+            color: #475569;
+            margin-bottom: 2.5rem;
+        }
+
+        .chapter-summary-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .subject-section {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .subject-title {
+            font-size: 1.4rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 3px solid;
+            display: inline-block;
+        }
+
+        .chemistry-title {
+            border-bottom-color: #10b981;
+            color: #065f46;
+        }
+
+        .biology-title {
+            border-bottom-color: #3b82f6;
+            color: #1e3a8a;
+        }
+
+        .physics-title {
+            border-bottom-color: #f59e0b;
+            color: #92400e;
+        }
+
+        .chapter-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1rem;
+        }
+
+        .chapter-jump-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .chapter-jump-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-color: #94a3b8;
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .card-info h4 {
+            margin: 0 0 0.3rem;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
+        .card-info p {
+            margin: 0 0 0.4rem;
+            font-size: 0.8rem;
+            color: #475569;
+        }
+
+        .jump-badge {
+            font-size: 0.7rem;
+            color: #3b82f6;
+            font-weight: 500;
+        }
+
+        .footer-revision-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin: 2rem 0 1rem;
+        }
+
+        .revision-box {
+            background: #eef2ff;
+            padding: 0.75rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            color: #1e40af;
+        }
+
+        @media (max-width: 768px) {
+            .chapter-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-chapter-heading {
+                font-size: 1.4rem;
+            }
+
+            .revision-box {
+                font-size: 0.7rem;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="preloader">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="preloader-logo" />
+        <div class="loader"></div>
+    </div>
+
+    <header>
+        <div class="header-container">
+            <div class="logo" onclick="window.location.href='../index.html'">
+                <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
+                <span>NeoBranium</span>
+            </div>
+            <div class="header-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="globalSearchInput" placeholder="Search notes..." autocomplete="off">
+                <div id="globalSearchResults" class="search-results-dropdown"></div>
+            </div>
+            <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+            <nav class="nav-menu">
+                <a href="../index.html">Home</a>
+                <div class="nav-item">
+                    <a href="notes-science-class10.html" class="active">Notes <i class="fas fa-chevron-down"
+                            style="font-size: 0.7rem;"></i></a>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-submenu">
+                            <h5>Class 9</h5>
+                            <ul>
+                                <li><a href="notes-science-class9.html">Science</a></li>
+                            </ul>
+                        </div>
+                        <div class="dropdown-submenu"
+                            style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;">
+                            <h5>Class 10</h5>
+                            <ul>
+                                <li><a href="notes-science-class10.html">Science</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <a href="../IQ/top-question.html">Top Questions</a>
+                <a href="../blog/blog.html">Blog</a>
+                <a href="../htmls/sign.html" class="login-btn">Login / Sign Up</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="notes-page">
+        <aside class="notes-sidebar">
+            <div class="sidebar-content">
+                <h3>📖 Chapter Contents</h3>
+                <ul>
+                    <li><a href="#intro">Introduction</a></li>
+                    <li><a href="#genetics-basics">Genetics: Basic Terminology</a></li>
+                    <li><a href="#mendel">Mendel's Experiments</a></li>
+                    <li><a href="#monohybrid">Monohybrid Cross <span class="repeated-tag"
+                                style="font-size:0.6rem;">HOT</span></a></li>
+                    <li><a href="#laws">Mendel's Laws of Inheritance</a></li>
+                    <li><a href="#sex-determination">Sex Determination <span class="repeated-tag"
+                                style="font-size:0.6rem;">Most Repeated</span></a></li>
+                    <li><a href="#traits">Acquired vs Inherited Traits</a></li>
+                    <li><a href="#pyqs">Previous Year Questions</a></li>
+                    <li><a href="#quick-revision">Quick Revision Table</a></li>
+                </ul>
+                <div style="margin-top: 2rem; background:#eef2ff; padding:1rem; border-radius:12px;">
+                    <p style="font-size:0.85rem; margin:0;"><i class="fas fa-chart-line"></i> <strong>Board
+                            Weightage:</strong> 5-7 marks (Mendel's experiments + monohybrid cross ratio + sex
+                        determination)</p>
+                </div>
+            </div>
+        </aside>
+
+        <div class="notes-container">
+            <nav class="breadcrumb">
+                <a href="../index.html">Home</a> / <a href="notes-science-class10.html">Notes</a> / Chapter 8: Heredity
+            </nav>
+
+            <section id="intro">
+                <h1>Heredity <span class="repeated-tag">High Weightage Chapter</span></h1>
+                <p class="chapter-summary">Complete detailed notes covering Mendel's experiments, laws of inheritance,
+                    monohybrid and dihybrid crosses, sex determination in humans, acquired vs inherited traits, and most
+                    repeated board exam questions with Punnett square explanations.</p>
+                <div class="highlight-box">
+                    <i class="fas fa-star" style="color:#f59e0b;"></i> <strong>Why this chapter is important?</strong>
+                    Every year 4-5 questions appear — monohybrid cross ratio (3:1 and 1:2:1), sex determination (XX-XY),
+                    difference between acquired and inherited traits, and Mendel's laws.
+                </div>
+            </section>
+
+            <section id="genetics-basics">
+                <h2>1. Genetics – Basic Terminology</h2>
+                <div class="term-card">
+                    <strong>🧬 Heredity:</strong> Transmission of genetic characters from parents to offspring.
+                </div>
+                <div class="term-card">
+                    <strong>🧬 Variation:</strong> Differences between individuals of the same species.
+                </div>
+                <div class="term-card">
+                    <strong>🧬 Gene:</strong> Basic unit of inheritance (segment of DNA that codes for a protein/trait).
+                </div>
+                <div class="term-card">
+                    <strong>🧬 Allele:</strong> Alternative form of a gene (dominant or recessive).
+                </div>
+                <div class="term-card">
+                    <strong>🧬 Genotype:</strong> Genetic makeup of an organism (e.g., TT, Tt, tt).
+                </div>
+                <div class="term-card">
+                    <strong>🧬 Phenotype:</strong> Observable physical characteristic (e.g., tall, dwarf).
+                </div>
+                <div class="term-card">
+                    <strong>🧬 Homozygous:</strong> Both alleles are same (TT or tt).
+                </div>
+                <div class="term-card">
+                    <strong>🧬 Heterozygous:</strong> Alleles are different (Tt).
+                </div>
+                <div class="badge-mostimp">⭐ Gregor Mendel is known as the "Father of Genetics".</div>
+            </section>
+
+            <section id="mendel">
+                <h2>2. Mendel's Experiments on Pea Plants</h2>
+                <p>Mendel chose garden pea (Pisum sativum) for his experiments because:</p>
+                <ul>
+                    <li>Many contrasting traits (tall/dwarf, round/wrinkled seeds, etc.)</li>
+                    <li>Short generation time</li>
+                    <li>Self-pollination possible, cross-pollination easy</li>
+                </ul>
+
+                <h3>🌱 Traits Studied by Mendel:</h3>
+                <table class="cross-table">
+                    <thead>
+                        <tr>
+                            <th>Character</th>
+                            <th>Dominant Trait</th>
+                            <th>Recessive Trait</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Plant height</td>
+                            <td>Tall (T)</td>
+                            <td>Dwarf (t)</td>
+                        </tr>
+                        <tr>
+                            <td>Seed shape</td>
+                            <td>Round (R)</td>
+                            <td>Wrinkled (r)</td>
+                        </tr>
+                        <tr>
+                            <td>Seed color</td>
+                            <td>Yellow (Y)</td>
+                            <td>Green (y)</td>
+                        </tr>
+                        <tr>
+                            <td>Flower color</td>
+                            <td>Violet (V)</td>
+                            <td>White (v)</td>
+                        </tr>
+                        <tr>
+                            <td>Pod shape</td>
+                            <td>Inflated (I)</td>
+                            <td>Constricted (i)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="monohybrid">
+                <h2>3. Monohybrid Cross <span class="repeated-tag">Board Favourite</span></h2>
+                <p>A cross between two parents differing in a single trait (e.g., tall vs dwarf).</p>
+
+                <div class="process-card">
+                    <h4>📊 Cross: Pure Tall (TT) × Pure Dwarf (tt)</h4>
+                    <div class="punnet-box">
+                        <strong>F1 Generation:</strong> All Tt (Tall)<br>
+                        <strong>Self-pollination of F1:</strong> Tt × Tt
+                    </div>
+                </div>
+
+                <h4>📈 Punnett Square for F2 Generation:</h4>
+                <table class="cross-table">
+                    <thead>
+                        <tr>
+                            <th>Gametes</th>
+                            <th>T</th>
+                            <th>t</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>T</strong></td>
+                            <td>TT (Tall)</td>
+                            <td>Tt (Tall)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>t</strong></td>
+                            <td>Tt (Tall)</td>
+                            <td>tt (Dwarf)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="key-memorize">
+                    <strong>📌 F2 Generation Ratios:</strong><br>
+                    • <strong>Phenotypic Ratio:</strong> 3 Tall : 1 Dwarf<br>
+                    • <strong>Genotypic Ratio:</strong> 1 TT : 2 Tt : 1 tt
+                </div>
+
+                <h4>🧬 Dihybrid Cross (Two traits – Round Yellow × Wrinkled Green)</h4>
+                <p>F2 Phenotypic Ratio: <strong>9 Round Yellow : 3 Round Green : 3 Wrinkled Yellow : 1 Wrinkled
+                        Green</strong></p>
+                <div class="badge-mostimp">⭐ Dihybrid cross proves that traits are inherited independently (Law of
+                    Independent Assortment).</div>
+            </section>
+
+            <section id="laws">
+                <h2>4. Mendel's Laws of Inheritance</h2>
+
+                <div class="term-card">
+                    <strong>🔬 Law of Dominance:</strong><br>
+                    When two opposite traits are present together, only one (dominant) is expressed in F1 generation.
+                    The other (recessive) remains hidden.
+                </div>
+
+                <div class="term-card">
+                    <strong>🔬 Law of Segregation:</strong><br>
+                    During gamete formation, the two alleles for a trait separate (segregate) so that each gamete
+                    receives only one allele.
+                </div>
+
+                <div class="term-card">
+                    <strong>🔬 Law of Independent Assortment:</strong><br>
+                    During gamete formation, alleles for different traits assort independently of each other
+                    (inheritance of one trait does not affect another).
+                </div>
+            </section>
+
+            <section id="sex-determination">
+                <h2>5. Sex Determination in Humans <span class="repeated-tag">Most Repeated</span></h2>
+                <p>In humans, sex is determined by the combination of sex chromosomes (XX for female, XY for male).</p>
+
+                <div class="highlight-box">
+                    <strong>🧬 Chromosome Types:</strong><br>
+                    • Female: 44 autosomes + XX<br>
+                    • Male: 44 autosomes + XY<br>
+                    • All eggs carry X chromosome<br>
+                    • Sperm carry either X or Y chromosome
+                </div>
+
+                <h4>📊 Sex Determination Cross:</h4>
+                <table class="cross-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>X (Egg)</th>
+                            <th>X (Egg)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>X (Sperm)</strong></td>
+                            <td>XX (Female)</td>
+                            <td>XX (Female)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Y (Sperm)</strong></td>
+                            <td>XY (Male)</td>
+                            <td>XY (Male)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="key-memorize">
+                    <strong>📌 Important Results:</strong><br>
+                    • 50% chance of baby being male, 50% chance female<br>
+                    • <strong>Father (male) determines the sex of the child</strong> – because mother contributes only
+                    X, father contributes X or Y<br>
+                    • Sex determination is a matter of chance
+                </div>
+
+                <div class="badge-mostimp">⭐ Sex determination in birds is different: Females are ZW and males are ZZ.
+                </div>
+            </section>
+
+            <section id="traits">
+                <h2>6. Acquired vs Inherited Traits</h2>
+
+                <table class="cross-table">
+                    <thead>
+                        <tr>
+                            <th>Acquired Traits</th>
+                            <th>Inherited Traits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Developed during lifetime</td>
+                            <td>Present from birth</td>
+                        </tr>
+                        <tr>
+                            <td>Not passed to offspring</td>
+                            <td>Passed from parents to offspring</td>
+                        </tr>
+                        <tr>
+                            <td>Not controlled by genes</td>
+                            <td>Controlled by genes (DNA)</td>
+                        </tr>
+                        <tr>
+                            <td>Example: Learning a language, bodybuilding, pierced ears</td>
+                            <td>Example: Eye color, blood group, hair type</td>
+                        </tr>
+                        <tr>
+                            <td>Do not cause evolution</td>
+                            <td>Cause evolution over generations</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="key-memorize">
+                    <strong>📌 Why acquired traits are not inherited?</strong><br>
+                    Acquired traits do not change the DNA of germ cells (sperm/egg). Only changes in germ cell DNA are
+                    passed to offspring.
+                </div>
+            </section>
+
+            <section id="pyqs">
+                <h2>7. Most Repeated Previous Year Questions (2020-2025)</h2>
+                <div class="pyq-box">
+                    <h4><i class="fas fa-question-circle"></i> Top Board Questions</h4>
+                    <ol>
+                        <li><strong>How do Mendel's experiments show that traits may be dominant or
+                                recessive?</strong><br>
+                            <strong>Answer:</strong> When Mendel crossed pure tall and pure dwarf pea plants, all F1
+                            plants were tall. This shows that tallness is dominant over dwarfness, which reappeared in
+                            F2 (3:1 ratio).
+                        </li>
+
+                        <li><strong>How is the sex of the child determined in human beings?</strong><br>
+                            <strong>Answer:</strong> Females have XX chromosomes, males have XY. The father contributes
+                            either X or Y chromosome. If sperm with X fertilizes egg → girl (XX); if sperm with Y
+                            fertilizes egg → boy (XY).
+                        </li>
+
+                        <li><strong>What is a monohybrid cross? Give its phenotypic and genotypic ratios.</strong><br>
+                            <strong>Answer:</strong> Cross between parents differing in one trait. Phenotypic ratio =
+                            3:1, Genotypic ratio = 1:2:1.
+                        </li>
+
+                        <li><strong>Distinguish between acquired traits and inherited traits with examples.</strong><br>
+                            <strong>Answer:</strong> Acquired traits (learned, not genetic) vs Inherited traits (passed
+                            through genes). Example: muscular body (acquired) vs eye color (inherited).
+                        </li>
+
+                        <li><strong>What is the Law of Independent Assortment?</strong><br>
+                            <strong>Answer:</strong> Genes for different traits assort independently during gamete
+                            formation. Proved by dihybrid cross (9:3:3:1 ratio).
+                        </li>
+
+                        <li><strong>A child has blood group O. If father has blood group A and mother has blood group B,
+                                work out the possible genotypes of the parents.</strong><br>
+                            <strong>Answer:</strong> Father: I<sup>A</sup>i, Mother: I<sup>B</sup>i. Child receives i
+                            from both → ii (O blood group).
+                        </li>
+
+                        <li><strong>Why did Mendel choose pea plants for his experiments?</strong><br>
+                            <strong>Answer:</strong> Easy to grow, short generation time, clear contrasting traits, self
+                            and cross pollination possible.
+                        </li>
+                    </ol>
+                </div>
+            </section>
+
+            <section id="quick-revision">
+                <h2>8. Quick Revision Table – At a Glance</h2>
+                <div class="formula-table-container">
+                    <table class="formula-table">
+                        <thead>
+                            <tr>
+                                <th>Concept</th>
+                                <th>Details</th>
+                                <th>Ratio/Result</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Monohybrid Cross (F2)</td>
+                                <td>Tall × Dwarf</td>
+                                <td>Phenotype: 3:1, Genotype: 1:2:1</td>
+                            </tr>
+                            <tr>
+                                <td>Dihybrid Cross (F2)</td>
+                                <td>Round Yellow × Wrinkled Green</td>
+                                <td>9:3:3:1</td>
+                            </tr>
+                            <tr>
+                                <td>Law of Dominance</td>
+                                <td>One trait masks the other in F1</td>
+                                <td>Tall dominant over dwarf</td>
+                            </tr>
+                            <tr>
+                                <td>Law of Segregation</td>
+                                <td>Alleles separate during gamete formation</td>
+                                <td>Each gamete gets one allele</td>
+                            </tr>
+                            <tr>
+                                <td>Law of Independent Assortment</td>
+                                <td>Genes for different traits assort independently</td>
+                                <td>Dihybrid cross ratio</td>
+                            </tr>
+                            <tr>
+                                <td>Sex Determination (Human)</td>
+                                <td>XX = Female, XY = Male</td>
+                                <td>Father determines sex</td>
+                            </tr>
+                            <tr>
+                                <td>Phenotype</td>
+                                <td>Observable characteristic</td>
+                                <td>Tall, dwarf, round, wrinkled</td>
+                            </tr>
+                            <tr>
+                                <td>Genotype</td>
+                                <td>Genetic makeup</td>
+                                <td>TT, Tt, tt</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="key-memorize">
+                    <strong>🎯 Quick Exam Tips:</strong><br>
+                    • Pure (homozygous) – TT or tt; Hybrid (heterozygous) – Tt<br>
+                    • F1 always shows dominant trait only<br>
+                    • Recessive trait appears only in homozygous condition (tt)<br>
+                    • Sex determination is a 50% chance – not influenced by previous children<br>
+                    • DNA copying introduces variations that lead to evolution
+                </div>
+            </section>
+
+            <div
+                style="background: linear-gradient(145deg, #1e293b, #0f172a); color:white; border-radius: 20px; padding: 1.8rem; margin: 2rem 0; text-align:center;">
+                <i class="fas fa-dna" style="font-size: 2rem; margin-bottom:0.5rem; display:inline-block;"></i>
+                <h3 style="margin:0.5rem 0;">Master Heredity for Board Exams</h3>
+                <p style="margin-bottom:0;">Practice Punnett squares, understand Mendel's laws, and memorize key ratios
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ============================================= -->
+    <!-- FOOTER SECTION WITH ALL CHAPTER SUMMARY CARDS -->
+    <!-- ============================================= -->
+    <footer class="chapter-summary-footer">
+        <div class="footer-chapter-container">
+            <h2 class="footer-chapter-heading">
+                <i class="fas fa-book-open"></i> Complete Chapter Index – Class 10 Science
+            </h2>
+            <p class="footer-chapter-subheading">Quick jump to any chapter summary | CBSE Board Exam 2025-26</p>
+
+            <div class="chapter-summary-grid">
+
+                <!-- Chemistry Chapters -->
+                <div class="subject-section">
+                    <h3 class="subject-title chemistry-title"><i class="fas fa-flask"></i> Chemistry</h3>
+                    <div class="chapter-cards">
+                        <a href="/Notes/10-CH1.html" class="chapter-jump-card">
+                            <div class="card-icon">⚗️</div>
+                            <div class="card-info">
+                                <h4>Ch 1: Chemical Reactions & Equations</h4>
+                                <p>Balancing, types of reactions, redox, corrosion, rancidity</p>
+                                <span class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="/Notes/10-CH2.html" class="chapter-jump-card">
+                            <div class="card-icon">🧪</div>
+                            <div class="card-info">
+                                <h4>Ch 2: Acids, Bases and Salts</h4>
+                                <p>pH scale, neutralization, important salts, chlor-alkali process</p>
+                                <span class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="/Notes/10-CH3.html" class="chapter-jump-card">
+                            <div class="card-icon">🔩</div>
+                            <div class="card-info">
+                                <h4>Ch 3: Metals and Non-metals</h4>
+                                <p>Reactivity series, ionic compounds, metallurgy, alloys</p>
+                                <span class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="/Notes/10-CH4.html" class="chapter-jump-card">
+                            <div class="card-icon">🌿</div>
+                            <div class="card-info">
+                                <h4>Ch 4: Carbon and its Compounds</h4>
+                                <p>Covalent bonds, hydrocarbons, homologous series, soaps/detergents</p>
+                                <span class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Biology Chapters -->
+                <div class="subject-section">
+                    <h3 class="subject-title biology-title"><i class="fas fa-leaf"></i> Biology</h3>
+                    <div class="chapter-cards">
+                        <a href="/Notes/10-BI1.html" class="chapter-jump-card">
+                            <div class="card-icon">❤️</div>
+                            <div class="card-info">
+                                <h4>Ch 1: Life Processes</h4>
+                                <p>Nutrition, respiration, transportation, excretion, double circulation</p>
+                                <span class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="/Notes/10-BI2.html" class="chapter-jump-card">
+                            <div class="card-icon">🧠</div>
+                            <div class="card-info">
+                                <h4>Ch 2: Control & Coordination</h4>
+                                <p>Neurons, reflex action, brain, plant & animal hormones</p>
+                                <span class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="/Notes/10-BI3.html" class="chapter-jump-card">
+                            <div class="card-icon">🌱</div>
+                            <div class="card-info">
+                                <h4>Ch 3: How do Organisms Reproduce?</h4>
+                                <p>Asexual/sexual reproduction, flower structure, contraception</p>
+                                <span class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="/Notes/10-BI4.html" class="chapter-jump-card">
+                            <div class="card-icon">🧬</div>
+                            <div class="card-info">
+                                <h4>Ch 4: Heredity</h4>
+                                <p>Mendel's laws, monohybrid cross, sex determination, traits</p>
+                                <span class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="/Notes/10-BI5.html" class="chapter-jump-card">
+                            <div class="card-icon">🌍</div>
+                            <div class="card-info">
+                                <h4>Ch 5: Our Environment</h4>
+                                <p>Ecosystem, 10% energy law, biomagnification, ozone depletion</p>
+                                <span class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Physics Chapters -->
+                <div class="subject-section">
+                    <h3 class="subject-title physics-title"><i class="fas fa-atom"></i> Physics</h3>
+                    <div class="chapter-cards">
+                        <a href="/Notes/10-PH1.html" class="chapter-jump-card">
+                            <div class="card-icon">💡</div>
+                            <div class="card-info">
+                                <h4>Ch 1: Light – Reflection & Refraction</h4>
+                                <p>Mirror/lens formula, power of lens, refractive index, sign convention</p>
+                                <span class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="/Notes/10-PH2.html" class="chapter-jump-card">
+                            <div class="card-icon">👁️</div>
+                            <div class="card-info">
+                                <h4>Ch 2: The Human Eye & Colourful World</h4>
+                                <p>Defects of vision, dispersion, rainbow, scattering, twinkling of stars</p>
+                                <span class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="/Notes/10-PH3.html" class="chapter-jump-card">
+                            <div class="card-icon">⚡</div>
+                            <div class="card-info">
+                                <h4>Ch 3: Electricity</h4>
+                                <p>Ohm's law, series/parallel resistance, Joule's heating, electric power</p>
+                                <span class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="/Notes/10-PH4.html" class="chapter-jump-card">
+                            <div class="card-icon">🧲</div>
+                            <div class="card-info">
+                                <h4>Ch 4: Magnetic Effects of Electric Current</h4>
+                                <p>Fleming's rules, solenoid, electric motor, domestic circuits, earthing</p>
+                                <span class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="/Notes/10-PH5.html" class="chapter-jump-card">
+                            <div class="card-icon">📐</div>
+                            <div class="card-info">
+                                <h4>Quick Formula Table</h4>
+                                <p>All physics & chemistry formulas in one place for quick revision</p>
+                                <span class="jump-badge">Jump to Formulas →</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-revision-links">
+                <div class="revision-box"><i class="fas fa-chart-simple"></i> 📊 Board Exam Weightage: Chemistry (25%) |
+                    Biology (30%) | Physics (25%)</div>
+                <div class="revision-box"><i class="fas fa-clock"></i> ⏱️ Last Minute Revision: Click any card above to
+                    jump directly to the chapter</div>
+            </div>
+        </div>
+
+        <div class="footer-container" style="margin-top: 2rem; border-top: 1px solid #e2e8f0; padding-top: 2rem;">
+            <div class="footer-brand">
+                <div class="logo"><img src="/online-graduation_16847316.png"
+                        alt="NeoBranium Logo"><span>NeoBranium</span></div>
+                <p>A next-gen learning platform for students of all classes.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="notes-science-class10.html">Notes</a></li>
+                    <li><a href="../blog/blog.html">Blog</a></li>
+                </ul>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 NeoBranium. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('load', () => {
+            const preloader = document.getElementById('preloader');
+            if (preloader) { setTimeout(() => { preloader.style.opacity = '0'; setTimeout(() => preloader.style.display = 'none', 500); }, 800); }
+        });
+    </script>
+    <script src="/search.js"></script>
+</body>
+
+</html>

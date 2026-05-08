@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quick Formula Page: Physics & Chemistry | Class 10 CBSE | NeoBranium</title>
+    <meta name="description"
+        content="Complete quick revision formula sheet for Class 10 Physics (Light, Electricity, Magnetic Effects) and Chemistry (Chemical Reactions, Acids-Bases, Metals & Non-metals, Carbon Compounds). Perfect for last-minute exam revision. CBSE board 2025-26.">
+    <meta name="keywords"
+        content="physics formulas class 10, chemistry formulas, mirror formula, lens formula, power of lens, ohm's law, resistivity, electric power, heating effect, snell's law, refractive index, ph formula, reactivity series, chemical formulas, class 10 science formula sheet">
+    <meta name="author" content="NeoBranium">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://neobranium.com/notes/quick-formula-page.html">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="stylesheet" href="../index_css.css">
+    <link rel="stylesheet" href="notes.css">
+
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        h1,
+        h2,
+        h3,
+        .logo,
+        .nav-menu a {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .repeated-tag {
+            display: inline-block;
+            background: #dc2626;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            margin-left: 0.75rem;
+            vertical-align: middle;
+        }
+
+        .badge-mostimp {
+            background: #16a34a;
+            color: white;
+            font-size: 0.7rem;
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 0.3rem;
+        }
+
+        .formula-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .formula-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+
+        .formula-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .formula-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.75rem;
+            color: #1e293b;
+            border-left: 4px solid #4361ee;
+            padding-left: 0.75rem;
+        }
+
+        .formula-equation {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 0.75rem;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            text-align: center;
+            margin: 0.75rem 0;
+            font-weight: 500;
+        }
+
+        .formula-note {
+            font-size: 0.85rem;
+            color: #475569;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed #e2e8f0;
+        }
+
+        .formula-note i {
+            color: #f59e0b;
+            margin-right: 0.25rem;
+        }
+
+        .key-memorize {
+            background: #fef3c7;
+            padding: 1rem 1.3rem;
+            border-radius: 14px;
+            border-left: 4px solid #d97706;
+            margin: 1.3rem 0;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%);
+            border-left: 5px solid #f59e0b;
+            padding: 1.2rem;
+            margin: 1.5rem 0;
+            border-radius: 12px;
+        }
+
+        .section-badge {
+            display: inline-block;
+            background: #4361ee;
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .subject-header {
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid #4361ee;
+            display: inline-block;
+        }
+
+        /* Header and Footer Styles (matching previous pages) */
+        header {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0.8rem 1rem;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .logo img {
+            height: 35px;
+        }
+
+        .header-search {
+            position: relative;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .header-search input {
+            width: 100%;
+            padding: 0.5rem 2rem 0.5rem 2rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 40px;
+        }
+
+        .header-search i {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background: white;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            min-width: 200px;
+            top: 100%;
+            left: 0;
+        }
+
+        .nav-item:hover .dropdown-menu {
+            display: block;
+        }
+
+        .main-content {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .breadcrumb {
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .breadcrumb a {
+            text-decoration: none;
+            color: #4361ee;
+        }
+
+        .formula-table-responsive {
+            overflow-x: auto;
+            margin: 1.5rem 0;
+        }
+
+        .formula-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .formula-table th {
+            background: #1e293b;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .formula-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .formula-table tr:hover {
+            background: #f8fafc;
+        }
+
+        /* Footer Chapter Summary Cards */
+        .chapter-summary-footer {
+            background: #f8fafc;
+            margin-top: 4rem;
+            padding: 2rem 1rem 1rem;
+        }
+
+        .footer-chapter-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-chapter-heading {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            color: #0f172a;
+        }
+
+        .footer-chapter-subheading {
+            text-align: center;
+            color: #475569;
+            margin-bottom: 2.5rem;
+        }
+
+        .chapter-summary-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .subject-section {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .subject-title {
+            font-size: 1.4rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 3px solid;
+            display: inline-block;
+        }
+
+        .chemistry-title {
+            border-bottom-color: #10b981;
+            color: #065f46;
+        }
+
+        .biology-title {
+            border-bottom-color: #3b82f6;
+            color: #1e3a8a;
+        }
+
+        .physics-title {
+            border-bottom-color: #f59e0b;
+            color: #92400e;
+        }
+
+        .chapter-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1rem;
+        }
+
+        .chapter-jump-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .chapter-jump-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-color: #94a3b8;
+        }
+
+        .card-icon {
+            font-size: 2rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .card-info h4 {
+            margin: 0 0 0.3rem;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
+        .card-info p {
+            margin: 0 0 0.4rem;
+            font-size: 0.8rem;
+            color: #475569;
+        }
+
+        .jump-badge {
+            font-size: 0.7rem;
+            color: #3b82f6;
+            font-weight: 500;
+        }
+
+        .footer-revision-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin: 2rem 0 1rem;
+        }
+
+        .revision-box {
+            background: #eef2ff;
+            padding: 0.75rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            color: #1e40af;
+        }
+
+        .footer-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .nav-menu {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                margin-top: 1rem;
+            }
+
+            .nav-menu.show {
+                display: flex;
+            }
+
+            .header-search {
+                order: 2;
+                margin-top: 0.5rem;
+                max-width: 100%;
+            }
+
+            .formula-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chapter-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #e2e8f0;
+            border-top: 5px solid #4361ee;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-top: 1rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .preloader-logo {
+            width: 60px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="preloader">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="preloader-logo" />
+        <div class="loader"></div>
+    </div>
+
+    <header>
+        <div class="header-container">
+            <div class="logo" onclick="window.location.href='../index.html'">
+                <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
+                <span>NeoBranium</span>
+            </div>
+            <div class="header-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="globalSearchInput" placeholder="Search notes..." autocomplete="off">
+                <div id="globalSearchResults" class="search-results-dropdown"></div>
+            </div>
+            <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+            <nav class="nav-menu">
+                <a href="../index.html">Home</a>
+                <div class="nav-item">
+                    <a href="notes-science-class10.html" class="active">Notes <i class="fas fa-chevron-down"></i></a>
+                    <div class="dropdown-menu">
+                        <div>
+                            <h5>Class 9</h5><a href="notes-science-class9.html">Science</a>
+                        </div>
+                        <div style="margin-top: 0.5rem;">
+                            <h5>Class 10</h5><a href="notes-science-class10.html">Science</a>
+                        </div>
+                    </div>
+                </div>
+                <a href="../IQ/top-question.html">Top Questions</a>
+                <a href="../blog/blog.html">Blog</a>
+                <a href="../htmls/sign.html" class="login-btn">Login / Sign Up</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <nav class="breadcrumb">
+            <a href="../index.html">Home</a> / <a href="notes-science-class10.html">Notes</a> / Quick Formula Page:
+            Physics & Chemistry
+        </nav>
+
+        <div class="highlight-box">
+            <i class="fas fa-bolt" style="color:#f59e0b;"></i>
+            <strong>Quick Revision Formula Sheet – Last Minute Exam Prep!</strong><br>
+            All important formulas from Physics (Light, Electricity, Magnetic Effects) and Chemistry (Chemical
+            Reactions, Acids-Bases, Metals & Non-metals, Carbon Compounds) in one place for CBSE Class 10 Board Exam
+            2025-26.
+        </div>
+
+        <!-- Physics Section -->
+        <span class="section-badge"><i class="fas fa-atom"></i> PHYSICS</span>
+        <h2 class="subject-header">Physics Formulas <span class="repeated-tag">High Priority</span></h2>
+
+        <div class="formula-grid">
+            <!-- Light: Reflection -->
+            <div class="formula-card">
+                <h3><i class="fas fa-lightbulb"></i> Light – Reflection (Mirrors)</h3>
+                <div class="formula-equation">1/v + 1/u = 1/f</div>
+                <div class="formula-equation">m = -v/u</div>
+                <div class="formula-note"><i class="fas fa-info-circle"></i> Mirror Formula: f = focal length, u =
+                    object distance (-ve), v = image distance. m = magnification (positive for virtual, negative for
+                    real).</div>
+                <div class="formula-note"><i class="fas fa-star" style="color:#f59e0b;"></i> For concave mirror: f is
+                    negative. For convex mirror: f is positive.</div>
+            </div>
+
+            <!-- Light: Refraction (Lenses) -->
+            <div class="formula-card">
+                <h3><i class="fas fa-eye"></i> Light – Refraction (Lenses)</h3>
+                <div class="formula-equation">1/v - 1/u = 1/f</div>
+                <div class="formula-equation">m = v/u</div>
+                <div class="formula-equation">P = 1/f (in meters)</div>
+                <div class="formula-note"><i class="fas fa-info-circle"></i> Lens formula (sign convention: u always -ve
+                    for real objects). Power P in Dioptre (D). Convex lens: f positive, P positive. Concave lens: f
+                    negative, P negative.</div>
+            </div>
+
+            <!-- Snell's Law & Refractive Index -->
+            <div class="formula-card">
+                <h3><i class="fas fa-water"></i> Refractive Index</h3>
+                <div class="formula-equation">n = c / v</div>
+                <div class="formula-equation">n = sin i / sin r (Snell's Law)</div>
+                <div class="formula-equation">n₂₁ = n₂ / n₁ = v₁ / v₂</div>
+                <div class="formula-note"><i class="fas fa-info-circle"></i> n = absolute refractive index, c = speed of
+                    light in vacuum (3×10⁸ m/s), v = speed in medium. Higher n means optically denser medium.</div>
+            </div>
+
+            <!-- Electricity: Ohm's Law -->
+            <div class="formula-card">
+                <h3><i class="fas fa-bolt"></i> Electricity – Ohm's Law</h3>
+                <div class="formula-equation">V = I × R</div>
+                <div class="formula-equation">R = ρ × L / A</div>
+                <div class="formula-note"><i class="fas fa-info-circle"></i> V = Potential difference (Volts), I =
+                    Current (Amperes), R = Resistance (Ohms Ω). ρ = Resistivity (Ω·m), L = length, A = cross-sectional
+                    area.</div>
+                <div class="badge-mostimp">Resistivity depends on material and temperature, not on dimensions.</div>
+            </div>
+
+            <!-- Resistivity and Conductance -->
+            <div class="formula-card">
+                <h3><i class="fas fa-chart-line"></i> Resistance Combinations</h3>
+                <div class="formula-equation">Series: Rₛ = R₁ + R₂ + R₃ + ...</div>
+                <div class="formula-equation">Parallel: 1/Rₚ = 1/R₁ + 1/R₂ + 1/R₃ + ...</div>
+                <div class="formula-note"><i class="fas fa-info-circle"></i> In series: current same, voltage divides.
+                    In parallel: voltage same, current divides.</div>
+            </div>
+
+            <!-- Electric Power & Energy -->
+            <div class="formula-card">
+                <h3><i class="fas fa-charging-station"></i> Electric Power & Energy</h3>
+                <div class="formula-equation">P = V × I = I²R = V²/R</div>
+                <div class="formula-equation">Energy (E) = P × t</div>
+                <div class="formula-equation">1 kWh = 3.6 × 10⁶ J</div>
+                <div class="formula-note"><i class="fas fa-info-circle"></i> P in Watts, t in seconds for Joules.
+                    Commercial unit: kilowatt-hour (kWh).</div>
+            </div>
+
+            <!-- Joule's Heating -->
+            <div class="formula-card">
+                <h3><i class="fas fa-fire"></i> Heating Effect of Current</h3>
+                <div class="formula-equation">H = I² × R × t</div>
+                <div class="formula-equation">H = V × I × t = V²t / R</div>
+                <div class="formula-note"><i class="fas fa-info-circle"></i> H = Heat produced (Joules). Application:
+                    electric heater, fuse wire.</div>
+            </div>
+
+            <!-- Magnetic Effects -->
+            <div class="formula-card">
+                <h3><i class="fas fa-magnet"></i> Magnetic Effects</h3>
+                <div class="formula-equation">Fleming's Left Hand Rule (Motor)</div>
+                <div class="formula-equation">Fleming's Right Hand Rule (Generator)</div>
+                <div class="formula-equation">EMF = Rate of change of magnetic flux</div>
+                <div class="formula-note"><i class="fas fa-info-circle"></i> No direct formula but rules are crucial.
+                    Transformer: Vₚ/Vₛ = Nₚ/Nₛ = Iₛ/Iₚ (ideal).</div>
+            </div>
+        </div>
+
+        <!-- Chemistry Section -->
+        <span class="section-badge" style="background: #10b981;"><i class="fas fa-flask"></i> CHEMISTRY</span>
+        <h2 class="subject-header">Chemistry Formulas & Important Points <span class="repeated-tag">Exam
+                Essentials</span></h2>
+
+        <div class="formula-grid">
+            <!-- Chemical Reactions -->
+            <div class="formula-card">
+                <h3><i class="fas fa-exchange-alt"></i> Types of Reactions</h3>
+                <div class="formula-equation">Combination: A + B → AB</div>
+                <div class="formula-equation">Decomposition: AB → A + B</div>
+                <div class="formula-equation">Displacement: A + BC → AC + B</div>
+                <div class="formula-equation">Double Displacement: AB + CD → AD + CB</div>
+                <div class="formula-note"><i class="fas fa-info-circle"></i> Redox: Oxidation (loss of e⁻), Reduction
+                    (gain of e⁻). OIL RIG.</div>
+            </div>
+
+            <!-- pH Scale -->
+            <div class="formula-card">
+                <h3><i class="fas fa-vial"></i> pH Scale & Concentration</h3>
+                <div class="formula-equation">pH = -log₁₀[H⁺]</div>
+                <div class="formula-equation">pOH = -log₁₀[OH⁻]</div>
+                <div class="formula-equation">pH + pOH = 14 (at 25°C)</div>
+                <div class="formula-note"><i class="fas fa-info-circle"></i> pH &lt; 7: Acidic, pH = 7: Neutral, pH &gt;
+                    7: Basic. Universal indicator shows pH range.</div>
+                <div class="badge-mostimp">Acidic: turns blue litmus red. Basic: turns red litmus blue.</div>
+            </div>
+
+            <!-- Important Chemical Compounds -->
+            <div class="formula-card">
+                <h3><i class="fas fa-cube"></i> Important Salts & Formulae</h3>
+                <div class="formula-equation">Baking Soda: NaHCO₃</div>
+                <div class="formula-equation">Washing Soda: Na₂CO₃·10H₂O</div>
+                <div class="formula-equation">Bleaching Powder: CaOCl₂</div>
+                <div class="formula-equation">POP (Plaster of Paris): CaSO₄·½H₂O</div>
+                <div class="formula-equation">Caustic Soda: NaOH</div>
+                <div class="formula-equation">Caustic Potash: KOH</div>
+                <div class="formula-note"><i class="fas fa-info-circle"></i> POP on heating with water sets into hard
+                    mass (CaSO₄·2H₂O - Gypsum).</div>
+            </div>
+
+            <!-- Reactivity Series Mnemonic -->
+            <div class="formula-card">
+                <h3><i class="fas fa-chart-simple"></i> Reactivity Series (Metals)</h3>
+                <div class="formula-equation">K &gt; Na &gt; Ca &gt; Mg &gt; Al &gt; Zn &gt; Fe &gt; Pb &gt; H &gt; Cu
+                    &gt; Ag &gt; Au</div>
+                <div class="formula-note"><i class="fas fa-memory"></i> Mnemonic: "King Naughty Cats Make A Zebra In The
+                    Happy Cage Called Asian Aquarium"</div>
+                <div class="formula-note"><i class="fas fa-info-circle"></i> Metals above H displace H₂ from acids. More
+                    reactive metals displace less reactive ones.</div>
+            </div>
+
+            <!-- Carbon & Covalent Bonding -->
+            <div class="formula-card">
+                <h3><i class="fas fa-leaf"></i> Carbon Compounds</h3>
+                <div class="formula-equation">Catenation: Self-linking of carbon atoms</div>
+                <div class="formula-equation">Homologous Series: General formula CₙH₂ₙ₊₂ (Alkanes)</div>
+                <div class="formula-equation">Functional Groups: -OH (Alcohol), -CHO (Aldehyde), -COOH (Carboxylic acid)
+                </div>
+                <div class="formula-note"><i class="fas fa-info-circle"></i> Soaps: Sodium salts of fatty acids (micelle
+                    formation). Detergents: ammonium/sulphonate salts – work in hard water.</div>
+            </div>
+
+            <!-- Important Equations for Board Exams -->
+            <div class="formula-card">
+                <h3><i class="fas fa-square-root-alt"></i> Must-Know Chemical Equations</h3>
+                <div class="formula-equation">Photosynthesis: 6CO₂ + 6H₂O → C₆H₁₂O₆ + 6O₂</div>
+                <div class="formula-equation">Rusting: 4Fe + 3O₂ + 2xH₂O → 2Fe₂O₃·xH₂O</div>
+                <div class="formula-equation">Chlor-alkali: 2NaCl + 2H₂O → 2NaOH + Cl₂ + H₂</div>
+                <div class="formula-equation">Baking soda prep: NaCl + H₂O + NH₃ + CO₂ → NaHCO₃ + NH₄Cl</div>
+                <div class="formula-note"><i class="fas fa-star" style="color:#f59e0b;"></i> Balance these equations –
+                    often in 3-mark questions!</div>
+            </div>
+
+            <!-- Naming & Formula Writing -->
+            <div class="formula-card">
+                <h3><i class="fas fa-pen-fancy"></i> Formula Writing Rules</h3>
+                <div class="formula-equation">Criss-cross method for ionic compounds</div>
+                <div class="formula-equation">Example: Al³⁺ + O²⁻ → Al₂O₃</div>
+                <div class="formula-equation">Prefixes: mono, di, tri, tetra (covalent compounds)</div>
+                <div class="formula-note"><i class="fas fa-info-circle"></i> Valency of common ions: Na⁺, Ca²⁺, Al³⁺,
+                    Cl⁻, O²⁻, N³⁻, SO₄²⁻, NO₃⁻, CO₃²⁻, PO₄³⁻.</div>
+            </div>
+        </div>
+
+        <!-- Quick Reference Table -->
+        <div class="key-memorize">
+            <strong><i class="fas fa-table"></i> Quick Reference: Common Conversions & Constants</strong><br>
+            • 1 kWh = 3.6 × 10⁶ J &nbsp;&nbsp; • Speed of light (c) = 3 × 10⁸ m/s &nbsp;&nbsp; • 1 Dioptre = 1 m⁻¹<br>
+            • 1 Ampere = 1 Coulomb/second &nbsp;&nbsp; • 1 Volt = 1 Joule/Coulomb &nbsp;&nbsp; • 1 Ohm = 1
+            Volt/Ampere<br>
+            • Avogadro's number = 6.022 × 10²³ &nbsp;&nbsp; • Room temperature = 25°C = 298 K
+        </div>
+
+        <div class="highlight-box">
+            <i class="fas fa-check-circle" style="color:#16a34a;"></i>
+            <strong>Exam Tips:</strong><br>
+            • Always write sign conventions in mirror/lens problems.<br>
+            • In electricity, remember to convert units (mA to A, kW to W).<br>
+            • For chemistry, write balanced equations with state symbols (s, l, g, aq).<br>
+            • pH = -log[H⁺] is rarely asked for calculation but concept is important.<br>
+            • Practice numericals on lens formula, mirror formula, electricity (power, resistance), and heating effect.
+        </div>
+    </main>
+
+    <!-- Footer with Chapter Cards -->
+    <footer class="chapter-summary-footer">
+        <div class="footer-chapter-container">
+            <h2 class="footer-chapter-heading">
+                <i class="fas fa-book-open"></i> Complete Chapter Index – Class 10 Science
+            </h2>
+            <p class="footer-chapter-subheading">Quick jump to any chapter summary | CBSE Board Exam 2025-26</p>
+
+            <div class="chapter-summary-grid">
+                <div class="subject-section">
+                    <h3 class="subject-title chemistry-title"><i class="fas fa-flask"></i> Chemistry</h3>
+                    <div class="chapter-cards">
+                        <a href="#ch1" class="chapter-jump-card">
+                            <div class="card-icon">⚗️</div>
+                            <div class="card-info">
+                                <h4>Ch 1: Chemical Reactions & Equations</h4>
+                                <p>Balancing, types of reactions, redox, corrosion, rancidity</p><span
+                                    class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="#ch2" class="chapter-jump-card">
+                            <div class="card-icon">🧪</div>
+                            <div class="card-info">
+                                <h4>Ch 2: Acids, Bases and Salts</h4>
+                                <p>pH scale, neutralization, important salts, chlor-alkali process</p><span
+                                    class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="#ch3" class="chapter-jump-card">
+                            <div class="card-icon">🔩</div>
+                            <div class="card-info">
+                                <h4>Ch 3: Metals and Non-metals</h4>
+                                <p>Reactivity series, ionic compounds, metallurgy, alloys</p><span
+                                    class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="#ch4" class="chapter-jump-card">
+                            <div class="card-icon">🌿</div>
+                            <div class="card-info">
+                                <h4>Ch 4: Carbon and its Compounds</h4>
+                                <p>Covalent bonds, hydrocarbons, homologous series, soaps/detergents</p><span
+                                    class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="subject-section">
+                    <h3 class="subject-title biology-title"><i class="fas fa-leaf"></i> Biology</h3>
+                    <div class="chapter-cards">
+                        <a href="#bio-ch1" class="chapter-jump-card">
+                            <div class="card-icon">❤️</div>
+                            <div class="card-info">
+                                <h4>Ch 1: Life Processes</h4>
+                                <p>Nutrition, respiration, transportation, excretion, double circulation</p><span
+                                    class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="#bio-ch2" class="chapter-jump-card">
+                            <div class="card-icon">🧠</div>
+                            <div class="card-info">
+                                <h4>Ch 2: Control & Coordination</h4>
+                                <p>Neurons, reflex action, brain, plant & animal hormones</p><span
+                                    class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="#bio-ch3" class="chapter-jump-card">
+                            <div class="card-icon">🌱</div>
+                            <div class="card-info">
+                                <h4>Ch 3: How do Organisms Reproduce?</h4>
+                                <p>Asexual/sexual reproduction, flower structure, contraception</p><span
+                                    class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="#bio-ch4" class="chapter-jump-card">
+                            <div class="card-icon">🧬</div>
+                            <div class="card-info">
+                                <h4>Ch 4: Heredity</h4>
+                                <p>Mendel's laws, monohybrid cross, sex determination, traits</p><span
+                                    class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="#bio-ch5" class="chapter-jump-card">
+                            <div class="card-icon">🌍</div>
+                            <div class="card-info">
+                                <h4>Ch 5: Our Environment</h4>
+                                <p>Ecosystem, 10% energy law, biomagnification, ozone depletion</p><span
+                                    class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="subject-section">
+                    <h3 class="subject-title physics-title"><i class="fas fa-atom"></i> Physics</h3>
+                    <div class="chapter-cards">
+                        <a href="#phy-ch1" class="chapter-jump-card">
+                            <div class="card-icon">💡</div>
+                            <div class="card-info">
+                                <h4>Ch 1: Light – Reflection & Refraction</h4>
+                                <p>Mirror/lens formula, power of lens, refractive index, sign convention</p><span
+                                    class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="#phy-ch2" class="chapter-jump-card">
+                            <div class="card-icon">👁️</div>
+                            <div class="card-info">
+                                <h4>Ch 2: The Human Eye & Colourful World</h4>
+                                <p>Defects of vision, dispersion, rainbow, scattering, twinkling of stars</p><span
+                                    class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="#phy-ch3" class="chapter-jump-card">
+                            <div class="card-icon">⚡</div>
+                            <div class="card-info">
+                                <h4>Ch 3: Electricity</h4>
+                                <p>Ohm's law, series/parallel resistance, Joule's heating, electric power</p><span
+                                    class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="#phy-ch4" class="chapter-jump-card">
+                            <div class="card-icon">🧲</div>
+                            <div class="card-info">
+                                <h4>Ch 4: Magnetic Effects of Electric Current</h4>
+                                <p>Fleming's rules, solenoid, electric motor, domestic circuits, earthing</p><span
+                                    class="jump-badge">Jump to Chapter →</span>
+                            </div>
+                        </a>
+                        <a href="#formulas" class="chapter-jump-card">
+                            <div class="card-icon">📐</div>
+                            <div class="card-info">
+                                <h4>Quick Formula Table</h4>
+                                <p>All physics & chemistry formulas in one place for quick revision</p><span
+                                    class="jump-badge">Jump to Formulas →</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-revision-links">
+                <div class="revision-box"><i class="fas fa-chart-simple"></i> 📊 Board Exam Weightage: Chemistry (25%) |
+                    Biology (30%) | Physics (25%)</div>
+                <div class="revision-box"><i class="fas fa-clock"></i> ⏱️ Last Minute Revision: Bookmark this formula
+                    page!</div>
+            </div>
+        </div>
+
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="logo"><img src="/online-graduation_16847316.png"
+                        alt="NeoBranium Logo"><span>NeoBranium</span></div>
+                <p>A next-gen learning platform for students of all classes.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Quick Links</h4>
+                <ul style="list-style: none;">
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="notes-science-class10.html">Notes</a></li>
+                    <li><a href="../blog/blog.html">Blog</a></li>
+                </ul>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 NeoBranium. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('load', () => {
+            const preloader = document.getElementById('preloader');
+            if (preloader) {
+                setTimeout(() => {
+                    preloader.style.opacity = '0';
+                    setTimeout(() => preloader.style.display = 'none', 500);
+                }, 800);
+            }
+        });
+
+        const toggleBtn = document.querySelector('.menu-toggle');
+        const navMenu = document.querySelector('.nav-menu');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                navMenu.classList.toggle('show');
+                toggleBtn.setAttribute('aria-expanded', navMenu.classList.contains('show'));
+            });
+        }
+
+        // Smooth scrolling for anchor jumps in footer
+        document.querySelectorAll('.chapter-jump-card').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const targetId = this.getAttribute('href');
+                if (targetId && targetId !== '#') {
+                    e.preventDefault();
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else {
+                        window.location.href = 'notes-science-class10.html' + targetId;
+                    }
+                }
+            });
+        });
+    </script>
+    <script src="/search.js"></script>
+</body>
+
+</html>
