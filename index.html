@@ -236,11 +236,9 @@
               <div class="quiz-category">
                 <span class="category-title">Science</span>
                 <ul>
-                  <li><a href="htmls/quiz_htmls/class9_biology-chapter-1.html" target="_blank">🧬 Cell Structure</a>
-                  </li>
+                  <li><a href="htmls/quiz_htmls/class9_biology-chapter-1.html" target="_blank">🧬 Cell Structure</a></li>
                   <li><a href="htmls/quiz_htmls/class9_biology-chapter-2.html" target="_blank">🌱 Tissues</a></li>
-                  <li><a href="htmls/quiz_htmls/class9-physics-chapter-1.html" target="_blank">⚛️ Matter & Atoms</a>
-                  </li>
+                  <li><a href="htmls/quiz_htmls/class9-physics-chapter-1.html" target="_blank">⚛️ Matter & Atoms</a></li>
                   <li><a href="htmls/quiz_htmls/class9-science-quiz.html" target="_blank">🧪 Chemical Reactions</a></li>
                 </ul>
               </div>
@@ -254,35 +252,34 @@
                 </ul>
               </div>
             </div>
-        </div>
+          </article>
 
-        <article class="class-card" aria-label="Class 10 Study Material">
-          <div class="class-icon"><i class="fas fa-graduation-cap"></i></div>
-          <h3>Class 10</h3>
-          <p>Science & Mathematics</p>
-          <div class="quiz-list">
-            <div class="quiz-category">
-              <span class="category-title">Science</span>
-              <ul>
-                <li><a href="htmls/quiz_htmls/class10-biology-chapetr-1.html" target="_blank">🧬 Life Processes</a></li>
-                <li><a href="htmls/quiz_htmls/class10-biology-chapter-2.html" target="_blank">🌿 Reproduction</a></li>
-                <li><a href="htmls/quiz_htmls/class10-physics-chapter-1.html" target="_blank">⚡ Electricity</a></li>
-                <li><a href="htmls/quiz_htmls/class10-chemistry-chapter-1.html" target="_blank">🧪 Chemical
-                    Reactions</a></li>
-              </ul>
+          <article class="class-card" aria-label="Class 10 Study Material">
+            <div class="class-icon"><i class="fas fa-graduation-cap"></i></div>
+            <h3>Class 10</h3>
+            <p>Science & Mathematics</p>
+            <div class="quiz-list">
+              <div class="quiz-category">
+                <span class="category-title">Science</span>
+                <ul>
+                  <li><a href="htmls/quiz_htmls/class10-biology-chapetr-1.html" target="_blank">🧬 Life Processes</a></li>
+                  <li><a href="htmls/quiz_htmls/class10-biology-chapter-2.html" target="_blank">🌿 Reproduction</a></li>
+                  <li><a href="htmls/quiz_htmls/class10-physics-chapter-1.html" target="_blank">⚡ Electricity</a></li>
+                  <li><a href="htmls/quiz_htmls/class10-chemistry-chapter-1.html" target="_blank">🧪 Chemical Reactions</a></li>
+                </ul>
+              </div>
+              <div class="quiz-category">
+                <span class="category-title">Mathematics</span>
+                <ul>
+                  <li><a href="htmls/classs9-10mathematics.html" target="_blank">📐 Real Numbers</a></li>
+                  <li><a href="htmls/classs9-10mathematics.html" target="_blank">🔢 Quadratic Equations</a></li>
+                  <li><a href="htmls/classs9-10mathematics.html" target="_blank">📉 Arithmetic Progression</a></li>
+                  <li><a href="htmls/classs9-10mathematics.html" target="_blank">📐 Trigonometry</a></li>
+                </ul>
+              </div>
             </div>
-            <div class="quiz-category">
-              <span class="category-title">Mathematics</span>
-              <ul>
-                <li><a href="htmls/classs9-10mathematics.html" target="_blank">📐 Real Numbers</a></li>
-                <li><a href="htmls/classs9-10mathematics.html" target="_blank">🔢 Quadratic Equations</a></li>
-                <li><a href="htmls/classs9-10mathematics.html" target="_blank">📉 Arithmetic Progression</a></li>
-                <li><a href="htmls/classs9-10mathematics.html" target="_blank">📐 Trigonometry</a></li>
-              </ul>
-            </div>
-          </div>
-          </div>
-          </div>
+          </article>
+        </div>
       </section>
 
       <!-- Top Questions & AI Solver -->
@@ -478,7 +475,9 @@
             <input type="hidden" name="locale" value="en">
             <input type="hidden" name="html_type" value="simple">
             <!-- Brevo honeypot anti-spam field — must remain type="text" but hidden -->
-            <input type="text" name="email_address_check" value="" style="display:none !important; position:absolute; left:-9999px; opacity:0; pointer-events:none;" tabindex="-1" aria-hidden="true">
+            <input type="text" name="email_address_check" value=""
+              style="display:none !important; position:absolute; left:-9999px; opacity:0; pointer-events:none;"
+              tabindex="-1" aria-hidden="true">
 
             <button type="submit" class="btn btn-primary">
               Subscribe
@@ -488,11 +487,11 @@
           <p id="newsletterMsg-index" style="margin-top:0.6rem; font-size:0.9rem; display:none;"></p>
 
           <script>
-            (function() {
+            (function () {
               var form = document.getElementById('newsletterForm-index');
-              var msg  = document.getElementById('newsletterMsg-index');
+              var msg = document.getElementById('newsletterMsg-index');
               if (!form) return;
-              form.addEventListener('submit', function(e) {
+              form.addEventListener('submit', function (e) {
                 e.preventDefault();
                 var btn = form.querySelector('button[type="submit"]');
                 btn.disabled = true;
@@ -503,29 +502,29 @@
                   body: data,
                   headers: { 'Accept': 'application/json' }
                 })
-                .then(function(res) {
-                  msg.style.display = 'block';
-                  if (res.ok || res.status === 0 || res.type === 'opaque') {
+                  .then(function (res) {
+                    msg.style.display = 'block';
+                    if (res.ok || res.status === 0 || res.type === 'opaque') {
+                      msg.style.color = '#22c55e';
+                      msg.textContent = '✅ Thank you! You have been subscribed successfully.';
+                      form.reset();
+                    } else {
+                      msg.style.color = '#22c55e';
+                      msg.textContent = '✅ Thank you! You have been subscribed successfully.';
+                      form.reset();
+                    }
+                  })
+                  .catch(function () {
+                    /* Brevo returns an opaque response on cross-origin — treat as success */
+                    msg.style.display = 'block';
                     msg.style.color = '#22c55e';
                     msg.textContent = '✅ Thank you! You have been subscribed successfully.';
                     form.reset();
-                  } else {
-                    msg.style.color = '#22c55e';
-                    msg.textContent = '✅ Thank you! You have been subscribed successfully.';
-                    form.reset();
-                  }
-                })
-                .catch(function() {
-                  /* Brevo returns an opaque response on cross-origin — treat as success */
-                  msg.style.display = 'block';
-                  msg.style.color = '#22c55e';
-                  msg.textContent = '✅ Thank you! You have been subscribed successfully.';
-                  form.reset();
-                })
-                .finally(function() {
-                  btn.disabled = false;
-                  btn.textContent = 'Subscribe';
-                });
+                  })
+                  .finally(function () {
+                    btn.disabled = false;
+                    btn.textContent = 'Subscribe';
+                  });
               });
             })();
           </script>
