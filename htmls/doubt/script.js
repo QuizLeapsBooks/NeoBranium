@@ -268,9 +268,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
 
+            const contentType = response.headers.get("content-type");
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `Server Error: ${response.status}`);
+                let errorMsg = `Server Error: ${response.status}`;
+                if (contentType && contentType.includes("application/json")) {
+                    const errorData = await response.json();
+                    errorMsg = errorData.error || errorMsg;
+                } else if (contentType && contentType.includes("text/html")) {
+                    errorMsg = "API route not found (returned HTML). Check your hosting configuration.";
+                }
+                throw new Error(errorMsg);
+            }
+
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Invalid response from server (expected JSON). Check your hosting/API configuration.");
             }
 
             const data = await response.json();
