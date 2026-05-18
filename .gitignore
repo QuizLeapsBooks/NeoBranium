@@ -1,12 +1,34 @@
-.env
+# Dependencies
 node_modules/
-dist/
-packege-lock.json
-packege.json
-/packege-lock.json
-/packege.json
 
+# Environment Variables & Secrets
+.env
+.env.*
+*-firebase-adminsdk-*.json
+
+# Logs & Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+firebase-debug.log
+
+# Firebase
+.firebase/
+
+# Redis Database
+dump.rdb
+
+# Build & Dist
+dist/
+build/
+
+# Media / Uploads / Temp
+screenshot_images/
 sreenshot_images/
-/server.js
-/.firebase
-/dump.rdb
+scratch/
+temp/
+tmp/
+
+# OS Files
+.DS_Store
+Thumbs.db

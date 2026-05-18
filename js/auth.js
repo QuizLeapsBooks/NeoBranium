@@ -32,14 +32,34 @@ export async function loadUserData(user) {
     }
 }
 
-export function isGuestUser() {
-    const isGuest = localStorage.getItem("guestMode") === "true";
-    const accessGranted = localStorage.getItem("accessGranted") === "true";
-    return isGuest && accessGranted;
+export async function verifyBoardAccess() {
+    try {
+        const resp = await fetch('/api/board-queue-status', {
+            credentials: 'include'
+        });
+        if (!resp.ok) return { allowed: false, reason: 'server_error' };
+        const data = await resp.json();
+        
+        // If limit reached, server will have returned 429 on actual API calls
+        // This is just for UI display
+        return { 
+            allowed: true, 
+            minutesUsed: data.sessionData?.minutesUsed || 0,
+            remainingMinutes: data.sessionData?.remainingMinutes || 20
+        };
+    } catch(e) {
+        return { allowed: true }; // Fail open for UX
+    }
 }
 
-export function checkAccess(requiredAuth = false) {
-    if (requiredAuth && isGuestUser()) {
+export async function isGuestUser() {
+    if (auth.currentUser) return false;
+    const access = await verifyBoardAccess();
+    return access.allowed;
+}
+
+export async function checkAccess(requiredAuth = false) {
+    if (requiredAuth && (await isGuestUser())) {
         console.info("Guest access restriction: Redirecting to sign-in page.");
         window.location.href = "/htmls/sign.html";
         return false;
@@ -124,9 +144,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (user) {
             // --- LOGGED IN ---
-            localStorage.setItem("loggedInUserId", user.uid);
-            localStorage.removeItem("guestMode");
-            localStorage.removeItem("accessGranted");
 
             // Redirect if on landing/auth pages
             if (isEntryPage) {
@@ -148,7 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.body.style.opacity = "1";
         } else {
             // --- NOT LOGGED IN ---
-            if (isGuestUser()) {
+            if (await isGuestUser()) {
                 if (isEntryPage) {
                     window.location.replace("/htmls/dashboard.html");
                     return;
@@ -159,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            localStorage.removeItem("loggedInUserId");
+
             // Only allow entry pages
             if (!isEntryPage) {
                 window.location.replace("/index.html");
@@ -170,21 +187,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // --- Usage Limit System ---
-    const checkUsageLimit = () => {
-        const isGuest = localStorage.getItem("guestMode") === "true";
-        const isLoggedIn = localStorage.getItem("loggedInUserId") !== null;
-        
-        // Only enforce limit if user is actively using the system
-        if (!isGuest && !isLoggedIn) return;
-
-        const startTime = localStorage.getItem("startTime");
-        if (!startTime) return;
-
-        const totalUsageMs = Date.now() - parseInt(startTime);
-        const totalUsageMin = Math.floor(totalUsageMs / 60000);
-
-        if (totalUsageMin >= 60) {
-            localStorage.clear();
+    const checkUsageLimit = async () => {
+        const access = await verifyBoardAccess();
+        if (!access.allowed) {
             alert("Time limit finished");
             window.location.href = "/index.html";
         }
@@ -199,14 +204,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (logout) {
         logout.addEventListener("click", async () => {
             try {
-                if (localStorage.getItem("guestMode") === "true") {
-                    localStorage.removeItem("guestMode");
-                    localStorage.removeItem("accessGranted");
+                if (!auth.currentUser && await isGuestUser()) {
                     window.location.href = "/index.html";
                     return;
                 }
                 await signOut(auth);
-                localStorage.removeItem("loggedInUserId");
                 window.location.href = "/index.html";
             } catch (error) {
                 console.error("Logout Error:", error);

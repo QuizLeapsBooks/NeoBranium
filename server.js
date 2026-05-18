@@ -9,6 +9,9 @@ import RedisStore from 'connect-redis';
 import { createClient } from 'redis';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { boardRateLimit } from './boardMiddleware.js';
+import queueManager from './queueManager.js';
+import { endSession } from './firebaseAdmin.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,9 +30,14 @@ console.log("Attempting Redis connection...");
 try {
     await redisClient.connect();
     console.log('✅ Redis connected successfully');
+    
+    // Test the connection actually works
+    await redisClient.ping();
+    console.log('✅ Redis ping successful');
 } catch (error) {
     console.error('❌ Redis connection failed:', error.message);
-    console.log("Continuing without Redis session storage");
+    console.log("📝 Using in-memory sessions (data lost on restart)");
+    console.log("💡 For production: Set REDIS_URL to Upstash Redis URL");
 }
 
 // Redis store for sessions
@@ -100,6 +108,8 @@ app.use(helmet({
 
 const allowedOrigins = [
     'https://neobranium.web.app',
+    'https://neobranium.firebaseapp.com', 
+    'https://neo-branium.vercel.app',
     'http://localhost:5500',
     'http://localhost:5501',
     'http://127.0.0.1:5500',
@@ -112,7 +122,7 @@ const allowedOrigins = [
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
-        const isAllowed = allowedOrigins.some(allowed => origin.startsWith(allowed));
+        const isAllowed = allowedOrigins.some(allowed => origin === allowed || origin === allowed + '/');
         if (isAllowed) return callback(null, true);
         return callback(new Error('CORS Error: Origin not allowed'), false);
     },
@@ -126,7 +136,7 @@ const strictOriginCheck = (req, res, next) => {
     if (!origin) {
         return res.status(403).json({ reply: 'Forbidden: Direct API access is not allowed' });
     }
-    const isAllowed = allowedOrigins.some(allowedOrigin => origin.startsWith(allowedOrigin));
+    const isAllowed = allowedOrigins.some(allowedOrigin => origin === allowedOrigin || origin === allowedOrigin + '/');
     if (!isAllowed) {
         return res.status(403).json({ reply: 'Forbidden: Invalid Origin' });
     }
@@ -193,7 +203,12 @@ async function saveUserMemory(userId, memoryData) {
     const now = Date.now();
     const maxAge = 60 * 60 * 1000; // 1 hour
     for (const [id, mem] of fallbackMemory) {
-        if (now - mem.sessionStart.getTime() > maxAge) {
+        if (mem && mem.sessionStart && mem.sessionStart instanceof Date) {
+            if (now - mem.sessionStart.getTime() > maxAge) {
+                fallbackMemory.delete(id);
+            }
+        } else {
+            // Cleanup invalid entries
             fallbackMemory.delete(id);
         }
     }
@@ -226,6 +241,36 @@ const formatResponse = (text, queryType) => {
     return text;
 };
 
+// --- AI Security ---
+const INJECTION_PATTERNS = [
+    /ignore\s+(all\s+)?(previous|prior|above)\s+(instructions?|prompts?|rules?)/i,
+    /forget\s+(everything|all|previous|what)/i,
+    /you\s+are\s+now\s+(a\s+)?(?!an?\s+AI\s+tutor)/i,
+    /act\s+as\s+(if\s+you\s+are\s+)?(?!an?\s+AI\s+tutor)/i,
+    /pretend\s+(you\s+are|to\s+be)/i,
+    /roleplay\s+as/i,
+    /jailbreak/i,
+    /DAN\s+mode/i,
+    /bypass\s+(your\s+)?(rules?|restrictions?|filters?)/i,
+    /\bDAN\b/,
+    /do\s+anything\s+now/i,
+    /developer\s+mode/i,
+    /system\s+prompt/i,
+    /reveal\s+(your\s+)?(instructions?|prompt|system)/i,
+];
+
+function sanitizeAIInput(message) {
+    if (!message || typeof message !== 'string') return { safe: false, reason: 'invalid' };
+    if (message.length > 5000) return { safe: false, reason: 'too_long' };
+    
+    for (const pattern of INJECTION_PATTERNS) {
+        if (pattern.test(message)) {
+            return { safe: false, reason: 'injection_detected' };
+        }
+    }
+    return { safe: true };
+}
+
 // Main chat endpoint
 app.post('/api/chat', async (req, res) => {
     const isProd = process.env.NODE_ENV === 'production';
@@ -239,31 +284,21 @@ app.post('/api/chat', async (req, res) => {
     try {
         const { message, history = [], task = 'general_chat' } = req.body;
 
-        // 🛡️ INPUT VALIDATION
-        if (typeof message !== 'string' || !message.trim()) {
-            return res.status(400).json({
-                error: 'Bad Request',
-                reply: 'Please provide a valid text message.'
+        // 🛡️ INPUT VALIDATION & SECURITY
+        const sanResult = sanitizeAIInput(message);
+        if (!sanResult.safe) {
+            return res.json({
+                reply: "Main sirf NeoBranium ke syllabus ke baare mein help kar sakta hoon. Koi aur question hai?"
             });
         }
 
-        // Limit message length to 10k characters to prevent abuse
-        if (message.length > 10000) {
-            return res.status(400).json({
-                error: 'Payload Too Large',
-                reply: 'Message is too long. Please shorten your request.'
-            });
-        }
-
-        if (!Array.isArray(history)) {
-            return res.status(400).json({
-                error: 'Bad Request',
-                reply: 'Invalid conversation history format.'
-            });
-        }
-
-        // Limit history to last 15 messages to stay within reasonable context
-        const validatedHistory = history.slice(-15);
+        const validatedHistory = (history || [])
+            .slice(-10)
+            .filter(h => h.role && h.content && typeof h.content === 'string')
+            .map(h => ({ 
+                role: h.role === 'assistant' ? 'assistant' : 'user',
+                content: h.content.slice(0, 2000) // cap each history message
+            }));
 
         console.log('📨 Incoming chat request:', {
             ip: req.ip,
@@ -342,7 +377,7 @@ app.post('/api/chat', async (req, res) => {
         ];
 
         // Log request for debugging
-        console.log('📤 Sending to Groq API:', {
+        console.log('📤 Sending to Ns-x API:', {
             model: GROQ_MODEL,
             messagesCount: messages.length,
             messages: messages.map(m => ({ role: m.role, contentLength: m.content.length }))
@@ -360,7 +395,7 @@ app.post('/api/chat', async (req, res) => {
 
         // Check if API key is available
         if (!groqApiKey) {
-            console.error('❌ Missing GROQ_API_KEY');
+            console.error('❌ Some went wrong');
             return res.status(500).json({ reply: 'AI service unavailable' });
         }
 
@@ -389,18 +424,18 @@ app.post('/api/chat', async (req, res) => {
         try {
             groqData = await groqResponse.json();
         } catch (jsonError) {
-            console.error('❌ Failed to parse Groq response:', jsonError);
+            console.error('❌ Failed to parse Ns-x response:', jsonError);
             return res.status(500).json({ reply: 'AI request failed' });
         }
 
         if (!groqData.choices || groqData.choices.length === 0) {
-            console.error('❌ Groq API returned no choices:', groqData);
+            console.error('❌ Ns-x API returned no choices:', groqData);
             return res.status(500).json({ reply: 'AI request failed' });
         }
 
         let text = groqData.choices[0].message.content;
         if (!text) {
-            console.error('❌ Groq API returned empty content');
+            console.error('❌ Ns-x API returned empty content');
             return res.status(500).json({ reply: 'AI request failed' });
         }
 
@@ -420,6 +455,170 @@ app.post('/api/chat', async (req, res) => {
         });
     }
 });
+
+// Streaming Chat Endpoint for Live Tutor
+app.post('/api/chat-stream', boardRateLimit, async (req, res) => {
+    // Set headers for SSE
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    try {
+        const { message, history = [], task = 'tutor_chat', tutorState = {} } = req.body;
+
+        const sanResult = sanitizeAIInput(message);
+        if (!sanResult.safe) {
+            res.write(`data: ${JSON.stringify({ content: "Main sirf NeoBranium ke syllabus ke baare mein help kar sakta hoon. Koi aur question hai?" })}\n\n`);
+            res.write('data: [DONE]\n\n');
+            return res.end();
+        }
+
+        const safeHistory = (history || [])
+            .slice(-10)
+            .filter(h => h.role && h.content && typeof h.content === 'string')
+            .map(h => ({ 
+                role: h.role === 'assistant' ? 'assistant' : 'user',
+                content: h.content.slice(0, 2000) // cap each history message
+            }));
+
+        const secureUserId = req.session?.id || 'fallback';
+        let memory = await getUserMemory(secureUserId);
+        if (!memory) {
+            memory = {
+                name: null,
+                topics: [],
+                preferences: {},
+                sessionStart: new Date(),
+                messageCount: 0
+            };
+        }
+        memory.messageCount++;
+        saveUserMemory(secureUserId, memory).catch(e => console.error(e));
+
+        // Validate mode
+        const mode = tutorState.mode || 'hinglish';
+        let modeInstruction = "";
+        switch (mode) {
+            case 'english': modeInstruction = "Respond in formal English. Be professional, encouraging, and concise."; break;
+            case 'hindi': modeInstruction = "Respond in pure, formal Hindi using Devanagari script. Ensure explanations are easy for CBSE students."; break;
+            case 'hinglish': modeInstruction = "Respond in extremely natural Indian Hindi. Mix Hindi and English naturally (e.g. hindi). Sound like an educated Indian student tutor."; break;
+            case 'teacher': modeInstruction = "Explain like an experienced Indian CBSE coaching teacher. Patiently reinforce concepts, warn about common mistakes."; break;
+            default: modeInstruction = "Respond naturally.";
+        }
+
+        // Build prompt
+        let systemContent = `You are a patient, adaptive, emotionally intelligent AI Tutor from NeoBranium. 
+You are currently helping a student who is looking at a digital study board. 
+Board Context: The student has drawn/written: "${tutorState.detectedEquation || 'unknown'}"
+Recent Topic: "${tutorState.currentTopic || 'general'}"
+
+RULES:
+1. Act as a human-like, conversational tutor.
+2. DO NOT repeat the entire solution if they ask a small follow-up. 
+3. Encourage curiosity and explain incrementally step-by-step.
+4. Sometimes ask small guiding questions instead of giving the final answer instantly.
+5. If the user asks 'why', explain the reasoning simply. If they ask 'next', show just the next step.
+6. Tone/Language: ${modeInstruction}
+7. IMPORTANT: Format math with $$ for blocks and \\( \\) for inline.`;
+
+        // Intent detection (lightweight preprocessing instruction)
+        let processedMessage = message;
+        if (message.match(/^(again|repeat|one more time)$/i)) processedMessage = "Please explain that again, but simpler.";
+        if (message.match(/^(next|next step|continue)$/i)) processedMessage = "Please show me the next step in the solution.";
+        if (message.match(/^(why|how come)$/i)) processedMessage = "Why is that the case? Please explain the reasoning.";
+
+        const messages = [
+            { role: 'system', content: systemContent },
+            ...safeHistory,
+            { role: 'user', content: processedMessage }
+        ];
+
+        const requestBody = {
+            model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+            messages: messages,
+            temperature: 0.7,
+            max_tokens: 1024,
+            stream: true // Enable streaming
+        };
+
+        if (!groqApiKey) {
+            res.write(`data: ${JSON.stringify({ error: 'AI service unavailable' })}\n\n`);
+            return res.end();
+        }
+
+        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${groqApiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!groqResponse.ok) {
+            console.error("Groq Stream Error:", await groqResponse.text());
+            res.write(`data: ${JSON.stringify({ error: 'AI stream failed' })}\n\n`);
+            return res.end();
+        }
+
+        // Process SSE stream from Groq
+        const reader = groqResponse.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        let buffer = "";
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+                if (buffer.trim()) {
+                    // Process any remaining buffer
+                    const line = buffer.trim();
+                    if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+                        try {
+                            const data = JSON.parse(line.slice(6));
+                            if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
+                                res.write(`data: ${JSON.stringify({ content: data.choices[0].delta.content })}\n\n`);
+                            }
+                        } catch (e) {
+                            console.error('Error parsing final SSE chunk:', e);
+                        }
+                    }
+                }
+                res.write('data: [DONE]\n\n');
+                res.end();
+                break;
+            }
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop(); // Keep the last incomplete line in the buffer
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || !trimmed.startsWith('data: ') || trimmed === 'data: [DONE]') continue;
+
+                try {
+                    const jsonStr = trimmed.slice(6);
+                    if (!jsonStr.endsWith('}') && !jsonStr.endsWith(']')) continue; // Basic incomplete JSON check
+
+                    const data = JSON.parse(jsonStr);
+                    if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
+                        res.write(`data: ${JSON.stringify({ content: data.choices[0].delta.content })}\n\n`);
+                    }
+                } catch (e) {
+                    // Only log real errors, not common incomplete chunks
+                    if (trimmed.length > 50) {
+                        console.warn('Skipping incomplete SSE chunk');
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('❌ Stream request failed:', error);
+        res.write(`data: ${JSON.stringify({ error: 'Internal Server Error' })}\n\n`);
+        res.end();
+    }
+});
+
 
 // Gemini Image Solving API with Session-based Rate Limiting
 app.post('/api/gemini-solve', async (req, res) => {
@@ -445,7 +644,7 @@ app.post('/api/gemini-solve', async (req, res) => {
     }
 
     try {
-        const { base64, mimeType } = req.body;
+        let { base64, mimeType } = req.body;
         const geminiApiKey = process.env.GEMINI_API_KEY;
 
         if (!geminiApiKey) {
@@ -457,7 +656,12 @@ app.post('/api/gemini-solve', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Missing image data or mimeType' });
         }
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+        // 🛡️ Strip data URI prefix
+        if (base64.startsWith('data:')) {
+            base64 = base64.split(',')[1];
+        }
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -503,6 +707,439 @@ app.post('/api/gemini-solve', async (req, res) => {
         res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
 });
+
+// AI Board Analysis API
+app.post('/api/analyze-board', boardRateLimit, async (req, res) => {
+    // 🛡️ Reuse session-based rate limiting
+    const DAILY_LIMIT = 15;
+    const WINDOW_MS = 24 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    if (!req.session.usage) {
+        req.session.usage = { count: 0, firstSolve: now };
+    } else if (now - req.session.usage.firstSolve >= WINDOW_MS) {
+        req.session.usage.count = 0;
+        req.session.usage.firstSolve = now;
+    }
+
+    if (req.session.usage.count >= DAILY_LIMIT) {
+        return res.status(429).json({
+            success: false,
+            error: "Daily limit reached. Please try again later."
+        });
+    }
+
+    try {
+        let { base64, mimeType, mode = 'hinglish', isAutoScan = false } = req.body;
+        const geminiApiKey = process.env.GEMINI_API_KEY;
+
+        if (!geminiApiKey) {
+            return res.status(500).json({ success: false, error: 'AI service configuration missing' });
+        }
+
+        if (!base64 || !mimeType) {
+            return res.status(400).json({ success: false, error: 'Missing image data' });
+        }
+
+        // 🛡️ SECURITY & STABILITY: Strip data URI prefix if present
+        if (base64.startsWith('data:')) {
+            base64 = base64.split(',')[1];
+        }
+
+        let modeInstruction = "";
+        switch (mode) {
+            case 'english':
+                modeInstruction = "Respond in formal English. Be professional, encouraging, student-friendly, and concise but clear. No slang.";
+                break;
+            case 'hindi':
+                modeInstruction = "Respond in pure, formal Hindi using Devanagari script. Ensure explanations are easy for CBSE students. Avoid robotic translation.";
+                break;
+            case 'hinglish':
+                modeInstruction = "Respond in extremely natural Indian Hinglish. Mix Hindi and English naturally. Tone should be warm, friendly, and human-like (e.g. 'Dekho yaha basically...'). Do NOT translate technical terms (keep 'variable', 'carry', etc). No exaggerated slang. Sound like an educated Indian student.";
+                break;
+            case 'teacher':
+                modeInstruction = "Explain like an experienced Indian CBSE coaching teacher. Patiently reinforce concepts, warn about common mistakes, emphasize exam relevance, and occasionally repeat key concepts (e.g. 'Beta, yaha dhyan dena').";
+                break;
+            default:
+                modeInstruction = "Respond naturally.";
+        }
+
+        // Specialized prompt for digital study board analysis
+        let prompt = "";
+        const structureInstructions = `
+Provide your response strictly in the following JSON format:
+{
+  "confidence": <integer 0-100>,
+  "inputType": "<math|text|diagram|unclear>",
+  "blocks": [
+    {
+      "type": "text",
+      "content": "<plain text, Hindi or Hinglish as requested>"
+    },
+    {
+      "type": "equation",
+      "format": "latex",
+      "content": "<pure LaTeX without delimiters, e.g. 2Mg + O_{2} \\rightarrow 2MgO>"
+    },
+    {
+      "type": "heading",
+      "content": "<heading text>"
+    },
+    {
+      "type": "bullet_list",
+      "items": ["<item 1>", "<item 2>"]
+    },
+    {
+      "type": "step",
+      "content": "<step explanation>",
+      "number": <integer>
+    },
+    {
+      "type": "warning",
+      "content": "<warning or common mistake note>"
+    },
+    {
+      "type": "final_answer",
+      "content": "<the final result or conclusion>"
+    }
+  ],
+  "commands": [
+    {"type": "circle", "x": <0-1000>, "y": <0-1000>, "radius": <optional 1-100>},
+    {"type": "underline", "x": <0-1000>, "y": <0-1000>, "width": <optional 1-200>},
+    {"type": "arrow", "x1": <0-1000>, "y1": <0-1000>, "x2": <0-1000>, "y2": <0-1000>},
+    {"type": "write", "text": "<short label>", "x": <0-1000>, "y": <0-1000>}
+  ]
+}
+
+Scientific Notation Rules:
+1. Detect subscripts and superscripts intelligently (e.g., O2 -> O_{2}, x2 -> x^{2} if intended as power).
+2. For chemistry, use proper LaTeX notation for reactions (e.g. \\rightarrow, \\Delta).
+3. Never output scientific equations as raw plain text; always use the "equation" block.
+4. Tone/Style: ${modeInstruction}`;
+
+        if (isAutoScan) {
+            prompt = `You are the NeoBranium Live Tutor. PASSIVELY observe the student's writing. Only speak up if you see a mistake or if you can provide a helpful hint.
+${structureInstructions}
+
+Guidelines for Live Tutor:
+- If correct, leave "blocks" and "commands" empty.
+- Coordinates (0-1000) are relative to the image (0,0 is top-left).
+- DO NOT give final answers. Use "write" command for small hints only.`;
+        } else {
+            prompt = `You are the NeoBranium AI Board analyzer. The user has drawn or written something on their digital study board. Analyze it and provide a detailed explanation.
+${structureInstructions}
+
+Explanation Guidelines:
+- Use "commands" to highlight key parts of the student's work on the canvas.
+- Maximum total length: 300 words.
+- If inputType is 'unclear', leave blocks and commands empty.`;
+        }
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [
+                        { text: prompt },
+                        {
+                            inline_data: {
+                                mime_type: mimeType,
+                                data: base64
+                            }
+                        }
+                    ]
+                }]
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error('❌ Gemini Analysis Failure:', JSON.stringify(data, null, 2));
+            return res.status(500).json({ success: false, error: 'AI Analysis failed' });
+        }
+
+        req.session.usage.count++;
+
+        let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+        // Strip markdown backticks if Gemini added them around JSON
+        rawText = rawText.replace(/```json\n?|```/g, '').trim();
+
+        let parsedResult;
+        try {
+            parsedResult = JSON.parse(rawText);
+
+            // Normalize legacy explanation if present
+            if (parsedResult.explanation && !parsedResult.blocks) {
+                parsedResult.blocks = [{
+                    type: 'text',
+                    content: parsedResult.explanation
+                        .replace(/\[\[math\]\]/g, '$$$$')
+                        .replace(/\[\[\/math\]\]/g, '$$$$')
+                        .replace(/\[math\]/g, '\\(')
+                        .replace(/\[\/math\]/g, '\\)')
+                }];
+                delete parsedResult.explanation;
+            }
+
+            // Ensure all blocks are processed for math delimiters if they are simple text/content
+            if (parsedResult.blocks) {
+                parsedResult.blocks.forEach(block => {
+                    if (block.content && typeof block.content === 'string') {
+                        block.content = block.content
+                            .replace(/\[\[math\]\]/g, '$$$$')
+                            .replace(/\[\[\/math\]\]/g, '$$$$')
+                            .replace(/\[math\]/g, '\\(')
+                            .replace(/\[\/math\]/g, '\\)');
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Failed to parse Gemini JSON:", rawText);
+            parsedResult = {
+                confidence: 100,
+                inputType: 'text',
+                blocks: [{ type: 'text', content: rawText }]
+            };
+        }
+
+        res.json({
+            success: true,
+            result: parsedResult
+        });
+
+    } catch (error) {
+        console.error('❌ Analyze Board Error:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+});
+
+// Rephrase API for AI Board Modes
+app.post('/api/rephrase-board', async (req, res) => {
+    try {
+        const { text, mode } = req.body;
+        const groqApiKey = process.env.GROQ_API_KEY;
+
+        if (!groqApiKey) {
+            return res.status(500).json({ success: false, error: 'AI service configuration missing' });
+        }
+
+        if (!text || !mode) {
+            return res.status(400).json({ success: false, error: 'Missing text or mode' });
+        }
+
+        let modeInstruction = "";
+        switch (mode) {
+            case 'english':
+                modeInstruction = "Respond in formal English. Be professional, encouraging, student-friendly, and concise but clear. No slang.";
+                break;
+            case 'hindi':
+                modeInstruction = "Respond in pure, formal Hindi using Devanagari script. Ensure explanations are easy for CBSE students. Avoid robotic translation.";
+                break;
+            case 'hinglish':
+                modeInstruction = "Respond in extremely natural Indian Hinglish. Mix Hindi and English naturally (e.g. 'Dekho yaha basically addition ho raha hai.'). Do NOT translate technical terms. No exaggerated slang. Speak like educated real Indian students.";
+                break;
+            case 'teacher':
+                modeInstruction = "Explain like an experienced Indian CBSE tuition teacher. Patiently reinforce concepts, warn about common mistakes, emphasize exam relevance, and repeat key concepts (e.g. 'Beta, yaha students usually mistake kar dete hain').";
+                break;
+            default:
+                modeInstruction = "Respond naturally.";
+        }
+
+        const prompt = `You are an educational assistant. Rephrase the following explanation into the requested mode. Limit to 250 words. Do not change facts.
+
+Requested Mode Instruction:
+${modeInstruction}
+
+IMPORTANT: Format all mathematical equations using standard LaTeX delimiters ($$ for block math, and \\( \\) for inline math).
+
+Explanation to rephrase:
+${text}`;
+
+        const requestBody = {
+            model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+            messages: [{ role: 'system', content: prompt }],
+            temperature: 0.7,
+            max_tokens: 1024
+        };
+
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${groqApiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.choices || data.choices.length === 0) {
+            console.error('❌ Rephrase Error:', data);
+            return res.status(500).json({ success: false, error: 'Rephrase failed' });
+        }
+
+        res.json({
+            success: true,
+            result: data.choices[0].message.content
+        });
+
+    } catch (error) {
+        console.error('❌ Rephrase API Error:', error);
+        res.status(500).json({ success: false, error: 'Internal Server Error' });
+    }
+});
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ElevenLabs TTS Route  (nb-tts — new addition)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+
+// Voice IDs for each mode. Change these to your preferred ElevenLabs voice IDs.
+const NB_VOICE_MAP = {
+    hinglish: process.env.EL_VOICE_HINGLISH || 'pNInz6obpgDQGcFmaJgB', // Adam — neutral, clear
+    teacher: process.env.EL_VOICE_TEACHER || 'ErXwobaYiN019PkySvjV', // Antoni — authoritative
+    english: process.env.EL_VOICE_ENGLISH || 'EXAVITQu4vr4xnSDxMaL', // Bella — professional
+    hindi: process.env.EL_VOICE_HINDI || 'pNInz6obpgDQGcFmaJgB'  // Adam — works for Hindi
+};
+
+// Hinglish pronunciation corrections applied before sending to ElevenLabs
+const applyHinglishPronunciationFixes = (text) => {
+    return text
+        // Common Hinglish words that get mispronounced
+        .replace(/\bkaro\b/gi, 'kuh-ro')
+        .replace(/\bsuno\b/gi, 'soo-no')
+        .replace(/\bdekho\b/gi, 'dek-ho')
+        .replace(/\bsahi\b/gi, 'saa-hi')
+        .replace(/\btheek\b/gi, 'theek')
+        .replace(/\bwaala\b/gi, 'waa-la')
+        .replace(/\bwaale\b/gi, 'waa-le')
+        .replace(/\byaad\b/gi, 'yaad')
+        .replace(/\bpadho\b/gi, 'puh-dho')
+        .replace(/\blikho\b/gi, 'lik-ho')
+        .replace(/\bsamjhe\b/gi, 'sum-jheh')
+        .replace(/\bsamajh\b/gi, 'sum-ujh')
+        .replace(/\bkya\b/gi, 'kyaa')
+        .replace(/\bhaan\b/gi, 'haan')
+        .replace(/\bnahi\b/gi, 'nuh-hee')
+        .replace(/\bnahin\b/gi, 'nuh-heen')
+        .replace(/\bacha\b/gi, 'uh-chha')
+        .replace(/\bachha\b/gi, 'uh-chha')
+        .replace(/\bthoda\b/gi, 'tho-daa')
+        .replace(/\bbeta\b/gi, 'bay-taa')
+        .replace(/\bgyaan\b/gi, 'gyaan')
+        // Math terms that sound unnatural when read as text
+        .replace(/\bsqrt\b/gi, 'square root of')
+        .replace(/\^2\b/g, ' squared')
+        .replace(/\^3\b/g, ' cubed')
+        // Strip markdown tokens that would be spoken aloud
+        .replace(/\*\*(.*?)\*\*/g, '$1')
+        .replace(/\*(.*?)\*/g, '$1')
+        .replace(/#{1,6}\s?/g, '')
+        .replace(/`{1,3}[^`]*`{1,3}/g, '')
+        .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+        // Strip LaTeX delimiters (leave the content readable)
+        .replace(/\$\$(.*?)\$\$/gs, (_, eq) => eq.replace(/[\\{}^_]/g, ' '))
+        .replace(/\\\((.*?)\\\)/g, (_, eq) => eq.replace(/[\\{}^_]/g, ' '))
+        .trim();
+};
+
+app.post('/api/tts', async (req, res) => {
+    try {
+        const { text, mode = 'hinglish' } = req.body;
+
+        if (!text || typeof text !== 'string' || text.trim().length === 0) {
+            return res.status(400).json({ error: 'Missing or invalid text' });
+        }
+
+        if (text.length > 5000) {
+            return res.status(400).json({ error: 'Text too long for TTS' });
+        }
+
+        if (!ELEVENLABS_API_KEY) {
+            return res.status(503).json({ error: 'ElevenLabs not configured' });
+        }
+
+        const voiceId = NB_VOICE_MAP[mode] || NB_VOICE_MAP['hinglish'];
+
+        // Apply pronunciation fixes for Hinglish and Hindi modes
+        let processedText = text;
+        if (mode === 'hinglish' || mode === 'teacher' || mode === 'hindi') {
+            processedText = applyHinglishPronunciationFixes(text);
+        } else {
+            // Strip markdown for all modes
+            processedText = text
+                .replace(/\*\*(.*?)\*\*/g, '$1')
+                .replace(/\*(.*?)\*/g, '$1')
+                .replace(/#{1,6}\s?/g, '')
+                .replace(/`{1,3}[^`]*`{1,3}/g, '')
+                .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+                .replace(/\$\$(.*?)\$\$/gs, (_, eq) => eq.replace(/[\\{}^_]/g, ' '))
+                .replace(/\\\((.*?)\\\)/g, (_, eq) => eq.replace(/[\\{}^_]/g, ' '))
+                .trim();
+        }
+
+        // Voice settings tuned per mode
+        const voiceSettings = {
+            hinglish: { stability: 0.45, similarity_boost: 0.75, style: 0.3, use_speaker_boost: true },
+            teacher: { stability: 0.60, similarity_boost: 0.80, style: 0.2, use_speaker_boost: true },
+            english: { stability: 0.55, similarity_boost: 0.78, style: 0.25, use_speaker_boost: false },
+            hindi: { stability: 0.50, similarity_boost: 0.75, style: 0.2, use_speaker_boost: true }
+        };
+
+        const settings = voiceSettings[mode] || voiceSettings['hinglish'];
+
+        const elResponse = await fetch(
+            `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,
+            {
+                method: 'POST',
+                headers: {
+                    'xi-api-key': ELEVENLABS_API_KEY,
+                    'Content-Type': 'application/json',
+                    'Accept': 'audio/mpeg'
+                },
+                body: JSON.stringify({
+                    text: processedText,
+                    model_id: 'eleven_multilingual_v2',
+                    voice_settings: settings
+                })
+            }
+        );
+
+        if (!elResponse.ok) {
+            const errText = await elResponse.text();
+            console.error('❌ ElevenLabs TTS error:', elResponse.status, errText);
+            return res.status(elResponse.status).json({ error: 'ElevenLabs request failed' });
+        }
+
+        // Stream audio back to client
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Cache-Control', 'no-store');
+        res.setHeader('Transfer-Encoding', 'chunked');
+
+        const reader = elResponse.body.getReader();
+        const pump = async () => {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) { res.end(); break; }
+                res.write(Buffer.from(value));
+            }
+        };
+        await pump();
+
+    } catch (error) {
+        console.error('❌ /api/tts error:', error);
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'TTS internal error' });
+        }
+    }
+});
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// END ElevenLabs TTS Route
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -555,6 +1192,30 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
+app.post('/api/board-heartbeat', async (req, res) => {
+  const userId = req.session?.id;
+  if (!userId) return res.status(403).json({ error: 'No session' });
+  queueManager.heartbeat(userId);
+  res.json({ ok: true });
+});
+
+app.post('/api/board-session-end', async (req, res) => {
+  const userId = req.session?.id;
+  if (!userId) return res.status(403).json({ error: 'No session' });
+  queueManager.leave(userId);
+  await endSession(userId).catch(e => console.error(e));
+  res.json({ ok: true });
+});
+
+app.get('/api/board-queue-status', async (req, res) => {
+  const userId = req.session?.id;
+  if (!userId) return res.status(403).json({ error: 'No session' });
+  const position = queueManager.getPosition(userId);
+  const { getSessionStatus } = await import('./firebaseAdmin.js');
+  const sessionData = await getSessionStatus(userId).catch(() => null);
+  res.json({ ...position, sessionData });
+});
+
 // Serve static files (HTML, CSS, JS, images, etc.)
 app.use(express.static(path.join(__dirname)));
 
@@ -582,3 +1243,127 @@ app.listen(PORT, () => {
     console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔑 Groq Model: ${GROQ_MODEL}`);
 });
+
+/**
+ * SERVER PATCH — Drop-in replacement for the JSON parsing block
+ * inside the /api/analyze-board route in server.js
+ *
+ * FIND this block in server.js (~line 330-370) and replace with the code below.
+ * Everything outside this block is unchanged.
+ *
+ * Problem: Gemini sometimes returns JSON strings containing backtick-wrapped
+ * inline code (e.g. `x`, `10 \div 2`). When the string contains a backslash
+ * followed by a letter (e.g. \div, \frac), JSON.parse() throws because
+ * \d is not a valid JSON escape sequence.
+ *
+ * Fix: sanitize the raw text before parsing:
+ *   1. Strip ```json / ``` fences (already done)
+ *   2. Replace invalid escape sequences inside JSON strings (\d → d, \f → f, etc.)
+ *   3. Parse — if still fails, wrap as a plain text block
+ */
+
+// ─── PASTE THIS FUNCTION at the TOP of the /api/analyze-board handler, ───────
+// ─── just before the `res.json({ success: true, result: parsedResult })` ──────
+
+function safeParseGeminiJSON(rawText) {
+    // Step 1: Strip markdown code fences Gemini sometimes wraps around JSON
+    let cleaned = rawText
+        .replace(/^```json\s*/i, '')
+        .replace(/^```\s*/, '')
+        .replace(/```\s*$/, '')
+        .trim();
+
+    // Step 2: Fix invalid JSON escape sequences that come from LaTeX in string values.
+    // JSON only allows: \" \\ \/ \b \f \n \r \t \uXXXX
+    // Anything else (e.g. \d \f \r in LaTeX) will break JSON.parse().
+    // Strategy: scan string literals and escape lone backslashes that aren't
+    // followed by a valid JSON escape character.
+    cleaned = cleaned.replace(
+        /"((?:[^"\\]|\\.)*)"/g,   // match each JSON string literal
+        (match, inner) => {
+            // Re-escape any backslash not followed by a valid JSON escape char
+            const fixed = inner.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
+            return `"${fixed}"`;
+        }
+    );
+
+    // Step 3: Attempt parse
+    try {
+        return JSON.parse(cleaned);
+    } catch (e) {
+        console.error('safeParseGeminiJSON: still failed after sanitization:', e.message);
+        console.error('Cleaned text (first 500 chars):', cleaned.slice(0, 500));
+
+        // Last resort: return as a plain text block so the UI still shows something
+        return {
+            confidence: 80,
+            inputType: 'text',
+            blocks: [{ type: 'text', content: rawText.replace(/```json|```/g, '').trim() }],
+            commands: []
+        };
+    }
+}
+
+// ─── In the /api/analyze-board route, REPLACE the existing parse block: ──────
+//
+//   let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+//   rawText = rawText.replace(/```json\n?|```/g, '').trim();
+//   let parsedResult;
+//   try { parsedResult = JSON.parse(rawText); } catch(e) { ... }
+//
+// ─── WITH: ────────────────────────────────────────────────────────────────────
+//
+//   const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+//   let parsedResult = safeParseGeminiJSON(rawText);
+//
+//   // Normalize legacy explanation field
+//   if (parsedResult.explanation && !parsedResult.blocks) {
+//       parsedResult.blocks = [{ type: 'text', content: parsedResult.explanation }];
+//       delete parsedResult.explanation;
+//   }
+//
+//   res.json({ success: true, result: parsedResult });
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// READY-TO-PASTE full replacement for the parse block (copy everything below)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/*
+
+        // ── Paste safeParseGeminiJSON function before the route, or inline here ──
+
+        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+        let parsedResult = safeParseGeminiJSON(rawText);
+
+        // Normalize legacy 'explanation' field to blocks format
+        if (parsedResult.explanation && !parsedResult.blocks) {
+            parsedResult.blocks = [{
+                type: 'text',
+                content: parsedResult.explanation
+                    .replace(/\[\[math\]\]/g, '$$')
+                    .replace(/\[\[\/math\]\]/g, '$$')
+                    .replace(/\[math\]/g, '\\(')
+                    .replace(/\[\/math\]/g, '\\)')
+            }];
+            delete parsedResult.explanation;
+        }
+
+        // Normalize math delimiters inside all text-content blocks
+        if (parsedResult.blocks) {
+            parsedResult.blocks.forEach(block => {
+                if (block.content && typeof block.content === 'string') {
+                    block.content = block.content
+                        .replace(/\[\[math\]\]/g, '$$')
+                        .replace(/\[\[\/math\]\]/g, '$$')
+                        .replace(/\[math\]/g, '\\(')
+                        .replace(/\[\/math\]/g, '\\)');
+                }
+            });
+        }
+
+        req.session.usage.count++;
+
+        res.json({ success: true, result: parsedResult });
+
+*/

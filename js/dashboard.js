@@ -1,9 +1,7 @@
-(function() {
-  const loggedInUserId = localStorage.getItem("loggedInUserId");
-  const isGuest = localStorage.getItem("guestMode") === "true";
-  const accessGranted = localStorage.getItem("accessGranted") === "true";
-
-  if (!loggedInUserId && !(isGuest && accessGranted)) {
+import { checkAccess } from "/js/auth.js";
+(async function() {
+  const allowed = await checkAccess(true);
+  if (!allowed) {
     window.location.href = "/index.html";
   }
 })();

@@ -81,11 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const guestBtn = document.getElementById('guestBtn');
   if (guestBtn) {
     guestBtn.addEventListener('click', () => {
-      localStorage.setItem('guestMode', 'true');
-      localStorage.setItem('accessGranted', 'true');
-      if (!localStorage.getItem('startTime')) {
-        localStorage.setItem('startTime', Date.now().toString());
-      }
       window.location.href = '/htmls/dashboard.html';
     });
   }
@@ -95,13 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (quizLinks.length > 0) {
     quizLinks.forEach(link => {
       link.addEventListener('click', (e) => {
-        // Set guest mode variables for 30-minute access
-        localStorage.setItem('guestMode', 'true');
-        localStorage.setItem('accessGranted', 'true');
-        if (!localStorage.getItem('startTime')) {
-          localStorage.setItem('startTime', Date.now().toString());
-        }
-        // Allow link to proceed naturally
+        // Allow link to proceed naturally, guest handled by server
       });
     });
   }

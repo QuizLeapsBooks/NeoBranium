@@ -96,7 +96,6 @@ getRedirectResult(auth).then(async (result) => {
   if (result && result.user) {
     console.log("Processing redirect result for user:", result.user.uid);
     await handleGoogleUserFirestore(result.user);
-    localStorage.setItem("loggedInUserId", result.user.uid);
     showToast("Login Successful!", "success");
     // auth.js will handle the redirect once onAuthStateChanged fires
   }
@@ -177,9 +176,7 @@ document.getElementById("login-form")?.addEventListener("submit", async (e) => {
       showToast("Please verify your email before logging in.");
       setLoading("submitSignIn", false);
       return;
-    }
     
-    localStorage.setItem("loggedInUserId", user.uid);
     showToast("Logged in successfully!", "success");
     setTimeout(() => location.replace("/htmls/dashboard.html"), 1000);
   } catch (error) {
@@ -229,7 +226,6 @@ async function signInWithGoogle(btnId) {
     console.log("Popup login successful for:", result.user.email);
     
     await handleGoogleUserFirestore(result.user);
-    localStorage.setItem("loggedInUserId", result.user.uid);
     
     showToast("Login Successful!", "success");
     // Global auth.js listener will handle the dashboard redirect automatically

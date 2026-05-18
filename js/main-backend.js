@@ -96,7 +96,6 @@ window.handleSignUp = async function (event) {
     const user = userCredential.user;
     await setDoc(doc(db, "users", user.uid), { fname, lname, email, phone });
     await sendEmailVerification(user);
-    localStorage.setItem("loggedInUserId", user.uid);
     showMessage("Account created! Please verify your email to continue.", "signUpMessage", false);
     setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);
   } catch (error) {
@@ -131,7 +130,6 @@ window.handleLogin = async function (event) {
       showMessage("Please verify your email before logging in.", "signInMessage");
       return;
     }
-    localStorage.setItem("loggedInUserId", user.uid);
     showMessage("Logged in successfully!", "signInMessage", false);
     setTimeout(() => location.replace("/htmls/dashboard.html"), 2000);
   } catch (error) {

@@ -3,12 +3,16 @@ import DOMPurify from "dompurify";
 import { collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 import { ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
 
+import { auth } from "/js/auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+
 document.addEventListener('DOMContentLoaded', () => {
-    const loggedInUserId = localStorage.getItem('loggedInUserId');
-    if (!loggedInUserId) {
-        window.location.href = '/htmls/sign.html';
-        return;
-    }
+    let loggedInUserId = null;
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            loggedInUserId = user.uid;
+        }
+    });
 
     // --- UI Elements ---
     const uploadArea = document.getElementById('uploadArea');
@@ -228,25 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     solveBtn.addEventListener('click', async () => {
         if (!currentFile || !currentBase64) return;
 
-        const SOLVE_LIMIT = 15;
-        const RESET_TIME_MS = 24 * 60 * 60 * 1000;
-
-        let solveCount = parseInt(localStorage.getItem('solveCount')) || 0;
-        let solveStartTime = parseInt(localStorage.getItem('solveStartTime')) || Date.now();
-
-        if (Date.now() - solveStartTime >= RESET_TIME_MS) {
-            solveCount = 0;
-            solveStartTime = Date.now();
-        }
-
-        if (solveCount >= SOLVE_LIMIT) {
-            alert("Daily limit reached");
-            return;
-        }
-
-        solveCount++;
-        localStorage.setItem('solveCount', solveCount.toString());
-        localStorage.setItem('solveStartTime', solveStartTime.toString());
+        // Limits are now handled server-side via Firebase/middleware
 
         // UI Loading State
         solveBtn.disabled = true;

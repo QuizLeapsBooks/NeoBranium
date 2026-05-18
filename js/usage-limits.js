@@ -30,43 +30,11 @@ const LIMITS = {
  * @returns {boolean} True if allowed, false otherwise.
  */
 function checkLimit(config) {
-    const count = parseInt(localStorage.getItem(config.KEYS.COUNT)) || 0;
-    const startTime = parseInt(localStorage.getItem(config.KEYS.START_TIME));
-    const now = Date.now();
-
-    if (!startTime) {
-        return true;
-    }
-
-    if (now - startTime >= config.WINDOW_MS) {
-        // Reset limit if window has passed
-        localStorage.setItem(config.KEYS.COUNT, '0');
-        localStorage.setItem(config.KEYS.START_TIME, now.toString());
-        return true;
-    }
-
-    if (count >= config.MAX) {
-        alert(config.ALERT);
-        return false;
-    }
-
-    return true;
+    return true; // Limits are now handled server-side via Firebase/middleware
 }
 
-/**
- * Generic increment function for usage limits.
- * @param {Object} config - The limit configuration from LIMITS.
- */
 function incrementCount(config) {
-    let count = parseInt(localStorage.getItem(config.KEYS.COUNT)) || 0;
-    let startTime = localStorage.getItem(config.KEYS.START_TIME);
-    const now = Date.now();
-
-    if (!startTime) {
-        localStorage.setItem(config.KEYS.START_TIME, now.toString());
-    }
-
-    localStorage.setItem(config.KEYS.COUNT, (count + 1).toString());
+    // Handled server-side
 }
 
 // Exported functions for Chat

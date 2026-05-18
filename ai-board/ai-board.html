@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Study Board | NeoBranium</title>
+    <meta name="description" content="A distraction-free, futuristic handwriting board for students by NeoBranium.">
+    <!-- Backend URL for API calls. Empty for local dev, or https://YOUR-BACKEND.onrender.com for prod -->
+    <meta name="backend-url" content="">
+    <link rel="stylesheet" href="ai-board.css">
+    <!-- Google Fonts for a modern look -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Marked.js for markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- DOMPurify for sanitization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
+    <!-- KaTeX for Math Rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+</head>
+
+<body>
+    <!-- Floating Home Button -->
+    <a href="../index.html" class="floating-btn home-btn" id="homeBtn" aria-label="Go to Home">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span>Home</span>
+    </a>
+
+    <!-- Infinite Board Container -->
+    <div id="boardContainer" class="board-container">
+        <canvas id="writingBoard"></canvas>
+    </div>
+
+    <!-- Floating Controls -->
+    <div class="controls-container" id="controls">
+        <button class="control-btn" id="undoBtn" title="Undo">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7v6h6"></path>
+                <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+            </svg>
+            <span>Undo</span>
+        </button>
+
+        <button class="control-btn" id="redoBtn" title="Redo">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 7v6h-6"></path>
+                <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"></path>
+            </svg>
+            <span>Redo</span>
+        </button>
+
+        <div class="divider"></div>
+
+        <button class="control-btn scan-btn" id="aiScanBtn" title="AI Scan">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <span>AI Scan</span>
+        </button>
+
+        <button class="control-btn mic-btn" id="micBtn" title="Ask AI Tutor">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="22"></line>
+            </svg>
+            <span>Ask AI</span>
+        </button>
+
+        <div class="divider"></div>
+
+        <div class="toggle-container" title="Show AI Writing">
+            <label class="switch">
+                <input type="checkbox" id="aiWriteToggle" checked>
+                <span class="slider round"></span>
+            </label>
+            <span class="toggle-label">AI Tutor</span>
+        </div>
+
+        <button class="control-btn clear-btn" id="clearBtn" title="Clear Board">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span>Clear</span>
+        </button>
+    </div>
+
+    <!-- AI Response Modal -->
+    <div id="responseModal" class="response-modal">
+        <div class="modal-header">
+            <div class="header-top">
+                <h3 class="modal-title">
+                    AI Explanation
+                    <div id="speakingIndicator" class="speaking-indicator hidden">
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                    </div>
+                </h3>
+                <div class="modal-actions">
+                    <button id="minimizeModal" class="action-btn" title="Minimize">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </button>
+                    <button id="expandModal" class="action-btn hidden" title="Restore">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <polyline points="9 21 3 21 3 15"></polyline>
+                            <line x1="21" y1="3" x2="14" y2="10"></line>
+                            <line x1="3" y1="21" x2="10" y2="14"></line>
+                        </svg>
+                    </button>
+                    <button id="speakBtn" class="speech-btn hidden" title="Speak Answer">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>
+                    </button>
+                    <button id="stopSpeakBtn" class="speech-btn hidden" title="Stop Speaking">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        </svg>
+                    </button>
+                    <button id="closeModal" class="close-btn" title="Close">&times;</button>
+                </div>
+            </div>
+            <div class="mode-switcher" id="modeSwitcher">
+                <button class="mode-btn active" data-mode="hinglish">🟢 Hinglish</button>
+                <button class="mode-btn" data-mode="teacher">🎓 Teacher</button>
+                <button class="mode-btn" data-mode="english">🌐 English</button>
+                <button class="mode-btn" data-mode="hindi">🇮🇳 Hindi</button>
+            </div>
+        </div>
+        <div id="aiResponseContent" class="modal-body">
+            <!-- AI Output goes here -->
+        </div>
+    </div>
+
+    <!-- Intelligent Tutor UI -->
+    <div id="hintPopup" class="hint-popup hidden">
+        <div class="hint-header">
+            <span class="hint-icon">💡</span>
+            <span class="hint-title">AI Hint</span>
+            <button id="closeHint" class="close-hint">&times;</button>
+        </div>
+        <div id="hintContent" class="hint-body">
+            Keep writing... I'm analyzing!
+        </div>
+    </div>
+
+    <div id="confidenceMeter" class="confidence-meter hidden">
+        <div class="meter-label">AI Confidence</div>
+        <div class="meter-bar">
+            <div id="confidenceValue" class="meter-fill" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner-container">
+            <div class="spinner"></div>
+            <p>Analyzing your board...</p>
+        </div>
+    </div>
+
+    <!-- Script Import -->
+    <script type="module" src="js/main.js"></script>
+    <script type="module" src="/js/auth.js"></script>
+</body>
+
+</html>
