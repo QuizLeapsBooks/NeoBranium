@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const guestBtn = document.getElementById('guestBtn');
   if (guestBtn) {
     guestBtn.addEventListener('click', () => {
+      sessionStorage.setItem('isGuestMode', 'true');
       window.location.href = '/htmls/dashboard.html';
     });
   }
@@ -90,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (quizLinks.length > 0) {
     quizLinks.forEach(link => {
       link.addEventListener('click', (e) => {
+        sessionStorage.setItem('isGuestMode', 'true');
         // Allow link to proceed naturally, guest handled by server
       });
     });

@@ -52,14 +52,15 @@ export async function verifyBoardAccess() {
     }
 }
 
-export async function isGuestUser() {
+export function isGuestUser() {
     if (auth.currentUser) return false;
-    const access = await verifyBoardAccess();
-    return access.allowed;
+    
+    // UI flag: User must have explicitly opted into guest mode for this tab session
+    return sessionStorage.getItem('isGuestMode') === 'true';
 }
 
 export async function checkAccess(requiredAuth = false) {
-    if (requiredAuth && (await isGuestUser())) {
+    if (requiredAuth && isGuestUser()) {
         console.info("Guest access restriction: Redirecting to sign-in page.");
         window.location.href = "/htmls/sign.html";
         return false;
@@ -144,6 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (user) {
             // --- LOGGED IN ---
+            sessionStorage.removeItem('isGuestMode'); // Clear guest mode if logged in
 
             // Redirect if on landing/auth pages
             if (isEntryPage) {
@@ -165,9 +167,19 @@ document.addEventListener("DOMContentLoaded", () => {
             document.body.style.opacity = "1";
         } else {
             // --- NOT LOGGED IN ---
-            if (await isGuestUser()) {
+            
+            // Auto-enable guest mode if coming from landing page
+            const referrer = document.referrer;
+            const isFromLanding = referrer && (referrer.includes("index.html") || referrer === window.location.origin + "/");
+            
+            if (isFromLanding && sessionStorage.getItem('isGuestMode') !== 'true') {
+                sessionStorage.setItem('isGuestMode', 'true');
+            }
+
+            if (isGuestUser()) {
                 if (isEntryPage) {
-                    window.location.replace("/htmls/dashboard.html");
+                    // Let the user stay on the entry page (e.g. sign.html) so they can actually log in
+                    document.body.style.opacity = "1";
                     return;
                 }
                 injectGuestBanner();
@@ -188,10 +200,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- Usage Limit System ---
     const checkUsageLimit = async () => {
+        const path = window.location.pathname;
+        const isAIBoard = path.includes("ai-board.html");
+        const isTutor = path.includes("doubt/index.html");
+        
+        // Only kick users out if they are actively on the AI features pages
+        if (!isAIBoard && !isTutor) return;
+
         const access = await verifyBoardAccess();
         if (!access.allowed) {
-            alert("Time limit finished");
-            window.location.href = "/index.html";
+            alert("Your AI usage limit has finished. Please try again later.");
+            window.location.href = "/htmls/dashboard.html";
         }
     };
 
@@ -204,11 +223,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (logout) {
         logout.addEventListener("click", async () => {
             try {
-                if (!auth.currentUser && await isGuestUser()) {
+                if (!auth.currentUser && isGuestUser()) {
+                    sessionStorage.removeItem('isGuestMode');
                     window.location.href = "/index.html";
                     return;
                 }
                 await signOut(auth);
+                sessionStorage.removeItem('isGuestMode');
                 window.location.href = "/index.html";
             } catch (error) {
                 console.error("Logout Error:", error);

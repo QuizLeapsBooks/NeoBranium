@@ -176,6 +176,7 @@ document.getElementById("login-form")?.addEventListener("submit", async (e) => {
       showToast("Please verify your email before logging in.");
       setLoading("submitSignIn", false);
       return;
+    }
     
     showToast("Logged in successfully!", "success");
     setTimeout(() => location.replace("/htmls/dashboard.html"), 1000);
@@ -256,3 +257,10 @@ async function signInWithGoogle(btnId) {
 
 document.getElementById("googleSignUpBtn")?.addEventListener("click", () => signInWithGoogle("googleSignUpBtn"));
 document.getElementById("googleSignInBtn")?.addEventListener("click", () => signInWithGoogle("googleSignInBtn"));
+
+const handleGuestLogin = () => {
+    sessionStorage.setItem("isGuestMode", "true");
+    window.location.replace("/htmls/dashboard.html");
+};
+document.getElementById("guestSignUpBtn")?.addEventListener("click", handleGuestLogin);
+document.getElementById("guestSignInBtn")?.addEventListener("click", handleGuestLogin);
