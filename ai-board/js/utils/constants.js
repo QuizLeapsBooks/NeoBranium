@@ -24,12 +24,8 @@ export const CONFIG = {
         if (host === 'localhost' || host === '127.0.0.1') {
             return 'http://localhost:3000';
         }
-        // Production — reads from a meta tag injected by build
-        // Falls back to same-origin if backend is on same domain
-        const metaBackend = document.querySelector('meta[name="backend-url"]');
-        if (metaBackend) return metaBackend.getAttribute('content');
-        // Same-origin fallback (if frontend+backend on same server)
-        return '';
+        // Production Render URL
+        return 'https://neobranium.onrender.com';
     })()
 };
 

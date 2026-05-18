@@ -1208,12 +1208,17 @@ app.post('/api/board-session-end', async (req, res) => {
 });
 
 app.get('/api/board-queue-status', async (req, res) => {
-  const userId = req.session?.id;
-  if (!userId) return res.status(403).json({ error: 'No session' });
-  const position = queueManager.getPosition(userId);
-  const { getSessionStatus } = await import('./firebaseAdmin.js');
-  const sessionData = await getSessionStatus(userId).catch(() => null);
-  res.json({ ...position, sessionData });
+  try {
+    const userId = req.session?.id;
+    if (!userId) return res.status(403).json({ error: 'No session' });
+    const position = queueManager.getPosition(userId);
+    const { getSessionStatus } = await import('./firebaseAdmin.js');
+    const sessionData = await getSessionStatus(userId).catch(() => null);
+    res.json({ ...position, sessionData });
+  } catch (error) {
+    console.error('Error in /api/board-queue-status:', error);
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
+  }
 });
 
 // Serve static files (HTML, CSS, JS, images, etc.)

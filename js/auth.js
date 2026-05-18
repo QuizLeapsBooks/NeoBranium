@@ -34,18 +34,31 @@ export async function loadUserData(user) {
 
 export async function verifyBoardAccess() {
     try {
-        const resp = await fetch('/api/board-queue-status', {
+        const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
+            ? 'http://localhost:3000' 
+            : '';
+        const resp = await fetch(`${apiBase}/api/board-queue-status`, {
             credentials: 'include'
         });
-        if (!resp.ok) return { allowed: false, reason: 'server_error' };
+        if (!resp.ok) {
+            let errorMsg = 'server_error';
+            try {
+                const errData = await resp.json();
+                errorMsg = errData.error || errData.message || 'server_error';
+            } catch(e) {
+                // Ignore parse error
+            }
+            return { allowed: false, reason: errorMsg, status: resp.status };
+        }
         const data = await resp.json();
         
-        // If limit reached, server will have returned 429 on actual API calls
-        // This is just for UI display
+        const minutesUsed = data.sessionData?.minutesUsed || 0;
+        const remainingMinutes = Math.max(0, 20 - minutesUsed);
+        
         return { 
-            allowed: true, 
-            minutesUsed: data.sessionData?.minutesUsed || 0,
-            remainingMinutes: data.sessionData?.remainingMinutes || 20
+            allowed: remainingMinutes > 0, 
+            minutesUsed: minutesUsed,
+            remainingMinutes: remainingMinutes
         };
     } catch(e) {
         return { allowed: true }; // Fail open for UX
@@ -209,8 +222,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const access = await verifyBoardAccess();
         if (!access.allowed) {
-            alert("Your AI usage limit has finished. Please try again later.");
-            window.location.href = "/htmls/dashboard.html";
+            if (access.status === 429) {
+                alert("Rate limit exceeded. Please wait a few minutes and try again.");
+                window.location.href = "/htmls/dashboard.html";
+            } else if (access.status === 403) {
+                alert("Your session has expired or is invalid. Please log in again.");
+                window.location.href = "/htmls/sign.html";
+            } else if (access.status) {
+                alert(`Server Error: ${access.reason} (Status: ${access.status})`);
+                window.location.href = "/htmls/dashboard.html";
+            } else {
+                // This means remainingMinutes <= 0
+                alert("Your 20-minute AI usage limit has finished. Please try again later.");
+                window.location.href = "/htmls/dashboard.html";
+            }
         }
     };
 
