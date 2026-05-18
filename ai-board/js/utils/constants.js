@@ -24,8 +24,8 @@ export const CONFIG = {
         if (host === 'localhost' || host === '127.0.0.1') {
             return 'http://localhost:3000';
         }
-        // Production Render URL
-        return 'https://neobranium.onrender.com';
+        // Use current origin for production hosting
+        return window.location.origin;
     })()
 };
 
