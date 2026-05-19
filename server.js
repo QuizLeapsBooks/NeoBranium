@@ -997,14 +997,14 @@ ${text}`;
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ElevenLabs TTS Route  (nb-tts — new addition)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+const ELEVENLABS_API_KEY = (process.env.ELEVENLABS_API_KEY || '').trim().replace(/^['"]|['"]$/g, '');
 
 // Voice IDs for each mode. Change these to your preferred ElevenLabs voice IDs.
 const NB_VOICE_MAP = {
-    hinglish: process.env.EL_VOICE_HINGLISH || 'pNInz6obpgDQGcFmaJgB', // Adam — neutral, clear
-    teacher: process.env.EL_VOICE_TEACHER || 'ErXwobaYiN019PkySvjV', // Antoni — authoritative
-    english: process.env.EL_VOICE_ENGLISH || 'EXAVITQu4vr4xnSDxMaL', // Bella — professional
-    hindi: process.env.EL_VOICE_HINDI || 'pNInz6obpgDQGcFmaJgB'  // Adam — works for Hindi
+    hinglish: (process.env.EL_VOICE_HINGLISH || '').trim().replace(/^['"]|['"]$/g, '') || 'pNInz6obpgDQGcFmaJgB', // Adam — neutral, clear
+    teacher: (process.env.EL_VOICE_TEACHER || '').trim().replace(/^['"]|['"]$/g, '') || 'ErXwobaYiN019PkySvjV', // Antoni — authoritative
+    english: (process.env.EL_VOICE_ENGLISH || '').trim().replace(/^['"]|['"]$/g, '') || 'EXAVITQu4vr4xnSDxMaL', // Bella — professional
+    hindi: (process.env.EL_VOICE_HINDI || '').trim().replace(/^['"]|['"]$/g, '') || 'pNInz6obpgDQGcFmaJgB'  // Adam — works for Hindi
 };
 
 // Hinglish pronunciation corrections applied before sending to ElevenLabs
@@ -1113,7 +1113,10 @@ app.post('/api/tts', async (req, res) => {
         if (!elResponse.ok) {
             const errText = await elResponse.text();
             console.error('❌ ElevenLabs TTS error:', elResponse.status, errText);
-            return res.status(elResponse.status).json({ error: 'ElevenLabs request failed' });
+            return res.status(elResponse.status).json({ 
+                error: 'ElevenLabs request failed', 
+                details: errText 
+            });
         }
 
         // Stream audio back to client
