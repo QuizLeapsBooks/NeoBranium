@@ -30,7 +30,7 @@ console.log("Attempting Redis connection...");
 try {
     await redisClient.connect();
     console.log('✅ Redis connected successfully');
-    
+
     // Test the connection actually works
     await redisClient.ping();
     console.log('✅ Redis ping successful');
@@ -62,7 +62,7 @@ app.use(session({
     store: redisClient.isReady ? redisStore : undefined,
     secret: sessionSecret,
     resave: false,
-    saveUninitialized: true, // IMPORTANT: Needed to generate req.session.id for new users!
+    saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
@@ -109,7 +109,7 @@ app.use(helmet({
 
 const allowedOrigins = [
     'https://neobranium.web.app',
-    'https://neobranium.firebaseapp.com', 
+    'https://neobranium.firebaseapp.com',
     'https://neo-branium.vercel.app',
     'http://localhost:5500',
     'http://localhost:5501',
@@ -196,29 +196,26 @@ async function saveUserMemory(userId, memoryData) {
             console.error('Redis memory save failed:', e);
         }
     }
-
     // Fallback: use Map
     fallbackMemory.set(userId, memoryData);
+}
 
-    // Cleanup fallback Map periodically
+// Cleanup fallback memory every 10 minutes (not on every save — avoids O(n) per request)
+setInterval(() => {
     const now = Date.now();
     const maxAge = 60 * 60 * 1000; // 1 hour
     for (const [id, mem] of fallbackMemory) {
-        if (mem && mem.sessionStart && mem.sessionStart instanceof Date) {
-            if (now - mem.sessionStart.getTime() > maxAge) {
-                fallbackMemory.delete(id);
-            }
-        } else {
-            // Cleanup invalid entries
+        if (!mem || !mem.sessionStart || !(mem.sessionStart instanceof Date) ||
+            now - mem.sessionStart.getTime() > maxAge) {
             fallbackMemory.delete(id);
         }
     }
     if (fallbackMemory.size > 1000) {
-        const entries = Array.from(fallbackMemory.entries()).sort((a, b) => a[1].sessionStart - b[1].sessionStart);
-        const toRemove = entries.slice(0, entries.length - 500);
-        toRemove.forEach(([id]) => fallbackMemory.delete(id));
+        const entries = Array.from(fallbackMemory.entries())
+            .sort((a, b) => a[1].sessionStart - b[1].sessionStart);
+        entries.slice(0, entries.length - 500).forEach(([id]) => fallbackMemory.delete(id));
     }
-}
+}, 10 * 60 * 1000);
 
 // Helper functions
 const detectQueryType = (text) => {
@@ -263,7 +260,7 @@ const INJECTION_PATTERNS = [
 function sanitizeAIInput(message) {
     if (!message || typeof message !== 'string') return { safe: false, reason: 'invalid' };
     if (message.length > 5000) return { safe: false, reason: 'too_long' };
-    
+
     for (const pattern of INJECTION_PATTERNS) {
         if (pattern.test(message)) {
             return { safe: false, reason: 'injection_detected' };
@@ -296,7 +293,7 @@ app.post('/api/chat', async (req, res) => {
         const validatedHistory = (history || [])
             .slice(-10)
             .filter(h => h.role && h.content && typeof h.content === 'string')
-            .map(h => ({ 
+            .map(h => ({
                 role: h.role === 'assistant' ? 'assistant' : 'user',
                 content: h.content.slice(0, 2000) // cap each history message
             }));
@@ -360,10 +357,7 @@ app.post('/api/chat', async (req, res) => {
             ? `The user's name is ${memory.name}. `
             : '';
 
-        const historyContext = history
-            .slice(-5)
-            .map(h => `${h.role}: ${h.content}`)
-            .join('\n');
+
 
         // Build messages array
         const systemContent = `${systemIdentity} ${queryContext}`;
@@ -477,7 +471,7 @@ app.post('/api/chat-stream', boardRateLimit, async (req, res) => {
         const safeHistory = (history || [])
             .slice(-10)
             .filter(h => h.role && h.content && typeof h.content === 'string')
-            .map(h => ({ 
+            .map(h => ({
                 role: h.role === 'assistant' ? 'assistant' : 'user',
                 content: h.content.slice(0, 2000) // cap each history message
             }));
@@ -624,23 +618,23 @@ RULES:
 // Gemini Image Solving API with Session-based Rate Limiting
 app.post('/api/gemini-solve', async (req, res) => {
     // 1. Enforce Server-Side Daily Limit (15 per 24h)
-    const DAILY_LIMIT = 15;
+    const SOLVER_DAILY_LIMIT = 15;
     const WINDOW_MS = 24 * 60 * 60 * 1000;
     const now = Date.now();
 
-    // Initialize or Reset usage window in session
-    if (!req.session.usage) {
-        req.session.usage = { count: 0, firstSolve: now };
-    } else if (now - req.session.usage.firstSolve >= WINDOW_MS) {
-        req.session.usage.count = 0;
-        req.session.usage.firstSolve = now;
+    // Initialize or Reset solver-specific usage window in session
+    if (!req.session.solverUsage) {
+        req.session.solverUsage = { count: 0, firstSolve: now };
+    } else if (now - req.session.solverUsage.firstSolve >= WINDOW_MS) {
+        req.session.solverUsage.count = 0;
+        req.session.solverUsage.firstSolve = now;
     }
 
     // Reject if limit exceeded
-    if (req.session.usage.count >= DAILY_LIMIT) {
+    if (req.session.solverUsage.count >= SOLVER_DAILY_LIMIT) {
         return res.status(429).json({
             success: false,
-            error: "Daily limit reached. Please try again after 24 hours."
+            error: "Daily solver limit reached. Please try again after 24 hours."
         });
     }
 
@@ -689,8 +683,8 @@ app.post('/api/gemini-solve', async (req, res) => {
             return res.status(500).json({ success: false, error: 'Gemini API request failed' });
         }
 
-        // Increment session count ONLY on successful solve
-        req.session.usage.count++;
+        // Increment solver session count ONLY on successful solve
+        req.session.solverUsage.count++;
 
         // Robust extraction of AI generated text with fallback handling
         const candidates = data?.candidates || [];
@@ -708,6 +702,34 @@ app.post('/api/gemini-solve', async (req, res) => {
         res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
 });
+
+// Safe JSON parser for Gemini responses — handles invalid LaTeX escape sequences
+function safeParseGeminiJSON(rawText) {
+    let cleaned = rawText
+        .replace(/^```json\s*/i, '')
+        .replace(/^```\s*/, '')
+        .replace(/```\s*$/, '')
+        .trim();
+    // Fix invalid JSON escape sequences from LaTeX (e.g. \d, \f not valid in JSON)
+    cleaned = cleaned.replace(
+        /"((?:[^"\\]|\\.)*)"/g,
+        (match, inner) => {
+            const fixed = inner.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
+            return `"${fixed}"`;
+        }
+    );
+    try {
+        return JSON.parse(cleaned);
+    } catch (e) {
+        console.error('safeParseGeminiJSON failed:', e.message, '| First 200 chars:', cleaned.slice(0, 200));
+        return {
+            confidence: 80,
+            inputType: 'text',
+            blocks: [{ type: 'text', content: rawText.replace(/```json|```/g, '').trim() }],
+            commands: []
+        };
+    }
+}
 
 // AI Board Analysis API
 app.post('/api/analyze-board', boardRateLimit, async (req, res) => {
@@ -865,46 +887,32 @@ Explanation Guidelines:
 
         req.session.usage.count++;
 
-        let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-        // Strip markdown backticks if Gemini added them around JSON
-        rawText = rawText.replace(/```json\n?|```/g, '').trim();
+        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+        let parsedResult = safeParseGeminiJSON(rawText);
 
-        let parsedResult;
-        try {
-            parsedResult = JSON.parse(rawText);
+        // Normalize legacy explanation if present
+        if (parsedResult.explanation && !parsedResult.blocks) {
+            parsedResult.blocks = [{
+                type: 'text',
+                content: parsedResult.explanation
+                    .replace(/\[\[math\]\]/g, '$$$$')
+                    .replace(/\[\[\/math\]\]/g, '$$$$')
+                    .replace(/\[math\]/g, '\\(')
+                    .replace(/\[\/math\]/g, '\\)')
+            }];
+            delete parsedResult.explanation;
+        }
 
-            // Normalize legacy explanation if present
-            if (parsedResult.explanation && !parsedResult.blocks) {
-                parsedResult.blocks = [{
-                    type: 'text',
-                    content: parsedResult.explanation
+        if (parsedResult.blocks) {
+            parsedResult.blocks.forEach(block => {
+                if (block.content && typeof block.content === 'string') {
+                    block.content = block.content
                         .replace(/\[\[math\]\]/g, '$$$$')
                         .replace(/\[\[\/math\]\]/g, '$$$$')
                         .replace(/\[math\]/g, '\\(')
-                        .replace(/\[\/math\]/g, '\\)')
-                }];
-                delete parsedResult.explanation;
-            }
-
-            // Ensure all blocks are processed for math delimiters if they are simple text/content
-            if (parsedResult.blocks) {
-                parsedResult.blocks.forEach(block => {
-                    if (block.content && typeof block.content === 'string') {
-                        block.content = block.content
-                            .replace(/\[\[math\]\]/g, '$$$$')
-                            .replace(/\[\[\/math\]\]/g, '$$$$')
-                            .replace(/\[math\]/g, '\\(')
-                            .replace(/\[\/math\]/g, '\\)');
-                    }
-                });
-            }
-        } catch (e) {
-            console.error("Failed to parse Gemini JSON:", rawText);
-            parsedResult = {
-                confidence: 100,
-                inputType: 'text',
-                blocks: [{ type: 'text', content: rawText }]
-            };
+                        .replace(/\[\/math\]/g, '\\)');
+                }
+            });
         }
 
         res.json({
@@ -919,7 +927,7 @@ Explanation Guidelines:
 });
 
 // Rephrase API for AI Board Modes
-app.post('/api/rephrase-board', async (req, res) => {
+app.post('/api/rephrase-board', boardRateLimit, async (req, res) => {
     try {
         const { text, mode } = req.body;
         const groqApiKey = process.env.GROQ_API_KEY;
@@ -1048,7 +1056,7 @@ const applyHinglishPronunciationFixes = (text) => {
         .trim();
 };
 
-app.post('/api/tts', async (req, res) => {
+app.post('/api/tts', boardRateLimit, async (req, res) => {
     try {
         const { text, mode = 'hinglish' } = req.body;
 
@@ -1113,9 +1121,9 @@ app.post('/api/tts', async (req, res) => {
         if (!elResponse.ok) {
             const errText = await elResponse.text();
             console.error('❌ ElevenLabs TTS error:', elResponse.status, errText);
-            return res.status(elResponse.status).json({ 
-                error: 'ElevenLabs request failed', 
-                details: errText 
+            return res.status(elResponse.status).json({
+                error: 'ElevenLabs request failed',
+                details: errText
             });
         }
 
@@ -1197,43 +1205,40 @@ app.get('/api/stats', async (req, res) => {
 });
 
 app.post('/api/board-heartbeat', async (req, res) => {
-  const userId = req.session?.id;
-  if (!userId) return res.status(403).json({ error: 'No session' });
-  queueManager.heartbeat(userId);
-  res.json({ ok: true });
+    const userId = req.session?.id;
+    if (!userId) return res.status(403).json({ error: 'No session' });
+    queueManager.heartbeat(userId);
+    res.json({ ok: true });
 });
 
 app.post('/api/board-session-end', async (req, res) => {
-  const userId = req.session?.id;
-  if (!userId) return res.status(403).json({ error: 'No session' });
-  queueManager.leave(userId);
-  await endSession(userId).catch(e => console.error(e));
-  res.json({ ok: true });
+    const userId = req.session?.id;
+    if (!userId) return res.status(403).json({ error: 'No session' });
+    queueManager.leave(userId);
+    await endSession(userId).catch(e => console.error(e));
+    res.json({ ok: true });
 });
 
 app.get('/api/board-queue-status', async (req, res) => {
-  try {
-    const userId = req.session?.id;
-    if (!userId) return res.status(403).json({ error: 'No session' });
-    const position = queueManager.getPosition(userId);
-    const { getSessionStatus } = await import('./firebaseAdmin.js');
-    const sessionData = await getSessionStatus(userId).catch(() => null);
-    res.json({ ...position, sessionData });
-  } catch (error) {
-    console.error('Error in /api/board-queue-status:', error);
-    res.status(500).json({ error: 'Internal Server Error', message: error.message });
-  }
+    try {
+        const userId = req.session?.id;
+        if (!userId) return res.status(403).json({ error: 'No session' });
+        const position = queueManager.getPosition(userId);
+        const { getSessionStatus } = await import('./firebaseAdmin.js');
+        const sessionData = await getSessionStatus(userId).catch(() => null);
+        res.json({ ...position, sessionData });
+    } catch (error) {
+        console.error('Error in /api/board-queue-status:', error);
+        res.status(500).json({ error: 'Internal Server Error', message: error.message });
+    }
 });
 
-// Serve static files (HTML, CSS, JS, images, etc.)
+// Serve static files
 app.use(express.static(path.join(__dirname)));
 
-// Serve static files in production
 if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '../')));
-
     app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, '../index.html'));
+        res.sendFile(path.join(__dirname, 'index.html'));
     });
 }
 
@@ -1252,127 +1257,3 @@ app.listen(PORT, () => {
     console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔑 Groq Model: ${GROQ_MODEL}`);
 });
-
-/**
- * SERVER PATCH — Drop-in replacement for the JSON parsing block
- * inside the /api/analyze-board route in server.js
- *
- * FIND this block in server.js (~line 330-370) and replace with the code below.
- * Everything outside this block is unchanged.
- *
- * Problem: Gemini sometimes returns JSON strings containing backtick-wrapped
- * inline code (e.g. `x`, `10 \div 2`). When the string contains a backslash
- * followed by a letter (e.g. \div, \frac), JSON.parse() throws because
- * \d is not a valid JSON escape sequence.
- *
- * Fix: sanitize the raw text before parsing:
- *   1. Strip ```json / ``` fences (already done)
- *   2. Replace invalid escape sequences inside JSON strings (\d → d, \f → f, etc.)
- *   3. Parse — if still fails, wrap as a plain text block
- */
-
-// ─── PASTE THIS FUNCTION at the TOP of the /api/analyze-board handler, ───────
-// ─── just before the `res.json({ success: true, result: parsedResult })` ──────
-
-function safeParseGeminiJSON(rawText) {
-    // Step 1: Strip markdown code fences Gemini sometimes wraps around JSON
-    let cleaned = rawText
-        .replace(/^```json\s*/i, '')
-        .replace(/^```\s*/, '')
-        .replace(/```\s*$/, '')
-        .trim();
-
-    // Step 2: Fix invalid JSON escape sequences that come from LaTeX in string values.
-    // JSON only allows: \" \\ \/ \b \f \n \r \t \uXXXX
-    // Anything else (e.g. \d \f \r in LaTeX) will break JSON.parse().
-    // Strategy: scan string literals and escape lone backslashes that aren't
-    // followed by a valid JSON escape character.
-    cleaned = cleaned.replace(
-        /"((?:[^"\\]|\\.)*)"/g,   // match each JSON string literal
-        (match, inner) => {
-            // Re-escape any backslash not followed by a valid JSON escape char
-            const fixed = inner.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
-            return `"${fixed}"`;
-        }
-    );
-
-    // Step 3: Attempt parse
-    try {
-        return JSON.parse(cleaned);
-    } catch (e) {
-        console.error('safeParseGeminiJSON: still failed after sanitization:', e.message);
-        console.error('Cleaned text (first 500 chars):', cleaned.slice(0, 500));
-
-        // Last resort: return as a plain text block so the UI still shows something
-        return {
-            confidence: 80,
-            inputType: 'text',
-            blocks: [{ type: 'text', content: rawText.replace(/```json|```/g, '').trim() }],
-            commands: []
-        };
-    }
-}
-
-// ─── In the /api/analyze-board route, REPLACE the existing parse block: ──────
-//
-//   let rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-//   rawText = rawText.replace(/```json\n?|```/g, '').trim();
-//   let parsedResult;
-//   try { parsedResult = JSON.parse(rawText); } catch(e) { ... }
-//
-// ─── WITH: ────────────────────────────────────────────────────────────────────
-//
-//   const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-//   let parsedResult = safeParseGeminiJSON(rawText);
-//
-//   // Normalize legacy explanation field
-//   if (parsedResult.explanation && !parsedResult.blocks) {
-//       parsedResult.blocks = [{ type: 'text', content: parsedResult.explanation }];
-//       delete parsedResult.explanation;
-//   }
-//
-//   res.json({ success: true, result: parsedResult });
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// READY-TO-PASTE full replacement for the parse block (copy everything below)
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/*
-
-        // ── Paste safeParseGeminiJSON function before the route, or inline here ──
-
-        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-        let parsedResult = safeParseGeminiJSON(rawText);
-
-        // Normalize legacy 'explanation' field to blocks format
-        if (parsedResult.explanation && !parsedResult.blocks) {
-            parsedResult.blocks = [{
-                type: 'text',
-                content: parsedResult.explanation
-                    .replace(/\[\[math\]\]/g, '$$')
-                    .replace(/\[\[\/math\]\]/g, '$$')
-                    .replace(/\[math\]/g, '\\(')
-                    .replace(/\[\/math\]/g, '\\)')
-            }];
-            delete parsedResult.explanation;
-        }
-
-        // Normalize math delimiters inside all text-content blocks
-        if (parsedResult.blocks) {
-            parsedResult.blocks.forEach(block => {
-                if (block.content && typeof block.content === 'string') {
-                    block.content = block.content
-                        .replace(/\[\[math\]\]/g, '$$')
-                        .replace(/\[\[\/math\]\]/g, '$$')
-                        .replace(/\[math\]/g, '\\(')
-                        .replace(/\[\/math\]/g, '\\)');
-                }
-            });
-        }
-
-        req.session.usage.count++;
-
-        res.json({ success: true, result: parsedResult });
-
-*/

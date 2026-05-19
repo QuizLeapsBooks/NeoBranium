@@ -231,8 +231,7 @@ async function signInWithGoogle(btnId) {
     showToast("Login Successful!", "success");
     // Global auth.js listener will handle the dashboard redirect automatically
   } catch (error) {
-    console.error("Sign-In Error Details:", error);
-    console.error("Popup Auth Error:", error);
+    console.error("Google Sign-In Error:", error);
     
     // Handle specific popup errors
     if (error.code === 'auth/popup-closed-by-user') {

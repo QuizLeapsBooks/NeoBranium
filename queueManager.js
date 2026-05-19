@@ -25,7 +25,7 @@ const queueManager = {
       activeUsers.set(userId, { joinedAt: now, lastHeartbeat: now });
       return { status: 'active', position: 0 };
     } else {
-      waitingQueue.push({ userId, joinedAt: now });
+      waitingQueue.push({ userId, joinedAt: now, lastHeartbeat: now });
       const position = waitingQueue.length; // 1-based index
       return { status: 'waiting', position };
     }
@@ -72,7 +72,7 @@ const queueManager = {
     } else {
       const waitIndex = waitingQueue.findIndex(u => u.userId === userId);
       if (waitIndex !== -1) {
-        waitingQueue[waitIndex].joinedAt = now;
+        waitingQueue[waitIndex].lastHeartbeat = now;
       }
     }
   },

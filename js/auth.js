@@ -81,12 +81,23 @@ export function isGuestUser() {
 }
 
 export async function checkAccess(requiredAuth = false) {
-    if (requiredAuth && isGuestUser()) {
-        console.info("Guest access restriction: Redirecting to sign-in page.");
-        window.location.href = "/htmls/sign.html";
-        return false;
-    }
-    return true;
+    if (!requiredAuth) return true;
+    // Wait for Firebase to resolve auth state before deciding
+    return new Promise((resolve) => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            unsubscribe();
+            if (user) { resolve(true); return; }
+            if (isGuestUser()) {
+                console.info("Guest access restriction: Redirecting to sign-in.");
+                window.location.href = "/htmls/sign.html";
+                resolve(false);
+                return;
+            }
+            // Fully logged-out — redirect to landing
+            window.location.replace("/index.html");
+            resolve(false);
+        });
+    });
 }
 
 function injectGuestBanner() {

@@ -300,8 +300,9 @@ const chatEngine = {
 
     virtualizeOldMessages() {
         const messages = Array.from(DOM.aiResponseContent.querySelectorAll('.chat-message:not(.loading-message)'));
-        if (messages.length > 8) {
-            // Can be expanded to collapse older messages
+        const MAX_VISIBLE = 10;
+        if (messages.length > MAX_VISIBLE) {
+            messages.slice(0, messages.length - MAX_VISIBLE).forEach(msg => msg.remove());
         }
     }
 };

@@ -1,7 +1,7 @@
 import { auth, loadUserData, updateUserProfile, changeUserPassword, showStatus, checkAccess } from "/js/auth.js";
 
 // Immediate access check for guest protection
-checkAccess(true);
+await checkAccess(true);
 
 const firstNameInput = document.getElementById("firstName");
 const saveFirstNameBtn = document.getElementById("saveFirstNameBtn");
@@ -98,7 +98,7 @@ changePasswordBtn.addEventListener("click", async () => {
     const currentPassword = currentPasswordInput.value;
     const newPassword = newPasswordInput.value;
     if (!currentPassword || !newPassword) return showStatus("Fill both password fields, yo!", true);
-    if (newPassword.length < 6) return showStatus("New password needs 6+ chars!", true);
+    if (newPassword.length < 8) return showStatus("New password needs 8+ chars!", true);
     try {
         await changeUserPassword(auth.currentUser, currentPassword, newPassword);
         currentPasswordInput.value = "";
