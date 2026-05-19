@@ -190,6 +190,7 @@ class ChatAssistant {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     message: userText,
                     history: this.chatHistory.slice(-10), // Last 10 messages for context

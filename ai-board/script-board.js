@@ -389,14 +389,16 @@ const speechEngine = {
         }
 
         try {
-            const currentOrigin = window.location.origin;
-            const apiEndpoint = (currentOrigin.includes(':5500') || currentOrigin.includes(':5501'))
-                ? 'http://localhost:3000/api/tts'
-                : '/api/tts';
+            const host = window.location.hostname;
+            const apiBase = (host === 'localhost' || host === '127.0.0.1')
+                ? 'http://localhost:3000'
+                : (document.querySelector('meta[name="backend-url"]')?.getAttribute('content') || 'https://neobranium.onrender.com');
+            const apiEndpoint = `${apiBase}/api/tts`;
 
             const resp = await fetch(apiEndpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ text: chunkText, mode })
             });
 
@@ -713,14 +715,16 @@ const aiEngine = {
         }
 
         try {
-            const currentOrigin = window.location.origin;
-            const apiEndpoint = (currentOrigin.includes(':5500') || currentOrigin.includes(':5501')) 
-                                ? 'http://localhost:3000/api/analyze-board' 
-                                : '/api/analyze-board';
+            const host = window.location.hostname;
+            const apiBase = (host === 'localhost' || host === '127.0.0.1')
+                ? 'http://localhost:3000'
+                : (document.querySelector('meta[name="backend-url"]')?.getAttribute('content') || 'https://neobranium.onrender.com');
+            const apiEndpoint = `${apiBase}/api/analyze-board`;
 
             const response = await fetch(apiEndpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ 
                     base64, 
                     mimeType, 
@@ -810,14 +814,16 @@ const aiEngine = {
         const loadingId = chatEngine.showLoading();
 
         try {
-            const currentOrigin = window.location.origin;
-            const apiEndpoint = (currentOrigin.includes(':5500') || currentOrigin.includes(':5501')) 
-                                ? 'http://localhost:3000/api/chat-stream' 
-                                : '/api/chat-stream';
+            const host = window.location.hostname;
+            const apiBase = (host === 'localhost' || host === '127.0.0.1')
+                ? 'http://localhost:3000'
+                : (document.querySelector('meta[name="backend-url"]')?.getAttribute('content') || 'https://neobranium.onrender.com');
+            const apiEndpoint = `${apiBase}/api/chat-stream`;
 
             const response = await fetch(apiEndpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ 
                     message: transcript, 
                     history: tutorState.conversationHistory,

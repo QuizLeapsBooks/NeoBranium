@@ -247,6 +247,7 @@ async function generatePaperWithRetry(aiPrompt, maxRetries = 5) {
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: headers,
+        credentials: 'include',
         body: JSON.stringify({
           message: aiPrompt,
           history: [],

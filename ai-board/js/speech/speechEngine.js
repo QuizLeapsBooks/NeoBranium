@@ -178,6 +178,7 @@ class SpeechEngine {
             const resp = await fetch(`${CONFIG.API_BASE_URL}/api/tts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ text, mode: STATE.mode }),
                 signal: controller.signal
             });

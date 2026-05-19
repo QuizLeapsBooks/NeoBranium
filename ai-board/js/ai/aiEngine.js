@@ -83,6 +83,7 @@ export const aiEngine = {
             const resp = await fetch(`${CONFIG.API_BASE_URL}/api/analyze-board`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ base64, mimeType: 'image/jpeg', mode: STATE.mode, isAutoScan })
             });
             const data = await resp.json();
@@ -142,6 +143,7 @@ export const aiEngine = {
             const resp = await fetch(`${CONFIG.API_BASE_URL}/api/chat-stream`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
                 body: JSON.stringify({ message: transcript, history: STATE.conversationHistory, mode: STATE.mode })
             });
             if (!resp.ok) throw new Error();
