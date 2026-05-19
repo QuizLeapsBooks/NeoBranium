@@ -34,9 +34,17 @@ export async function loadUserData(user) {
 
 export async function verifyBoardAccess() {
     try {
-        const apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
-            ? 'http://localhost:3000' 
-            : '';
+        const apiBase = (() => {
+            const host = window.location.hostname;
+            if (host === 'localhost' || host === '127.0.0.1') {
+                return 'http://localhost:3000';
+            }
+            const metaBackend = document.querySelector('meta[name="backend-url"]');
+            if (metaBackend && metaBackend.getAttribute('content')) {
+                return metaBackend.getAttribute('content');
+            }
+            return 'https://neobranium.onrender.com';
+        })();
         const resp = await fetch(`${apiBase}/api/board-queue-status`, {
             credentials: 'include'
         });

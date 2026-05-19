@@ -116,7 +116,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             return 'http://localhost:3000/api';
         }
-        return '/api';
+        // Production — check if there is a meta tag with a specific backend URL
+        const metaBackend = document.querySelector('meta[name="backend-url"]');
+        if (metaBackend && metaBackend.getAttribute('content')) {
+            const val = metaBackend.getAttribute('content');
+            return val.endsWith('/') ? `${val}api` : `${val}/api`;
+        }
+        // Default production backend API
+        return 'https://neobranium.onrender.com/api';
     };
 
     const API_BASE_URL = getApiBaseUrl();

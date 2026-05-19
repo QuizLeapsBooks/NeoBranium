@@ -24,8 +24,13 @@ export const CONFIG = {
         if (host === 'localhost' || host === '127.0.0.1') {
             return 'http://localhost:3000';
         }
-        // Use current origin for production hosting
-        return window.location.origin;
+        // Production — check if there is a meta tag with a specific backend URL
+        const metaBackend = document.querySelector('meta[name="backend-url"]');
+        if (metaBackend && metaBackend.getAttribute('content')) {
+            return metaBackend.getAttribute('content');
+        }
+        // Default production backend
+        return 'https://neobranium.onrender.com';
     })()
 };
 
