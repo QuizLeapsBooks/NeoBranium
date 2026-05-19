@@ -8,7 +8,6 @@ import { uiManager } from './ui/uiManager.js';
 import { speechEngine } from './speech/speechEngine.js';
 import { aiEngine, sendVoiceQuery } from './ai/aiEngine.js';
 import { CONFIG } from './utils/constants.js';
-import { googleTTSEngine } from './speech/googleTTSEngine.js';
 import { clientQueueManager } from './ui/clientQueueManager.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,9 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     speechEngine.init();
     speechEngine.setSendVoiceQuery(sendVoiceQuery);
     
-    if (CONFIG.GOOGLE_TTS_KEY) {
-      googleTTSEngine.init(CONFIG.GOOGLE_TTS_KEY);
-    }
     clientQueueManager.init(CONFIG.API_BASE_URL);
     window.addEventListener('nb-queue-ready', () => {
       aiEngine.analyzeBoard();

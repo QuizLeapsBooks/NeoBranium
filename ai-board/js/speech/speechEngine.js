@@ -1,23 +1,10 @@
 /**
  * Unified Speech Engine (TTS + Recognition)
- *
- * Fixes:
- * 1. fetchAudio() now uses AbortController with a 4-second timeout.
- *    Previously the ElevenLabs connect timeout was 10s — this caused a 10s dead
- *    pause before every sentence when ElevenLabs is unreachable.
- *
- * 2. drainQueue() now prefetches the NEXT chunk's audio while the current one
- *    is playing, eliminating the gap between sentences.
- *
- * 3. browserFallback() strips markdown/backticks before passing to SpeechSynthesis
- *    so it doesn't read out formatting symbols.
- *
- * Nothing else changed — recognition, UI wiring, and queue logic are intact.
+ * Refactored for browser fallback and optimized speech routing.
  */
 import { CONFIG, STATE, DOM } from '../utils/constants.js';
 import { utils } from '../utils/helpers.js';
 import { voiceRouter } from './voiceRouter.js';
-import { googleTTSEngine } from './googleTTSEngine.js';
 
 // How long to wait for ElevenLabs before giving up and using browser TTS
 const TTS_TIMEOUT_MS = 4000;
@@ -102,66 +89,68 @@ class SpeechEngine {
         if (DOM.stopSpeakBtn) DOM.stopSpeakBtn.addEventListener('click', () => this.stopSpeaking());
     }
 
-async speakText(text) {
-  if (!text) return;
-  this.stopSpeaking();
-  this.isSpeaking = true;
-  this._lastSpokenText = text;
+    async speakText(text) {
+        if (!text) return;
+        this.stopSpeaking();
+        this.isSpeaking = true;
+        this._lastSpokenText = text;
 
-  const detectedLang = voiceRouter.detect(text);
-  const shouldSwitch = voiceRouter.shouldSwitch(
-    this._lastDetectedLang, detectedLang, text.length
-  );
-  if (shouldSwitch) {
-    this._lastDetectedLang = detectedLang;
-    if (detectedLang === 'hindi' && googleTTSEngine.isAvailable()) {
-      this._currentEngine = 'google';
-    } else {
-      this._currentEngine = 'elevenlabs'; // handles fallback to browser internally
+        const detectedLang = voiceRouter.detect(text);
+        this._lastDetectedLang = detectedLang;
+
+        // Choose Speech Engine:
+        // Use ElevenLabs for: "teacher" mode or Hinglish language
+        // Use Browser direct reading for: English or Hindi language
+        if (STATE.mode === 'teacher' || detectedLang === 'hinglish') {
+            this._currentEngine = 'elevenlabs';
+        } else {
+            this._currentEngine = 'browser';
+        }
+
+        this.queue = utils.chunkText(utils.stripForSpeech(text));
+        this.drainQueue();
     }
-  }
-
-  this.queue = utils.chunkText(utils.stripForSpeech(text));
-  this.drainQueue();
-}
 
     replayLastSpeech() {
         if (this._lastSpokenText) this.speakText(this._lastSpokenText);
     }
 
-async drainQueue() {
-  if (this.isFetching || this.queue.length === 0) return;
-  this.isFetching = true;
+    async drainQueue() {
+        if (this.isFetching || this.queue.length === 0) return;
+        this.isFetching = true;
 
-  while (this.queue.length > 0 && this.isSpeaking) {
-    const chunk = this.queue.shift();
-    this.updateSpeakingUI(true);
+        while (this.queue.length > 0 && this.isSpeaking) {
+            const chunk = this.queue.shift();
+            this.updateSpeakingUI(true);
 
-    const nextChunk = this.queue[0];
-    if (nextChunk) this._prefetch(nextChunk);
+            const nextChunk = this.queue[0];
+            // Prefetch only if using ElevenLabs
+            if (nextChunk && this._currentEngine === 'elevenlabs') {
+                this._prefetch(nextChunk);
+            }
 
-    let played = false;
+            let played = false;
 
-    if (this._currentEngine === 'google' && googleTTSEngine.isAvailable()) {
-      played = await googleTTSEngine.speak(chunk);
+            if (this._currentEngine === 'elevenlabs') {
+                const buffer = await this.fetchAudio(chunk);
+                if (buffer) {
+                    await this.playAudio(buffer);
+                    played = true;
+                }
+            }
+
+            // Fallback for ElevenLabs failures, or direct Web Speech API reading for English/Hindi
+            if (!played) {
+                await this.browserFallback(chunk, this._lastDetectedLang);
+            }
+        }
+
+        this.isFetching = false;
+        if (this.queue.length === 0) {
+            this.isSpeaking = false;
+            this.updateSpeakingUI(false);
+        }
     }
-
-    if (!played) {
-      const buffer = await this.fetchAudio(chunk);
-      if (buffer) {
-        await this.playAudio(buffer);
-      } else {
-        await this.browserFallback(chunk);
-      }
-    }
-  }
-
-  this.isFetching = false;
-  if (this.queue.length === 0) {
-    this.isSpeaking = false;
-    this.updateSpeakingUI(false);
-  }
-}
 
     /**
      * Pre-warm the audio cache for the next sentence while current one plays.
@@ -232,10 +221,10 @@ async drainQueue() {
     }
 
     /**
-     * Browser TTS fallback.
+     * Browser TTS reading.
      * Strips any remaining markdown/backticks so it doesn't read out symbols.
      */
-    browserFallback(text) {
+    browserFallback(text, lang = 'english') {
         return new Promise(resolve => {
             // Strip backtick code spans (e.g. `x`, `10 \div 2`)
             const cleanText = text
@@ -245,8 +234,21 @@ async drainQueue() {
                 .trim();
 
             const utt = new SpeechSynthesisUtterance(cleanText);
-            utt.lang = 'en-IN';
-            utt.rate = 0.95;
+            
+            // Choose language accent
+            if (lang === 'hindi') {
+                utt.lang = 'hi-IN';
+            } else {
+                utt.lang = 'en-IN'; // Indian English voice reads English & Hinglish well
+            }
+
+            // Adjust voice rate based on mode
+            if (STATE.mode === 'teacher') {
+                utt.rate = 0.85; // Slower, clear lecturing rate
+            } else {
+                utt.rate = 0.95; // Default natural speed
+            }
+
             utt.onend = resolve;
             utt.onerror = resolve; // Don't hang if TTS errors
             window.speechSynthesis.speak(utt);
@@ -263,7 +265,6 @@ async drainQueue() {
         }
 
         window.speechSynthesis.cancel();
-        googleTTSEngine.stop();
         this.updateSpeakingUI(false);
     }
 
