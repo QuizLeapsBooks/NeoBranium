@@ -136,7 +136,7 @@ const strictOriginCheck = (req, res, next) => {
     if (!origin) {
         return res.status(403).json({ reply: 'Forbidden: Direct API access is not allowed' });
     }
-    const isAllowed = allowedOrigins.some(allowedOrigin => origin === allowedOrigin || origin === allowedOrigin + '/');
+    const isAllowed = allowedOrigins.some(allowedOrigin => origin.startsWith(allowedOrigin));
     if (!isAllowed) {
         return res.status(403).json({ reply: 'Forbidden: Invalid Origin' });
     }
