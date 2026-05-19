@@ -1158,3 +1158,103 @@ footer {
   text-align: center;
   color: var(--primary);
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PREMIUM GLASSMORPHISM & PUBLIC REFINEMENTS
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Free Access Top Banner */
+.free-access-banner {
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.06) 0%, rgba(14, 165, 233, 0.08) 50%, rgba(37, 99, 235, 0.06) 100%);
+  border-bottom: 1px solid rgba(37, 99, 235, 0.12);
+  padding: 0.7rem 5%;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #1e3a8a;
+  z-index: 1002;
+  position: relative;
+  box-shadow: inset 0 -1px 0 0 rgba(255, 255, 255, 0.6);
+}
+
+.free-access-banner .badge {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #fff;
+  padding: 0.3rem 0.8rem;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+  animation: pulse-glow 2s infinite alternate;
+}
+
+@keyframes pulse-glow {
+  0% { transform: scale(1); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25); }
+  100% { transform: scale(1.03); box-shadow: 0 4px 15px rgba(37, 99, 235, 0.45); }
+}
+
+.free-access-banner .banner-text {
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: 0.2px;
+}
+
+/* Glassmorphism Cards Refinement */
+.class-card, .blog-card, .q-card, .sidebar-content, .notes-container {
+  background: rgba(255, 255, 255, 0.78) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Smooth Premium Hover Scaling & Borders */
+.class-card:hover, .blog-card:hover, .q-card:hover {
+  transform: translateY(-6px) scale(1.01) !important;
+  border-color: rgba(37, 99, 235, 0.5) !important;
+  box-shadow: 0 20px 35px rgba(37, 99, 235, 0.06), 0 4px 12px rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Rounded, polished buttons with premium glowing transition */
+.btn-primary, .login-btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn-primary::before, .login-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%);
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+/* Soft badges for free materials */
+.free-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0.5rem;
+}

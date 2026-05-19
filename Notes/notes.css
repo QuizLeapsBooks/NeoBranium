@@ -361,3 +361,70 @@
     text-align: center;
   }
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   PREMIUM NOTES GLASSMORPHISM ENHANCEMENTS
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.sidebar-content, .notes-container, .formula-box, .mistake-box, .exam-questions, .summary-card, .chapter-jump-card {
+  background: rgba(255, 255, 255, 0.76) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Sidebar Link Animations */
+.sidebar-content a {
+  position: relative;
+  transition: all 0.25s ease !important;
+  padding: 0.2rem 0;
+}
+
+.sidebar-content a:hover {
+  color: var(--primary) !important;
+  padding-left: 8px !important;
+}
+
+/* Interactive accent line for links */
+.sidebar-content a::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: var(--primary);
+  border-radius: 4px;
+  transition: height 0.25s ease;
+  opacity: 0;
+}
+
+.sidebar-content a:hover::before {
+  height: 70%;
+  opacity: 1;
+}
+
+/* Glow-on-hover card transformations */
+.summary-card:hover, .chapter-jump-card:hover {
+  transform: translateY(-5px) scale(1.01) !important;
+  border-color: rgba(37, 99, 235, 0.45) !important;
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.07), 0 4px 12px rgba(0, 0, 0, 0.01) !important;
+}
+
+/* Specialized box gradients */
+.formula-box {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.03) 0%, rgba(14, 165, 233, 0.05) 100%) !important;
+  border-left: 5px solid var(--primary) !important;
+}
+
+.mistake-box {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.03) 0%, rgba(251, 191, 36, 0.05) 100%) !important;
+  border-left: 5px solid #f59e0b !important;
+}
+
+.exam-questions {
+  background: linear-gradient(135deg, rgba(241, 245, 249, 0.5) 0%, rgba(255, 255, 255, 0.8) 100%) !important;
+}

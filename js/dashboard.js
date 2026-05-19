@@ -7,7 +7,14 @@ import { checkAccess } from "/js/auth.js";
 })();
 
 
+let selectedClass = "";
+
 function openSubjectModal(cls) {
+  selectedClass = cls;
+  const selectEl = document.getElementById('subjectSelect');
+  if (selectEl) {
+    selectEl.value = "";
+  }
   const modal = new bootstrap.Modal(document.getElementById('subjectModal'));
   modal.show();
 }
@@ -19,16 +26,20 @@ function goToSubjectPage() {
     return;
   }
 
+  sessionStorage.setItem('selectedClass', selectedClass);
+
   let targetPage = "";
   if (subject === "maths") {
     targetPage = "/htmls/quiz_htmls/class9-10maths.html";
   } else {
-    // Other subjects (science, biology, physics, chemistry) all use the combined science quiz for now
     targetPage = "/htmls/quiz_htmls/class9-10science.html";
   }
 
   window.location.href = targetPage;
 }
+
+window.openSubjectModal = openSubjectModal;
+window.goToSubjectPage = goToSubjectPage;
 
 // Toggle sidebar logic for mobile
 document.querySelector('.navbar-toggler').addEventListener('click', function () {

@@ -45,6 +45,51 @@
       scroll-behavior: smooth;
     }
 
+    /* Free Access Top Banner */
+    .free-access-banner {
+      background: linear-gradient(90deg, rgba(37, 99, 235, 0.06) 0%, rgba(14, 165, 233, 0.08) 50%, rgba(37, 99, 235, 0.06) 100%);
+      border-bottom: 1px solid rgba(37, 99, 235, 0.12);
+      padding: 0.7rem 5%;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: #1e3a8a;
+      z-index: 1002;
+      position: relative;
+      box-shadow: inset 0 -1px 0 0 rgba(255, 255, 255, 0.6);
+    }
+
+    .free-access-banner .badge {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: #fff;
+      padding: 0.3rem 0.8rem;
+      border-radius: 50px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+      animation: pulse-glow 2s infinite alternate;
+    }
+
+    @keyframes pulse-glow {
+      0% { transform: scale(1); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25); }
+      100% { transform: scale(1.03); box-shadow: 0 4px 15px rgba(37, 99, 235, 0.45); }
+    }
+
+    .free-access-banner .banner-text {
+      font-family: 'Outfit', sans-serif;
+      letter-spacing: 0.2px;
+    }
+
     /* Color Variables */
     :root {
       --primary: #0a66c2;
@@ -427,6 +472,10 @@
 </head>
 
 <body>
+  <div class="free-access-banner">
+    <span class="badge"><i class="fas fa-sparkles"></i> 100% Free Access</span>
+    <span class="banner-text">All Class 9 & 10 Notes, Solved Questions, and Study Blogs are fully open — No Sign-In Required!</span>
+  </div>
 
   <header>
     <div class="header-container"
