@@ -62,6 +62,11 @@
         "source": "/terms",
         "destination": "/htmls/terms_conditions.html",
         "type": 308
+      },
+      {
+        "source": "/htmls/classs9-10mathematics.html",
+        "destination": "/Notes/notes-math-class10.html",
+        "type": 308
       }
     ],
     "rewrites": [

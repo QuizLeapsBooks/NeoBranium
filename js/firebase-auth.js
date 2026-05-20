@@ -113,16 +113,14 @@ document.getElementById("signup-form")?.addEventListener("submit", async (e) => 
   const fname = document.getElementById("signup-fname").value.trim();
   const lname = document.getElementById("signup-lname").value.trim();
   const email = document.getElementById("signup-email").value.trim();
-  const phone = document.getElementById("signup-phone").value.trim();
   const password = document.getElementById("signup-password").value;
   const confirmPassword = document.getElementById("signup-confirm-password").value;
   const termsCheckbox = document.getElementById("terms-checkbox").checked;
 
-  if (!fname || !lname || !email || !phone || !password || !confirmPassword) {
+  if (!fname || !lname || !email || !password || !confirmPassword) {
     return showToast("All fields are required");
   }
   if (!isValidEmail(email)) return showToast("Invalid email format");
-  if (!isValidPhone(phone)) return showToast("Invalid phone format (+91 XXXXX XXXXX)");
   if (password.length < 8) return showToast("Password must be at least 8 characters");
   if (password !== confirmPassword) return showToast("Passwords do not match");
   if (!termsCheckbox) return showToast("Please agree to Terms & Conditions");
@@ -139,7 +137,7 @@ document.getElementById("signup-form")?.addEventListener("submit", async (e) => 
       lname, 
       username: fname + " " + lname,
       email, 
-      phone,
+      phone: "",
       createdAt: Date.now()
     });
     

@@ -56,23 +56,17 @@ window.handleSignUp = async function (event) {
   const fname = document.getElementById("signup-fname").value.trim();
   const lname = document.getElementById("signup-lname").value.trim();
   const email = document.getElementById("signup-email").value.trim();
-  const phone = document.getElementById("signup-phone").value.trim();
   const password = document.getElementById("signup-password").value;
   const confirmPassword = document.getElementById("signup-confirm-password").value;
   const termsCheckbox = document.getElementById("terms-checkbox").checked;
 
-  if (!fname || !lname || !email || !phone || !password || !confirmPassword) {
+  if (!fname || !lname || !email || !password || !confirmPassword) {
     showMessage("All fields are required", "signUpMessage");
     return;
   }
 
   if (!isValidEmail(email)) {
     showMessage("Invalid email format", "signUpMessage");
-    return;
-  }
-
-  if (!isValidPhone(phone)) {
-    showMessage("Invalid phone number format (e.g., +919876543210)", "signUpMessage");
     return;
   }
 
@@ -94,7 +88,7 @@ window.handleSignUp = async function (event) {
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-    await setDoc(doc(db, "users", user.uid), { fname, lname, email, phone });
+    await setDoc(doc(db, "users", user.uid), { fname, lname, email, phone: "" });
     await sendEmailVerification(user);
     showMessage("Account created! Please verify your email to continue.", "signUpMessage", false);
     setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);

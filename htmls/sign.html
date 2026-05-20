@@ -44,31 +44,25 @@
       <div class="input-group">
         <div class="input-box">
           <i class="fa-regular fa-user input-icon"></i>
-          <input type="text" id="signup-fname" required aria-label="First Name" placeholder=" ">
+          <input type="text" id="signup-fname" required aria-label="First Name" placeholder=" " maxlength="50" pattern="[A-Za-z\s]+" title="Only letters and spaces allowed">
           <label>First Name</label>
         </div>
         <div class="input-box">
           <i class="fa-regular fa-user input-icon"></i>
-          <input type="text" id="signup-lname" required aria-label="Last Name" placeholder=" ">
+          <input type="text" id="signup-lname" required aria-label="Last Name" placeholder=" " maxlength="50" pattern="[A-Za-z\s]+" title="Only letters and spaces allowed">
           <label>Last Name</label>
         </div>
       </div>
       
       <div class="input-box">
         <i class="fa-regular fa-envelope input-icon"></i>
-        <input type="email" id="signup-email" required aria-label="Email" placeholder=" ">
+        <input type="email" id="signup-email" required aria-label="Email" placeholder=" " maxlength="100">
         <label>Email Address</label>
       </div>
 
       <div class="input-box">
-        <i class="fa-solid fa-phone input-icon"></i>
-        <input type="tel" id="signup-phone" aria-label="Phone Number" pattern="\+[0-9]{10,15}" placeholder=" ">
-        <label>Phone Number (+91 XXXXX XXXXX)</label>
-      </div>
-
-      <div class="input-box">
         <i class="fa-solid fa-lock input-icon"></i>
-        <input type="password" id="signup-password" required aria-label="Password" placeholder=" ">
+        <input type="password" id="signup-password" required aria-label="Password" placeholder=" " minlength="8" maxlength="128">
         <label>Password</label>
         <span class="eye toggle-password" data-target="signup-password">
           <i class="fa-regular fa-eye"></i>
@@ -77,7 +71,7 @@
 
       <div class="input-box">
         <i class="fa-solid fa-lock input-icon"></i>
-        <input type="password" id="signup-confirm-password" required aria-label="Confirm Password" placeholder=" ">
+        <input type="password" id="signup-confirm-password" required aria-label="Confirm Password" placeholder=" " minlength="8" maxlength="128">
         <label>Confirm Password</label>
         <span class="eye toggle-password" data-target="signup-confirm-password">
           <i class="fa-regular fa-eye"></i>
