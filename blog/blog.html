@@ -1443,10 +1443,10 @@
   <div class="footer-links">
     <h4>Company</h4>
     <ul>
-      <li><a href="/about">About Us</a></li>
-      <li><a href="/contact">Contact Us</a></li>
-      <li><a href="/privacy">Privacy Policy</a></li>
-      <li><a href="/terms">Terms & Conditions</a></li>
+      <li><a href="/about.html">About Us</a></li>
+      <li><a href="/htmls/contactus.html">Contact Us</a></li>
+      <li><a href="/htmls/privacy.html">Privacy Policy</a></li>
+      <li><a href="/htmls/terms_conditions.html">Terms & Conditions</a></li>
     </ul>
   </div>
 
@@ -1513,7 +1513,7 @@
   </div>
 </div>
 <div class="footer-bottom">
-  <p>&copy; 2026 NeoBranium. All rights reserved.</p>
+  <p>&copy; <span id="copyright-year">2026</span> NeoBranium. All rights reserved.</p>
 </div>
 </footer>
 
@@ -1560,6 +1560,7 @@
     }, 1000);
   });
 </script>
+  <script>document.getElementById('copyright-year').textContent = new Date().getFullYear();</script>
 </body>
 
 </html>

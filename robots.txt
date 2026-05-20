@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /htmls/dashboard.html
+Disallow: /htmls/setting.html
+Disallow: /htmls/profile.html
+Disallow: /htmls/verify-email.html
+
+Sitemap: https://neobranium.web.app/sitemap.xml

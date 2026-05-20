@@ -242,21 +242,19 @@
               <div class="quiz-category">
                 <span class="category-title">Science</span>
                 <ul>
-                  <li><a href="htmls/quiz_htmls/class9_biology-chapter-1.html" target="_blank">🧬 Cell Structure</a>
-                  </li>
+                  <li><a href="htmls/quiz_htmls/class9_biology-chapter-1.html" target="_blank">🧬 Cell Structure</a></li>
                   <li><a href="htmls/quiz_htmls/class9_biology-chapter-2.html" target="_blank">🌱 Tissues</a></li>
-                  <li><a href="htmls/quiz_htmls/class9-physics-chapter-1.html" target="_blank">⚛️ Matter & Atoms</a>
-                  </li>
-                  <li><a href="htmls/quiz_htmls/class9-science-quiz.html" target="_blank">🧪 Chemical Reactions</a></li>
+                  <li><a href="htmls/quiz_htmls/class9_chemistry-chapter-3.html" target="_blank">⚛️ Atoms & Molecules</a></li>
+                  <li><a href="htmls/quiz_htmls/class9_chemistry-chapter-1.html" target="_blank">🧪 Matter in Surroundings</a></li>
                 </ul>
               </div>
               <div class="quiz-category">
                 <span class="category-title">Mathematics</span>
                 <ul>
-                  <li><a href="htmls/classs9-10mathematics.html" target="_blank">📐 Number Systems</a></li>
-                  <li><a href="htmls/classs9-10mathematics.html" target="_blank">➕ Polynomials</a></li>
-                  <li><a href="htmls/classs9-10mathematics.html" target="_blank">📊 Linear Equations</a></li>
-                  <li><a href="htmls/classs9-10mathematics.html" target="_blank">🔺 Geometry Basics</a></li>
+                  <li><a href="htmls/quiz_htmls/class9_mathematics-chapter-1.html" target="_blank">📐 Number Systems</a></li>
+                  <li><a href="htmls/quiz_htmls/class9_mathematics-chapter-2.html" target="_blank">➕ Polynomials</a></li>
+                  <li><a href="htmls/quiz_htmls/class9_mathematics-chapter-4.html" target="_blank">📊 Linear Equations</a></li>
+                  <li><a href="htmls/quiz_htmls/class9_mathematics-chapter-6.html" target="_blank">🔺 Lines & Angles</a></li>
                 </ul>
               </div>
             </div>
@@ -552,7 +550,7 @@
           </script>
         </div>
         <div class="footer-bottom">
-          <p>&copy; 2026 NeoBranium. All rights reserved.</p>
+          <p>&copy; <span id="copyright-year">2026</span> NeoBranium. All rights reserved.</p>
         </div>
     </footer>
 
@@ -612,6 +610,147 @@
     ]
   }
   </script>
+
+  <!-- Cookie Consent Banner for GDPR & Google AdSense Compliance -->
+  <style>
+    .cookie-banner {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      max-width: 420px;
+      background: rgba(26, 34, 51, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(33, 150, 243, 0.2);
+      border-radius: 16px;
+      padding: 24px;
+      color: #fff;
+      z-index: 10000;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      display: none;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      font-family: 'Inter', Arial, sans-serif;
+    }
+    .cookie-banner.show {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .cookie-banner h3 {
+      font-family: 'Outfit', Arial, sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #2196f3;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .cookie-banner p {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      margin-bottom: 20px;
+    }
+    .cookie-banner p a {
+      color: #6ec6ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .cookie-banner p a:hover {
+      text-decoration: underline;
+    }
+    .cookie-btns {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .cookie-btn {
+      padding: 10px 18px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .cookie-btn-accept {
+      background: #2196f3;
+      border: none;
+      color: white;
+    }
+    .cookie-btn-accept:hover {
+      background: #0b5ed7;
+      box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+    }
+    .cookie-btn-reject {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #cbd5e1;
+    }
+    .cookie-btn-reject:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.4);
+      color: white;
+    }
+    @media (max-width: 480px) {
+      .cookie-banner {
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
+        max-width: none;
+        padding: 20px;
+      }
+    }
+  </style>
+
+  <div id="cookieConsentBanner" class="cookie-banner">
+    <h3><i class="fas fa-cookie-bite"></i> Cookie Preferences</h3>
+    <p>We use cookies to personalize content, analyze traffic, and serve relevant ads via Google AdSense. By clicking "Accept All", you agree to our use of cookies. Read more in our <a href="/htmls/privacy.html">Privacy Policy</a>.</p>
+    <div class="cookie-btns">
+      <button class="cookie-btn cookie-btn-reject" id="btnRejectCookies">Reject Non-Essential</button>
+      <button class="cookie-btn cookie-btn-accept" id="btnAcceptCookies">Accept All</button>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const banner = document.getElementById('cookieConsentBanner');
+      const acceptBtn = document.getElementById('btnAcceptCookies');
+      const rejectBtn = document.getElementById('btnRejectCookies');
+
+      if (!banner || !acceptBtn || !rejectBtn) return;
+
+      const consent = localStorage.getItem('cookieConsent');
+
+      if (!consent) {
+        setTimeout(() => {
+          banner.style.display = 'block';
+          // Force layout reflow
+          banner.offsetHeight;
+          banner.classList.add('show');
+        }, 1500);
+      }
+
+      acceptBtn.addEventListener('click', () => {
+        localStorage.setItem('cookieConsent', 'accepted');
+        hideBanner();
+      });
+
+      rejectBtn.addEventListener('click', () => {
+        localStorage.setItem('cookieConsent', 'rejected');
+        hideBanner();
+      });
+
+      function hideBanner() {
+        banner.classList.remove('show');
+        setTimeout(() => {
+          banner.style.display = 'none';
+        }, 400);
+      }
+    })();
+  </script>
+  <script>document.getElementById('copyright-year').textContent = new Date().getFullYear();</script>
 </body>
 
 </html>
