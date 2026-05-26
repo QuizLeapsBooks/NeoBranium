@@ -503,7 +503,7 @@ app.post('/api/chat-stream', boardRateLimit, async (req, res) => {
 
         // Build prompt
         let systemContent = `You are a patient, adaptive, emotionally intelligent AI Tutor from NeoBranium. 
-You are currently helping a student who is looking at a digital study board. 
+You are currently helping a student who is looking at a digital study board.
 Board Context: The student has drawn/written: "${tutorState.detectedEquation || 'unknown'}"
 Recent Topic: "${tutorState.currentTopic || 'general'}"
 
@@ -734,7 +734,7 @@ function safeParseGeminiJSON(rawText) {
 // AI Board Analysis API
 app.post('/api/analyze-board', boardRateLimit, async (req, res) => {
     // 🛡️ Reuse session-based rate limiting
-    const DAILY_LIMIT = 15;
+    const DAILY_LIMIT = 5;
     const WINDOW_MS = 24 * 60 * 60 * 1000;
     const now = Date.now();
 
