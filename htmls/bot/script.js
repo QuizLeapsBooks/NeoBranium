@@ -224,7 +224,7 @@ class ChatAssistant {
             // Show error message
             const errorMessage = `
                 <div class="message-content error-message">
-                    <p>⚠️ <strong>Connection Error</strong></p>
+                    <p>⚠️ <strong>Connection Error ! </strong></p>
                     <p>I'm having trouble connecting to the server. Please:</p>
                     <ul>
                         <li>Check your internet connection</li>
