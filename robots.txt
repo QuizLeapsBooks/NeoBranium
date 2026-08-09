@@ -5,5 +5,8 @@ Disallow: /htmls/dashboard.html
 Disallow: /htmls/setting.html
 Disallow: /htmls/profile.html
 Disallow: /htmls/verify-email.html
+Disallow: /Notes/ihss301.pdf
+Disallow: /screenshot_images/
+Disallow: /dump.rdb
 
 Sitemap: https://neobranium.web.app/sitemap.xml
