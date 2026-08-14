@@ -139,18 +139,33 @@ function performSearch(query) {
   ).slice(0, 8); // Max 8 results
 }
 
-function highlightMatch(text, query) {
-  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-  return text.replace(regex, '<mark style="background:rgba(37,99,235,0.15);color:#2563eb;border-radius:3px;padding:0 2px;">$1</mark>');
-}
+// Removed highlightMatch function for security reasons, logic moved to renderResults
 
 function renderResults(box, results, query) {
   box.innerHTML = '';
   if (results.length === 0) {
-    box.innerHTML = `<div class="search-no-results">
-      <i class="fas fa-search" style="font-size:1.5rem;color:#cbd5e1;margin-bottom:0.5rem;display:block;"></i>
-      No results for "<strong>${query}</strong>"
-    </div>`;
+    box.innerHTML = '';
+    const noResults = document.createElement('div');
+    noResults.className = 'search-no-results';
+
+    const icon = document.createElement('i');
+    icon.className = 'fas fa-search';
+    icon.style.fontSize = '1.5rem';
+    icon.style.color = '#cbd5e1';
+    icon.style.marginBottom = '0.5rem';
+    icon.style.display = 'block';
+
+    const text = document.createElement('div');
+    const strong = document.createElement('strong');
+    strong.textContent = query;
+    text.textContent = 'No results for "';
+    text.appendChild(strong);
+    text.appendChild(document.createTextNode('"'));
+
+    noResults.appendChild(icon);
+    noResults.appendChild(text);
+    box.appendChild(noResults);
+
     box.classList.add('active');
     return;
   }
@@ -160,11 +175,37 @@ function renderResults(box, results, query) {
     const a = document.createElement('a');
     a.className = 'search-result-item';
     a.href = item.url;
-    a.innerHTML = `
-      <span class="search-result-category" style="color:${color};">${item.icon} ${item.category}</span>
-      <span class="search-result-title">${highlightMatch(item.title, query)}</span>
-      <span class="search-result-excerpt">${item.excerpt}</span>
-    `;
+    
+    const catSpan = document.createElement('span');
+    catSpan.className = 'search-result-category';
+    catSpan.style.color = color;
+    catSpan.textContent = `${item.icon} ${item.category}`;
+    
+    const titleSpan = document.createElement('span');
+    titleSpan.className = 'search-result-title';
+    
+    // Safer highlight
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')})`, 'gi');
+    const parts = item.title.split(regex);
+    parts.forEach(part => {
+      if (part.toLowerCase() === query.toLowerCase()) {
+        const mark = document.createElement('mark');
+        mark.style.cssText = 'background:rgba(37,99,235,0.15);color:#2563eb;border-radius:3px;padding:0 2px;';
+        mark.textContent = part;
+        titleSpan.appendChild(mark);
+      } else {
+        titleSpan.appendChild(document.createTextNode(part));
+      }
+    });
+
+    const excerptSpan = document.createElement('span');
+    excerptSpan.className = 'search-result-excerpt';
+    excerptSpan.textContent = item.excerpt;
+
+    a.appendChild(catSpan);
+    a.appendChild(titleSpan);
+    a.appendChild(excerptSpan);
+    
     a.addEventListener('click', () => {
       setTimeout(() => hideResults(box), 100);
     });

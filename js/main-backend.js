@@ -11,20 +11,7 @@ import {
   doc,
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyA1iWJdGtmrox9RAHgWBxaK4p8KGf7ji_Y",
-  authDomain: "neobranium.firebaseapp.com",
-  projectId: "neobranium",
-  storageBucket: "neobranium.appspot.com",
-  messagingSenderId: "59188872045",
-  appId: "1:59188872045:web:450a70b28e4be5db335064",
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+import { auth, db } from "./auth.js";
 
 // Helper function to show messages
 function showMessage(message, divId, isError = true) {

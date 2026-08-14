@@ -69,7 +69,7 @@ export async function verifyBoardAccess() {
             remainingMinutes: remainingMinutes
         };
     } catch(e) {
-        return { allowed: true }; // Fail open for UX
+        return { allowed: false, reason: 'network_error', status: 503 }; // Fail closed
     }
 }
 

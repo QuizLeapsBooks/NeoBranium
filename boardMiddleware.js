@@ -55,11 +55,10 @@ export const boardRateLimit = async (req, res, next) => {
   } catch (error) {
     console.error('Error in boardRateLimit middleware:', error);
     
-    // Fail open — never block user due to our error
-    // Attach fallback data to ensure downstream routes don't crash
-    req.boardUserId = userId;
-    req.boardUsage = { allowed: true, minutesUsed: 0, remainingMinutes: 20, resetAt: null };
-    
-    next();
+    // Fail closed — protect quota on error
+    return res.status(503).json({
+      status: 'error',
+      message: 'Server error during usage check. Please try again.',
+    });
   }
 };

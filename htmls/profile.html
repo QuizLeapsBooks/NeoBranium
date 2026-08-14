@@ -268,7 +268,23 @@
       userRank.textContent = userData.rank ?? '-';
 
       if (userData.photoURL) {
-        profilePicContainer.innerHTML = `<img class="w-28 h-28 rounded-full mx-auto shadow-lg border-4 border-white" src="${userData.photoURL}" alt="Profile Picture" />`;
+        try {
+          const resolved = new URL(userData.photoURL, window.location.origin);
+          if (resolved.protocol === 'http:' || resolved.protocol === 'https:') {
+            profilePicContainer.innerHTML = '';
+            const img = document.createElement('img');
+            img.className = 'w-28 h-28 rounded-full mx-auto shadow-lg border-4 border-white';
+            img.alt = 'Profile Picture';
+            img.src = resolved.href;
+            profilePicContainer.appendChild(img);
+          } else {
+            const firstLetter = (userData.username || user.displayName || 'User').charAt(0).toUpperCase();
+            profilePicContainer.innerHTML = `<div class="avatar">${firstLetter}</div>`;
+          }
+        } catch (e) {
+          const firstLetter = (userData.username || user.displayName || 'User').charAt(0).toUpperCase();
+          profilePicContainer.innerHTML = `<div class="avatar">${firstLetter}</div>`;
+        }
       } else {
         const firstLetter = (userData.username || user.displayName || 'User').charAt(0).toUpperCase();
         profilePicContainer.innerHTML = `<div class="avatar">${firstLetter}</div>`;

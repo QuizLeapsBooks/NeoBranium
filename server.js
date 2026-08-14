@@ -462,7 +462,10 @@ app.post('/api/chat-stream', boardRateLimit, async (req, res) => {
         const { message, history = [], task = 'tutor_chat', tutorState = {} } = req.body;
 
         const sanResult = sanitizeAIInput(message);
-        if (!sanResult.safe) {
+        const sanEq = sanitizeAIInput(tutorState.detectedEquation || '');
+        const sanTopic = sanitizeAIInput(tutorState.currentTopic || '');
+        
+        if (!sanResult.safe || !sanEq.safe || !sanTopic.safe) {
             res.write(`data: ${JSON.stringify({ content: "Main sirf NeoBranium ke syllabus ke baare mein help kar sakta hoon. Koi aur question hai?" })}\n\n`);
             res.write('data: [DONE]\n\n');
             return res.end();
@@ -504,8 +507,8 @@ app.post('/api/chat-stream', boardRateLimit, async (req, res) => {
         // Build prompt
         let systemContent = `You are a patient, adaptive, emotionally intelligent AI Tutor from NeoBranium. 
 You are currently helping a student who is looking at a digital study board.
-Board Context: The student has drawn/written: "${tutorState.detectedEquation || 'unknown'}"
-Recent Topic: "${tutorState.currentTopic || 'general'}"
+Board Context: The student has drawn/written: "${tutorState.detectedEquation ? tutorState.detectedEquation.slice(0, 500) : 'unknown'}"
+Recent Topic: "${tutorState.currentTopic ? tutorState.currentTopic.slice(0, 100) : 'general'}"
 
 RULES:
 1. Act as a human-like, conversational tutor.
@@ -1157,14 +1160,16 @@ app.post('/api/tts', boardRateLimit, async (req, res) => {
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'healthy',
-        timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV,
-        redis: redisClient.isReady ? 'connected' : 'disconnected'
+        timestamp: new Date().toISOString()
     });
 });
 
 // Statistics endpoint
 app.get('/api/stats', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!process.env.ADMIN_KEY || authHeader !== `Bearer ${process.env.ADMIN_KEY}`) {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
     try {
         let activeUsers = 0;
         let totalMessages = 0;
@@ -1233,7 +1238,34 @@ app.get('/api/board-queue-status', async (req, res) => {
     }
 });
 
-// Serve static files
+// Serve static files safely - block access to root backend files
+app.use((req, res, next) => {
+    const forbiddenExtensions = ['.js', '.json', '.md', '.env', '.rdb', '.py'];
+    const pathLower = req.path.toLowerCase();
+    
+    // Explicitly allow client-side folders
+    if (pathLower.startsWith('/css/') || 
+        pathLower.startsWith('/js/') || 
+        pathLower.startsWith('/htmls/') || 
+        pathLower.startsWith('/ai-board/') ||
+        pathLower.startsWith('/blog/') ||
+        pathLower.startsWith('/screenshot_images/')) {
+        return next();
+    }
+    
+    // Allow specific root HTML files
+    if (pathLower === '/' || pathLower === '/index.html' || pathLower === '/about.html') {
+        return next();
+    }
+    
+    // Block backend file extensions
+    const ext = path.extname(pathLower);
+    if (forbiddenExtensions.includes(ext) || pathLower.includes('.env')) {
+        return res.status(403).json({ error: 'Forbidden' });
+    }
+    
+    next();
+});
 app.use(express.static(path.join(__dirname)));
 
 if (process.env.NODE_ENV === 'production') {
