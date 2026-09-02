@@ -17,7 +17,6 @@
       "firebaseAdmin.js",
       "queueManager.js",
       "boardMiddleware.js",
-      "index.js",
       "search.js",
 
       "patch.py",
