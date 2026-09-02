@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
+    "firebase-tools": "^15.28.2",
     "live-server": "^1.2.2",
     "nodemon": "^3.0.1"
   }
