@@ -59,7 +59,14 @@ export const uiManager = {
         DOM.aiResponseContent.innerHTML = '';
         const div = document.createElement('div');
         div.className = 'chat-message assistant';
-        div.innerHTML = utils.markdownToHtml(result.explanation || "");
+        if (Array.isArray(result.blocks)) {
+            result.blocks.forEach(block => {
+                const content = block.content || (Array.isArray(block.items) ? block.items.join('\n') : '');
+                if (content) div.innerHTML += utils.markdownToHtml(content);
+            });
+        } else {
+            div.innerHTML = utils.markdownToHtml(result.explanation || "");
+        }
         DOM.aiResponseContent.appendChild(div);
         utils.renderMath(div);
         this.scrollToBottom();

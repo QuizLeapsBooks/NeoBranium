@@ -41,6 +41,7 @@ export const STATE = {
     mode: "hinglish",
     conversationHistory: [],
     isProcessingVoice: false,
+    isAnalyzing: false,
     isListening: false,
     isDrawing: false,
     lastDrawTime: Date.now(),

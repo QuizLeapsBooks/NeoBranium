@@ -72,11 +72,12 @@ function extractWritingText(result) {
 
 export const aiEngine = {
     async analyzeBoard(isAutoScan = false) {
-        if (STATE.isProcessingVoice) return;
+        if (STATE.isProcessingVoice || STATE.isAnalyzing) return;
 
         const base64 = boardEngine.getDrawingDataURL();
         if (!base64) return;
 
+        STATE.isAnalyzing = true;
         if (!isAutoScan) uiManager.setLoading(true);
 
         try {
@@ -101,7 +102,11 @@ export const aiEngine = {
                 return;
             }
 
-            if (!resp.ok) throw new Error(data.error);
+            if (!resp.ok) {
+                const error = new Error(data.error || data.message || `Request failed (${resp.status})`);
+                error.status = resp.status;
+                throw error;
+            }
 
             const result = data.result;
 
@@ -125,8 +130,16 @@ export const aiEngine = {
             if (result.commands) aiWritingEngine.processCommands(result.commands);
 
         } catch (e) {
-            if (!isAutoScan) uiManager.showError("AI Analysis failed. Try again.");
+            if (!isAutoScan) {
+                const message = e.status === 429
+                    ? 'AI usage limit reached. Please try again later.'
+                    : e.status >= 500
+                        ? 'The AI service is temporarily unavailable. Please try again.'
+                        : e.message || 'AI Analysis failed. Try again.';
+                uiManager.showError(message);
+            }
         } finally {
+            STATE.isAnalyzing = false;
             uiManager.setLoading(false);
         }
     },
