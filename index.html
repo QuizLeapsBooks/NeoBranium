@@ -51,8 +51,14 @@
   <meta name="twitter:site" content="@neobranium">
   <meta name="twitter:creator" content="@neobranium">
 
-  <!-- Canonical -->
+  <!-- Canonical & hreflang -->
   <link rel="canonical" href="https://neobranium.web.app/">
+  <link rel="alternate" hreflang="en-IN" href="https://neobranium.web.app/">
+  <link rel="alternate" hreflang="en" href="https://neobranium.web.app/">
+  <!-- Geo targeting India -->
+  <meta name="language" content="English">
+  <meta name="geo.region" content="IN">
+  <meta name="geo.placename" content="India">
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-002PB7F4H4"></script>
@@ -81,7 +87,7 @@
 
     <!-- Preloader -->
     <div id="preloader">
-      <img src="/online-graduation_16847316.png" alt=""
+      <img src="/online-graduation_16847316.png" alt="NeoBranium loading"
         class="preloader-logo" />
       <div class="loader"></div>
     </div>
@@ -89,7 +95,7 @@
     <header>
       <div class="header-container">
         <div class="logo">
-          <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" loading="lazy">
+          <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" width="40" height="40" fetchpriority="high">
           <span>NeoBranium</span>
         </div>
 
@@ -157,7 +163,7 @@
           </div>
           <div class="hero-image animate__animated animate__fadeInRight">
             <div class="illustration-placeholder">
-              <img src="/online-graduation_16847316.png" alt="Students learning with NeoBranium AI platform" loading="lazy">
+              <img src="/online-graduation_16847316.png" alt="Students learning with NeoBranium AI platform" width="500" height="500" loading="lazy">
               <!-- Decorative elements can be added via CSS -->
             </div>
           </div>
@@ -355,8 +361,8 @@
           <a href="blog/blog.html" class="view-all">Read all Blog Articles <i class="fas fa-arrow-right"></i></a>
         </div>
         <div class="blog-grid">
-          <article class="blog-card" onclick="window.location.href='blog/blog.html#cbq-2026'"
-            aria-label="Competency Based Questions Blog Article">
+          <a href="blog/blog.html#cbq-2026" style="text-decoration:none;color:inherit;display:block;">
+          <article class="blog-card" aria-label="Competency Based Questions Blog Article">
             <img src="https://images.unsplash.com/photo-1454165833767-027ffea9e778?auto=format&fit=crop&w=800&q=80"
               alt="CBSE Competency Based Questions" loading="lazy">
             <div class="blog-info">
@@ -367,9 +373,10 @@
               <span class="blog-date">May 07, 2026 • 7 min read</span>
             </div>
           </article>
+        </a>
 
-          <article class="blog-card" onclick="window.location.href='blog/blog.html#double-board'"
-            aria-label="Double Board Exams Blog Article">
+          <a href="blog/blog.html#double-board" style="text-decoration:none;color:inherit;display:block;">
+          <article class="blog-card" aria-label="Double Board Exams Blog Article">
             <img src="https://images.unsplash.com/photo-1506784919141-93504332204b?auto=format&fit=crop&w=800&q=80"
               alt="Double Board Exams CBSE" loading="lazy">
             <div class="blog-info">
@@ -380,9 +387,10 @@
               <span class="blog-date">May 06, 2026 • 6 min read</span>
             </div>
           </article>
+        </a>
 
-          <article class="blog-card" onclick="window.location.href='blog/blog.html#case-study'"
-            aria-label="Case Study Questions Blog Article">
+          <a href="blog/blog.html#case-study" style="text-decoration:none;color:inherit;display:block;">
+          <article class="blog-card" aria-label="Case Study Questions Blog Article">
             <img src="https://images.unsplash.com/photo-1553484771-047a44eee27f?auto=format&fit=crop&w=800&q=80"
               alt="Case Study Questions Science Maths" loading="lazy">
             <div class="blog-info">
@@ -392,6 +400,7 @@
               <span class="blog-date">May 05, 2026 • 8 min read</span>
             </div>
           </article>
+        </a>
         </div>
       </section>
 
@@ -456,10 +465,10 @@
           </div>
           <p>A next-gen learning platform for students of all classes.</p>
           <div class="social-links">
-            <a href="#"><i class="fab fa-facebook"></i></a>
-            <a href="#"><i class="fab fa-instagram"></i></a>
-            <a href="#"><i class="fab fa-youtube"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="https://facebook.com/NeoBranium" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+            <a href="https://instagram.com/NeoBranium" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="https://youtube.com/@NeoBranium" rel="noopener noreferrer" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+            <a href="https://twitter.com/NeoBranium" rel="noopener noreferrer" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
           </div>
         </div>
 
@@ -559,27 +568,67 @@
     <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
     <script src="index.js"></script>
     <script src="search.js"></script>
-    <script type="application/ld+json">
+        <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "EducationalOrganization",
-    "name": "NeoBranium",
-    "url": "https://neobranium.web.app",
-    "logo": "https://neobranium.web.app/online-graduation_16847316.png",
-    "description": "Free NCERT Class 9 & 10 notes, science & maths solutions, top questions, and instant AI doubt solving.",
-    "sameAs": [
-      "https://facebook.com/NeoBranium",
-      "https://instagram.com/NeoBranium",
-      "https://youtube.com/@NeoBranium",
-      "https://twitter.com/NeoBranium"
-    ],
-    "address": {
-      "@type": "PostalAddress",
-      "addressCountry": "IN"
-    }
+    "@graph": [
+      {
+        "@type": "EducationalOrganization",
+        "@id": "https://neobranium.web.app/#organization",
+        "name": "NeoBranium",
+        "url": "https://neobranium.web.app",
+        "logo": "https://neobranium.web.app/online-graduation_16847316.png",
+        "description": "Free NCERT Class 9 & 10 notes, science & maths solutions, top questions, and instant AI doubt solving.",
+        "sameAs": [
+          "https://facebook.com/NeoBranium",
+          "https://instagram.com/NeoBranium",
+          "https://youtube.com/@NeoBranium",
+          "https://twitter.com/NeoBranium"
+        ],
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "IN"
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://neobranium.web.app/#website",
+        "url": "https://neobranium.web.app",
+        "name": "NeoBranium",
+        "publisher": {
+          "@id": "https://neobranium.web.app/#organization"
+        },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://neobranium.web.app/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Are NeoBranium Class 9 and 10 notes free?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, all our Class 9 and Class 10 NCERT Science and Mathematics notes are 100% free and open for all students."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does NeoBranium offer AI doubt solving?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, NeoBranium provides an AI doubt solver. Simply upload your question and get step-by-step explanations in seconds."
+            }
+          }
+        ]
+      }
+    ]
   }
   </script>
-    <script type="application/ld+json">
+  <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
