@@ -1,12 +1,3 @@
-import { checkAccess } from "/js/auth.js";
-(async function() {
-  const allowed = await checkAccess(true);
-  if (!allowed) {
-    window.location.href = "/index.html";
-  }
-})();
-
-
 let selectedClass = "";
 
 function openSubjectModal(cls) {
