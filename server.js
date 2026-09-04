@@ -158,6 +158,8 @@ if (!groqApiKey) {
 
 // GROQ API INTEGRATION - Define model constant
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+const geminiApiKey = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
 
 // In-memory fallback if Redis is down
@@ -388,7 +390,49 @@ app.post('/api/chat', async (req, res) => {
 
         console.log("FINAL GROQ REQUEST:", JSON.stringify(requestBody, null, 2));
 
-        // Check if API key is available
+        // Question papers use Gemini; regular chat continues to use Groq.
+        if (task === 'paper_generation') {
+            if (!geminiApiKey) {
+                console.error('Missing GEMINI_API_KEY in environment');
+                return res.status(500).json({ reply: 'Gemini AI service unavailable. Configure GEMINI_API_KEY on the server.' });
+            }
+
+            let geminiResponse;
+            try {
+                geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        systemInstruction: { parts: [{ text: systemContent }] },
+                        contents: [{ role: 'user', parts: [{ text: userContent }] }],
+                        generationConfig: {
+                            temperature: 0.7,
+                            maxOutputTokens: 8192
+                        }
+                    })
+                });
+            } catch (fetchError) {
+                console.error('Gemini fetch error:', fetchError);
+                return res.status(500).json({ reply: 'Gemini AI request failed' });
+            }
+
+            if (!geminiResponse.ok) {
+                const errorText = await geminiResponse.text();
+                console.error('Gemini API error:', geminiResponse.status, errorText);
+                return res.status(500).json({ reply: 'Gemini AI request failed' });
+            }
+
+            const geminiData = await geminiResponse.json();
+            const text = geminiData.candidates?.[0]?.content?.parts?.map(part => part.text || '').join('').trim();
+            if (!text) {
+                console.error('Gemini API returned no text:', geminiData);
+                return res.status(500).json({ reply: 'Gemini AI returned an empty response' });
+            }
+
+            return res.json({ reply: text });
+        }
+
+        // Check if API key is available for regular chat
         if (!groqApiKey) {
             console.error('❌ Some went wrong');
             return res.status(500).json({ reply: 'AI service unavailable' });
