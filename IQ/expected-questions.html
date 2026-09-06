@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expected Questions – Class 9 & 10 CBSE Maths & Science | NeoBranium</title>
+  <link rel="icon" href="/online-graduation_16847316.png" type="image/png">
+  <link rel="apple-touch-icon" href="/online-graduation_16847316.png">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+  <link rel="stylesheet" href="/index_css.css">
+  <meta name="description" content="Most expected CBSE exam questions for Class 9 and Class 10 Maths and Science – chapter-wise. Boost your board exam preparation with NeoBranium.">
+  <meta name="robots" content="index, follow">
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-002PB7F4H4"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-002PB7F4H4');
+  </script>
+
+  <style>
+    /* ── Page-specific styles ── */
+    .eq-hero {
+      background: linear-gradient(135deg, #1a2233 0%, #1e3a5f 60%, #0ea5e9 100%);
+      padding: 3.5rem 5% 2.5rem;
+      text-align: center;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    .eq-hero::before {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: rgba(14,165,233,0.15);
+      top: -180px; right: -120px;
+      filter: blur(60px);
+      pointer-events: none;
+    }
+    .eq-hero::after {
+      content: '';
+      position: absolute;
+      width: 350px; height: 350px;
+      border-radius: 50%;
+      background: rgba(245,158,11,0.12);
+      bottom: -100px; left: -80px;
+      filter: blur(60px);
+      pointer-events: none;
+    }
+    .eq-hero h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 800;
+      margin-bottom: 0.7rem;
+      line-height: 1.2;
+      position: relative;
+      z-index: 1;
+    }
+    .eq-hero h1 span {
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .eq-hero p {
+      font-size: clamp(0.95rem, 2vw, 1.1rem);
+      color: rgba(255,255,255,0.82);
+      max-width: 620px;
+      margin: 0 auto 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+    .eq-hero .badge-row {
+      display: flex;
+      justify-content: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+    .eq-badge {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      padding: 0.35rem 1rem;
+      border-radius: 30px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .eq-badge i { color: #f59e0b; }
+
+    /* Stats Bar */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      padding: 1.1rem 5%;
+      background: var(--bg-white);
+      border-top: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .stat-item { text-align: center; }
+    .stat-item .num {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1;
+    }
+    .stat-item .lbl {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    /* Class Tab Bar */
+    .class-tab-bar {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1.6rem 5% 0;
+      flex-wrap: wrap;
+    }
+    .class-tab {
+      padding: 0.65rem 2rem;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      border: 2px solid var(--primary);
+      background: transparent;
+      color: var(--primary);
+      font-family: 'Outfit', sans-serif;
+      transition: all 0.25s ease;
+    }
+    .class-tab.active, .class-tab:hover {
+      background: var(--primary);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(37,99,235,0.25);
+    }
+
+    /* Subject Toggle */
+    .subject-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 1rem 5% 0.5rem;
+      flex-wrap: wrap;
+    }
+    .subj-btn {
+      padding: 0.45rem 1.3rem;
+      border-radius: 30px;
+      border: 1.5px solid var(--border-color);
+      background: var(--bg-white);
+      color: var(--text-dim);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .subj-btn:hover { transform: translateY(-1px); }
+
+    /* Chapter Grid */
+    .eq-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.5rem 5% 3rem;
+    }
+    .class-panel { display: none; }
+    .class-panel.active { display: block; }
+    .subject-section { margin-bottom: 2.5rem; }
+    .subject-section.hidden { display: none; }
+
+    .subject-heading {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+    .subj-icon {
+      width: 38px; height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .subj-icon.maths { background: linear-gradient(135deg, #7c3aed, #a78bfa); }
+    .subj-icon.science { background: linear-gradient(135deg, #0ea5e9, #38bdf8); }
+    .subject-heading h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .chapter-count {
+      margin-left: auto;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      font-weight: 600;
+      background: var(--bg-light);
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+    }
+
+    .chapter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 1rem;
+    }
+    .chapter-card {
+      background: var(--bg-white);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.1rem 1.2rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+    .chapter-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      border-radius: 4px 0 0 4px;
+      transform: scaleY(0);
+      transition: transform 0.25s ease;
+      transform-origin: bottom;
+    }
+    .chapter-card.maths-card::before { background: #7c3aed; }
+    .chapter-card.science-card::before { background: #0ea5e9; }
+    .chapter-card:hover::before { transform: scaleY(1); }
+    .chapter-card:hover {
+      box-shadow: var(--card-shadow);
+      transform: translateY(-3px);
+    }
+    .chapter-card.maths-card:hover { border-color: #7c3aed; }
+    .chapter-card.science-card:hover { border-color: #0ea5e9; }
+
+    .ch-num {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+      flex-shrink: 0;
+      color: #fff;
+    }
+    .ch-num.maths { background: linear-gradient(135deg,#7c3aed,#a78bfa); }
+    .ch-num.science { background: linear-gradient(135deg,#0ea5e9,#38bdf8); }
+    .ch-info { flex: 1; min-width: 0; }
+    .ch-info h4 {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.2rem;
+      line-height: 1.3;
+    }
+    .ch-info .ch-tag {
+      font-size: 0.73rem;
+      font-weight: 600;
+      color: var(--text-dim);
+    }
+    .ch-arrow {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      transition: transform 0.2s ease, color 0.2s ease;
+    }
+    .chapter-card:hover .ch-arrow { transform: translateX(4px); }
+    .chapter-card.maths-card:hover .ch-arrow { color: #7c3aed; }
+    .chapter-card.science-card:hover .ch-arrow { color: #0ea5e9; }
+
+    /* Toast */
+    #cs-toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1a2233;
+      color: #fff;
+      padding: 1rem 1.8rem;
+      border-radius: 14px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      z-index: 9000;
+      transition: transform 0.35s cubic-bezier(.22,1,.36,1), opacity 0.35s ease;
+      opacity: 0;
+      pointer-events: none;
+      max-width: 90vw;
+      border-left: 4px solid #f59e0b;
+    }
+    #cs-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @media (max-width: 600px) {
+      .chapter-grid { grid-template-columns: 1fr; }
+      .stats-bar { gap: 1.2rem; }
+      .subject-heading { flex-wrap: wrap; }
+      .chapter-count { margin-left: 0; }
+    }
+  </style>
+</head>
+
+<body>
+  <a href="#main-content" style="position:absolute;left:-9999px;top:0;z-index:9999;padding:8px 16px;background:#1a2233;color:white;border-radius:4px;font-size:14px;" onfocus="this.style.left='0'" onblur="this.style.left='-9999px'">Skip to main content</a>
+
+  <div class="free-access-banner">
+    <span class="badge"><i class="fas fa-sparkles"></i> 100% Free Access</span>
+    <span class="banner-text">All Class 9 &amp; 10 Notes, Solved Questions, and Study Blogs are fully open — No Sign-In Required!</span>
+  </div>
+
+  <nav aria-label="Main navigation">
+    <div class="bg-blob blob-1" aria-hidden="true"></div>
+    <div class="bg-blob blob-2" aria-hidden="true"></div>
+    <div class="bg-blob blob-3" aria-hidden="true"></div>
+
+    <div id="preloader">
+      <img src="/online-graduation_16847316.png" alt="NeoBranium loading" class="preloader-logo" />
+      <div class="loader"></div>
+    </div>
+
+    <header>
+      <div class="header-container">
+        <a href="/index.html" class="logo" style="text-decoration:none;">
+          <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" width="40" height="40" fetchpriority="high">
+          <span>NeoBranium</span>
+        </a>
+
+        <div class="header-search">
+          <i class="fas fa-search"></i>
+          <input type="text" id="globalSearchInput" placeholder="Search chapters, topics..." autocomplete="off">
+          <div id="globalSearchResults" class="search-results-dropdown"></div>
+        </div>
+
+        <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">&#9776;</button>
+
+        <nav class="nav-menu" aria-label="Primary">
+          <a href="/index.html">Home</a>
+          <div class="nav-item">
+            <a href="/Notes/notes-science-class10.html">Notes <i class="fas fa-chevron-down" style="font-size:0.7rem;"></i></a>
+            <div class="dropdown-menu">
+              <div class="dropdown-submenu">
+                <h5>Class 9</h5>
+                <ul>
+                  <li><a href="/Notes/notes-science-class9.html">Science</a></li>
+                  <li><a href="/Notes/notes-math-class9.html">Mathematics</a></li>
+                </ul>
+              </div>
+              <div class="dropdown-submenu" style="border-top:1px solid var(--border-color);margin-top:0.5rem;padding-top:1rem;">
+                <h5>Class 10</h5>
+                <ul>
+                  <li><a href="/Notes/notes-science-class10.html">Science</a></li>
+                  <li><a href="/Notes/notes-math-class10.html">Mathematics</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <a href="/IQ/top-question.html">Top Questions</a>
+          <a href="/IQ/expected-questions.html" aria-current="page" style="color:var(--primary);">Expected Questions <span style="background:#f59e0b;color:#fff;font-size:0.65rem;padding:2px 7px;border-radius:20px;font-weight:700;vertical-align:middle;margin-left:2px;">NEW</span></a>
+          <a href="/blog/blog.html">Blog</a>
+          <a href="/htmls/sign.html" class="login-btn">Login / Sign Up</a>
+        </nav>
+      </div>
+    </header>
+  </nav>
+
+  <!-- Hero -->
+  <section class="eq-hero" aria-label="Expected Questions Hero">
+    <h1>&#128218; Most <span>Expected Questions</span><br>for Board Exams</h1>
+    <p>Select your class, pick a chapter — and get the most likely questions to appear in your CBSE board exam. Prepared chapter-wise for Class 9 &amp; 10.</p>
+    <div class="badge-row">
+      <span class="eq-badge"><i class="fas fa-check-circle"></i> CBSE Pattern</span>
+      <span class="eq-badge"><i class="fas fa-bolt"></i> Exam Focused</span>
+      <span class="eq-badge"><i class="fas fa-book-open"></i> All Chapters</span>
+      <span class="eq-badge"><i class="fas fa-star"></i> Class 9 &amp; 10</span>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="stats-bar" role="region" aria-label="Content statistics">
+    <div class="stat-item"><div class="num">30+</div><div class="lbl">Total Chapters</div></div>
+    <div class="stat-item"><div class="num">4</div><div class="lbl">Subjects</div></div>
+    <div class="stat-item"><div class="num">2</div><div class="lbl">Classes</div></div>
+    <div class="stat-item"><div class="num">500+</div><div class="lbl">Expected Questions</div></div>
+  </div>
+
+  <!-- Class Tabs -->
+  <div class="class-tab-bar" role="tablist" aria-label="Select Class">
+    <button class="class-tab active" role="tab" aria-selected="true" aria-controls="panel-9" onclick="switchClass('9',this)">
+      <i class="fas fa-book-bookmark" style="margin-right:6px;"></i>Class 9
+    </button>
+    <button class="class-tab" role="tab" aria-selected="false" aria-controls="panel-10" onclick="switchClass('10',this)">
+      <i class="fas fa-graduation-cap" style="margin-right:6px;"></i>Class 10
+    </button>
+  </div>
+
+  <!-- Subject Filter -->
+  <div class="subject-toggle" role="group" aria-label="Filter by subject">
+    <button class="subj-btn" id="btn-all" onclick="filterSubject('all')">
+      <i class="fas fa-layer-group"></i> All Subjects
+    </button>
+    <button class="subj-btn" id="btn-maths" onclick="filterSubject('maths')">
+      <i class="fas fa-square-root-alt" style="color:#7c3aed;"></i> Mathematics
+    </button>
+    <button class="subj-btn" id="btn-science" onclick="filterSubject('science')">
+      <i class="fas fa-flask" style="color:#0ea5e9;"></i> Science
+    </button>
+  </div>
+
+  <main class="eq-container" id="main-content">
+
+    <!-- ═══════════════ CLASS 9 PANEL ═══════════════ -->
+    <div class="class-panel active" id="panel-9" role="tabpanel">
+
+      <!-- MATHS Class 9 -->
+      <div class="subject-section" id="sec9-maths">
+        <div class="subject-heading">
+          <div class="subj-icon maths"><i class="fas fa-square-root-alt"></i></div>
+          <h2>Mathematics &ndash; Class 9</h2>
+          <span class="chapter-count">12 Chapters &bull; All Questions Available</span>
+        </div>
+        <div class="chapter-grid">
+          <a href="/IQ/class9-maths/chapter-1-number-systems.html" class="chapter-card maths-card">
+            <div class="ch-num maths">1</div>
+            <div class="ch-info">
+              <h4>Number Systems</h4>
+              <span class="ch-tag">Real Numbers, Irrational Numbers, Laws of Exponents</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-maths/chapter-2-polynomials.html" class="chapter-card maths-card">
+            <div class="ch-num maths">2</div>
+            <div class="ch-info">
+              <h4>Polynomials</h4>
+              <span class="ch-tag">Zeros, Factor Theorem, Remainder Theorem</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-maths/chapter-3-coordinate-geometry.html" class="chapter-card maths-card">
+            <div class="ch-num maths">3</div>
+            <div class="ch-info">
+              <h4>Coordinate Geometry</h4>
+              <span class="ch-tag">Cartesian Plane, Quadrants, Plotting Points</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-maths/chapter-4-linear-equations.html" class="chapter-card maths-card">
+            <div class="ch-num maths">4</div>
+            <div class="ch-info">
+              <h4>Linear Equations in Two Variables</h4>
+              <span class="ch-tag">Graph, Solutions, Word Problems</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-maths/chapter-5-euclids-geometry.html" class="chapter-card maths-card">
+            <div class="ch-num maths">5</div>
+            <div class="ch-info">
+              <h4>Introduction to Euclid's Geometry</h4>
+              <span class="ch-tag">Axioms, Postulates, Theorems</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-maths/chapter-6-lines-angles.html" class="chapter-card maths-card">
+            <div class="ch-num maths">6</div>
+            <div class="ch-info">
+              <h4>Lines and Angles</h4>
+              <span class="ch-tag">Parallel Lines, Transversal, Angle Sum Property</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-maths/chapter-7-triangles.html" class="chapter-card maths-card">
+            <div class="ch-num maths">7</div>
+            <div class="ch-info">
+              <h4>Triangles</h4>
+              <span class="ch-tag">Congruence, SAS, ASA, RHS, Inequalities</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-maths/chapter-8-quadrilaterals.html" class="chapter-card maths-card">
+            <div class="ch-num maths">8</div>
+            <div class="ch-info">
+              <h4>Quadrilaterals</h4>
+              <span class="ch-tag">Parallelogram, Midpoint Theorem, Properties</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-maths/chapter-9-circles.html" class="chapter-card maths-card">
+            <div class="ch-num maths">9</div>
+            <div class="ch-info">
+              <h4>Circles</h4>
+              <span class="ch-tag">Chords, Arcs, Cyclic Quadrilateral, Angles</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-maths/chapter-10-herons-formula.html" class="chapter-card maths-card">
+            <div class="ch-num maths">10</div>
+            <div class="ch-info">
+              <h4>Heron's Formula</h4>
+              <span class="ch-tag">Area of Triangle, Semi-Perimeter</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-maths/chapter-11-surface-areas-volumes.html" class="chapter-card maths-card">
+            <div class="ch-num maths">11</div>
+            <div class="ch-info">
+              <h4>Surface Areas and Volumes</h4>
+              <span class="ch-tag">Cone, Cylinder, Sphere, Cuboid</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-maths/chapter-12-statistics.html" class="chapter-card maths-card">
+            <div class="ch-num maths">12</div>
+            <div class="ch-info">
+              <h4>Statistics</h4>
+              <span class="ch-tag">Mean, Median, Mode, Bar Graph, Histogram</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- SCIENCE Class 9 -->
+      <div class="subject-section" id="sec9-science">
+        <div class="subject-heading">
+          <div class="subj-icon science"><i class="fas fa-flask"></i></div>
+          <h2>Science &ndash; Class 9</h2>
+          <span class="chapter-count">12 Chapters &bull; All Questions Available</span>
+        </div>
+        <div class="chapter-grid">
+          <a href="/IQ/class9-science/chapter-1-matter-surroundings.html" class="chapter-card science-card">
+            <div class="ch-num science">1</div>
+            <div class="ch-info">
+              <h4>Matter in Our Surroundings</h4>
+              <span class="ch-tag">States of Matter, Evaporation, Latent Heat</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-science/chapter-2-matter-around-us-pure.html" class="chapter-card science-card">
+            <div class="ch-num science">2</div>
+            <div class="ch-info">
+              <h4>Is Matter Around Us Pure?</h4>
+              <span class="ch-tag">Mixtures, Solutions, Colloids, Separation</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-science/chapter-3-atoms-molecules.html" class="chapter-card science-card">
+            <div class="ch-num science">3</div>
+            <div class="ch-info">
+              <h4>Atoms and Molecules</h4>
+              <span class="ch-tag">Laws of Chemical Combination, Mole Concept</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-science/chapter-4-structure-of-atom.html" class="chapter-card science-card">
+            <div class="ch-num science">4</div>
+            <div class="ch-info">
+              <h4>Structure of the Atom</h4>
+              <span class="ch-tag">Bohr's Model, Valency, Isotopes, Isobars</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-science/chapter-5-fundamental-unit-life.html" class="chapter-card science-card">
+            <div class="ch-num science">5</div>
+            <div class="ch-info">
+              <h4>The Fundamental Unit of Life</h4>
+              <span class="ch-tag">Cell, Organelles, Osmosis, Diffusion</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-science/chapter-6-tissues.html" class="chapter-card science-card">
+            <div class="ch-num science">6</div>
+            <div class="ch-info">
+              <h4>Tissues</h4>
+              <span class="ch-tag">Plant Tissues, Animal Tissues, Meristematic</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-science/chapter-7-motion.html" class="chapter-card science-card">
+            <div class="ch-num science">7</div>
+            <div class="ch-info">
+              <h4>Motion</h4>
+              <span class="ch-tag">Velocity, Acceleration, Equations of Motion, Graphs</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-science/chapter-8-force-laws-motion.html" class="chapter-card science-card">
+            <div class="ch-num science">8</div>
+            <div class="ch-info">
+              <h4>Force and Laws of Motion</h4>
+              <span class="ch-tag">Newton's Laws, Momentum, Impulse</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-science/chapter-9-gravitation.html" class="chapter-card science-card">
+            <div class="ch-num science">9</div>
+            <div class="ch-info">
+              <h4>Gravitation</h4>
+              <span class="ch-tag">Universal Law, g, Free Fall, Buoyancy</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-science/chapter-10-work-energy.html" class="chapter-card science-card">
+            <div class="ch-num science">10</div>
+            <div class="ch-info">
+              <h4>Work and Energy</h4>
+              <span class="ch-tag">Work-Energy Theorem, Power, Conservation</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-science/chapter-11-sound.html" class="chapter-card science-card">
+            <div class="ch-num science">11</div>
+            <div class="ch-info">
+              <h4>Sound</h4>
+              <span class="ch-tag">Wave Properties, SONAR, Echo, Human Ear</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class9-science/chapter-12-food-resources.html" class="chapter-card science-card">
+            <div class="ch-num science">12</div>
+            <div class="ch-info">
+              <h4>Improvement in Food Resources</h4>
+              <span class="ch-tag">Crop Improvement, Animal Husbandry, Manures</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+        </div>
+      </div>
+    </div><!-- END CLASS 9 -->
+
+    <!-- ═══════════════ CLASS 10 PANEL ═══════════════ -->
+    <div class="class-panel" id="panel-10" role="tabpanel">
+
+      <!-- MATHS Class 10 -->
+      <div class="subject-section" id="sec10-maths">
+        <div class="subject-heading">
+          <div class="subj-icon maths"><i class="fas fa-square-root-alt"></i></div>
+          <h2>Mathematics &ndash; Class 10</h2>
+          <span class="chapter-count">14 Chapters &bull; All Questions Available</span>
+        </div>
+        <div class="chapter-grid">
+          <a href="/IQ/class10-maths/chapter-1-real-numbers.html" class="chapter-card maths-card">
+            <div class="ch-num maths">1</div>
+            <div class="ch-info">
+              <h4>Real Numbers</h4>
+              <span class="ch-tag">Euclid's Division, HCF, LCM, Irrational Numbers</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-maths/chapter-2-polynomials.html" class="chapter-card maths-card">
+            <div class="ch-num maths">2</div>
+            <div class="ch-info">
+              <h4>Polynomials</h4>
+              <span class="ch-tag">Zeros, Division Algorithm, Relationship of Zeros</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-maths/chapter-3-linear-equations.html" class="chapter-card maths-card">
+            <div class="ch-num maths">3</div>
+            <div class="ch-info">
+              <h4>Pair of Linear Equations in Two Variables</h4>
+              <span class="ch-tag">Substitution, Elimination, Cross-Multiplication</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-maths/chapter-4-quadratic-equations.html" class="chapter-card maths-card">
+            <div class="ch-num maths">4</div>
+            <div class="ch-info">
+              <h4>Quadratic Equations</h4>
+              <span class="ch-tag">Factorisation, Completing Square, Discriminant</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-maths/chapter-5-arithmetic-progressions.html" class="chapter-card maths-card">
+            <div class="ch-num maths">5</div>
+            <div class="ch-info">
+              <h4>Arithmetic Progressions</h4>
+              <span class="ch-tag">nth Term, Sum of n Terms, Word Problems</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-maths/chapter-6-triangles.html" class="chapter-card maths-card">
+            <div class="ch-num maths">6</div>
+            <div class="ch-info">
+              <h4>Triangles</h4>
+              <span class="ch-tag">Similarity, BPT, Pythagoras Theorem, Areas</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-maths/chapter-7-coordinate-geometry.html" class="chapter-card maths-card">
+            <div class="ch-num maths">7</div>
+            <div class="ch-info">
+              <h4>Coordinate Geometry</h4>
+              <span class="ch-tag">Distance, Section Formula, Area of Triangle</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-maths/chapter-8-introduction-to-trigonometry.html" class="chapter-card maths-card">
+            <div class="ch-num maths">8</div>
+            <div class="ch-info">
+              <h4>Introduction to Trigonometry</h4>
+              <span class="ch-tag">Ratios, Identities, Complementary Angles</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-maths/chapter-9-applications-of-trigonometry.html" class="chapter-card maths-card">
+            <div class="ch-num maths">9</div>
+            <div class="ch-info">
+              <h4>Some Applications of Trigonometry</h4>
+              <span class="ch-tag">Heights and Distances, Angle of Elevation</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-maths/chapter-10-circles.html" class="chapter-card maths-card">
+            <div class="ch-num maths">10</div>
+            <div class="ch-info">
+              <h4>Circles</h4>
+              <span class="ch-tag">Tangent, Number of Tangents, Properties</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-maths/chapter-11-areas-related-to-circles.html" class="chapter-card maths-card">
+            <div class="ch-num maths">11</div>
+            <div class="ch-info">
+              <h4>Areas Related to Circles</h4>
+              <span class="ch-tag">Sector, Segment, Combination of Figures</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-maths/chapter-12-surface-areas-volumes.html" class="chapter-card maths-card">
+            <div class="ch-num maths">12</div>
+            <div class="ch-info">
+              <h4>Surface Areas and Volumes</h4>
+              <span class="ch-tag">Combination of Solids, Conversion, Frustum</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-maths/chapter-13-statistics.html" class="chapter-card maths-card">
+            <div class="ch-num maths">13</div>
+            <div class="ch-info">
+              <h4>Statistics</h4>
+              <span class="ch-tag">Mean, Median, Mode for Grouped Data, Ogive</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-maths/chapter-14-probability.html" class="chapter-card maths-card">
+            <div class="ch-num maths">14</div>
+            <div class="ch-info">
+              <h4>Probability</h4>
+              <span class="ch-tag">Classical Probability, Events, Word Problems</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- SCIENCE Class 10 -->
+      <div class="subject-section" id="sec10-science">
+        <div class="subject-heading">
+          <div class="subj-icon science"><i class="fas fa-flask"></i></div>
+          <h2>Science &ndash; Class 10</h2>
+          <span class="chapter-count">13 Chapters &bull; All Questions Available</span>
+        </div>
+        <div class="chapter-grid">
+          <a href="/IQ/class10-science/chapter-1-chemical-reactions.html" class="chapter-card science-card">
+            <div class="ch-num science">1</div>
+            <div class="ch-info">
+              <h4>Chemical Reactions and Equations</h4>
+              <span class="ch-tag">Balancing, Types of Reactions, Oxidation/Reduction</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-science/chapter-2-acids-bases-salts.html" class="chapter-card science-card">
+            <div class="ch-num science">2</div>
+            <div class="ch-info">
+              <h4>Acids, Bases and Salts</h4>
+              <span class="ch-tag">pH Scale, Neutralisation, Common Salts</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-science/chapter-3-metals-non-metals.html" class="chapter-card science-card">
+            <div class="ch-num science">3</div>
+            <div class="ch-info">
+              <h4>Metals and Non-metals</h4>
+              <span class="ch-tag">Activity Series, Ionic Bonding, Corrosion</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-science/chapter-4-carbon-compounds.html" class="chapter-card science-card">
+            <div class="ch-num science">4</div>
+            <div class="ch-info">
+              <h4>Carbon and its Compounds</h4>
+              <span class="ch-tag">Covalent Bonding, Functional Groups, Soaps</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-science/chapter-5-life-processes.html" class="chapter-card science-card">
+            <div class="ch-num science">5</div>
+            <div class="ch-info">
+              <h4>Life Processes</h4>
+              <span class="ch-tag">Nutrition, Respiration, Transport, Excretion</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-science/chapter-6-control-coordination.html" class="chapter-card science-card">
+            <div class="ch-num science">6</div>
+            <div class="ch-info">
+              <h4>Control and Coordination</h4>
+              <span class="ch-tag">Nervous System, Reflex Arc, Hormones</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-science/chapter-7-how-do-organisms-reproduce.html" class="chapter-card science-card">
+            <div class="ch-num science">7</div>
+            <div class="ch-info">
+              <h4>How do Organisms Reproduce?</h4>
+              <span class="ch-tag">Asexual, Sexual, Menstruation, Contraception</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-science/chapter-8-heredity.html" class="chapter-card science-card">
+            <div class="ch-num science">8</div>
+            <div class="ch-info">
+              <h4>Heredity</h4>
+              <span class="ch-tag">Mendel's Laws, Traits, Sex Determination, Evolution</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-science/chapter-9-light-reflection-refraction.html" class="chapter-card science-card">
+            <div class="ch-num science">9</div>
+            <div class="ch-info">
+              <h4>Light &ndash; Reflection and Refraction</h4>
+              <span class="ch-tag">Mirror Formula, Lens Formula, Magnification</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-science/chapter-10-human-eye-colourful-world.html" class="chapter-card science-card">
+            <div class="ch-num science">10</div>
+            <div class="ch-info">
+              <h4>The Human Eye and the Colourful World</h4>
+              <span class="ch-tag">Defects, Dispersion, Atmospheric Refraction</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-science/chapter-11-electricity.html" class="chapter-card science-card">
+            <div class="ch-num science">11</div>
+            <div class="ch-info">
+              <h4>Electricity</h4>
+              <span class="ch-tag">Ohm's Law, Resistance, Circuits, Power</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-science/chapter-12-magnetic-effects-electric-current.html" class="chapter-card science-card">
+            <div class="ch-num science">12</div>
+            <div class="ch-info">
+              <h4>Magnetic Effects of Electric Current</h4>
+              <span class="ch-tag">Fleming's Rules, Motor, Generator, Circuits</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+          <a href="/IQ/class10-science/chapter-13-our-environment.html" class="chapter-card science-card">
+            <div class="ch-num science">13</div>
+            <div class="ch-info">
+              <h4>Our Environment</h4>
+              <span class="ch-tag">Food Chain, Ecosystem, Ozone Depletion</span>
+              <div style="margin-top:4px;"><span style="background:#dcfce7;color:#15803d;font-size:0.68rem;padding:2px 8px;border-radius:12px;font-weight:700;"><i class="fas fa-check-circle"></i> Questions Ready</span></div>
+            </div>
+            <i class="fas fa-chevron-right ch-arrow"></i>
+          </a>
+        </div>
+      </div>
+    </div><!-- END CLASS 10 -->
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="logo">
+          <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" loading="lazy">
+          <span>NeoBranium</span>
+        </div>
+        <p>A next-gen learning platform for students of all classes.</p>
+        <div class="social-links">
+          <a href="https://facebook.com/NeoBranium" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+          <a href="https://instagram.com/NeoBranium" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="https://youtube.com/@NeoBranium" rel="noopener noreferrer" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+          <a href="https://twitter.com/NeoBranium" rel="noopener noreferrer" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/index.html">Home</a></li>
+          <li><a href="/Notes/notes-science-class10.html">Class 10 Notes</a></li>
+          <li><a href="/IQ/top-question.html">Top Questions</a></li>
+          <li><a href="/IQ/expected-questions.html">Expected Questions</a></li>
+          <li><a href="/blog/blog.html">Blog</a></li>
+        </ul>
+      </div>
+      <div class="footer-links">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="/about.html">About Us</a></li>
+          <li><a href="/htmls/contactus.html">Contact Us</a></li>
+          <li><a href="/htmls/terms_conditions.html">Terms &amp; Conditions</a></li>
+          <li><a href="/htmls/privacy.html">Privacy Policy</a></li>
+        </ul>
+      </div>
+      <div class="footer-newsletter">
+        <h4>Stay Updated</h4>
+        <p>Subscribe to our newsletter for latest updates.</p>
+        <form class="newsletter-form" id="newsletterForm-eq" method="POST"
+          action="https://64416c18.sibforms.com/serve/MUIFAMQH1jddteW_S3AMRx57Rrc7jz_UHdudP4cXQYMdXme0u_zT6ZANoi8Vq41vKc9waTGXlKbXqQ9K1ioOhf-P2mJSrzIgMu_nQ3cyUphJK6EJMUuu890vvVp-2hAhfdPLB5A_HnrAo43oYtWd9KLmxQWYoriZLTCSj9f0txJzBLRCi7eA_TF1Ovn87AAtJVAUWMs_J1po-XRrtQ==">
+          <input type="email" name="EMAIL" placeholder="Enter your email" autocomplete="off" required>
+          <input type="hidden" name="locale" value="en">
+          <input type="hidden" name="html_type" value="simple">
+          <button type="submit" class="btn btn-primary">Subscribe</button>
+        </form>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; <span id="copyright-year">2026</span> NeoBranium. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Coming Soon Toast -->
+  <div id="cs-toast">
+    <span style="font-size:1.4rem;">&#128640;</span>
+    <div>
+      <div id="cs-chapter-name" style="color:#f59e0b;font-size:0.82rem;margin-bottom:3px;font-weight:700;"></div>
+      Expected questions coming soon! Stay tuned &#127919;
+    </div>
+    <span onclick="hideToast()" style="margin-left:auto;cursor:pointer;font-size:1rem;color:#94a3b8;padding:4px;">&#10005;</span>
+  </div>
+
+  <script src="/index.js"></script>
+  <script src="/search.js"></script>
+  <script>
+    // Preloader
+    window.addEventListener('load', function() {
+      var p = document.getElementById('preloader');
+      if (p) { p.style.opacity = '0'; setTimeout(function(){ p.style.display='none'; }, 500); }
+    });
+
+    // Mobile menu
+    var menuToggle = document.querySelector('.menu-toggle');
+    var navMenuEl = document.querySelector('header .nav-menu');
+    if (menuToggle && navMenuEl) {
+      menuToggle.addEventListener('click', function() {
+        navMenuEl.classList.toggle('open');
+        menuToggle.setAttribute('aria-expanded', navMenuEl.classList.contains('open'));
+      });
+    }
+
+    // Class tab switching
+    function switchClass(cls, btn) {
+      document.querySelectorAll('.class-panel').forEach(function(p){ p.classList.remove('active'); });
+      document.querySelectorAll('.class-tab').forEach(function(b){ b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+      document.getElementById('panel-' + cls).classList.add('active');
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected','true');
+    }
+
+    // Subject filter
+    var currentSubject = 'all';
+    function filterSubject(subj) {
+      currentSubject = subj;
+      var allBtn   = document.getElementById('btn-all');
+      var mathBtn  = document.getElementById('btn-maths');
+      var sciBtn   = document.getElementById('btn-science');
+      [allBtn, mathBtn, sciBtn].forEach(function(b){
+        b.style.background = ''; b.style.color = ''; b.style.borderColor = '';
+      });
+      if (subj === 'all') {
+        allBtn.style.background = 'var(--primary)'; allBtn.style.color = '#fff'; allBtn.style.borderColor = 'var(--primary)';
+      } else if (subj === 'maths') {
+        mathBtn.style.background = '#7c3aed'; mathBtn.style.color = '#fff'; mathBtn.style.borderColor = '#7c3aed';
+      } else {
+        sciBtn.style.background = '#0ea5e9'; sciBtn.style.color = '#fff'; sciBtn.style.borderColor = '#0ea5e9';
+      }
+      document.querySelectorAll('.subject-section').forEach(function(sec){
+        if (subj === 'all') sec.classList.remove('hidden');
+        else if (subj === 'maths') sec.classList.toggle('hidden', sec.id.indexOf('maths') === -1);
+        else sec.classList.toggle('hidden', sec.id.indexOf('science') === -1);
+      });
+    }
+
+    // Init "All" button style
+    document.addEventListener('DOMContentLoaded', function(){
+      filterSubject('all');
+    });
+
+    // Coming Soon Toast
+    var toastTimer = null;
+    function comingSoon(e, chapterName) {
+      e.preventDefault();
+      document.getElementById('cs-chapter-name').textContent = chapterName + ' – Class ' + (document.getElementById('panel-9').classList.contains('active') ? '9' : '10');
+      var toast = document.getElementById('cs-toast');
+      toast.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(hideToast, 4000);
+    }
+    function hideToast() {
+      document.getElementById('cs-toast').classList.remove('show');
+    }
+
+    // Copyright year
+    document.getElementById('copyright-year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

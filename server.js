@@ -120,11 +120,16 @@ const allowedOrigins = [
     ...((process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean))
 ];
 
+const isDevelopment = process.env.NODE_ENV !== 'production';
+const isAllowedOrigin = (origin) => {
+    if (isDevelopment && origin === 'null') return true;
+    return allowedOrigins.some(allowed => origin === allowed || origin === allowed + '/');
+};
+
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
-        const isAllowed = allowedOrigins.some(allowed => origin === allowed || origin === allowed + '/');
-        if (isAllowed) return callback(null, true);
+        if (isAllowedOrigin(origin)) return callback(null, true);
         return callback(new Error('CORS Error: Origin not allowed'), false);
     },
     credentials: true
@@ -137,8 +142,15 @@ const strictOriginCheck = (req, res, next) => {
     if (!origin) {
         return res.status(403).json({ reply: 'Forbidden: Direct API access is not allowed' });
     }
-    const isAllowed = allowedOrigins.some(allowedOrigin => origin.startsWith(allowedOrigin));
-    if (!isAllowed) {
+    let requestOrigin = origin;
+    if (origin !== 'null') {
+        try {
+            requestOrigin = new URL(origin).origin;
+        } catch {
+            requestOrigin = origin;
+        }
+    }
+    if (!isAllowedOrigin(requestOrigin)) {
         return res.status(403).json({ reply: 'Forbidden: Invalid Origin' });
     }
     next();

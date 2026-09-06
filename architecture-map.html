@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NeoBranium / System Atlas</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+    :root {
+      --ink: #f4f7fb;
+      --muted: #8e9bad;
+      --line: rgba(154, 174, 196, .18);
+      --panel: rgba(14, 21, 31, .88);
+      --panel-strong: #111b28;
+      --canvas: #09111b;
+      --entry: #f0b35b;
+      --client: #65d0bf;
+      --backend: #7aa7ff;
+      --data: #b59bff;
+      --external: #ed8ca9;
+      --infra: #b7c4d1;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--canvas); }
+    body {
+      margin: 0;
+      min-width: 0;
+      color: var(--ink);
+      background-color: var(--canvas);
+      background-image: linear-gradient(rgba(133, 159, 184, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(133, 159, 184, .045) 1px, transparent 1px), radial-gradient(circle at 50% 0%, rgba(37, 82, 115, .24), transparent 42%);
+      background-size: 32px 32px, 32px 32px, auto;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    button { font: inherit; }
+    .shell { max-width: 1680px; margin: 0 auto; padding: 38px 42px 48px; }
+    header { display: flex; justify-content: space-between; align-items: end; gap: 30px; margin-bottom: 28px; }
+    .eyebrow, .kicker, .meta, .legend, .node-path, .connection-label, .stat-label { font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .11em; }
+    .eyebrow { color: var(--client); font-size: 11px; margin: 0 0 15px; }
+    h1 { margin: 0; font-size: clamp(38px, 5vw, 68px); line-height: .94; letter-spacing: -.055em; font-weight: 600; }
+    .subtitle { color: var(--muted); font-size: 18px; margin: 17px 0 0; }
+    .header-note { max-width: 315px; color: var(--muted); line-height: 1.55; font-size: 13px; text-align: right; }
+    .header-note strong { display: block; color: var(--ink); font-size: 12px; margin-bottom: 6px; font-family: 'DM Mono', monospace; font-weight: 500; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; border-block: 1px solid var(--line); padding: 13px 0; margin-bottom: 18px; }
+    .toolbar-copy { color: var(--muted); font-size: 12px; }
+    .toolbar-copy b { color: var(--ink); font-weight: 500; }
+    .clear-button { color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 5px; padding: 8px 12px; cursor: pointer; font-size: 12px; }
+    .clear-button:hover { border-color: var(--client); color: var(--client); }
+    .atlas-tabs { display: flex; gap: 4px; margin: 8px 0 20px; }
+    .atlas-tab { color: var(--muted); background: rgba(13, 22, 32, .72); border: 1px solid var(--line); border-radius: 5px; padding: 10px 14px; cursor: pointer; font: 10px 'DM Mono', monospace; letter-spacing: .1em; }
+    .atlas-tab.is-active { color: var(--ink); border-color: var(--client); background: rgba(52, 104, 105, .22); }
+    .atlas-view[hidden] { display: none; }
+    .map-wrap { overflow-x: auto; border: 1px solid var(--line); background: rgba(5, 11, 18, .55); box-shadow: 0 22px 60px rgba(0, 0, 0, .22); }
+    .map { position: relative; width: 1400px; height: 920px; }
+    .wires { position: absolute; inset: 0; width: 1400px; height: 920px; pointer-events: none; }
+    .wire { fill: none; stroke: rgba(133, 161, 186, .35); stroke-width: 1.4; vector-effect: non-scaling-stroke; transition: opacity .2s, stroke .2s, stroke-width .2s; }
+    .wire[data-kind="auth"] { stroke: rgba(181, 155, 255, .52); }
+    .wire[data-kind="ai"] { stroke: rgba(237, 140, 169, .58); }
+    .wire[data-kind="data"] { stroke: rgba(101, 208, 191, .55); }
+    .wire[data-kind="deploy"] { stroke: rgba(183, 196, 209, .5); stroke-dasharray: 5 6; }
+    .wire.is-dim { opacity: .07; }
+    .wire.is-hot { stroke: #fff; stroke-width: 2.8; opacity: 1; }
+    .flow-arrow { fill: currentColor; }
+    .connection-label { position: absolute; z-index: 1; color: #67788c; font-size: 9px; white-space: nowrap; background: rgba(9, 17, 27, .92); padding: 3px 5px; }
+    .column { position: absolute; top: 22px; color: var(--muted); font: 500 10px 'DM Mono', monospace; letter-spacing: .14em; }
+    .column::before { content: ''; display: inline-block; width: 7px; height: 7px; border: 1px solid currentColor; margin-right: 8px; vertical-align: 1px; }
+    .col-entry { left: 34px; color: var(--entry); }
+    .col-client { left: 318px; color: var(--client); }
+    .col-backend { left: 610px; color: var(--backend); }
+    .col-data { left: 900px; color: var(--data); }
+    .col-external { left: 1130px; color: var(--external); }
+    .node { position: absolute; z-index: 2; width: 218px; min-height: 105px; padding: 14px 15px; border: 1px solid color-mix(in srgb, var(--node-color) 55%, transparent); border-left: 3px solid var(--node-color); border-radius: 7px; background: linear-gradient(135deg, rgba(23, 35, 49, .98), rgba(11, 19, 29, .94)); color: var(--ink); text-align: left; cursor: pointer; transition: opacity .2s, transform .2s, border-color .2s, box-shadow .2s; }
+    .node:hover { transform: translateY(-2px); border-color: var(--node-color); box-shadow: 0 10px 25px rgba(0,0,0,.28); }
+    .node.is-dim { opacity: .16; }
+    .node.is-active { border-color: var(--node-color); box-shadow: 0 0 0 1px var(--node-color), 0 13px 30px rgba(0,0,0,.34); }
+    .node-title { display: block; font-size: 15px; font-weight: 600; line-height: 1.1; margin-bottom: 8px; }
+    .node-path { display: block; color: var(--node-color); font-size: 9px; line-height: 1.35; overflow-wrap: anywhere; }
+    .node-note { color: #a7b4c3; font-size: 11px; line-height: 1.35; margin-top: 9px; }
+    .entry { --node-color: var(--entry); } .client { --node-color: var(--client); } .backend { --node-color: var(--backend); } .data { --node-color: var(--data); } .external { --node-color: var(--external); } .infra { --node-color: var(--infra); }
+    .n-index { left: 28px; top: 108px; } .n-sign { left: 28px; top: 280px; } .n-dashboard { left: 28px; top: 452px; } .n-board { left: 28px; top: 624px; }
+    .n-content { left: 302px; top: 124px; } .n-auth { left: 302px; top: 330px; } .n-tools { left: 302px; top: 536px; } .n-boardmods { left: 302px; top: 710px; }
+    .n-server { left: 594px; top: 248px; min-height: 142px; } .n-middleware { left: 594px; top: 490px; } .n-functions { left: 594px; top: 708px; }
+    .n-firebase { left: 884px; top: 100px; } .n-redis { left: 884px; top: 316px; } .n-storage { left: 884px; top: 532px; } .n-rtdb { left: 884px; top: 748px; }
+    .n-groq { left: 1114px; top: 84px; } .n-gemini { left: 1114px; top: 258px; } .n-eleven { left: 1114px; top: 432px; } .n-anthropic { left: 1114px; top: 606px; } .n-hosting { left: 1114px; top: 780px; }
+    .info-panel { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 22px; margin-top: 18px; padding: 20px 22px; border: 1px solid var(--line); background: var(--panel); min-height: 148px; }
+    .info-empty { grid-column: 1 / -1; align-self: center; color: var(--muted); font-size: 13px; }
+    .info-panel[hidden] { display: none; }
+    .info-title { font-size: 21px; margin: 0 0 6px; }
+    .info-path { color: var(--client); font: 11px 'DM Mono', monospace; overflow-wrap: anywhere; }
+    .info-label { color: var(--muted); font: 10px 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 7px; }
+    .info-value { color: #d4dce5; font-size: 12px; line-height: 1.5; margin: 0; }
+    .info-value span { display: block; }
+    .legend-row { display: flex; flex-wrap: wrap; align-items: center; gap: 17px; margin-top: 18px; color: var(--muted); font-size: 11px; }
+    .legend { font-size: 9px; color: #718196; }
+    .legend-item { display: inline-flex; align-items: center; gap: 7px; }
+    .line-key { width: 23px; border-top: 2px solid #aebcca; }
+    .line-key.dashed { border-top-style: dashed; border-color: var(--data); }
+    .line-key.primary { border-color: var(--entry); box-shadow: 0 0 7px var(--entry); }
+    .swatch { width: 9px; height: 9px; border-radius: 2px; background: var(--swatch); }
+    .stats { display: flex; gap: 26px; margin-left: auto; }
+    .stat { text-align: right; } .stat-label { display: block; color: #657589; font-size: 9px; } .stat-value { color: var(--ink); font: 500 15px 'DM Mono', monospace; }
+    footer { display: flex; justify-content: space-between; gap: 20px; margin-top: 26px; color: #6f7e90; font: 10px 'DM Mono', monospace; letter-spacing: .05em; }
+    .user-heading { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin: 4px 0 18px; }
+    .section-kicker { color: var(--entry); font: 10px 'DM Mono', monospace; letter-spacing: .14em; }
+    .user-heading h2 { margin: 8px 0 0; font-size: 34px; letter-spacing: -.04em; }
+    .user-heading p { color: var(--muted); margin: 8px 0 0; font-size: 14px; }
+    .map-actions { display: flex; gap: 6px; align-items: center; }
+    .map-action { color: var(--ink); background: rgba(13, 22, 32, .82); border: 1px solid var(--line); border-radius: 4px; min-width: 34px; height: 32px; cursor: pointer; font: 12px 'DM Mono', monospace; }
+    .map-action:hover { border-color: var(--entry); color: var(--entry); }
+    .journey-toggle { display: inline-flex; align-items: center; gap: 8px; margin-right: 10px; color: var(--muted); font-size: 11px; }
+    .journey-toggle input { accent-color: var(--entry); }
+    .user-map-viewport { position: relative; height: 740px; overflow: hidden; border: 1px solid var(--line); background: rgba(5, 11, 18, .55); cursor: grab; }
+    .user-map-viewport.is-dragging { cursor: grabbing; }
+    .user-map-canvas { position: absolute; left: 0; top: 0; width: 1500px; height: 920px; transform-origin: 0 0; }
+    .user-wires { position: absolute; inset: 0; width: 1500px; height: 920px; pointer-events: none; }
+    .user-wire { fill: none; stroke: rgba(160, 177, 193, .43); stroke-width: 1.5; transition: opacity .2s, stroke .2s, stroke-width .2s; }
+    .user-wire[data-kind="auth"] { stroke: rgba(181, 155, 255, .67); stroke-dasharray: 5 6; }
+    .user-wire[data-kind="primary"] { stroke: var(--entry); stroke-width: 2.6; }
+    .user-wire.is-dim { opacity: .07; }
+    .user-wire.is-hot { stroke: #fff; stroke-width: 3; opacity: 1; }
+    .user-column { position: absolute; top: 22px; color: var(--muted); font: 500 10px 'DM Mono', monospace; letter-spacing: .14em; }
+    .user-column::before { content: ''; display: inline-block; width: 7px; height: 7px; border: 1px solid currentColor; margin-right: 8px; vertical-align: 1px; }
+    .user-public { left: 38px; color: var(--entry); } .user-auth { left: 332px; color: var(--data); } .user-app { left: 624px; color: var(--client); } .user-tools { left: 920px; color: var(--backend); } .user-account { left: 1212px; color: var(--external); }
+    .user-node { position: absolute; z-index: 2; width: 220px; min-height: 94px; padding: 13px 15px; border: 1px solid color-mix(in srgb, var(--user-color) 55%, transparent); border-left: 3px solid var(--user-color); border-radius: 7px; background: linear-gradient(135deg, rgba(23, 35, 49, .98), rgba(11, 19, 29, .94)); color: var(--ink); text-align: left; cursor: pointer; transition: opacity .2s, transform .2s, box-shadow .2s; }
+    .user-node:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,.28); }
+    .user-node.is-dim { opacity: .14; } .user-node.is-active { box-shadow: 0 0 0 1px var(--user-color), 0 13px 30px rgba(0,0,0,.34); }
+    .user-node .node-title { font-size: 14px; } .user-node .node-path { color: var(--user-color); } .user-node .node-note { font-size: 10px; }
+    .u-public { --user-color: var(--entry); } .u-auth { --user-color: var(--data); } .u-app { --user-color: var(--client); } .u-tool { --user-color: var(--backend); } .u-account { --user-color: var(--external); }
+    .u-home { left: 26px; top: 84px; } .u-about { left: 26px; top: 270px; } .u-notes { left: 26px; top: 456px; } .u-questions { left: 26px; top: 642px; }
+    .u-sign { left: 320px; top: 120px; } .u-verify { left: 320px; top: 344px; } .u-legal { left: 320px; top: 568px; }
+    .u-dashboard { left: 614px; top: 92px; } .u-appnotes { left: 614px; top: 278px; } .u-quiz { left: 614px; top: 464px; } .u-spotlight { left: 614px; top: 650px; }
+    .u-bot { left: 908px; top: 52px; } .u-paper { left: 908px; top: 238px; } .u-chat { left: 908px; top: 424px; } .u-tutor { left: 908px; top: 610px; } .u-board { left: 908px; top: 796px; }
+    .u-profile { left: 1202px; top: 180px; } .u-settings { left: 1202px; top: 366px; } .u-rank { left: 1202px; top: 552px; } .u-contact { left: 1202px; top: 738px; }
+    .user-info { margin-top: 16px; }
+    .user-legend { margin-top: 14px; }
+    @media (max-width: 800px) { .shell { padding: 28px 18px; } header { display: block; } .header-note { text-align: left; margin-top: 20px; } .stats { display: none; } .user-heading { display: block; } .map-actions { margin-top: 16px; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">NeoBranium / System Atlas</p>
+        <h1>Codebase, at a glance.</h1>
+        <p class="subtitle">A verified map of the learning platform's runtime, data, and AI paths.</p>
+      </div>
+      <div class="header-note"><strong>READING THE MAP</strong>Click a node to isolate its direct dependencies and inspect the source evidence. Lines describe the request or data moving between systems.</div>
+    </header>
+
+    <nav class="atlas-tabs" aria-label="Atlas sections">
+      <button class="atlas-tab is-active" data-view="system-section" type="button">SYSTEM ATLAS</button>
+      <button class="atlas-tab" data-view="user-section" type="button">USER MAP</button>
+    </nav>
+
+    <div class="toolbar" id="system-toolbar">
+      <div class="toolbar-copy"><b id="focus-copy">All systems visible</b> <span>· click any node to focus</span></div>
+      <div class="stats"><div class="stat"><span class="stat-label">nodes</span><span class="stat-value" id="system-node-count">0</span></div><div class="stat"><span class="stat-label">flows</span><span class="stat-value" id="system-flow-count">0</span></div><div class="stat"><span class="stat-label">pages</span><span class="stat-value" id="page-count">0</span></div><div class="stat"><span class="stat-label">services</span><span class="stat-value" id="service-count">0</span></div></div>
+      <button class="clear-button" id="clear-focus" type="button">Clear focus</button>
+    </div>
+
+    <div class="atlas-view" id="system-section">
+    <section class="map-wrap" aria-label="NeoBranium technical architecture map">
+      <div class="map" id="map">
+        <svg class="wires" viewBox="0 0 1400 920" aria-hidden="true">
+          <defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#9aafc1"></path></marker></defs>
+          <path class="wire" data-from="index" data-to="content" d="M246 160 C270 160 278 176 302 176" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="sign" data-to="auth" data-kind="auth" d="M246 332 C270 332 278 382 302 382" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="dashboard" data-to="tools" d="M246 504 C270 504 278 588 302 588" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="board" data-to="boardmods" d="M246 676 C270 676 278 762 302 762" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="content" data-to="server" d="M520 176 C560 176 554 300 594 300" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="tools" data-to="server" d="M520 588 C560 588 554 344 594 344" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="boardmods" data-to="middleware" data-kind="ai" d="M520 762 C558 762 556 542 594 542" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="server" data-to="middleware" d="M703 390 L703 490" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="server" data-to="firebase" data-kind="data" d="M812 300 C844 300 850 154 884 154" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="server" data-to="redis" data-kind="data" d="M812 334 C846 334 850 370 884 370" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="auth" data-to="firebase" data-kind="auth" d="M520 382 C640 382 764 212 884 212" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="auth" data-to="storage" data-kind="data" d="M520 410 C650 410 760 588 884 588" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="tools" data-to="storage" data-kind="data" d="M520 620 C640 620 760 620 884 620" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="tools" data-to="rtdb" data-kind="data" d="M520 640 C650 640 760 804 884 804" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="server" data-to="groq" data-kind="ai" d="M812 278 C910 278 1000 138 1114 138" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="server" data-to="gemini" data-kind="ai" d="M812 304 C920 304 1005 312 1114 312" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="server" data-to="eleven" data-kind="ai" d="M812 330 C920 330 1005 486 1114 486" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="functions" data-to="anthropic" data-kind="ai" d="M812 760 C930 760 1000 660 1114 660" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="middleware" data-to="firebase" data-kind="data" d="M812 532 C846 532 850 180 884 180" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="middleware" data-to="server" d="M594 562 C560 562 560 370 594 370" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="functions" data-to="firebase" data-kind="data" d="M703 708 C703 640 850 260 884 260" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="hosting" data-to="index" data-kind="deploy" d="M1114 836 C900 900 430 900 138 213" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="hosting" data-to="functions" data-kind="deploy" d="M1114 862 C1000 900 850 842 812 790" marker-end="url(#arrow)"></path>
+          <path class="wire" data-from="hosting" data-to="server" data-kind="deploy" d="M1114 810 C980 810 850 430 812 390" marker-end="url(#arrow)"></path>
+        </svg>
+
+        <div class="column col-entry">01 / ENTRY POINTS</div><div class="column col-client">02 / CLIENT</div><div class="column col-backend">03 / API + SERVICES</div><div class="column col-data">04 / DATA LAYER</div><div class="column col-external">05 / EXTERNAL + INFRA</div>
+
+        <button class="node entry n-index" data-id="index"><span class="node-title">Public learning surface</span><span class="node-path">index.html + index.js</span><span class="node-note">Landing, navigation, search, AdSense / Analytics.</span></button>
+        <button class="node entry n-sign" data-id="sign"><span class="node-title">Sign in / sign up</span><span class="node-path">htmls/sign.html</span><span class="node-note">Email/password, Google sign-in, verification.</span></button>
+        <button class="node entry n-dashboard" data-id="dashboard"><span class="node-title">Learner dashboard</span><span class="node-path">htmls/dashboard.html</span><span class="node-note">Authenticated launchpad for study tools.</span></button>
+        <button class="node entry n-board" data-id="board"><span class="node-title">AI Board</span><span class="node-path">ai-board/ai-board.html</span><span class="node-note">Canvas, voice, analysis, queue-aware tutor.</span></button>
+
+        <button class="node client n-content" data-id="content"><span class="node-title">Content surfaces</span><span class="node-path">Notes/ · IQ/ · blog/ · quiz_*</span><span class="node-note">Notes, important questions, quizzes, chapter pages.</span></button>
+        <button class="node client n-auth" data-id="auth"><span class="node-title">Auth + shared state</span><span class="node-path">js/auth.js · js/firebase-auth.js</span><span class="node-note">Auth state, users profile, guest mode, redirects.</span></button>
+        <button class="node client n-tools" data-id="tools"><span class="node-title">Learning tools</span><span class="node-path">htmls/doubt/ · bot/ · chat/</span><span class="node-note">Doubt solver, bot, peer chat, question generation.</span></button>
+        <button class="node client n-boardmods" data-id="boardmods"><span class="node-title">Board engines</span><span class="node-path">ai-board/js/{ai,board,ui,speech}</span><span class="node-note">Modular canvas, speech, UI, queue clients.</span></button>
+
+        <button class="node backend n-server" data-id="server"><span class="node-title">Express AI gateway</span><span class="node-path">server.js</span><span class="node-note">Helmet, CORS, sessions, rate limits, memory, AI routes.</span></button>
+        <button class="node backend n-middleware" data-id="middleware"><span class="node-title">Board access + queue</span><span class="node-path">boardMiddleware.js · queueManager.js</span><span class="node-note">Five-user queue, heartbeats, usage gates.</span></button>
+        <button class="node backend n-functions" data-id="functions"><span class="node-title">Callable function</span><span class="node-path">functions/index.js</span><span class="node-note">solveDoubt proxy with daily Firestore limits.</span></button>
+
+        <button class="node data n-firebase" data-id="firebase"><span class="node-title">Firebase platform</span><span class="node-path">Auth · Firestore · Hosting</span><span class="node-note">neobranium project; users, quiz_results, doubt history.</span></button>
+        <button class="node data n-redis" data-id="redis"><span class="node-title">Redis session layer</span><span class="node-path">REDIS_URL · connect-redis</span><span class="node-note">Express sessions and transient AI memory; Map fallback.</span></button>
+        <button class="node data n-storage" data-id="storage"><span class="node-title">Firebase Storage</span><span class="node-path">users/{uid}/doubts/...</span><span class="node-note">Uploaded doubt images and download URLs.</span></button>
+        <button class="node data n-rtdb" data-id="rtdb"><span class="node-title">Realtime Database</span><span class="node-path">messages</span><span class="node-note">Live peer chat stream.</span></button>
+
+        <button class="node external n-groq" data-id="groq"><span class="node-title">Groq</span><span class="node-path">api.groq.com</span><span class="node-note">Chat, tutor streaming, board rephrasing.</span></button>
+        <button class="node external n-gemini" data-id="gemini"><span class="node-title">Google Gemini</span><span class="node-path">generativelanguage.googleapis.com</span><span class="node-note">Paper generation, image solving, board analysis.</span></button>
+        <button class="node external n-eleven" data-id="eleven"><span class="node-title">ElevenLabs</span><span class="node-path">POST /api/tts</span><span class="node-note">Server-side streaming text-to-speech.</span></button>
+        <button class="node external n-anthropic" data-id="anthropic"><span class="node-title">Anthropic</span><span class="node-path">api.anthropic.com</span><span class="node-note">Callable solveDoubt multimodal proxy.</span></button>
+        <button class="node infra n-hosting" data-id="hosting"><span class="node-title">Hosting + deployment</span><span class="node-path">firebase.json · vercel.json</span><span class="node-note">Firebase Hosting, Functions, Vercel routes; Render API URL.</span></button>
+      </div>
+    </section>
+
+    <section class="info-panel" id="info-panel" hidden aria-live="polite"></section>
+    <div class="legend-row"><span class="legend">LEGEND</span><span class="legend-item"><i class="swatch" style="--swatch:var(--entry)"></i>Entry</span><span class="legend-item"><i class="swatch" style="--swatch:var(--client)"></i>Client</span><span class="legend-item"><i class="swatch" style="--swatch:var(--backend)"></i>Backend</span><span class="legend-item"><i class="swatch" style="--swatch:var(--data)"></i>Data</span><span class="legend-item"><i class="swatch" style="--swatch:var(--external)"></i>External</span><span class="legend-item"><i class="swatch" style="--swatch:var(--infra)"></i>Infrastructure</span></div>
+    </div>
+
+    <div class="atlas-view" id="user-section" hidden>
+      <div class="user-heading">
+        <div><div class="section-kicker">PRODUCT SURFACE / VERIFIED NAVIGATION</div><h2>USER MAP</h2><p>Every major surface a normal user can reach.</p></div>
+        <div class="map-actions"><label class="journey-toggle"><input id="journey-toggle" type="checkbox"> Primary Journey</label><button class="map-action" id="zoom-out" type="button" aria-label="Zoom out">-</button><button class="map-action" id="zoom-reset" type="button" aria-label="Reset map">100%</button><button class="map-action" id="zoom-in" type="button" aria-label="Zoom in">+</button><button class="map-action" id="user-reset" type="button">Reset</button></div>
+      </div>
+      <div class="user-map-viewport" id="user-viewport" aria-label="NeoBranium user navigation map">
+        <div class="user-map-canvas" id="user-canvas">
+          <svg class="user-wires" viewBox="0 0 1500 920" aria-hidden="true">
+            <defs><marker id="user-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#aebcca"></path></marker></defs>
+            <path class="user-wire" data-from="home" data-to="about" d="M246 130 C274 130 290 316 320 316" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="home" data-to="notes" data-kind="primary" d="M246 136 C270 136 290 502 320 502" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="home" data-to="questions" d="M246 142 C300 142 270 688 320 688" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="home" data-to="blog" d="M246 148 C410 148 432 98 614 98" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="home" data-to="sign" data-kind="auth" d="M246 155 C290 155 282 170 320 170" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="notes" data-to="chapter" data-kind="primary" d="M246 502 C280 502 280 778 320 778" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="sign" data-to="verify" data-kind="auth" d="M540 170 L540 394" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="verify" data-to="dashboard" data-kind="auth" d="M540 394 C570 394 580 142 614 142" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="sign" data-to="dashboard" data-kind="auth" d="M540 210 C580 210 580 160 614 160" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="sign" data-to="legal" d="M540 215 C570 215 580 610 614 610" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="dashboard" data-to="appnotes" d="M834 142 L908 142 L908 326" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="dashboard" data-to="quiz" d="M834 150 L880 150 L880 512 L908 512" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="dashboard" data-to="spotlight" d="M834 158 L850 158 L850 698 L908 698" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="dashboard" data-to="bot" d="M834 130 C860 130 870 98 908 98" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="dashboard" data-to="paper" d="M834 136 C860 136 870 284 908 284" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="dashboard" data-to="chat" d="M834 164 C860 164 870 470 908 470" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="dashboard" data-to="tutor" d="M834 170 C860 170 870 656 908 656" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="dashboard" data-to="board" d="M834 176 C875 176 870 842 908 842" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="dashboard" data-to="profile" d="M834 120 C980 120 1070 224 1202 224" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="dashboard" data-to="settings" d="M834 126 C980 126 1080 410 1202 410" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="profile" data-to="settings" d="M1422 224 L1422 410" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="profile" data-to="rank" d="M1422 260 L1422 596" marker-end="url(#user-arrow)"></path>
+            <path class="user-wire" data-from="dashboard" data-to="contact" d="M834 182 C1020 182 1070 782 1202 782" marker-end="url(#user-arrow)"></path>
+          </svg>
+          <div class="user-column user-public">01 / PUBLIC</div><div class="user-column user-auth">02 / AUTHENTICATION</div><div class="user-column user-app">03 / APP</div><div class="user-column user-tools">04 / TOOLS</div><div class="user-column user-account">05 / ACCOUNT</div>
+          <button class="user-node u-public u-home" data-user-id="home"><span class="node-title">Home / landing</span><span class="node-path">index.html · /</span><span class="node-note">Public entry, search, resources, sign in.</span></button>
+          <button class="user-node u-public u-about" data-user-id="about"><span class="node-title">About</span><span class="node-path">about.html · /about</span><span class="node-note">Product and platform information.</span></button>
+          <button class="user-node u-public u-notes" data-user-id="notes"><span class="node-title">Notes library</span><span class="node-path">Notes/ · /notes</span><span class="node-note">Class 9/10 science and mathematics.</span></button>
+          <button class="user-node u-public u-questions" data-user-id="questions"><span class="node-title">Question banks</span><span class="node-path">IQ/top-question.html</span><span class="node-note">Top and expected questions.</span></button>
+          <button class="user-node u-public" data-user-id="blog" style="left: 26px; top: 828px"><span class="node-title">Blog</span><span class="node-path">blog/blog.html · /blog</span><span class="node-note">Public articles and posts.</span></button>
+          <button class="user-node u-public" data-user-id="chapter" style="left: 320px; top: 754px"><span class="node-title">Chapter detail</span><span class="node-path">Notes/10-CH1.html</span><span class="node-note">Concrete note chapters linked from class pages.</span></button>
+          <button class="user-node u-auth u-sign" data-user-id="sign"><span class="node-title">Sign in / sign up</span><span class="node-path">htmls/sign.html</span><span class="node-note">Email, Google, or guest entry.</span></button>
+          <button class="user-node u-auth u-verify" data-user-id="verify"><span class="node-title">Email verification</span><span class="node-path">htmls/verify-email.html</span><span class="node-note">New account activation checkpoint.</span></button>
+          <button class="user-node u-auth u-legal" data-user-id="legal"><span class="node-title">Terms + privacy</span><span class="node-path">htmls/terms_conditions.html · privacy.html</span><span class="node-note">Linked from account creation.</span></button>
+          <button class="user-node u-app u-dashboard" data-user-id="dashboard"><span class="node-title">Dashboard</span><span class="node-path">htmls/dashboard.html</span><span class="node-note">Authenticated app hub and quick actions.</span></button>
+          <button class="user-node u-app u-appnotes" data-user-id="appnotes"><span class="node-title">App notes</span><span class="node-path">htmls/notes.html</span><span class="node-note">Authenticated notes screen.</span></button>
+          <button class="user-node u-app u-quiz" data-user-id="quiz"><span class="node-title">Quizzes</span><span class="node-path">htmls/quiz_htmls/ · dashboard.js</span><span class="node-note">Class selection opens quiz families.</span></button>
+          <button class="user-node u-app u-spotlight" data-user-id="spotlight"><span class="node-title">Spotlight</span><span class="node-path">htmls/spotlight.html</span><span class="node-note">Monthly notes and ranking surface.</span></button>
+          <button class="user-node u-tool u-bot" data-user-id="bot"><span class="node-title">Bot Helper</span><span class="node-path">htmls/bot/bot.html</span><span class="node-note">AI assistant surface.</span></button>
+          <button class="user-node u-tool u-paper" data-user-id="paper"><span class="node-title">Exam paper generator</span><span class="node-path">htmls/question-paper_generator-ai/ai-generate.html</span><span class="node-note">Generate papers through the app.</span></button>
+          <button class="user-node u-tool u-chat" data-user-id="chat"><span class="node-title">Live chat</span><span class="node-path">htmls/chat/chat_app.html</span><span class="node-note">Peer messaging screen.</span></button>
+          <button class="user-node u-tool u-tutor" data-user-id="tutor"><span class="node-title">NeoTutor</span><span class="node-path">htmls/doubt/index.html</span><span class="node-note">Image and question doubt solver.</span></button>
+          <button class="user-node u-tool u-board" data-user-id="board"><span class="node-title">AI Board</span><span class="node-path">ai-board/ai-board.html</span><span class="node-note">Canvas and voice learning tool.</span></button>
+          <button class="user-node u-account u-profile" data-user-id="profile"><span class="node-title">Profile</span><span class="node-path">htmls/profile.html</span><span class="node-note">Authenticated account profile.</span></button>
+          <button class="user-node u-account u-settings" data-user-id="settings"><span class="node-title">Settings</span><span class="node-path">htmls/setting.html</span><span class="node-note">Account preferences and controls.</span></button>
+          <button class="user-node u-account u-rank" data-user-id="rank"><span class="node-title">Rank + score info</span><span class="node-path">htmls/rank-score-info.html</span><span class="node-note">Score and ranking explanation.</span></button>
+          <button class="user-node u-account u-contact" data-user-id="contact"><span class="node-title">Contact + feedback</span><span class="node-path">htmls/contactus.html · feedback.html</span><span class="node-note">Support and complaint forms.</span></button>
+        </div>
+      </div>
+      <section class="info-panel user-info" id="user-info-panel" hidden aria-live="polite"></section>
+      <div class="legend-row user-legend"><span class="legend">FLOW TYPES</span><span class="legend-item"><i class="line-key"></i>Normal navigation</span><span class="legend-item"><i class="line-key dashed"></i>Auth / redirect</span><span class="legend-item"><i class="line-key primary"></i>Primary journey</span><span class="legend">SOURCE PATHS SHOWN ON EVERY PAGE</span></div>
+    </div>
+    <footer><span>Codebase mapped from actual project structure and dependencies.</span><span>NeoBranium / 2026.09</span></footer>
+  </main>
+  <script>
+    const nodes = {
+      index: { title: 'Public learning surface', path: 'index.html + index.js', purpose: 'Landing page, navigation, site search, analytics and AdSense.', connected: 'content, hosting', services: 'Google AdSense, Google Analytics, Firebase browser SDKs', notes: 'Primary public entry; Firebase auth redirects authenticated users onward.' },
+      sign: { title: 'Sign in / sign up', path: 'htmls/sign.html', purpose: 'Collects email/password and Google sign-in credentials.', connected: 'auth', services: 'Firebase Authentication', notes: 'Verification routes through htmls/verify-email.html.' },
+      dashboard: { title: 'Learner dashboard', path: 'htmls/dashboard.html', purpose: 'Authenticated navigation hub for notes, quizzes, chat, bot and AI tools.', connected: 'tools', services: 'Firebase Auth via js/auth.js', notes: 'Navigation and access checks are shared client behavior.' },
+      board: { title: 'AI Board', path: 'ai-board/ai-board.html', purpose: 'Interactive canvas and voice tutor entry point.', connected: 'boardmods', services: 'Express API, browser speech APIs', notes: 'Main is wired through ai-board/js/main.js.' },
+      content: { title: 'Content surfaces', path: 'Notes/ · IQ/ · blog/ · htmls/quiz_*', purpose: 'Static learning content, chapter pages, quizzes and supporting pages.', connected: 'index, server', services: 'Firebase browser SDKs where pages require auth', notes: 'Shared quiz submission logic lives in js/quiz_events.js.' },
+      auth: { title: 'Auth + shared state', path: 'js/auth.js · js/firebase-auth.js', purpose: 'Firebase initialization, auth state, profiles, guest mode and redirects.', connected: 'sign, dashboard, firebase, storage', services: 'Firebase Auth, Firestore, Storage', notes: 'Loads users/{uid}; dispatches userLoaded for authenticated pages.' },
+      tools: { title: 'Learning tools', path: 'htmls/doubt/ · bot/ · chat/ · question-paper_generator-ai/', purpose: 'Client workflows for doubt solving, chat, quizzes and generated papers.', connected: 'dashboard, server, storage, rtdb', services: 'Express AI gateway, Firebase Storage, Realtime Database', notes: 'Doubt images can be uploaded and saved with history.' },
+      boardmods: { title: 'Board engines', path: 'ai-board/js/{ai,board,ui,speech}', purpose: 'Canvas state, gestures, speech, queue polling and AI rendering.', connected: 'board, middleware, server', services: 'Gemini, Groq, ElevenLabs through API', notes: 'clientQueueManager gates analysis before aiEngine.analyzeBoard().' },
+      server: { title: 'Express AI gateway', path: 'server.js', purpose: 'HTTP boundary for AI, sessions, security, rate limiting and memory.', connected: 'content, tools, boardmods, middleware, firebase, redis, Groq, Gemini, ElevenLabs', services: 'Express, Helmet, CORS, express-session, Redis', notes: 'Routes include /api/chat, /api/chat-stream, /api/gemini-solve, /api/analyze-board, /api/rephrase-board and /api/tts.' },
+      middleware: { title: 'Board access + queue', path: 'boardMiddleware.js · queueManager.js', purpose: 'Controls AI Board concurrency, heartbeats and session lifecycle.', connected: 'boardmods, server, firebase', services: 'Firebase Admin usage tracking', notes: 'Queue is in-process and allows five users.' },
+      functions: { title: 'Callable function', path: 'functions/index.js', purpose: 'Secure callable solveDoubt proxy with per-day limits.', connected: 'firebase, Anthropic, hosting', services: 'Firebase Functions v2, Firestore, Anthropic', notes: 'Separate path from the active Express /api/gemini-solve flow.' },
+      firebase: { title: 'Firebase platform', path: 'js/auth.js · firebaseAdmin.js · firebase.json', purpose: 'Identity, document data, hosting and server-side Admin access.', connected: 'auth, server, middleware, functions, hosting', services: 'Auth, Firestore, Hosting', notes: 'Collections include users, quiz_results, solvedDoubts, unsolvedDoubts, aiboard_sessions and rateLimits.' },
+      redis: { title: 'Redis session layer', path: 'REDIS_URL · connect-redis', purpose: 'Durable Express sessions and transient user memory.', connected: 'server', services: 'Redis; in-memory Map fallback', notes: 'The server logs and falls back to process memory if Redis is unavailable.' },
+      storage: { title: 'Firebase Storage', path: 'users/{uid}/doubts/...', purpose: 'Persists uploaded doubt images for the client workflow.', connected: 'auth, tools', services: 'Firebase Storage', notes: 'Download URLs are obtained by the shared Firebase client helper.' },
+      rtdb: { title: 'Realtime Database', path: 'messages', purpose: 'Live peer-to-peer chat message stream.', connected: 'tools', services: 'Firebase Realtime Database', notes: 'Chat UI is implemented in htmls/chat/chat.js.' },
+      groq: { title: 'Groq', path: 'api.groq.com', purpose: 'Generative text for chat and tutor streaming.', connected: 'server', services: 'GROQ_API_KEY, configurable GROQ_MODEL', notes: 'Also handles board explanation rephrasing.' },
+      gemini: { title: 'Google Gemini', path: 'generativelanguage.googleapis.com', purpose: 'Multimodal and structured AI analysis.', connected: 'server, boardmods', services: 'GEMINI_API_KEY, configurable GEMINI_MODEL', notes: 'Used for paper generation, image/question solving and AI Board analysis.' },
+      eleven: { title: 'ElevenLabs', path: '/api/tts', purpose: 'Streaming server-side text-to-speech.', connected: 'server, boardmods', services: 'ELEVENLABS_API_KEY', notes: 'Browser speech engines also exist as a client capability.' },
+      anthropic: { title: 'Anthropic', path: 'api.anthropic.com', purpose: 'Multimodal answer generation behind solveDoubt.', connected: 'functions', services: 'ANTHROPIC_API_KEY', notes: 'Used only by the Firebase callable function path found in functions/index.js.' },
+      hosting: { title: 'Hosting + deployment', path: 'firebase.json · vercel.json · .firebaserc', purpose: 'Static hosting, callable function deployment and route configuration.', connected: 'index, server, functions, firebase', services: 'Firebase Hosting, Firebase Functions, Vercel, Render URL', notes: 'Firebase project is neobranium. No Render deployment file is present.' }
+    };
+
+    const userNodes = {
+      home: { title: 'Home / landing', path: 'index.html · /', status: 'Public', purpose: 'Public entry with global search, resources, questions, notes, blog and auth links.' },
+      about: { title: 'About', path: 'about.html · /about', status: 'Public', purpose: 'Public product information page.' },
+      notes: { title: 'Notes library', path: 'Notes/ · /notes', status: 'Public', purpose: 'Class 9 and 10 science and mathematics note indexes.' },
+      questions: { title: 'Question banks', path: 'IQ/top-question.html · IQ/expected-questions.html', status: 'Public', purpose: 'Top and expected question surfaces linked from the landing page.' },
+      blog: { title: 'Blog', path: 'blog/blog.html · /blog', status: 'Public', purpose: 'Public article and post surface.' },
+      chapter: { title: 'Chapter detail', path: 'Notes/10-CH1.html', status: 'Public', purpose: 'Representative chapter page linked from the class-wise notes index.' },
+      sign: { title: 'Sign in / sign up', path: 'htmls/sign.html', status: 'Auth', purpose: 'Email/password, Google and guest entry; terms and privacy links.' },
+      verify: { title: 'Email verification', path: 'htmls/verify-email.html', status: 'Auth', purpose: 'Account activation checkpoint after signup.' },
+      legal: { title: 'Terms + privacy', path: 'htmls/terms_conditions.html · htmls/privacy.html', status: 'Public', purpose: 'Legal pages linked from the signup form.' },
+      dashboard: { title: 'Dashboard', path: 'htmls/dashboard.html', status: 'Authenticated / guest', purpose: 'Main app hub with class selection, sidebar navigation and quick actions.' },
+      appnotes: { title: 'App notes', path: 'htmls/notes.html', status: 'Authenticated / guest', purpose: 'Authenticated notes screen with app navigation.' },
+      quiz: { title: 'Quizzes', path: 'htmls/quiz_htmls/ · js/dashboard.js', status: 'Authenticated / guest', purpose: 'Dashboard class selection opens the quiz subject families.' },
+      spotlight: { title: 'Spotlight', path: 'htmls/spotlight.html', status: 'Authenticated / guest', purpose: 'Monthly notes and ranking surface.' },
+      bot: { title: 'Bot Helper', path: 'htmls/bot/bot.html', status: 'Authenticated / guest', purpose: 'AI assistant surface linked from dashboard and shortcuts.' },
+      paper: { title: 'Exam paper generator', path: 'htmls/question-paper_generator-ai/ai-generate.html', status: 'Authenticated / guest', purpose: 'Question-paper generation tool linked from dashboard.' },
+      chat: { title: 'Live chat', path: 'htmls/chat/chat_app.html', status: 'Authenticated / guest', purpose: 'Peer messaging screen; guest sending is restricted.' },
+      tutor: { title: 'NeoTutor', path: 'htmls/doubt/index.html', status: 'Authenticated / guest', purpose: 'Doubt-solving screen linked from dashboard.' },
+      board: { title: 'AI Board', path: 'ai-board/ai-board.html', status: 'Authenticated / guest', purpose: 'Canvas and voice learning tool linked from dashboard.' },
+      profile: { title: 'Profile', path: 'htmls/profile.html', status: 'Authenticated', purpose: 'Account profile reached from the shared user menu.' },
+      settings: { title: 'Settings', path: 'htmls/setting.html', status: 'Authenticated', purpose: 'Account preferences reached from the shared user menu.' },
+      rank: { title: 'Rank + score info', path: 'htmls/rank-score-info.html', status: 'Authenticated / guest', purpose: 'Score and ranking explanation reached from Profile.' },
+      contact: { title: 'Contact + feedback', path: 'htmls/contactus.html · htmls/feedback.html', status: 'Authenticated / guest', purpose: 'Support and complaint forms in the shared app navigation.' }
+    };
+
+    const nodeEls = [...document.querySelectorAll('.node')];
+    const wireEls = [...document.querySelectorAll('.wire')];
+    const panel = document.getElementById('info-panel');
+    const focusCopy = document.getElementById('focus-copy');
+    const userNodeEls = [...document.querySelectorAll('.user-node')];
+    const userWireEls = [...document.querySelectorAll('.user-wire')];
+    const userPanel = document.getElementById('user-info-panel');
+    const userCanvas = document.getElementById('user-canvas');
+    const userViewport = document.getElementById('user-viewport');
+    let userScale = 1;
+    let userOffset = { x: 0, y: 0 };
+
+    function showNode(id) {
+      const data = nodes[id];
+      nodeEls.forEach((node) => node.classList.toggle('is-dim', node.dataset.id !== id && !isConnected(node.dataset.id, id)));
+      wireEls.forEach((wire) => wire.classList.toggle('is-hot', wire.dataset.from === id || wire.dataset.to === id));
+      wireEls.forEach((wire) => wire.classList.toggle('is-dim', wire.dataset.from !== id && wire.dataset.to !== id));
+      const connected = data.connected.split(', ');
+      focusCopy.textContent = `${data.title} focused · ${connected.length} direct connections`;
+      panel.hidden = false;
+      panel.innerHTML = `<div><h2 class="info-title">${data.title}</h2><div class="info-path">${data.path}</div></div><div><div class="info-label">Purpose</div><p class="info-value">${data.purpose}</p></div><div><div class="info-label">Connected modules</div><p class="info-value">${connected.map((item) => `<span>${item}</span>`).join('')}</p></div><div><div class="info-label">Services / notes</div><p class="info-value">${data.services}<span>${data.notes}</span></p></div>`;
+    }
+
+    function isConnected(nodeId, selectedId) {
+      if (nodeId === selectedId) return true;
+      return wireEls.some((wire) => (wire.dataset.from === selectedId && wire.dataset.to === nodeId) || (wire.dataset.to === selectedId && wire.dataset.from === nodeId));
+    }
+
+    function clearFocus() {
+      nodeEls.forEach((node) => node.classList.remove('is-dim', 'is-active'));
+      wireEls.forEach((wire) => wire.classList.remove('is-dim', 'is-hot'));
+      panel.hidden = true;
+      focusCopy.textContent = 'All systems visible';
+    }
+
+    function renderUserTransform() {
+      userCanvas.style.transform = `translate(${userOffset.x}px, ${userOffset.y}px) scale(${userScale})`;
+      document.getElementById('zoom-reset').textContent = `${Math.round(userScale * 100)}%`;
+    }
+
+    function userNeighbors(id) {
+      return userWireEls.filter((wire) => wire.dataset.from === id || wire.dataset.to === id).flatMap((wire) => [wire.dataset.from, wire.dataset.to]).filter((value) => value !== id);
+    }
+
+    function showUserNode(id) {
+      const data = userNodes[id];
+      const neighbors = userNeighbors(id);
+      const outgoing = userWireEls.filter((wire) => wire.dataset.from === id).map((wire) => userNodes[wire.dataset.to].title);
+      const incoming = userWireEls.filter((wire) => wire.dataset.to === id).map((wire) => userNodes[wire.dataset.from].title);
+      userNodeEls.forEach((node) => node.classList.toggle('is-dim', node.dataset.userId !== id && !neighbors.includes(node.dataset.userId)));
+      userNodeEls.forEach((node) => node.classList.toggle('is-active', node.dataset.userId === id));
+      userWireEls.forEach((wire) => wire.classList.toggle('is-hot', wire.dataset.from === id || wire.dataset.to === id));
+      userWireEls.forEach((wire) => wire.classList.toggle('is-dim', wire.dataset.from !== id && wire.dataset.to !== id));
+      userPanel.hidden = false;
+      userPanel.innerHTML = `<div><h2 class="info-title">${data.title}</h2><div class="info-path">${data.path}</div></div><div><div class="info-label">Access</div><p class="info-value">${data.status}</p><div class="info-label" style="margin-top:14px">Purpose</div><p class="info-value">${data.purpose}</p></div><div><div class="info-label">Links to</div><p class="info-value">${outgoing.length ? outgoing.map((item) => `<span>${item}</span>`).join('') : '<span>None verified</span>'}</p></div><div><div class="info-label">Linked from</div><p class="info-value">${incoming.length ? incoming.map((item) => `<span>${item}</span>`).join('') : '<span>Direct entry</span>'}</p></div>`;
+    }
+
+    function clearUserFocus() {
+      userNodeEls.forEach((node) => node.classList.remove('is-dim', 'is-active'));
+      userWireEls.forEach((wire) => wire.classList.remove('is-dim', 'is-hot'));
+      userPanel.hidden = true;
+    }
+
+    function setPrimaryJourney(enabled) {
+      if (!enabled) { clearUserFocus(); return; }
+      const journeyNodes = ['home', 'notes', 'chapter'];
+      userNodeEls.forEach((node) => node.classList.toggle('is-dim', !journeyNodes.includes(node.dataset.userId)));
+      userWireEls.forEach((wire) => wire.classList.toggle('is-hot', wire.dataset.kind === 'primary'));
+      userWireEls.forEach((wire) => wire.classList.toggle('is-dim', wire.dataset.kind !== 'primary'));
+      userNodeEls.forEach((node) => node.classList.toggle('is-active', journeyNodes.includes(node.dataset.userId)));
+      userPanel.hidden = false;
+      userPanel.innerHTML = '<div><h2 class="info-title">Primary Journey</h2><div class="info-path">index.html &rarr; Notes/class-wise-notes.html &rarr; Notes/10-CH1.html</div></div><div><div class="info-label">Evidence</div><p class="info-value">Landing page links to class notes; the class-wise index links to chapter pages.</p></div><div><div class="info-label">Flow type</div><p class="info-value">Normal public navigation</p></div><div><div class="info-label">Scope</div><p class="info-value">Only the source-supported study path is highlighted.</p></div>';
+    }
+
+    function resetUserMap() {
+      document.getElementById('journey-toggle').checked = false;
+      userScale = 1;
+      userOffset = { x: 0, y: 0 };
+      renderUserTransform();
+      clearUserFocus();
+    }
+
+    function updateStats(view) {
+      document.getElementById('system-node-count').textContent = view === 'system-section' ? nodeEls.length : userNodeEls.length;
+      document.getElementById('system-flow-count').textContent = view === 'system-section' ? wireEls.length : userWireEls.length;
+      document.getElementById('page-count').textContent = userNodeEls.length;
+      document.getElementById('service-count').textContent = document.querySelectorAll('#system-section .data, #system-section .external, #system-section .infra').length;
+    }
+
+    nodeEls.forEach((node) => node.addEventListener('click', () => { nodeEls.forEach((item) => item.classList.toggle('is-active', item === node)); showNode(node.dataset.id); }));
+    document.getElementById('clear-focus').addEventListener('click', clearFocus);
+    userNodeEls.forEach((node) => node.addEventListener('click', () => showUserNode(node.dataset.userId)));
+    document.getElementById('journey-toggle').addEventListener('change', (event) => setPrimaryJourney(event.target.checked));
+    document.getElementById('zoom-in').addEventListener('click', () => { userScale = Math.min(1.35, userScale + .1); renderUserTransform(); });
+    document.getElementById('zoom-out').addEventListener('click', () => { userScale = Math.max(.65, userScale - .1); renderUserTransform(); });
+    document.getElementById('zoom-reset').addEventListener('click', resetUserMap);
+    document.getElementById('user-reset').addEventListener('click', resetUserMap);
+
+    let dragStart;
+    userViewport.addEventListener('pointerdown', (event) => { if (event.target.closest('.user-node')) return; dragStart = { x: event.clientX - userOffset.x, y: event.clientY - userOffset.y }; userViewport.classList.add('is-dragging'); userViewport.setPointerCapture(event.pointerId); });
+    userViewport.addEventListener('pointermove', (event) => { if (!dragStart) return; userOffset = { x: event.clientX - dragStart.x, y: event.clientY - dragStart.y }; renderUserTransform(); });
+    userViewport.addEventListener('pointerup', () => { dragStart = null; userViewport.classList.remove('is-dragging'); });
+
+    document.querySelectorAll('.atlas-tab').forEach((tab) => tab.addEventListener('click', () => {
+      document.querySelectorAll('.atlas-tab').forEach((item) => item.classList.toggle('is-active', item === tab));
+      document.querySelectorAll('.atlas-view').forEach((view) => { view.hidden = view.id !== tab.dataset.view; });
+      document.getElementById('system-toolbar').hidden = tab.dataset.view !== 'system-section';
+      updateStats(tab.dataset.view);
+    }));
+
+    updateStats('system-section');
+    renderUserTransform();
+  </script>
+</body>
+</html>
