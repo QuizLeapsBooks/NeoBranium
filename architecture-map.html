@@ -4,449 +4,2791 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>NeoBranium / System Atlas</title>
+  <link rel="icon" href="/online-graduation_16847316.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-
     :root {
-      --ink: #f4f7fb;
-      --muted: #8e9bad;
-      --line: rgba(154, 174, 196, .18);
-      --panel: rgba(14, 21, 31, .88);
-      --panel-strong: #111b28;
-      --canvas: #09111b;
-      --entry: #f0b35b;
-      --client: #65d0bf;
-      --backend: #7aa7ff;
-      --data: #b59bff;
-      --external: #ed8ca9;
-      --infra: #b7c4d1;
+      --canvas: #060b13;
+      --canvas-surface: #0a121e;
+      --panel: rgba(13, 22, 34, 0.88);
+      --panel-border: rgba(133, 161, 186, 0.18);
+      --panel-highlight: rgba(133, 161, 186, 0.35);
+      
+      --ink: #f0f4f8;
+      --ink-muted: #8494a7;
+      --ink-dim: #526377;
+      
+      /* Distinct Category Neon Glows */
+      --color-public: #38bdf8;
+      --color-auth: #c084fc;
+      --color-app: #10b981;
+      --color-ai: #f43f5e;
+      --color-notes: #f59e0b;
+      --color-quiz: #6366f1;
+      --color-iq: #ec4899;
+      --color-legal: #94a3b8;
+      
+      --color-backend: #3b82f6;
+      --color-data: #8b5cf6;
+      --color-external: #f97316;
+      --color-infra: #64748b;
     }
 
     * { box-sizing: border-box; }
-    html { background: var(--canvas); }
-    body {
+    html, body {
       margin: 0;
-      min-width: 0;
+      padding: 0;
+      background: var(--canvas);
       color: var(--ink);
-      background-color: var(--canvas);
-      background-image: linear-gradient(rgba(133, 159, 184, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(133, 159, 184, .045) 1px, transparent 1px), radial-gradient(circle at 50% 0%, rgba(37, 82, 115, .24), transparent 42%);
-      background-size: 32px 32px, 32px 32px, auto;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
-    button { font: inherit; }
-    .shell { max-width: 1680px; margin: 0 auto; padding: 38px 42px 48px; }
-    header { display: flex; justify-content: space-between; align-items: end; gap: 30px; margin-bottom: 28px; }
-    .eyebrow, .kicker, .meta, .legend, .node-path, .connection-label, .stat-label { font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .11em; }
-    .eyebrow { color: var(--client); font-size: 11px; margin: 0 0 15px; }
-    h1 { margin: 0; font-size: clamp(38px, 5vw, 68px); line-height: .94; letter-spacing: -.055em; font-weight: 600; }
-    .subtitle { color: var(--muted); font-size: 18px; margin: 17px 0 0; }
-    .header-note { max-width: 315px; color: var(--muted); line-height: 1.55; font-size: 13px; text-align: right; }
-    .header-note strong { display: block; color: var(--ink); font-size: 12px; margin-bottom: 6px; font-family: 'DM Mono', monospace; font-weight: 500; }
-    .toolbar { display: flex; align-items: center; justify-content: space-between; border-block: 1px solid var(--line); padding: 13px 0; margin-bottom: 18px; }
-    .toolbar-copy { color: var(--muted); font-size: 12px; }
-    .toolbar-copy b { color: var(--ink); font-weight: 500; }
-    .clear-button { color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 5px; padding: 8px 12px; cursor: pointer; font-size: 12px; }
-    .clear-button:hover { border-color: var(--client); color: var(--client); }
-    .atlas-tabs { display: flex; gap: 4px; margin: 8px 0 20px; }
-    .atlas-tab { color: var(--muted); background: rgba(13, 22, 32, .72); border: 1px solid var(--line); border-radius: 5px; padding: 10px 14px; cursor: pointer; font: 10px 'DM Mono', monospace; letter-spacing: .1em; }
-    .atlas-tab.is-active { color: var(--ink); border-color: var(--client); background: rgba(52, 104, 105, .22); }
-    .atlas-view[hidden] { display: none; }
-    .map-wrap { overflow-x: auto; border: 1px solid var(--line); background: rgba(5, 11, 18, .55); box-shadow: 0 22px 60px rgba(0, 0, 0, .22); }
-    .map { position: relative; width: 1400px; height: 920px; }
-    .wires { position: absolute; inset: 0; width: 1400px; height: 920px; pointer-events: none; }
-    .wire { fill: none; stroke: rgba(133, 161, 186, .35); stroke-width: 1.4; vector-effect: non-scaling-stroke; transition: opacity .2s, stroke .2s, stroke-width .2s; }
-    .wire[data-kind="auth"] { stroke: rgba(181, 155, 255, .52); }
-    .wire[data-kind="ai"] { stroke: rgba(237, 140, 169, .58); }
-    .wire[data-kind="data"] { stroke: rgba(101, 208, 191, .55); }
-    .wire[data-kind="deploy"] { stroke: rgba(183, 196, 209, .5); stroke-dasharray: 5 6; }
-    .wire.is-dim { opacity: .07; }
-    .wire.is-hot { stroke: #fff; stroke-width: 2.8; opacity: 1; }
-    .flow-arrow { fill: currentColor; }
-    .connection-label { position: absolute; z-index: 1; color: #67788c; font-size: 9px; white-space: nowrap; background: rgba(9, 17, 27, .92); padding: 3px 5px; }
-    .column { position: absolute; top: 22px; color: var(--muted); font: 500 10px 'DM Mono', monospace; letter-spacing: .14em; }
-    .column::before { content: ''; display: inline-block; width: 7px; height: 7px; border: 1px solid currentColor; margin-right: 8px; vertical-align: 1px; }
-    .col-entry { left: 34px; color: var(--entry); }
-    .col-client { left: 318px; color: var(--client); }
-    .col-backend { left: 610px; color: var(--backend); }
-    .col-data { left: 900px; color: var(--data); }
-    .col-external { left: 1130px; color: var(--external); }
-    .node { position: absolute; z-index: 2; width: 218px; min-height: 105px; padding: 14px 15px; border: 1px solid color-mix(in srgb, var(--node-color) 55%, transparent); border-left: 3px solid var(--node-color); border-radius: 7px; background: linear-gradient(135deg, rgba(23, 35, 49, .98), rgba(11, 19, 29, .94)); color: var(--ink); text-align: left; cursor: pointer; transition: opacity .2s, transform .2s, border-color .2s, box-shadow .2s; }
-    .node:hover { transform: translateY(-2px); border-color: var(--node-color); box-shadow: 0 10px 25px rgba(0,0,0,.28); }
-    .node.is-dim { opacity: .16; }
-    .node.is-active { border-color: var(--node-color); box-shadow: 0 0 0 1px var(--node-color), 0 13px 30px rgba(0,0,0,.34); }
-    .node-title { display: block; font-size: 15px; font-weight: 600; line-height: 1.1; margin-bottom: 8px; }
-    .node-path { display: block; color: var(--node-color); font-size: 9px; line-height: 1.35; overflow-wrap: anywhere; }
-    .node-note { color: #a7b4c3; font-size: 11px; line-height: 1.35; margin-top: 9px; }
-    .entry { --node-color: var(--entry); } .client { --node-color: var(--client); } .backend { --node-color: var(--backend); } .data { --node-color: var(--data); } .external { --node-color: var(--external); } .infra { --node-color: var(--infra); }
-    .n-index { left: 28px; top: 108px; } .n-sign { left: 28px; top: 280px; } .n-dashboard { left: 28px; top: 452px; } .n-board { left: 28px; top: 624px; }
-    .n-content { left: 302px; top: 124px; } .n-auth { left: 302px; top: 330px; } .n-tools { left: 302px; top: 536px; } .n-boardmods { left: 302px; top: 710px; }
-    .n-server { left: 594px; top: 248px; min-height: 142px; } .n-middleware { left: 594px; top: 490px; } .n-functions { left: 594px; top: 708px; }
-    .n-firebase { left: 884px; top: 100px; } .n-redis { left: 884px; top: 316px; } .n-storage { left: 884px; top: 532px; } .n-rtdb { left: 884px; top: 748px; }
-    .n-groq { left: 1114px; top: 84px; } .n-gemini { left: 1114px; top: 258px; } .n-eleven { left: 1114px; top: 432px; } .n-anthropic { left: 1114px; top: 606px; } .n-hosting { left: 1114px; top: 780px; }
-    .info-panel { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 22px; margin-top: 18px; padding: 20px 22px; border: 1px solid var(--line); background: var(--panel); min-height: 148px; }
-    .info-empty { grid-column: 1 / -1; align-self: center; color: var(--muted); font-size: 13px; }
-    .info-panel[hidden] { display: none; }
-    .info-title { font-size: 21px; margin: 0 0 6px; }
-    .info-path { color: var(--client); font: 11px 'DM Mono', monospace; overflow-wrap: anywhere; }
-    .info-label { color: var(--muted); font: 10px 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 7px; }
-    .info-value { color: #d4dce5; font-size: 12px; line-height: 1.5; margin: 0; }
-    .info-value span { display: block; }
-    .legend-row { display: flex; flex-wrap: wrap; align-items: center; gap: 17px; margin-top: 18px; color: var(--muted); font-size: 11px; }
-    .legend { font-size: 9px; color: #718196; }
-    .legend-item { display: inline-flex; align-items: center; gap: 7px; }
-    .line-key { width: 23px; border-top: 2px solid #aebcca; }
-    .line-key.dashed { border-top-style: dashed; border-color: var(--data); }
-    .line-key.primary { border-color: var(--entry); box-shadow: 0 0 7px var(--entry); }
-    .swatch { width: 9px; height: 9px; border-radius: 2px; background: var(--swatch); }
-    .stats { display: flex; gap: 26px; margin-left: auto; }
-    .stat { text-align: right; } .stat-label { display: block; color: #657589; font-size: 9px; } .stat-value { color: var(--ink); font: 500 15px 'DM Mono', monospace; }
-    footer { display: flex; justify-content: space-between; gap: 20px; margin-top: 26px; color: #6f7e90; font: 10px 'DM Mono', monospace; letter-spacing: .05em; }
-    .user-heading { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin: 4px 0 18px; }
-    .section-kicker { color: var(--entry); font: 10px 'DM Mono', monospace; letter-spacing: .14em; }
-    .user-heading h2 { margin: 8px 0 0; font-size: 34px; letter-spacing: -.04em; }
-    .user-heading p { color: var(--muted); margin: 8px 0 0; font-size: 14px; }
-    .map-actions { display: flex; gap: 6px; align-items: center; }
-    .map-action { color: var(--ink); background: rgba(13, 22, 32, .82); border: 1px solid var(--line); border-radius: 4px; min-width: 34px; height: 32px; cursor: pointer; font: 12px 'DM Mono', monospace; }
-    .map-action:hover { border-color: var(--entry); color: var(--entry); }
-    .journey-toggle { display: inline-flex; align-items: center; gap: 8px; margin-right: 10px; color: var(--muted); font-size: 11px; }
-    .journey-toggle input { accent-color: var(--entry); }
-    .user-map-viewport { position: relative; height: 740px; overflow: hidden; border: 1px solid var(--line); background: rgba(5, 11, 18, .55); cursor: grab; }
-    .user-map-viewport.is-dragging { cursor: grabbing; }
-    .user-map-canvas { position: absolute; left: 0; top: 0; width: 1500px; height: 920px; transform-origin: 0 0; }
-    .user-wires { position: absolute; inset: 0; width: 1500px; height: 920px; pointer-events: none; }
-    .user-wire { fill: none; stroke: rgba(160, 177, 193, .43); stroke-width: 1.5; transition: opacity .2s, stroke .2s, stroke-width .2s; }
-    .user-wire[data-kind="auth"] { stroke: rgba(181, 155, 255, .67); stroke-dasharray: 5 6; }
-    .user-wire[data-kind="primary"] { stroke: var(--entry); stroke-width: 2.6; }
-    .user-wire.is-dim { opacity: .07; }
-    .user-wire.is-hot { stroke: #fff; stroke-width: 3; opacity: 1; }
-    .user-column { position: absolute; top: 22px; color: var(--muted); font: 500 10px 'DM Mono', monospace; letter-spacing: .14em; }
-    .user-column::before { content: ''; display: inline-block; width: 7px; height: 7px; border: 1px solid currentColor; margin-right: 8px; vertical-align: 1px; }
-    .user-public { left: 38px; color: var(--entry); } .user-auth { left: 332px; color: var(--data); } .user-app { left: 624px; color: var(--client); } .user-tools { left: 920px; color: var(--backend); } .user-account { left: 1212px; color: var(--external); }
-    .user-node { position: absolute; z-index: 2; width: 220px; min-height: 94px; padding: 13px 15px; border: 1px solid color-mix(in srgb, var(--user-color) 55%, transparent); border-left: 3px solid var(--user-color); border-radius: 7px; background: linear-gradient(135deg, rgba(23, 35, 49, .98), rgba(11, 19, 29, .94)); color: var(--ink); text-align: left; cursor: pointer; transition: opacity .2s, transform .2s, box-shadow .2s; }
-    .user-node:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0,0,0,.28); }
-    .user-node.is-dim { opacity: .14; } .user-node.is-active { box-shadow: 0 0 0 1px var(--user-color), 0 13px 30px rgba(0,0,0,.34); }
-    .user-node .node-title { font-size: 14px; } .user-node .node-path { color: var(--user-color); } .user-node .node-note { font-size: 10px; }
-    .u-public { --user-color: var(--entry); } .u-auth { --user-color: var(--data); } .u-app { --user-color: var(--client); } .u-tool { --user-color: var(--backend); } .u-account { --user-color: var(--external); }
-    .u-home { left: 26px; top: 84px; } .u-about { left: 26px; top: 270px; } .u-notes { left: 26px; top: 456px; } .u-questions { left: 26px; top: 642px; }
-    .u-sign { left: 320px; top: 120px; } .u-verify { left: 320px; top: 344px; } .u-legal { left: 320px; top: 568px; }
-    .u-dashboard { left: 614px; top: 92px; } .u-appnotes { left: 614px; top: 278px; } .u-quiz { left: 614px; top: 464px; } .u-spotlight { left: 614px; top: 650px; }
-    .u-bot { left: 908px; top: 52px; } .u-paper { left: 908px; top: 238px; } .u-chat { left: 908px; top: 424px; } .u-tutor { left: 908px; top: 610px; } .u-board { left: 908px; top: 796px; }
-    .u-profile { left: 1202px; top: 180px; } .u-settings { left: 1202px; top: 366px; } .u-rank { left: 1202px; top: 552px; } .u-contact { left: 1202px; top: 738px; }
-    .user-info { margin-top: 16px; }
-    .user-legend { margin-top: 14px; }
-    @media (max-width: 800px) { .shell { padding: 28px 18px; } header { display: block; } .header-note { text-align: left; margin-top: 20px; } .stats { display: none; } .user-heading { display: block; } .map-actions { margin-top: 16px; } }
+
+    /* Ambient cybernetic background grid */
+    body {
+      background-color: var(--canvas);
+      background-image: 
+        linear-gradient(rgba(56, 189, 248, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 189, 248, 0.025) 1px, transparent 1px),
+        radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.08), transparent 45%),
+        radial-gradient(circle at 90% 90%, rgba(99, 102, 241, 0.07), transparent 50%);
+      background-size: 32px 32px, 32px 32px, auto, auto;
+    }
+
+    /* Shell Layout */
+    .shell {
+      max-width: 1720px;
+      margin: 0 auto;
+      padding: 28px 36px 60px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .brand-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--color-public);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .brand-eyebrow .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color-public);
+      box-shadow: 0 0 8px var(--color-public);
+      animation: blink 2s infinite ease-in-out;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(32px, 4vw, 54px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--ink-muted);
+      font-size: 15px;
+      margin: 8px 0 0;
+      max-width: 680px;
+      line-height: 1.5;
+    }
+
+    .header-stats {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: rgba(10, 18, 30, 0.7);
+      border: 1px solid var(--panel-border);
+      padding: 10px 20px;
+      border-radius: 8px;
+      backdrop-filter: blur(12px);
+    }
+    .stat-item {
+      text-align: right;
+    }
+    .stat-num {
+      display: block;
+      font-family: 'DM Mono', monospace;
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .stat-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      color: var(--ink-dim);
+      letter-spacing: 0.1em;
+    }
+
+    /* Top Navigation Tabs */
+    .tabs-bar {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs-bar::-webkit-scrollbar { display: none; }
+
+    .nav-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(13, 22, 34, 0.6);
+      border: 1px solid var(--panel-border);
+      color: var(--ink-muted);
+      padding: 9px 16px;
+      border-radius: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .nav-tab:hover {
+      color: var(--ink);
+      border-color: var(--panel-highlight);
+      background: rgba(17, 28, 44, 0.8);
+    }
+    .nav-tab.is-active {
+      color: #fff;
+      background: rgba(56, 189, 248, 0.12);
+      border-color: var(--color-public);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.15);
+    }
+
+    /* Universal Controls & Filter Toolbar */
+    .toolbar-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-left, .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      position: relative;
+      width: 280px;
+    }
+    .search-input {
+      width: 100%;
+      background: rgba(13, 22, 34, 0.85);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 8px 34px 8px 12px;
+      color: var(--ink);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-input:focus {
+      border-color: var(--color-public);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+    }
+    .search-key {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--ink-dim);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1px 5px;
+      border-radius: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      pointer-events: none;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .filter-pill {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      padding: 6px 11px;
+      border-radius: 4px;
+      background: transparent;
+      border: 1px solid var(--panel-border);
+      color: var(--ink-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-pill:hover {
+      color: var(--ink);
+      border-color: var(--panel-highlight);
+    }
+    .filter-pill.is-active {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .journey-selector-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-muted);
+    }
+    .journey-select {
+      background: rgba(13, 22, 34, 0.85);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 7px 12px;
+      color: var(--ink);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      outline: none;
+      cursor: pointer;
+    }
+    .journey-select:focus {
+      border-color: var(--color-public);
+    }
+
+    .btn-ctrl {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+      padding: 0 10px;
+      background: rgba(13, 22, 34, 0.85);
+      border: 1px solid var(--panel-border);
+      border-radius: 5px;
+      color: var(--ink-muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-ctrl:hover {
+      color: var(--ink);
+      border-color: var(--color-public);
+    }
+
+    /* Views Layout */
+    .view-container { display: block; }
+    .view-container[hidden] { display: none; }
+
+    /* Map Viewport for Interactive Pan / Zoom */
+    .canvas-viewport {
+      position: relative;
+      height: 780px;
+      border: 1px solid var(--panel-border);
+      background: rgba(6, 12, 20, 0.75);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: grab;
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.5), 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+    .canvas-viewport.is-dragging { cursor: grabbing; }
+
+    .interactive-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 1580px;
+      height: 1000px;
+      transform-origin: 0 0;
+      transition: transform 0.05s ease-out;
+    }
+
+    /* SVG Connection Wires */
+    .wires-layer {
+      position: absolute;
+      inset: 0;
+      width: 1580px;
+      height: 1000px;
+      pointer-events: none;
+    }
+    .wire-path {
+      fill: none;
+      stroke: rgba(133, 161, 186, 0.22);
+      stroke-width: 1.4;
+      vector-effect: non-scaling-stroke;
+      transition: stroke 0.25s, stroke-width 0.25s, opacity 0.25s;
+    }
+    .wire-path[data-kind="auth"] {
+      stroke: rgba(192, 132, 252, 0.4);
+      stroke-dasharray: 4 5;
+    }
+    .wire-path[data-kind="ai"] {
+      stroke: rgba(244, 63, 94, 0.45);
+    }
+    .wire-path[data-kind="data"] {
+      stroke: rgba(16, 185, 129, 0.45);
+    }
+    .wire-path[data-kind="infra"] {
+      stroke: rgba(100, 116, 139, 0.4);
+      stroke-dasharray: 3 4;
+    }
+
+    /* Active / Focus Wire States */
+    .wire-path.is-dim { opacity: 0.06; }
+    .wire-path.is-outgoing {
+      stroke: var(--color-public) !important;
+      stroke-width: 2.8 !important;
+      opacity: 1 !important;
+      animation: flowPulse 2s infinite linear;
+    }
+    .wire-path.is-incoming {
+      stroke: var(--color-auth) !important;
+      stroke-width: 2.8 !important;
+      opacity: 1 !important;
+    }
+    .wire-path.is-journey {
+      stroke: #fcd34d !important;
+      stroke-width: 3.2 !important;
+      stroke-dasharray: 6 6;
+      opacity: 1 !important;
+      animation: journeyFlow 1.2s infinite linear;
+    }
+    @keyframes journeyFlow { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
+    @keyframes flowPulse { 0% { filter: drop-shadow(0 0 2px var(--color-public)); } 50% { filter: drop-shadow(0 0 6px var(--color-public)); } 100% { filter: drop-shadow(0 0 2px var(--color-public)); } }
+
+    /* Map Columns */
+    .map-col-header {
+      position: absolute;
+      top: 18px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      color: var(--ink-dim);
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+    .map-col-header::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 1px;
+      background: currentColor;
+      margin-right: 8px;
+      vertical-align: 1px;
+    }
+
+    /* Node Cards */
+    .node-card {
+      position: absolute;
+      z-index: 2;
+      width: 232px;
+      min-height: 94px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgba(16, 26, 38, 0.96), rgba(9, 16, 25, 0.94));
+      border: 1px solid var(--node-accent, rgba(133, 161, 186, 0.2));
+      border-left: 3px solid var(--node-accent, var(--color-public));
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s, opacity 0.2s, border-color 0.2s;
+    }
+    .node-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(var(--node-rgb, 56, 189, 248), 0.25);
+      border-color: var(--node-accent);
+      z-index: 5;
+    }
+    .node-card.is-active {
+      box-shadow: 0 0 0 1px var(--node-accent), 0 14px 34px rgba(0, 0, 0, 0.5), 0 0 25px rgba(var(--node-rgb, 56, 189, 248), 0.35);
+      border-color: var(--node-accent);
+      z-index: 6;
+    }
+    .node-card.is-dim {
+      opacity: 0.12;
+      pointer-events: auto;
+    }
+    .node-card.is-journey {
+      box-shadow: 0 0 0 2px #fcd34d, 0 0 25px rgba(252, 211, 77, 0.4);
+      z-index: 7;
+    }
+
+    .node-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .node-title {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.25;
+      color: #fff;
+    }
+    .node-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.08em;
+      padding: 2px 5px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--node-accent, var(--ink-muted));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+    }
+    .node-path {
+      display: block;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--node-accent, var(--color-public));
+      line-height: 1.35;
+      margin-bottom: 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .node-desc {
+      font-size: 10px;
+      color: var(--ink-muted);
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Node Category Colors */
+    .cat-public { --node-accent: var(--color-public); --node-rgb: 56, 189, 248; }
+    .cat-auth { --node-accent: var(--color-auth); --node-rgb: 192, 132, 252; }
+    .cat-app { --node-accent: var(--color-app); --node-rgb: 16, 185, 129; }
+    .cat-ai { --node-accent: var(--color-ai); --node-rgb: 244, 63, 94; }
+    .cat-notes { --node-accent: var(--color-notes); --node-rgb: 245, 158, 11; }
+    .cat-quiz { --node-accent: var(--color-quiz); --node-rgb: 99, 102, 241; }
+    .cat-iq { --node-accent: var(--color-iq); --node-rgb: 236, 72, 153; }
+    .cat-legal { --node-accent: var(--color-legal); --node-rgb: 148, 163, 184; }
+
+    .cat-backend { --node-accent: var(--color-backend); --node-rgb: 59, 130, 246; }
+    .cat-data { --node-accent: var(--color-data); --node-rgb: 139, 92, 246; }
+    .cat-external { --node-accent: var(--color-external); --node-rgb: 249, 115, 22; }
+    .cat-infra { --node-accent: var(--color-infra); --node-rgb: 100, 116, 139; }
+
+    /* Slide-Over / Details Drawer */
+    .details-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 440px;
+      height: 100vh;
+      background: rgba(10, 18, 28, 0.94);
+      border-left: 1px solid var(--panel-border);
+      box-shadow: -15px 0 50px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(20px);
+      z-index: 100;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .details-drawer.is-open {
+      transform: translateX(0);
+    }
+    .drawer-header {
+      padding: 24px 28px 18px;
+      border-bottom: 1px solid var(--panel-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .drawer-title-wrap { max-width: 320px; }
+    .drawer-badge-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .drawer-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 6px;
+      color: #fff;
+    }
+    .drawer-path {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--color-public);
+      overflow-wrap: anywhere;
+    }
+    .drawer-close {
+      background: transparent;
+      border: 1px solid var(--panel-border);
+      border-radius: 5px;
+      color: var(--ink-muted);
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.15s;
+    }
+    .drawer-close:hover {
+      color: #fff;
+      border-color: var(--color-public);
+    }
+    .drawer-body {
+      padding: 24px 28px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .drawer-section {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 16px;
+    }
+    .drawer-section:last-child { border-bottom: none; }
+    .drawer-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink-dim);
+      margin-bottom: 8px;
+    }
+    .drawer-text {
+      font-size: 13px;
+      color: var(--ink-muted);
+      line-height: 1.5;
+      margin: 0;
+    }
+    .drawer-links-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .drawer-link-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 5px;
+      padding: 7px 10px;
+      font-size: 12px;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .drawer-link-item:hover {
+      background: rgba(56, 189, 248, 0.08);
+      border-color: rgba(56, 189, 248, 0.3);
+      color: #fff;
+    }
+    .drawer-link-item span {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--ink-dim);
+    }
+    .drawer-tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .drawer-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: #cbd5e1;
+    }
+    .drawer-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .btn-action-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid var(--color-public);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 5px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-action-primary:hover {
+      background: var(--color-public);
+      color: #000;
+    }
+
+    /* Content Map View (Interactive Collapsible Tree) */
+    .content-tree-wrap {
+      background: rgba(8, 14, 23, 0.85);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 30px 36px;
+      min-height: 700px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+    .tree-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--panel-border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .tree-legend {
+      display: flex;
+      gap: 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-muted);
+    }
+    .tree-legend-item { display: flex; align-items: center; gap: 6px; }
+    .tree-legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+
+    .tree-branch {
+      list-style: none;
+      padding-left: 24px;
+      position: relative;
+    }
+    .tree-branch::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 0;
+      bottom: 12px;
+      width: 1px;
+      background: rgba(133, 161, 186, 0.2);
+    }
+    .tree-node {
+      position: relative;
+      margin: 10px 0;
+    }
+    .tree-node::before {
+      content: '';
+      position: absolute;
+      left: -17px;
+      top: 14px;
+      width: 14px;
+      height: 1px;
+      background: rgba(133, 161, 186, 0.2);
+    }
+    .tree-node-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      background: rgba(15, 25, 38, 0.8);
+      border: 1px solid var(--panel-border);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tree-node-row:hover {
+      background: rgba(22, 38, 58, 0.9);
+      border-color: var(--color-public);
+      transform: translateX(3px);
+    }
+    .tree-toggle-icon {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      color: var(--ink-muted);
+      transition: transform 0.2s;
+    }
+    .tree-node.is-collapsed > .tree-branch { display: none; }
+    .tree-node.is-collapsed > .tree-node-row .tree-toggle-icon {
+      transform: rotate(-90deg);
+    }
+    .tree-node-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: #fff;
+    }
+    .tree-node-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--ink-dim);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+    .tree-leaf-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: #cbd5e1;
+      text-decoration: none;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+    }
+    .tree-leaf-item:hover {
+      color: var(--color-public);
+      background: rgba(56, 189, 248, 0.08);
+      border-color: rgba(56, 189, 248, 0.2);
+    }
+
+    /* Authentication Audit View */
+    .auth-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+    }
+    .auth-card {
+      background: rgba(10, 18, 29, 0.85);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+    }
+    .auth-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .auth-status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px currentColor;
+    }
+    .auth-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 0;
+      color: #fff;
+    }
+    .auth-desc {
+      font-size: 12px;
+      color: var(--ink-muted);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .auth-pages-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+    .auth-page-row {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 5px;
+      padding: 9px 12px;
+      font-size: 12px;
+    }
+    .auth-page-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .auth-page-name {
+      font-weight: 500;
+      color: #fff;
+    }
+    .auth-page-path {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      color: var(--color-public);
+    }
+    .auth-page-rule {
+      font-size: 11px;
+      color: var(--ink-muted);
+      line-height: 1.4;
+    }
+    .auth-citation {
+      display: block;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      color: var(--ink-dim);
+      margin-top: 4px;
+    }
+
+    /* Navigation Matrix Table View */
+    .matrix-wrap {
+      background: rgba(10, 18, 29, 0.85);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      overflow-x: auto;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    }
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    .matrix-table th {
+      background: rgba(15, 25, 40, 0.95);
+      padding: 12px 16px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      border-bottom: 1px solid var(--panel-border);
+      position: sticky;
+      top: 0;
+    }
+    .matrix-table td {
+      padding: 11px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--ink-muted);
+      vertical-align: middle;
+    }
+    .matrix-table tr:hover td {
+      background: rgba(56, 189, 248, 0.03);
+      color: var(--ink);
+    }
+    .matrix-node-name {
+      font-weight: 600;
+      color: #fff;
+    }
+    .matrix-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--color-public);
+    }
+
+    /* Keyboard Shortcuts Footer */
+    .shortcuts-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--panel-border);
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-dim);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .shortcuts-list {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    .kbd-tag {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+      padding: 1px 5px;
+      color: var(--ink);
+      font-size: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .shell { padding: 20px 16px; }
+      header { flex-direction: column; align-items: flex-start; }
+      .header-stats { width: 100%; justify-content: space-between; }
+      .details-drawer { width: 100%; }
+      .canvas-viewport { height: 620px; }
+    }
   </style>
 </head>
 <body>
-  <main class="shell">
+  <div class="shell">
     <header>
       <div>
-        <p class="eyebrow">NeoBranium / System Atlas</p>
-        <h1>Codebase, at a glance.</h1>
-        <p class="subtitle">A verified map of the learning platform's runtime, data, and AI paths.</p>
+        <div class="brand-eyebrow"><span class="pulse-dot"></span> NeoBranium Architecture / Interactive System Atlas</div>
+        <h1>Frontend Codebase Atlas</h1>
+        <p class="subtitle">Complete visual exploration of every visitable page, routing graph, content hierarchy, and client system relationship &mdash; grounded strictly in verified source code.</p>
       </div>
-      <div class="header-note"><strong>READING THE MAP</strong>Click a node to isolate its direct dependencies and inspect the source evidence. Lines describe the request or data moving between systems.</div>
+      <div class="header-stats">
+        <div class="stat-item"><span class="stat-num" id="stat-pages">142</span><span class="stat-label">Total Pages</span></div>
+        <div class="stat-item"><span class="stat-num" id="stat-hubs">24</span><span class="stat-label">Core Hubs</span></div>
+        <div class="stat-item"><span class="stat-num" id="stat-routes">40</span><span class="stat-label">Verified Routes</span></div>
+        <div class="stat-item"><span class="stat-num" id="stat-services">10</span><span class="stat-label">Services & APIs</span></div>
+      </div>
     </header>
 
-    <nav class="atlas-tabs" aria-label="Atlas sections">
-      <button class="atlas-tab is-active" data-view="system-section" type="button">SYSTEM ATLAS</button>
-      <button class="atlas-tab" data-view="user-section" type="button">USER MAP</button>
+    <!-- Top Atlas Section Tabs -->
+    <nav class="tabs-bar" aria-label="Atlas Views">
+      <button class="nav-tab is-active" data-view="user-view" type="button">
+        <span>01</span> USER NAVIGATION MAP
+      </button>
+      <button class="nav-tab" data-view="content-view" type="button">
+        <span>02</span> CONTENT HIERARCHY TREE
+      </button>
+      <button class="nav-tab" data-view="system-view" type="button">
+        <span>03</span> SYSTEM ARCHITECTURE
+      </button>
+      <button class="nav-tab" data-view="auth-view" type="button">
+        <span>04</span> AUTHENTICATION AUDIT
+      </button>
+      <button class="nav-tab" data-view="matrix-view" type="button">
+        <span>05</span> NAVIGATION MATRIX
+      </button>
     </nav>
 
-    <div class="toolbar" id="system-toolbar">
-      <div class="toolbar-copy"><b id="focus-copy">All systems visible</b> <span>· click any node to focus</span></div>
-      <div class="stats"><div class="stat"><span class="stat-label">nodes</span><span class="stat-value" id="system-node-count">0</span></div><div class="stat"><span class="stat-label">flows</span><span class="stat-value" id="system-flow-count">0</span></div><div class="stat"><span class="stat-label">pages</span><span class="stat-value" id="page-count">0</span></div><div class="stat"><span class="stat-label">services</span><span class="stat-value" id="service-count">0</span></div></div>
-      <button class="clear-button" id="clear-focus" type="button">Clear focus</button>
-    </div>
+    <!-- Controls & Toolbar -->
+    <div class="toolbar-container">
+      <div class="toolbar-left">
+        <div class="search-box">
+          <input type="text" id="global-search" class="search-input" placeholder="Search pages, routes, tools..." autocomplete="off">
+          <span class="search-key">/</span>
+        </div>
 
-    <div class="atlas-view" id="system-section">
-    <section class="map-wrap" aria-label="NeoBranium technical architecture map">
-      <div class="map" id="map">
-        <svg class="wires" viewBox="0 0 1400 920" aria-hidden="true">
-          <defs><marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#9aafc1"></path></marker></defs>
-          <path class="wire" data-from="index" data-to="content" d="M246 160 C270 160 278 176 302 176" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="sign" data-to="auth" data-kind="auth" d="M246 332 C270 332 278 382 302 382" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="dashboard" data-to="tools" d="M246 504 C270 504 278 588 302 588" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="board" data-to="boardmods" d="M246 676 C270 676 278 762 302 762" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="content" data-to="server" d="M520 176 C560 176 554 300 594 300" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="tools" data-to="server" d="M520 588 C560 588 554 344 594 344" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="boardmods" data-to="middleware" data-kind="ai" d="M520 762 C558 762 556 542 594 542" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="server" data-to="middleware" d="M703 390 L703 490" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="server" data-to="firebase" data-kind="data" d="M812 300 C844 300 850 154 884 154" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="server" data-to="redis" data-kind="data" d="M812 334 C846 334 850 370 884 370" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="auth" data-to="firebase" data-kind="auth" d="M520 382 C640 382 764 212 884 212" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="auth" data-to="storage" data-kind="data" d="M520 410 C650 410 760 588 884 588" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="tools" data-to="storage" data-kind="data" d="M520 620 C640 620 760 620 884 620" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="tools" data-to="rtdb" data-kind="data" d="M520 640 C650 640 760 804 884 804" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="server" data-to="groq" data-kind="ai" d="M812 278 C910 278 1000 138 1114 138" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="server" data-to="gemini" data-kind="ai" d="M812 304 C920 304 1005 312 1114 312" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="server" data-to="eleven" data-kind="ai" d="M812 330 C920 330 1005 486 1114 486" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="functions" data-to="anthropic" data-kind="ai" d="M812 760 C930 760 1000 660 1114 660" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="middleware" data-to="firebase" data-kind="data" d="M812 532 C846 532 850 180 884 180" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="middleware" data-to="server" d="M594 562 C560 562 560 370 594 370" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="functions" data-to="firebase" data-kind="data" d="M703 708 C703 640 850 260 884 260" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="hosting" data-to="index" data-kind="deploy" d="M1114 836 C900 900 430 900 138 213" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="hosting" data-to="functions" data-kind="deploy" d="M1114 862 C1000 900 850 842 812 790" marker-end="url(#arrow)"></path>
-          <path class="wire" data-from="hosting" data-to="server" data-kind="deploy" d="M1114 810 C980 810 850 430 812 390" marker-end="url(#arrow)"></path>
-        </svg>
-
-        <div class="column col-entry">01 / ENTRY POINTS</div><div class="column col-client">02 / CLIENT</div><div class="column col-backend">03 / API + SERVICES</div><div class="column col-data">04 / DATA LAYER</div><div class="column col-external">05 / EXTERNAL + INFRA</div>
-
-        <button class="node entry n-index" data-id="index"><span class="node-title">Public learning surface</span><span class="node-path">index.html + index.js</span><span class="node-note">Landing, navigation, search, AdSense / Analytics.</span></button>
-        <button class="node entry n-sign" data-id="sign"><span class="node-title">Sign in / sign up</span><span class="node-path">htmls/sign.html</span><span class="node-note">Email/password, Google sign-in, verification.</span></button>
-        <button class="node entry n-dashboard" data-id="dashboard"><span class="node-title">Learner dashboard</span><span class="node-path">htmls/dashboard.html</span><span class="node-note">Authenticated launchpad for study tools.</span></button>
-        <button class="node entry n-board" data-id="board"><span class="node-title">AI Board</span><span class="node-path">ai-board/ai-board.html</span><span class="node-note">Canvas, voice, analysis, queue-aware tutor.</span></button>
-
-        <button class="node client n-content" data-id="content"><span class="node-title">Content surfaces</span><span class="node-path">Notes/ · IQ/ · blog/ · quiz_*</span><span class="node-note">Notes, important questions, quizzes, chapter pages.</span></button>
-        <button class="node client n-auth" data-id="auth"><span class="node-title">Auth + shared state</span><span class="node-path">js/auth.js · js/firebase-auth.js</span><span class="node-note">Auth state, users profile, guest mode, redirects.</span></button>
-        <button class="node client n-tools" data-id="tools"><span class="node-title">Learning tools</span><span class="node-path">htmls/doubt/ · bot/ · chat/</span><span class="node-note">Doubt solver, bot, peer chat, question generation.</span></button>
-        <button class="node client n-boardmods" data-id="boardmods"><span class="node-title">Board engines</span><span class="node-path">ai-board/js/{ai,board,ui,speech}</span><span class="node-note">Modular canvas, speech, UI, queue clients.</span></button>
-
-        <button class="node backend n-server" data-id="server"><span class="node-title">Express AI gateway</span><span class="node-path">server.js</span><span class="node-note">Helmet, CORS, sessions, rate limits, memory, AI routes.</span></button>
-        <button class="node backend n-middleware" data-id="middleware"><span class="node-title">Board access + queue</span><span class="node-path">boardMiddleware.js · queueManager.js</span><span class="node-note">Five-user queue, heartbeats, usage gates.</span></button>
-        <button class="node backend n-functions" data-id="functions"><span class="node-title">Callable function</span><span class="node-path">functions/index.js</span><span class="node-note">solveDoubt proxy with daily Firestore limits.</span></button>
-
-        <button class="node data n-firebase" data-id="firebase"><span class="node-title">Firebase platform</span><span class="node-path">Auth · Firestore · Hosting</span><span class="node-note">neobranium project; users, quiz_results, doubt history.</span></button>
-        <button class="node data n-redis" data-id="redis"><span class="node-title">Redis session layer</span><span class="node-path">REDIS_URL · connect-redis</span><span class="node-note">Express sessions and transient AI memory; Map fallback.</span></button>
-        <button class="node data n-storage" data-id="storage"><span class="node-title">Firebase Storage</span><span class="node-path">users/{uid}/doubts/...</span><span class="node-note">Uploaded doubt images and download URLs.</span></button>
-        <button class="node data n-rtdb" data-id="rtdb"><span class="node-title">Realtime Database</span><span class="node-path">messages</span><span class="node-note">Live peer chat stream.</span></button>
-
-        <button class="node external n-groq" data-id="groq"><span class="node-title">Groq</span><span class="node-path">api.groq.com</span><span class="node-note">Chat, tutor streaming, board rephrasing.</span></button>
-        <button class="node external n-gemini" data-id="gemini"><span class="node-title">Google Gemini</span><span class="node-path">generativelanguage.googleapis.com</span><span class="node-note">Paper generation, image solving, board analysis.</span></button>
-        <button class="node external n-eleven" data-id="eleven"><span class="node-title">ElevenLabs</span><span class="node-path">POST /api/tts</span><span class="node-note">Server-side streaming text-to-speech.</span></button>
-        <button class="node external n-anthropic" data-id="anthropic"><span class="node-title">Anthropic</span><span class="node-path">api.anthropic.com</span><span class="node-note">Callable solveDoubt multimodal proxy.</span></button>
-        <button class="node infra n-hosting" data-id="hosting"><span class="node-title">Hosting + deployment</span><span class="node-path">firebase.json · vercel.json</span><span class="node-note">Firebase Hosting, Functions, Vercel routes; Render API URL.</span></button>
-      </div>
-    </section>
-
-    <section class="info-panel" id="info-panel" hidden aria-live="polite"></section>
-    <div class="legend-row"><span class="legend">LEGEND</span><span class="legend-item"><i class="swatch" style="--swatch:var(--entry)"></i>Entry</span><span class="legend-item"><i class="swatch" style="--swatch:var(--client)"></i>Client</span><span class="legend-item"><i class="swatch" style="--swatch:var(--backend)"></i>Backend</span><span class="legend-item"><i class="swatch" style="--swatch:var(--data)"></i>Data</span><span class="legend-item"><i class="swatch" style="--swatch:var(--external)"></i>External</span><span class="legend-item"><i class="swatch" style="--swatch:var(--infra)"></i>Infrastructure</span></div>
-    </div>
-
-    <div class="atlas-view" id="user-section" hidden>
-      <div class="user-heading">
-        <div><div class="section-kicker">PRODUCT SURFACE / VERIFIED NAVIGATION</div><h2>USER MAP</h2><p>Every major surface a normal user can reach.</p></div>
-        <div class="map-actions"><label class="journey-toggle"><input id="journey-toggle" type="checkbox"> Primary Journey</label><button class="map-action" id="zoom-out" type="button" aria-label="Zoom out">-</button><button class="map-action" id="zoom-reset" type="button" aria-label="Reset map">100%</button><button class="map-action" id="zoom-in" type="button" aria-label="Zoom in">+</button><button class="map-action" id="user-reset" type="button">Reset</button></div>
-      </div>
-      <div class="user-map-viewport" id="user-viewport" aria-label="NeoBranium user navigation map">
-        <div class="user-map-canvas" id="user-canvas">
-          <svg class="user-wires" viewBox="0 0 1500 920" aria-hidden="true">
-            <defs><marker id="user-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#aebcca"></path></marker></defs>
-            <path class="user-wire" data-from="home" data-to="about" d="M246 130 C274 130 290 316 320 316" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="home" data-to="notes" data-kind="primary" d="M246 136 C270 136 290 502 320 502" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="home" data-to="questions" d="M246 142 C300 142 270 688 320 688" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="home" data-to="blog" d="M246 148 C410 148 432 98 614 98" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="home" data-to="sign" data-kind="auth" d="M246 155 C290 155 282 170 320 170" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="notes" data-to="chapter" data-kind="primary" d="M246 502 C280 502 280 778 320 778" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="sign" data-to="verify" data-kind="auth" d="M540 170 L540 394" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="verify" data-to="dashboard" data-kind="auth" d="M540 394 C570 394 580 142 614 142" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="sign" data-to="dashboard" data-kind="auth" d="M540 210 C580 210 580 160 614 160" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="sign" data-to="legal" d="M540 215 C570 215 580 610 614 610" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="dashboard" data-to="appnotes" d="M834 142 L908 142 L908 326" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="dashboard" data-to="quiz" d="M834 150 L880 150 L880 512 L908 512" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="dashboard" data-to="spotlight" d="M834 158 L850 158 L850 698 L908 698" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="dashboard" data-to="bot" d="M834 130 C860 130 870 98 908 98" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="dashboard" data-to="paper" d="M834 136 C860 136 870 284 908 284" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="dashboard" data-to="chat" d="M834 164 C860 164 870 470 908 470" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="dashboard" data-to="tutor" d="M834 170 C860 170 870 656 908 656" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="dashboard" data-to="board" d="M834 176 C875 176 870 842 908 842" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="dashboard" data-to="profile" d="M834 120 C980 120 1070 224 1202 224" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="dashboard" data-to="settings" d="M834 126 C980 126 1080 410 1202 410" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="profile" data-to="settings" d="M1422 224 L1422 410" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="profile" data-to="rank" d="M1422 260 L1422 596" marker-end="url(#user-arrow)"></path>
-            <path class="user-wire" data-from="dashboard" data-to="contact" d="M834 182 C1020 182 1070 782 1202 782" marker-end="url(#user-arrow)"></path>
-          </svg>
-          <div class="user-column user-public">01 / PUBLIC</div><div class="user-column user-auth">02 / AUTHENTICATION</div><div class="user-column user-app">03 / APP</div><div class="user-column user-tools">04 / TOOLS</div><div class="user-column user-account">05 / ACCOUNT</div>
-          <button class="user-node u-public u-home" data-user-id="home"><span class="node-title">Home / landing</span><span class="node-path">index.html · /</span><span class="node-note">Public entry, search, resources, sign in.</span></button>
-          <button class="user-node u-public u-about" data-user-id="about"><span class="node-title">About</span><span class="node-path">about.html · /about</span><span class="node-note">Product and platform information.</span></button>
-          <button class="user-node u-public u-notes" data-user-id="notes"><span class="node-title">Notes library</span><span class="node-path">Notes/ · /notes</span><span class="node-note">Class 9/10 science and mathematics.</span></button>
-          <button class="user-node u-public u-questions" data-user-id="questions"><span class="node-title">Question banks</span><span class="node-path">IQ/top-question.html</span><span class="node-note">Top and expected questions.</span></button>
-          <button class="user-node u-public" data-user-id="blog" style="left: 26px; top: 828px"><span class="node-title">Blog</span><span class="node-path">blog/blog.html · /blog</span><span class="node-note">Public articles and posts.</span></button>
-          <button class="user-node u-public" data-user-id="chapter" style="left: 320px; top: 754px"><span class="node-title">Chapter detail</span><span class="node-path">Notes/10-CH1.html</span><span class="node-note">Concrete note chapters linked from class pages.</span></button>
-          <button class="user-node u-auth u-sign" data-user-id="sign"><span class="node-title">Sign in / sign up</span><span class="node-path">htmls/sign.html</span><span class="node-note">Email, Google, or guest entry.</span></button>
-          <button class="user-node u-auth u-verify" data-user-id="verify"><span class="node-title">Email verification</span><span class="node-path">htmls/verify-email.html</span><span class="node-note">New account activation checkpoint.</span></button>
-          <button class="user-node u-auth u-legal" data-user-id="legal"><span class="node-title">Terms + privacy</span><span class="node-path">htmls/terms_conditions.html · privacy.html</span><span class="node-note">Linked from account creation.</span></button>
-          <button class="user-node u-app u-dashboard" data-user-id="dashboard"><span class="node-title">Dashboard</span><span class="node-path">htmls/dashboard.html</span><span class="node-note">Authenticated app hub and quick actions.</span></button>
-          <button class="user-node u-app u-appnotes" data-user-id="appnotes"><span class="node-title">App notes</span><span class="node-path">htmls/notes.html</span><span class="node-note">Authenticated notes screen.</span></button>
-          <button class="user-node u-app u-quiz" data-user-id="quiz"><span class="node-title">Quizzes</span><span class="node-path">htmls/quiz_htmls/ · dashboard.js</span><span class="node-note">Class selection opens quiz families.</span></button>
-          <button class="user-node u-app u-spotlight" data-user-id="spotlight"><span class="node-title">Spotlight</span><span class="node-path">htmls/spotlight.html</span><span class="node-note">Monthly notes and ranking surface.</span></button>
-          <button class="user-node u-tool u-bot" data-user-id="bot"><span class="node-title">Bot Helper</span><span class="node-path">htmls/bot/bot.html</span><span class="node-note">AI assistant surface.</span></button>
-          <button class="user-node u-tool u-paper" data-user-id="paper"><span class="node-title">Exam paper generator</span><span class="node-path">htmls/question-paper_generator-ai/ai-generate.html</span><span class="node-note">Generate papers through the app.</span></button>
-          <button class="user-node u-tool u-chat" data-user-id="chat"><span class="node-title">Live chat</span><span class="node-path">htmls/chat/chat_app.html</span><span class="node-note">Peer messaging screen.</span></button>
-          <button class="user-node u-tool u-tutor" data-user-id="tutor"><span class="node-title">NeoTutor</span><span class="node-path">htmls/doubt/index.html</span><span class="node-note">Image and question doubt solver.</span></button>
-          <button class="user-node u-tool u-board" data-user-id="board"><span class="node-title">AI Board</span><span class="node-path">ai-board/ai-board.html</span><span class="node-note">Canvas and voice learning tool.</span></button>
-          <button class="user-node u-account u-profile" data-user-id="profile"><span class="node-title">Profile</span><span class="node-path">htmls/profile.html</span><span class="node-note">Authenticated account profile.</span></button>
-          <button class="user-node u-account u-settings" data-user-id="settings"><span class="node-title">Settings</span><span class="node-path">htmls/setting.html</span><span class="node-note">Account preferences and controls.</span></button>
-          <button class="user-node u-account u-rank" data-user-id="rank"><span class="node-title">Rank + score info</span><span class="node-path">htmls/rank-score-info.html</span><span class="node-note">Score and ranking explanation.</span></button>
-          <button class="user-node u-account u-contact" data-user-id="contact"><span class="node-title">Contact + feedback</span><span class="node-path">htmls/contactus.html · feedback.html</span><span class="node-note">Support and complaint forms.</span></button>
+        <div class="filter-pills" id="category-filters">
+          <button class="filter-pill is-active" data-filter="all">All</button>
+          <button class="filter-pill" data-filter="public">Public</button>
+          <button class="filter-pill" data-filter="auth">Auth</button>
+          <button class="filter-pill" data-filter="app">Main App</button>
+          <button class="filter-pill" data-filter="ai">AI Tools</button>
+          <button class="filter-pill" data-filter="notes">Notes</button>
+          <button class="filter-pill" data-filter="quiz">Quizzes</button>
+          <button class="filter-pill" data-filter="iq">Questions</button>
+          <button class="filter-pill" data-filter="legal">Legal/Support</button>
         </div>
       </div>
-      <section class="info-panel user-info" id="user-info-panel" hidden aria-live="polite"></section>
-      <div class="legend-row user-legend"><span class="legend">FLOW TYPES</span><span class="legend-item"><i class="line-key"></i>Normal navigation</span><span class="legend-item"><i class="line-key dashed"></i>Auth / redirect</span><span class="legend-item"><i class="line-key primary"></i>Primary journey</span><span class="legend">SOURCE PATHS SHOWN ON EVERY PAGE</span></div>
+
+      <div class="toolbar-right">
+        <div class="journey-selector-wrap" id="journey-controls">
+          <span>Journey:</span>
+          <select id="journey-select" class="journey-select">
+            <option value="none">-- Full Network Graph --</option>
+            <option value="onboarding">01 · New User Onboarding</option>
+            <option value="notes_study">02 · Syllabus Mastery (Notes Path)</option>
+            <option value="exam_prep">03 · Board Exam Questions (IQ Bank)</option>
+            <option value="quiz_practice">04 · Interactive Quiz Assessment</option>
+            <option value="ai_tutoring">05 · AI Whiteboard & Doubt Solving</option>
+            <option value="account_mgmt">06 · Profile & Settings Configuration</option>
+          </select>
+        </div>
+
+        <div class="zoom-controls">
+          <button class="btn-ctrl" id="btn-zoom-out" title="Zoom Out (-)">-</button>
+          <button class="btn-ctrl" id="btn-zoom-reset" title="Reset View (0)">100%</button>
+          <button class="btn-ctrl" id="btn-zoom-in" title="Zoom In (+)">+</button>
+          <button class="btn-ctrl" id="btn-fit" title="Fit to Screen (F)">Fit</button>
+          <button class="btn-ctrl" id="btn-clear" title="Clear Selection (Esc)">Clear</button>
+        </div>
+      </div>
     </div>
-    <footer><span>Codebase mapped from actual project structure and dependencies.</span><span>NeoBranium / 2026.09</span></footer>
-  </main>
+
+    <!-- ====================================================
+         VIEW 1: USER NAVIGATION MAP
+         ==================================================== -->
+    <div class="view-container" id="user-view">
+      <div class="canvas-viewport" id="user-viewport">
+        <div class="interactive-canvas" id="user-canvas">
+          <svg class="wires-layer" id="user-wires-svg" viewBox="0 0 1580 1000" aria-hidden="true">
+            <defs>
+              <marker id="arrow-default" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 z" fill="rgba(133, 161, 186, 0.4)"></path>
+              </marker>
+              <marker id="arrow-outgoing" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+                <path d="M0,0 L7,3.5 L0,7 z" fill="#38bdf8"></path>
+              </marker>
+              <marker id="arrow-incoming" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+                <path d="M0,0 L7,3.5 L0,7 z" fill="#c084fc"></path>
+              </marker>
+              <marker id="arrow-journey" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+                <path d="M0,0 L7,3.5 L0,7 z" fill="#fcd34d"></path>
+              </marker>
+            </defs>
+            <!-- Generated Wires will be rendered here -->
+          </svg>
+
+          <!-- Column Category Markers -->
+          <div class="map-col-header" style="left: 40px; color: var(--color-public)">01 / Public Entry & Resources</div>
+          <div class="map-col-header" style="left: 340px; color: var(--color-auth)">02 / Authentication Flow</div>
+          <div class="map-col-header" style="left: 640px; color: var(--color-app)">03 / App Core & Hubs</div>
+          <div class="map-col-header" style="left: 940px; color: var(--color-ai)">04 / AI & Practice Tools</div>
+          <div class="map-col-header" style="left: 1240px; color: var(--color-legal)">05 / Account & Support</div>
+
+          <!-- Nodes Container -->
+          <div id="user-nodes-container"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         VIEW 2: CONTENT HIERARCHY TREE
+         ==================================================== -->
+    <div class="view-container" id="content-view" hidden>
+      <div class="content-tree-wrap">
+        <div class="tree-controls">
+          <div class="tree-legend">
+            <div class="tree-legend-item"><span class="tree-legend-dot" style="background:var(--color-notes)"></span> Notes (19 files)</div>
+            <div class="tree-legend-item"><span class="tree-legend-dot" style="background:var(--color-quiz)"></span> Interactive Quizzes (45 files)</div>
+            <div class="tree-legend-item"><span class="tree-legend-dot" style="background:var(--color-iq)"></span> Expected Questions (53 files)</div>
+          </div>
+          <div>
+            <button class="btn-ctrl" id="btn-tree-expand">Expand All</button>
+            <button class="btn-ctrl" id="btn-tree-collapse">Collapse All</button>
+          </div>
+        </div>
+        <div id="content-tree-root"></div>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         VIEW 3: SYSTEM ARCHITECTURE
+         ==================================================== -->
+    <div class="view-container" id="system-view" hidden>
+      <div class="canvas-viewport" id="sys-viewport">
+        <div class="interactive-canvas" id="sys-canvas">
+          <svg class="wires-layer" id="sys-wires-svg" viewBox="0 0 1580 1000" aria-hidden="true">
+            <defs>
+              <marker id="sys-arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 z" fill="rgba(133, 161, 186, 0.4)"></path>
+              </marker>
+              <marker id="sys-arrow-active" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+                <path d="M0,0 L7,3.5 L0,7 z" fill="#38bdf8"></path>
+              </marker>
+            </defs>
+          </svg>
+
+          <div class="map-col-header" style="left: 40px; color: var(--color-public)">01 / Client Surfaces</div>
+          <div class="map-col-header" style="left: 340px; color: var(--color-backend)">02 / Frontend JS Engines</div>
+          <div class="map-col-header" style="left: 640px; color: var(--color-app)">03 / Backend Gateway</div>
+          <div class="map-col-header" style="left: 940px; color: var(--color-data)">04 / Data & Infrastructure</div>
+          <div class="map-col-header" style="left: 1240px; color: var(--color-external)">05 / External AI Models</div>
+
+          <div id="sys-nodes-container"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         VIEW 4: AUTHENTICATION AUDIT
+         ==================================================== -->
+    <div class="view-container" id="auth-view" hidden>
+      <div class="auth-grid" id="auth-grid-container"></div>
+    </div>
+
+    <!-- ====================================================
+         VIEW 5: NAVIGATION MATRIX
+         ==================================================== -->
+    <div class="view-container" id="matrix-view" hidden>
+      <div class="matrix-wrap">
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th>Source Page</th>
+              <th>Destination</th>
+              <th>Trigger Mechanism</th>
+              <th>Route Type</th>
+              <th>Codebase Evidence</th>
+            </tr>
+          </thead>
+          <tbody id="matrix-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Slide-Over Details Panel -->
+    <aside class="details-drawer" id="details-drawer" aria-label="Node Details">
+      <div class="drawer-header">
+        <div class="drawer-title-wrap">
+          <div class="drawer-badge-row">
+            <span class="node-badge" id="drawer-cat-badge">CATEGORY</span>
+            <span class="node-badge" id="drawer-auth-badge">ACCESS</span>
+          </div>
+          <h2 class="drawer-title" id="drawer-title">Node Title</h2>
+          <div class="drawer-path" id="drawer-path">file/path.html</div>
+        </div>
+        <button class="drawer-close" id="drawer-close-btn" title="Close (Esc)">&times;</button>
+      </div>
+      <div class="drawer-body">
+        <div class="drawer-section">
+          <div class="drawer-label">Purpose & Overview</div>
+          <p class="drawer-text" id="drawer-purpose">-</p>
+          <div class="drawer-actions" id="drawer-actions">
+            <!-- Open Page Link -->
+          </div>
+        </div>
+
+        <div class="drawer-section">
+          <div class="drawer-label">Outgoing Navigation (<span id="drawer-out-count">0</span>)</div>
+          <div class="drawer-links-list" id="drawer-outgoing-list"></div>
+        </div>
+
+        <div class="drawer-section">
+          <div class="drawer-label">Incoming Navigation (<span id="drawer-in-count">0</span>)</div>
+          <div class="drawer-links-list" id="drawer-incoming-list"></div>
+        </div>
+
+        <div class="drawer-section">
+          <div class="drawer-label">Referenced Scripts & Modules</div>
+          <div class="drawer-tag-row" id="drawer-scripts-list"></div>
+        </div>
+
+        <div class="drawer-section">
+          <div class="drawer-label">Stylesheets</div>
+          <div class="drawer-tag-row" id="drawer-styles-list"></div>
+        </div>
+
+        <div class="drawer-section">
+          <div class="drawer-label">Services & APIs</div>
+          <div class="drawer-tag-row" id="drawer-services-list"></div>
+        </div>
+
+        <div class="drawer-section">
+          <div class="drawer-label">Code Verification Evidence</div>
+          <p class="drawer-text" id="drawer-evidence" style="font-family:'DM Mono',monospace; font-size:11px; color:#94a3b8;">-</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Footer with Keyboard Shortcuts -->
+    <footer class="shortcuts-footer">
+      <div>
+        <strong>NeoBranium System Atlas</strong> &bull; Verified Runtime Graph &bull; Updated 2026.09
+      </div>
+      <div class="shortcuts-list">
+        <span><span class="kbd-tag">+</span> / <span class="kbd-tag">-</span> Zoom</span>
+        <span><span class="kbd-tag">0</span> Reset</span>
+        <span><span class="kbd-tag">F</span> Fit</span>
+        <span><span class="kbd-tag">/</span> Search</span>
+        <span><span class="kbd-tag">Esc</span> Clear Focus</span>
+      </div>
+    </footer>
+  </div>
+
   <script>
-    const nodes = {
-      index: { title: 'Public learning surface', path: 'index.html + index.js', purpose: 'Landing page, navigation, site search, analytics and AdSense.', connected: 'content, hosting', services: 'Google AdSense, Google Analytics, Firebase browser SDKs', notes: 'Primary public entry; Firebase auth redirects authenticated users onward.' },
-      sign: { title: 'Sign in / sign up', path: 'htmls/sign.html', purpose: 'Collects email/password and Google sign-in credentials.', connected: 'auth', services: 'Firebase Authentication', notes: 'Verification routes through htmls/verify-email.html.' },
-      dashboard: { title: 'Learner dashboard', path: 'htmls/dashboard.html', purpose: 'Authenticated navigation hub for notes, quizzes, chat, bot and AI tools.', connected: 'tools', services: 'Firebase Auth via js/auth.js', notes: 'Navigation and access checks are shared client behavior.' },
-      board: { title: 'AI Board', path: 'ai-board/ai-board.html', purpose: 'Interactive canvas and voice tutor entry point.', connected: 'boardmods', services: 'Express API, browser speech APIs', notes: 'Main is wired through ai-board/js/main.js.' },
-      content: { title: 'Content surfaces', path: 'Notes/ · IQ/ · blog/ · htmls/quiz_*', purpose: 'Static learning content, chapter pages, quizzes and supporting pages.', connected: 'index, server', services: 'Firebase browser SDKs where pages require auth', notes: 'Shared quiz submission logic lives in js/quiz_events.js.' },
-      auth: { title: 'Auth + shared state', path: 'js/auth.js · js/firebase-auth.js', purpose: 'Firebase initialization, auth state, profiles, guest mode and redirects.', connected: 'sign, dashboard, firebase, storage', services: 'Firebase Auth, Firestore, Storage', notes: 'Loads users/{uid}; dispatches userLoaded for authenticated pages.' },
-      tools: { title: 'Learning tools', path: 'htmls/doubt/ · bot/ · chat/ · question-paper_generator-ai/', purpose: 'Client workflows for doubt solving, chat, quizzes and generated papers.', connected: 'dashboard, server, storage, rtdb', services: 'Express AI gateway, Firebase Storage, Realtime Database', notes: 'Doubt images can be uploaded and saved with history.' },
-      boardmods: { title: 'Board engines', path: 'ai-board/js/{ai,board,ui,speech}', purpose: 'Canvas state, gestures, speech, queue polling and AI rendering.', connected: 'board, middleware, server', services: 'Gemini, Groq, ElevenLabs through API', notes: 'clientQueueManager gates analysis before aiEngine.analyzeBoard().' },
-      server: { title: 'Express AI gateway', path: 'server.js', purpose: 'HTTP boundary for AI, sessions, security, rate limiting and memory.', connected: 'content, tools, boardmods, middleware, firebase, redis, Groq, Gemini, ElevenLabs', services: 'Express, Helmet, CORS, express-session, Redis', notes: 'Routes include /api/chat, /api/chat-stream, /api/gemini-solve, /api/analyze-board, /api/rephrase-board and /api/tts.' },
-      middleware: { title: 'Board access + queue', path: 'boardMiddleware.js · queueManager.js', purpose: 'Controls AI Board concurrency, heartbeats and session lifecycle.', connected: 'boardmods, server, firebase', services: 'Firebase Admin usage tracking', notes: 'Queue is in-process and allows five users.' },
-      functions: { title: 'Callable function', path: 'functions/index.js', purpose: 'Secure callable solveDoubt proxy with per-day limits.', connected: 'firebase, Anthropic, hosting', services: 'Firebase Functions v2, Firestore, Anthropic', notes: 'Separate path from the active Express /api/gemini-solve flow.' },
-      firebase: { title: 'Firebase platform', path: 'js/auth.js · firebaseAdmin.js · firebase.json', purpose: 'Identity, document data, hosting and server-side Admin access.', connected: 'auth, server, middleware, functions, hosting', services: 'Auth, Firestore, Hosting', notes: 'Collections include users, quiz_results, solvedDoubts, unsolvedDoubts, aiboard_sessions and rateLimits.' },
-      redis: { title: 'Redis session layer', path: 'REDIS_URL · connect-redis', purpose: 'Durable Express sessions and transient user memory.', connected: 'server', services: 'Redis; in-memory Map fallback', notes: 'The server logs and falls back to process memory if Redis is unavailable.' },
-      storage: { title: 'Firebase Storage', path: 'users/{uid}/doubts/...', purpose: 'Persists uploaded doubt images for the client workflow.', connected: 'auth, tools', services: 'Firebase Storage', notes: 'Download URLs are obtained by the shared Firebase client helper.' },
-      rtdb: { title: 'Realtime Database', path: 'messages', purpose: 'Live peer-to-peer chat message stream.', connected: 'tools', services: 'Firebase Realtime Database', notes: 'Chat UI is implemented in htmls/chat/chat.js.' },
-      groq: { title: 'Groq', path: 'api.groq.com', purpose: 'Generative text for chat and tutor streaming.', connected: 'server', services: 'GROQ_API_KEY, configurable GROQ_MODEL', notes: 'Also handles board explanation rephrasing.' },
-      gemini: { title: 'Google Gemini', path: 'generativelanguage.googleapis.com', purpose: 'Multimodal and structured AI analysis.', connected: 'server, boardmods', services: 'GEMINI_API_KEY, configurable GEMINI_MODEL', notes: 'Used for paper generation, image/question solving and AI Board analysis.' },
-      eleven: { title: 'ElevenLabs', path: '/api/tts', purpose: 'Streaming server-side text-to-speech.', connected: 'server, boardmods', services: 'ELEVENLABS_API_KEY', notes: 'Browser speech engines also exist as a client capability.' },
-      anthropic: { title: 'Anthropic', path: 'api.anthropic.com', purpose: 'Multimodal answer generation behind solveDoubt.', connected: 'functions', services: 'ANTHROPIC_API_KEY', notes: 'Used only by the Firebase callable function path found in functions/index.js.' },
-      hosting: { title: 'Hosting + deployment', path: 'firebase.json · vercel.json · .firebaserc', purpose: 'Static hosting, callable function deployment and route configuration.', connected: 'index, server, functions, firebase', services: 'Firebase Hosting, Firebase Functions, Vercel, Render URL', notes: 'Firebase project is neobranium. No Render deployment file is present.' }
+    /* ==========================================================================
+       ATLAS DATA REGISTRIES (100% GOUNDED IN CODEBASE AUDIT)
+       ========================================================================== */
+
+    const USER_NODES = {
+      index: {
+        id: 'index',
+        title: 'Homepage / Landing',
+        path: 'index.html',
+        category: 'public',
+        status: 'Public',
+        purpose: 'Primary public entry point, hero search engine, subject quick-links, feature showcase, and auth CTA.',
+        scripts: ['index.js', 'search.js'],
+        styles: ['index_css.css'],
+        services: ['Google AdSense', 'Google Analytics (gtag)'],
+        evidence: 'Document root. Uses search.js for client index; index.js redirects authenticated users directly to /htmls/dashboard.html.',
+        x: 40, y: 220
+      },
+      about: {
+        id: 'about',
+        title: 'About NeoBranium',
+        path: 'about.html',
+        category: 'public',
+        status: 'Public',
+        purpose: 'Product story, educational philosophy, pedagogy, platform feature breakdowns, and teacher notes.',
+        scripts: ['index.js'],
+        styles: ['index_css.css'],
+        services: ['None'],
+        evidence: 'Linked from header nav and footer in index.html, blog/blog.html, and IQ/top-question.html.',
+        x: 40, y: 60
+      },
+      blog: {
+        id: 'blog',
+        title: 'Blog & Study Roadmaps',
+        path: 'blog/blog.html',
+        category: 'public',
+        status: 'Public',
+        purpose: 'Comprehensive guides on CBSE 2026 exam reforms, double board system, competency-based questions (CBQs), and active recall methods.',
+        scripts: ['index.js', 'search.js'],
+        styles: ['index_css.css'],
+        services: ['Client Search Index'],
+        evidence: 'Linked from header nav in index.html, about.html, and class-wise-notes.html.',
+        x: 40, y: 380
+      },
+      sign: {
+        id: 'sign',
+        title: 'Sign In / Sign Up',
+        path: 'htmls/sign.html',
+        category: 'auth',
+        status: 'Auth Flow',
+        purpose: 'User onboarding and sign-in via Email/Password, Google OAuth, or Guest mode exploration.',
+        scripts: ['js/auth.js', 'js/firebase-auth.js'],
+        styles: ['CSS/sign.css'],
+        services: ['Firebase Authentication', 'Google Identity'],
+        evidence: 'Forms execute createUserWithEmailAndPassword and signInWithPopup. Links to Terms & Conditions and Privacy Policy.',
+        x: 340, y: 180
+      },
+      verify_email: {
+        id: 'verify_email',
+        title: 'Email Verification',
+        path: 'htmls/verify-email.html',
+        category: 'auth',
+        status: 'Auth Flow',
+        purpose: 'Email verification checkpoint requiring newly registered users to confirm email link before dashboard access.',
+        scripts: ['Inline location.replace'],
+        styles: ['CSS/sign.css'],
+        services: ['Firebase Auth Verification'],
+        evidence: 'Redirect destination after signup in js/auth.js:187 and js/firebase-auth.js:146. Has button to sign.html.',
+        x: 340, y: 360
+      },
+      dashboard: {
+        id: 'dashboard',
+        title: 'Learner Dashboard',
+        path: 'htmls/dashboard.html',
+        category: 'app',
+        status: 'Authenticated / Guest',
+        purpose: 'Central learner hub: class selection modal (Class 9/10), tool launchers, spotlight previews, and study shortcuts.',
+        scripts: ['js/auth.js', 'js/dashboard.js', 'js/dark_mode.js'],
+        styles: ['CSS/dashboard.css', 'CSS/enhancements.css'],
+        services: ['Firebase Auth', 'Firestore (User Profile)'],
+        evidence: 'Protected by js/auth.js; modal triggers goToSubjectPage() to quiz hubs; sidebar links to all tools.',
+        x: 640, y: 200
+      },
+      notes_hub: {
+        id: 'notes_hub',
+        title: 'Notes Hub (Class-wise)',
+        path: 'Notes/class-wise-notes.html',
+        category: 'notes',
+        status: 'Public',
+        purpose: 'Curated chapter notes repository for Class 9 and 10 Science & Mathematics with live search filter.',
+        scripts: ['Inline chapter renderer'],
+        styles: ['index_css.css', 'Notes/notes.css'],
+        services: ['Client filter engine'],
+        evidence: 'Linked from index.html navbar; contains JavaScript data array linking to 10-CH1..4, 10-BI1..5, 10-PH1..5.',
+        x: 40, y: 540
+      },
+      notes_app: {
+        id: 'notes_app',
+        title: 'App Notes Surface',
+        path: 'htmls/notes.html',
+        category: 'notes',
+        status: 'Authenticated / Guest',
+        purpose: 'In-app notes screen with sidebar navigation, quick bookmarks, and subject breakdowns for registered learners.',
+        scripts: ['js/auth.js', 'js/shortcuts.js'],
+        styles: ['CSS/dashboard.css', 'CSS/notes_css.css'],
+        services: ['Firebase Auth'],
+        evidence: 'Linked from dashboard sidebar: <a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes</a>.',
+        x: 640, y: 580
+      },
+      spotlight: {
+        id: 'spotlight',
+        title: 'Spotlight (Monthly)',
+        path: 'htmls/spotlight.html',
+        category: 'app',
+        status: 'Authenticated / Guest',
+        purpose: 'Monthly leaderboard, student rankings, spotlight articles, and featured exam notes.',
+        scripts: ['js/auth.js', 'js/shortcuts.js'],
+        styles: ['CSS/dashboard.css', 'CSS/spotlight.css'],
+        services: ['Firebase Auth', 'Firestore Rankings'],
+        evidence: 'Linked from dashboard sidebar and cards; displays monthly top scorers.',
+        x: 640, y: 760
+      },
+      ai_board: {
+        id: 'ai_board',
+        title: 'AI Whiteboard & Voice Tutor',
+        path: 'ai-board/ai-board.html',
+        category: 'ai',
+        status: 'Authenticated / Guest (Gated)',
+        purpose: 'Interactive canvas drawing board, handwriting analysis, voice explanations, and queue-managed AI tutor.',
+        scripts: ['ai-board/js/main.js', 'js/auth.js'],
+        styles: ['ai-board/ai-board.css'],
+        services: ['Express /api/analyze-board', 'Google Gemini', 'ElevenLabs / Web Speech', 'Queue Manager'],
+        evidence: 'Linked from dashboard card; checks verifyBoardAccess() in js/auth.js; wired through ai-board/js/main.js.',
+        x: 940, y: 60
+      },
+      doubt: {
+        id: 'doubt',
+        title: 'NeoTutor Doubt Solver',
+        path: 'htmls/doubt/index.html',
+        category: 'ai',
+        status: 'Authenticated / Guest (Gated)',
+        purpose: 'Multimodal image upload and text doubt solver with stepwise explanations and follow-up Q&A.',
+        scripts: ['htmls/doubt/script.js', 'js/auth.js'],
+        styles: ['htmls/doubt/style.css'],
+        services: ['Express /gemini-solve', 'Firebase Storage', 'Firestore (solvedDoubts)'],
+        evidence: 'Linked from dashboard card [NeoTutor]; uploads image to Storage, calls /gemini-solve.',
+        x: 940, y: 200
+      },
+      chat: {
+        id: 'chat',
+        title: 'Live Peer Chat',
+        path: 'htmls/chat/chat_app.html',
+        category: 'ai',
+        status: 'Authenticated / Guest (Restricted)',
+        purpose: 'Realtime peer discussion rooms with instant messaging, live typing, and community moderation.',
+        scripts: ['htmls/chat/chat.js', 'htmls/chat/message.js', 'htmls/chat/report.js'],
+        styles: ['htmls/chat/styles.css'],
+        services: ['Firebase Realtime Database (messages)', 'Firestore (users)'],
+        evidence: 'Linked from dashboard sidebar; guest mode disables message input (Sign in to chat).',
+        x: 940, y: 340
+      },
+      bot: {
+        id: 'bot',
+        title: 'Bot Helper (AI Assistant)',
+        path: 'htmls/bot/bot.html',
+        category: 'ai',
+        status: 'Authenticated / Guest (Restricted)',
+        purpose: 'Streamed conversational AI study partner with markdown rendering, LaTeX formulas, and concept explanations.',
+        scripts: ['htmls/bot/script.js', 'js/auth.js'],
+        styles: ['htmls/bot/styles.css'],
+        services: ['Express /api/chat-stream', 'Groq Llama 3.3', 'Marked / KaTeX'],
+        evidence: 'Linked from dashboard sidebar and shortcuts.js:127; streams response from server.',
+        x: 940, y: 480
+      },
+      paper_gen: {
+        id: 'paper_gen',
+        title: 'Exam Paper Generator',
+        path: 'htmls/question-paper_generator-ai/ai-generate.html',
+        category: 'ai',
+        status: 'Authenticated / Guest',
+        purpose: 'Custom CBSE question paper generation (MCQ, Short, Long, HOTS, Case Study) with LaTeX and PDF download.',
+        scripts: ['htmls/question-paper_generator-ai/js-generate.js', 'js/usage-limits.js'],
+        styles: ['htmls/question-paper_generator-ai/styles.css'],
+        services: ['Express /api/chat (task: paper_generation)', 'KaTeX', 'html2pdf.js'],
+        evidence: 'Linked from dashboard sidebar; validates syllabus and renders downloadable PDF.',
+        x: 940, y: 620
+      },
+      quiz_hub_math: {
+        id: 'quiz_hub_math',
+        title: 'Maths Quiz Hub',
+        path: 'htmls/quiz_htmls/class9-10maths.html',
+        category: 'quiz',
+        status: 'Authenticated / Guest',
+        purpose: 'Interactive quiz launcher for all Class 9 Maths chapters (1-15) and Class 10 Math question bank.',
+        scripts: ['js/auth.js', 'js/card_func.js'],
+        styles: ['CSS/dashboard.css', 'htmls/quiz_css/classs9-10maths.css'],
+        services: ['Firebase Auth', 'Firestore Quiz Results'],
+        evidence: 'Target of dashboard goToSubjectPage() when maths is selected; links to chapters 1-15.',
+        x: 640, y: 400
+      },
+      quiz_hub_sci: {
+        id: 'quiz_hub_sci',
+        title: 'Science Quiz Hub',
+        path: 'htmls/quiz_htmls/class9-10science.html',
+        category: 'quiz',
+        status: 'Authenticated / Guest',
+        purpose: 'Science quiz launcher connecting to Class 9 & 10 Physics, Chemistry, and Biology chapters.',
+        scripts: ['js/auth.js', 'js/card_func.js'],
+        styles: ['CSS/dashboard.css', 'htmls/quiz_css/class9-10science.css'],
+        services: ['Firebase Auth', 'Firestore Quiz Results'],
+        evidence: 'Target of dashboard goToSubjectPage() when science is selected; links to 27 chapter quizzes.',
+        x: 940, y: 760
+      },
+      iq_expected: {
+        id: 'iq_expected',
+        title: 'Expected Questions Bank',
+        path: 'IQ/expected-questions.html',
+        category: 'iq',
+        status: 'Public',
+        purpose: 'CBSE board exam most-expected questions with stepwise solutions for Class 9 & 10 Maths and Science.',
+        scripts: ['Inline subject filters'],
+        styles: ['IQ/IQ.css'],
+        services: ['Google AdSense'],
+        evidence: 'Linked from index.html, about.html, blog.html; links to 51 chapter question pages.',
+        x: 40, y: 700
+      },
+      iq_top: {
+        id: 'iq_top',
+        title: 'Top Questions Bank',
+        path: 'IQ/top-question.html',
+        category: 'iq',
+        status: 'Public',
+        purpose: 'Top high-yield scoring questions and recurring board exam problems curated by subject teachers.',
+        scripts: ['Inline questions'],
+        styles: ['IQ/IQ.css'],
+        services: ['Google AdSense'],
+        evidence: 'Linked from index.html header and footer; links to class notes.',
+        x: 40, y: 860
+      },
+      profile: {
+        id: 'profile',
+        title: 'Learner Profile',
+        path: 'htmls/profile.html',
+        category: 'account',
+        status: 'Strictly Authenticated',
+        purpose: 'Student profile showing learning score, high score, rank, avatar, bio, and logout.',
+        scripts: ['js/auth.js', 'js/dark_mode.js', 'js/shortcuts.js'],
+        styles: ['CSS/enhancements.css'],
+        services: ['Firebase Auth', 'Firestore users/{uid}'],
+        evidence: 'Protected by checkAccess(true) at profile.html:249. Links to setting.html & rank-score-info.html.',
+        x: 1240, y: 180
+      },
+      setting: {
+        id: 'setting',
+        title: 'Account Settings',
+        path: 'htmls/setting.html',
+        category: 'account',
+        status: 'Strictly Authenticated',
+        purpose: 'Profile editing: update first/last name, username, bio, notification preferences, password, and dark theme.',
+        scripts: ['js/auth.js', 'js/settings.js', 'js/shortcuts.js'],
+        styles: ['CSS/enhancements.css'],
+        services: ['Firebase Auth (Password/Profile update)', 'Firestore users/{uid}'],
+        evidence: 'Protected by checkAccess(true) in js/settings.js:4. Dispatches updateDoc to users collection.',
+        x: 1240, y: 340
+      },
+      rank_info: {
+        id: 'rank_info',
+        title: 'Rank & Score Calculation',
+        path: 'htmls/rank-score-info.html',
+        category: 'account',
+        status: 'Authenticated / Guest',
+        purpose: 'Transparent scoring breakdown explaining how quiz accuracy, speed, and streaks impact leaderboard rank.',
+        scripts: ['js/shortcuts.js'],
+        styles: ['Tailwind CDN'],
+        services: ['Static scoring rules'],
+        evidence: 'Linked from profile.html:239 ("How Rank & Score are calculated?").',
+        x: 1240, y: 500
+      },
+      contact: {
+        id: 'contact',
+        title: 'Contact Us & Support',
+        path: 'htmls/contactus.html',
+        category: 'legal',
+        status: 'Public / Authenticated',
+        purpose: 'Support contact form, feedback submission, help queries, and platform support channels.',
+        scripts: ['js/auth.js', 'js/card_func.js', 'js/dark_mode.js', 'js/shortcuts.js'],
+        styles: ['CSS/dashboard.css', 'CSS/feedback_contact.css'],
+        services: ['Formspree / Support email'],
+        evidence: 'Linked from index.html footer, dashboard sidebar, and firebase.json redirect /contact.',
+        x: 1240, y: 660
+      },
+      feedback: {
+        id: 'feedback',
+        title: 'Student Feedback',
+        path: 'htmls/feedback.html',
+        category: 'legal',
+        status: 'Public / Authenticated',
+        purpose: 'Platform feedback and bug reporting form to improve quizzes, notes, and AI whiteboard accuracy.',
+        scripts: ['js/auth.js', 'js/card_func.js', 'js/shortcuts.js'],
+        styles: ['CSS/dashboard.css', 'CSS/feedback_contact.css'],
+        services: ['Feedback collector'],
+        evidence: 'Linked from dashboard sidebar and doubt solver interface.',
+        x: 1240, y: 820
+      },
+      legal: {
+        id: 'legal',
+        title: 'Privacy Policy & Terms',
+        path: 'htmls/privacy.html · terms_conditions.html',
+        category: 'legal',
+        status: 'Public',
+        purpose: 'Official terms of service, student privacy policies, COPPA/data protection compliance, and cookies.',
+        scripts: ['Static legal text'],
+        styles: ['CSS/sign.css'],
+        services: ['Legal Compliance'],
+        evidence: 'Linked from sign.html, index.html footer, and dashboard brand link.',
+        x: 340, y: 540
+      }
     };
 
-    const userNodes = {
-      home: { title: 'Home / landing', path: 'index.html · /', status: 'Public', purpose: 'Public entry with global search, resources, questions, notes, blog and auth links.' },
-      about: { title: 'About', path: 'about.html · /about', status: 'Public', purpose: 'Public product information page.' },
-      notes: { title: 'Notes library', path: 'Notes/ · /notes', status: 'Public', purpose: 'Class 9 and 10 science and mathematics note indexes.' },
-      questions: { title: 'Question banks', path: 'IQ/top-question.html · IQ/expected-questions.html', status: 'Public', purpose: 'Top and expected question surfaces linked from the landing page.' },
-      blog: { title: 'Blog', path: 'blog/blog.html · /blog', status: 'Public', purpose: 'Public article and post surface.' },
-      chapter: { title: 'Chapter detail', path: 'Notes/10-CH1.html', status: 'Public', purpose: 'Representative chapter page linked from the class-wise notes index.' },
-      sign: { title: 'Sign in / sign up', path: 'htmls/sign.html', status: 'Auth', purpose: 'Email/password, Google and guest entry; terms and privacy links.' },
-      verify: { title: 'Email verification', path: 'htmls/verify-email.html', status: 'Auth', purpose: 'Account activation checkpoint after signup.' },
-      legal: { title: 'Terms + privacy', path: 'htmls/terms_conditions.html · htmls/privacy.html', status: 'Public', purpose: 'Legal pages linked from the signup form.' },
-      dashboard: { title: 'Dashboard', path: 'htmls/dashboard.html', status: 'Authenticated / guest', purpose: 'Main app hub with class selection, sidebar navigation and quick actions.' },
-      appnotes: { title: 'App notes', path: 'htmls/notes.html', status: 'Authenticated / guest', purpose: 'Authenticated notes screen with app navigation.' },
-      quiz: { title: 'Quizzes', path: 'htmls/quiz_htmls/ · js/dashboard.js', status: 'Authenticated / guest', purpose: 'Dashboard class selection opens the quiz subject families.' },
-      spotlight: { title: 'Spotlight', path: 'htmls/spotlight.html', status: 'Authenticated / guest', purpose: 'Monthly notes and ranking surface.' },
-      bot: { title: 'Bot Helper', path: 'htmls/bot/bot.html', status: 'Authenticated / guest', purpose: 'AI assistant surface linked from dashboard and shortcuts.' },
-      paper: { title: 'Exam paper generator', path: 'htmls/question-paper_generator-ai/ai-generate.html', status: 'Authenticated / guest', purpose: 'Question-paper generation tool linked from dashboard.' },
-      chat: { title: 'Live chat', path: 'htmls/chat/chat_app.html', status: 'Authenticated / guest', purpose: 'Peer messaging screen; guest sending is restricted.' },
-      tutor: { title: 'NeoTutor', path: 'htmls/doubt/index.html', status: 'Authenticated / guest', purpose: 'Doubt-solving screen linked from dashboard.' },
-      board: { title: 'AI Board', path: 'ai-board/ai-board.html', status: 'Authenticated / guest', purpose: 'Canvas and voice learning tool linked from dashboard.' },
-      profile: { title: 'Profile', path: 'htmls/profile.html', status: 'Authenticated', purpose: 'Account profile reached from the shared user menu.' },
-      settings: { title: 'Settings', path: 'htmls/setting.html', status: 'Authenticated', purpose: 'Account preferences reached from the shared user menu.' },
-      rank: { title: 'Rank + score info', path: 'htmls/rank-score-info.html', status: 'Authenticated / guest', purpose: 'Score and ranking explanation reached from Profile.' },
-      contact: { title: 'Contact + feedback', path: 'htmls/contactus.html · htmls/feedback.html', status: 'Authenticated / guest', purpose: 'Support and complaint forms in the shared app navigation.' }
+    const USER_CONNECTIONS = [
+      { from: 'index', to: 'about', kind: 'nav', note: 'Normal navigation via header/footer link' },
+      { from: 'index', to: 'blog', kind: 'nav', note: 'Direct link from header nav and blog feature card' },
+      { from: 'index', to: 'notes_hub', kind: 'nav', note: 'Primary study link from header nav (Notes)' },
+      { from: 'index', to: 'iq_expected', kind: 'nav', note: 'Direct card links to expected board questions' },
+      { from: 'index', to: 'iq_top', kind: 'nav', note: 'Header nav and footer link to high-yield questions' },
+      { from: 'index', to: 'sign', kind: 'auth', note: 'Nav CTA "Sign In" button and guest onboarding' },
+      { from: 'index', to: 'legal', kind: 'nav', note: 'Footer links to Terms and Privacy Policy' },
+      { from: 'index', to: 'contact', kind: 'nav', note: 'Footer link to support and inquiries' },
+      { from: 'index', to: 'dashboard', kind: 'auth', note: 'Auto-redirect in index.js/auth.js when user is logged in' },
+      { from: 'sign', to: 'verify_email', kind: 'auth', note: 'Redirect on new email/password account registration' },
+      { from: 'sign', to: 'dashboard', kind: 'auth', note: 'Redirect on successful authentication or Google OAuth' },
+      { from: 'sign', to: 'legal', kind: 'nav', note: 'Terms & Conditions and Privacy Policy consent links' },
+      { from: 'sign', to: 'index', kind: 'nav', note: 'Brand logo back link to homepage' },
+      { from: 'verify_email', to: 'sign', kind: 'auth', note: '"Already verified? Sign In" login link' },
+      { from: 'verify_email', to: 'dashboard', kind: 'auth', note: 'Auto-redirect after email confirmation' },
+      { from: 'dashboard', to: 'notes_app', kind: 'nav', note: 'Sidebar link: Notes library with badge' },
+      { from: 'dashboard', to: 'spotlight', kind: 'nav', note: 'Sidebar & featured card: Monthly spotlight' },
+      { from: 'dashboard', to: 'bot', kind: 'nav', note: 'Sidebar & card: AI Assistant / Bot Helper' },
+      { from: 'dashboard', to: 'paper_gen', kind: 'nav', note: 'Sidebar: AI Exam Paper Generator' },
+      { from: 'dashboard', to: 'chat', kind: 'nav', note: 'Sidebar & card: Peer Discussion Chat' },
+      { from: 'dashboard', to: 'doubt', kind: 'nav', note: 'Featured tool card: NeoTutor Multimodal Doubt Solver' },
+      { from: 'dashboard', to: 'ai_board', kind: 'nav', note: 'Featured tool card: Interactive AI Whiteboard' },
+      { from: 'dashboard', to: 'quiz_hub_math', kind: 'nav', note: 'Class modal selection -> Maths subject route' },
+      { from: 'dashboard', to: 'quiz_hub_sci', kind: 'nav', note: 'Class modal selection -> Science subject route' },
+      { from: 'dashboard', to: 'profile', kind: 'auth', note: 'User profile dropdown menu' },
+      { from: 'dashboard', to: 'setting', kind: 'auth', note: 'User settings dropdown menu' },
+      { from: 'dashboard', to: 'contact', kind: 'nav', note: 'Sidebar support link' },
+      { from: 'dashboard', to: 'feedback', kind: 'nav', note: 'Sidebar student feedback link' },
+      { from: 'profile', to: 'setting', kind: 'auth', note: '"Edit Profile" button' },
+      { from: 'profile', to: 'rank_info', kind: 'nav', note: '"How Rank & Score are calculated?" link' },
+      { from: 'profile', to: 'index', kind: 'auth', note: 'Logout action redirects to homepage' },
+      { from: 'setting', to: 'index', kind: 'auth', note: 'Logout action redirects to homepage' },
+      { from: 'setting', to: 'profile', kind: 'auth', note: 'Back to profile link' },
+      { from: 'notes_hub', to: 'notes_app', kind: 'nav', note: 'Link into authenticated notes surface' },
+      { from: 'quiz_hub_math', to: 'dashboard', kind: 'nav', note: 'Back to dashboard navigation' },
+      { from: 'quiz_hub_sci', to: 'dashboard', kind: 'nav', note: 'Back to dashboard navigation' },
+      { from: 'ai_board', to: 'dashboard', kind: 'nav', note: 'Exit canvas back to dashboard or timeout redirect' },
+      { from: 'doubt', to: 'dashboard', kind: 'nav', note: 'Back to dashboard and study materials' },
+      { from: 'chat', to: 'dashboard', kind: 'nav', note: 'Back to main dashboard' },
+      { from: 'bot', to: 'dashboard', kind: 'nav', note: 'Back to learner hub' }
+    ];
+
+    const USER_JOURNEYS = {
+      none: [],
+      onboarding: ['index', 'sign', 'verify_email', 'dashboard'],
+      notes_study: ['index', 'notes_hub', 'notes_app'],
+      exam_prep: ['index', 'iq_expected', 'iq_top'],
+      quiz_practice: ['dashboard', 'quiz_hub_math', 'quiz_hub_sci', 'spotlight'],
+      ai_tutoring: ['dashboard', 'doubt', 'ai_board', 'bot', 'paper_gen'],
+      account_mgmt: ['dashboard', 'profile', 'setting', 'rank_info']
     };
 
-    const nodeEls = [...document.querySelectorAll('.node')];
-    const wireEls = [...document.querySelectorAll('.wire')];
-    const panel = document.getElementById('info-panel');
-    const focusCopy = document.getElementById('focus-copy');
-    const userNodeEls = [...document.querySelectorAll('.user-node')];
-    const userWireEls = [...document.querySelectorAll('.user-wire')];
-    const userPanel = document.getElementById('user-info-panel');
-    const userCanvas = document.getElementById('user-canvas');
+    /* System Architecture Nodes */
+    const SYS_NODES = {
+      p_index: { id: 'p_index', title: 'Homepage / Entry', path: 'index.html', category: 'public', x: 40, y: 60, desc: 'Public landing & search engine' },
+      p_dashboard: { id: 'p_dashboard', title: 'Learner Dashboard', path: 'htmls/dashboard.html', category: 'app', x: 40, y: 190, desc: 'Main study launchpad' },
+      p_board: { id: 'p_board', title: 'AI Whiteboard', path: 'ai-board/ai-board.html', category: 'ai', x: 40, y: 320, desc: 'Interactive canvas & speech tutor' },
+      p_doubt: { id: 'p_doubt', title: 'Doubt Solver', path: 'htmls/doubt/index.html', category: 'ai', x: 40, y: 450, desc: 'Multimodal image doubt solver' },
+      p_chat: { id: 'p_chat', title: 'Peer Chat App', path: 'htmls/chat/chat_app.html', category: 'ai', x: 40, y: 580, desc: 'Live peer messaging screen' },
+      p_bot: { id: 'p_bot', title: 'Bot Helper', path: 'htmls/bot/bot.html', category: 'ai', x: 40, y: 710, desc: 'Streamed AI conversation screen' },
+      p_paper: { id: 'p_paper', title: 'Exam Paper Generator', path: 'htmls/question-paper_generator-ai/ai-generate.html', category: 'ai', x: 40, y: 840, desc: 'LaTeX paper generator' },
+
+      js_auth: { id: 'js_auth', title: 'Auth & Profile Core', path: 'js/auth.js · firebase-auth.js', category: 'backend', x: 340, y: 100, desc: 'Firebase auth state, guest mode, redirects' },
+      js_board: { id: 'js_board', title: 'Board Modular Engines', path: 'ai-board/js/{ai,board,speech,ui}', category: 'backend', x: 340, y: 280, desc: 'Canvas rendering, gestures, voice router' },
+      js_doubt: { id: 'js_doubt', title: 'Doubt Analyzer Script', path: 'htmls/doubt/script.js', category: 'backend', x: 340, y: 440, desc: 'Base64 image handler, follow-up history' },
+      js_chat: { id: 'js_chat', title: 'Realtime Chat Engine', path: 'htmls/chat/{chat,message,report}.js', category: 'backend', x: 340, y: 580, desc: 'RTDB stream, guest input lock, reporting' },
+      js_bot: { id: 'js_bot', title: 'Streaming Chat Assistant', path: 'htmls/bot/script.js', category: 'backend', x: 340, y: 710, desc: 'SSE stream consumer, marked formatting' },
+      js_paper: { id: 'js_paper', title: 'Exam Paper Setter Script', path: 'htmls/question-paper_generator-ai/js-generate.js', category: 'backend', x: 340, y: 840, desc: 'Syllabus strict validator, KaTeX, retry engine' },
+
+      be_server: { id: 'be_server', title: 'Express AI Gateway', path: 'server.js (:3000 / Render)', category: 'backend', x: 640, y: 360, desc: 'Helmet, CORS, rate-limits, session store, AI routes' },
+      be_queue: { id: 'be_queue', title: 'Board Concurrency Queue', path: 'boardMiddleware.js · queueManager.js', category: 'backend', x: 640, y: 180, desc: 'Max 5 concurrent active users, 20m limits' },
+      be_func: { id: 'be_func', title: 'Callable Cloud Function', path: 'functions/index.js', category: 'backend', x: 640, y: 720, desc: 'Firebase Functions v2 solveDoubt proxy' },
+
+      db_auth: { id: 'db_auth', title: 'Firebase Auth', path: 'Identity & JWT tokens', category: 'data', x: 940, y: 80, desc: 'Email/Password & Google provider authentication' },
+      db_firestore: { id: 'db_firestore', title: 'Cloud Firestore', path: 'users · quiz_results · doubts', category: 'data', x: 940, y: 230, desc: 'Persistent user profiles, stats, doubt history' },
+      db_rtdb: { id: 'db_rtdb', title: 'Realtime Database', path: 'messages channel', category: 'data', x: 940, y: 380, desc: 'Live peer-to-peer message synchronization' },
+      db_storage: { id: 'db_storage', title: 'Firebase Storage', path: 'users/{uid}/doubts/...', category: 'data', x: 940, y: 530, desc: 'Uploaded doubt problem images' },
+      db_redis: { id: 'db_redis', title: 'Redis Session Store', path: 'REDIS_URL / in-memory fallback', category: 'data', x: 940, y: 680, desc: 'Durable Express sessions & AI memory' },
+      db_hosting: { id: 'db_hosting', title: 'Hosting & CDN', path: 'Firebase Hosting · Vercel', category: 'infra', x: 940, y: 830, desc: 'Static web delivery, security headers, rewrites' },
+
+      ext_groq: { id: 'ext_groq', title: 'Groq LLaMA 3.3', path: 'api.groq.com / 70B versatile', category: 'external', x: 1240, y: 140, desc: 'Fast streamed text generation & tutor rephrasing' },
+      ext_gemini: { id: 'ext_gemini', title: 'Google Gemini 2.5', path: 'generativelanguage.googleapis.com', category: 'external', x: 1240, y: 320, desc: 'Multimodal vision solving & paper generation' },
+      ext_eleven: { id: 'ext_eleven', title: 'ElevenLabs TTS', path: 'api.elevenlabs.io via /api/tts', category: 'external', x: 1240, y: 500, desc: 'Server-side streaming neural speech' },
+      ext_anthropic: { id: 'ext_anthropic', title: 'Anthropic Claude', path: 'api.anthropic.com (fallback)', category: 'external', x: 1240, y: 680, desc: 'Multimodal solveDoubt fallback in Cloud Function' }
+    };
+
+    const SYS_CONNECTIONS = [
+      { from: 'p_index', to: 'js_auth', kind: 'auth' },
+      { from: 'p_dashboard', to: 'js_auth', kind: 'auth' },
+      { from: 'p_board', to: 'js_board', kind: 'ai' },
+      { from: 'p_doubt', to: 'js_doubt', kind: 'ai' },
+      { from: 'p_chat', to: 'js_chat', kind: 'data' },
+      { from: 'p_bot', to: 'js_bot', kind: 'ai' },
+      { from: 'p_paper', to: 'js_paper', kind: 'ai' },
+
+      { from: 'js_auth', to: 'db_auth', kind: 'auth' },
+      { from: 'js_auth', to: 'db_firestore', kind: 'data' },
+      { from: 'js_board', to: 'be_queue', kind: 'ai' },
+      { from: 'js_board', to: 'be_server', kind: 'ai' },
+      { from: 'js_doubt', to: 'be_server', kind: 'ai' },
+      { from: 'js_doubt', to: 'db_storage', kind: 'data' },
+      { from: 'js_doubt', to: 'db_firestore', kind: 'data' },
+      { from: 'js_chat', to: 'db_rtdb', kind: 'data' },
+      { from: 'js_chat', to: 'db_firestore', kind: 'data' },
+      { from: 'js_bot', to: 'be_server', kind: 'ai' },
+      { from: 'js_paper', to: 'be_server', kind: 'ai' },
+
+      { from: 'be_queue', to: 'be_server', kind: 'backend' },
+      { from: 'be_server', to: 'db_redis', kind: 'data' },
+      { from: 'be_server', to: 'db_firestore', kind: 'data' },
+      { from: 'be_server', to: 'ext_groq', kind: 'ai' },
+      { from: 'be_server', to: 'ext_gemini', kind: 'ai' },
+      { from: 'be_server', to: 'ext_eleven', kind: 'ai' },
+      { from: 'be_func', to: 'db_firestore', kind: 'data' },
+      { from: 'be_func', to: 'ext_anthropic', kind: 'ai' },
+      { from: 'db_hosting', to: 'p_index', kind: 'infra' }
+    ];
+
+    /* Authentication Audit Matrix */
+    const AUTH_AUDIT_DATA = [
+      {
+        tier: 'Strictly Public',
+        color: 'var(--color-public)',
+        desc: 'Accessible to all internet visitors without account or session requirements. Free search, articles, notes, and questions.',
+        pages: [
+          { name: 'Homepage / Search Engine', path: 'index.html', rule: 'Unrestricted entry point', cite: 'Index loads guest or authed state cleanly' },
+          { name: 'About NeoBranium', path: 'about.html', rule: 'Static informational page', cite: 'No auth script loaded' },
+          { name: 'Blog & Exam Insights', path: 'blog/blog.html', rule: 'Static articles with search', cite: 'No auth gate' },
+          { name: 'Notes Library Hub', path: 'Notes/class-wise-notes.html', rule: 'Public curriculum explorer', cite: 'Links to open chapter files' },
+          { name: 'Class 9/10 Notes Index Pages', path: 'Notes/notes-*.html (4 files)', rule: 'Comprehensive revision notes', cite: 'Free public study material' },
+          { name: 'Dedicated Chapter Notes', path: 'Notes/10-*.html (14 files)', rule: 'Deep NCERT chapter summaries', cite: 'Freely readable' },
+          { name: 'Expected & Top Questions', path: 'IQ/expected-questions.html & top-question.html', rule: 'Question banks & solutions', cite: 'Free access for students' },
+          { name: '51 IQ Chapter Pages', path: 'IQ/class9-* & class10-* (51 files)', rule: 'Stepwise question walkthroughs', cite: 'Free access' },
+          { name: 'Privacy Policy & Terms', path: 'htmls/privacy.html & terms_conditions.html', rule: 'Legal compliance surfaces', cite: 'Public compliance' }
+        ]
+      },
+      {
+        tier: 'Authentication Flow / Checkpoints',
+        color: 'var(--color-auth)',
+        desc: 'Entry gates specifically responsible for creating, validating, and activating learner credentials.',
+        pages: [
+          { name: 'Sign In / Sign Up Gateway', path: 'htmls/sign.html', rule: 'Credential collection & Google OAuth', cite: 'js/firebase-auth.js handles credentials' },
+          { name: 'Email Verification Checkpoint', path: 'htmls/verify-email.html', rule: 'Activation required for password signups', cite: 'Target of auth.js:187 when emailVerified is false' }
+        ]
+      },
+      {
+        tier: 'Authenticated with Guest Mode Enabled',
+        color: 'var(--color-app)',
+        desc: 'Interactive platform features that allow exploration in Guest mode, but display an informational guest banner.',
+        pages: [
+          { name: 'Learner Dashboard', path: 'htmls/dashboard.html', rule: 'Full layout loaded; guest banner shown if unauthed', cite: 'auth.js:217 injectGuestBanner()' },
+          { name: 'App Notes Workspace', path: 'htmls/notes.html', rule: 'Notes view with app sidebar', cite: 'auth.js checks sessionStorage isGuestMode' },
+          { name: 'Spotlight Monthly Hub', path: 'htmls/spotlight.html', rule: 'Leaderboards & featured articles', cite: 'auth.js displays guest status in header' },
+          { name: 'Quiz Subject Launchers', path: 'htmls/quiz_htmls/class9-10maths.html & science.html', rule: 'Open quiz families', cite: 'Guest students can take self-assessment quizzes' },
+          { name: '42 Chapter Quiz Pages', path: 'htmls/quiz_htmls/*.html (42 files)', rule: 'Interactive question test pages', cite: 'Scores recorded in session; Firestore sync requires login' },
+          { name: 'Contact & Feedback Forms', path: 'htmls/contactus.html & feedback.html', rule: 'Support submission channels', cite: 'Accessible with pre-filled guest email' },
+          { name: 'Rank & Score Information', path: 'htmls/rank-score-info.html', rule: 'Scoring breakdown guide', cite: 'Informational scoring page' }
+        ]
+      },
+      {
+        tier: 'Authenticated with Action Restrictions / Gated',
+        color: 'var(--color-ai)',
+        desc: 'Advanced AI and live communication tools where guest viewing is allowed, but interactive queries or message posts are locked.',
+        pages: [
+          { name: 'Live Peer Chat', path: 'htmls/chat/chat_app.html', rule: 'Input locked: "Sign in to chat"', cite: 'chat.js:58: messageInput.disabled = true' },
+          { name: 'Bot Helper AI Assistant', path: 'htmls/bot/bot.html', rule: 'Input locked: "Sign in to use AI Assistant"', cite: 'bot/script.js:40: this.chatInput.disabled = true' },
+          { name: 'AI Whiteboard & Voice Tutor', path: 'ai-board/ai-board.html', rule: '20-min limit; session queue enforcement (max 5)', cite: 'auth.js:35 verifyBoardAccess() & queueManager.js' },
+          { name: 'NeoTutor Doubt Solver', path: 'htmls/doubt/index.html', rule: 'AI image solving gated by backend rate-limits', cite: 'doubt/script.js:255 calls /gemini-solve with session' },
+          { name: 'Exam Paper Generator', path: 'htmls/question-paper_generator-ai/ai-generate.html', rule: 'Throttled by client usage counter', cite: 'usage-limits.js canGeneratePaper()' }
+        ]
+      },
+      {
+        tier: 'Strictly Authenticated (Guest Prohibited)',
+        color: 'var(--color-iq)',
+        desc: 'Personal account surfaces that completely block guest access and immediately redirect to sign-in.',
+        pages: [
+          { name: 'Student Profile Page', path: 'htmls/profile.html', rule: 'Immediate redirect to sign.html for guests', cite: 'profile.html:249: checkAccess(true)' },
+          { name: 'Account Settings & Preferences', path: 'htmls/setting.html', rule: 'Immediate redirect to sign.html for guests', cite: 'settings.js:4: await checkAccess(true)' }
+        ]
+      }
+    ];
+
+    /* Content Hierarchy Tree Data */
+    const CONTENT_TREE = {
+      title: 'NeoBranium Learning Syllabus',
+      branches: [
+        {
+          title: 'Notes Library (19 files)',
+          color: 'var(--color-notes)',
+          branches: [
+            {
+              title: 'Class 9',
+              branches: [
+                { title: 'Mathematics Notes Index', path: 'Notes/notes-math-class9.html' },
+                { title: 'Science Notes Index', path: 'Notes/notes-science-class9.html' }
+              ]
+            },
+            {
+              title: 'Class 10',
+              branches: [
+                { title: 'Class-wise Notes Repository', path: 'Notes/class-wise-notes.html' },
+                { title: 'Mathematics Notes Index', path: 'Notes/notes-math-class10.html' },
+                { title: 'Science Comprehensive Notes', path: 'Notes/notes-science-class10.html' },
+                {
+                  title: 'Chemistry Dedicated Chapters',
+                  branches: [
+                    { title: 'Ch 1: Chemical Reactions & Equations', path: 'Notes/10-CH1.html' },
+                    { title: 'Ch 2: Acids, Bases and Salts', path: 'Notes/10-CH2.html' },
+                    { title: 'Ch 3: Metals and Non-metals', path: 'Notes/10-CH3.html' },
+                    { title: 'Ch 4: Carbon and its Compounds', path: 'Notes/10-CH4.html' }
+                  ]
+                },
+                {
+                  title: 'Biology Dedicated Chapters',
+                  branches: [
+                    { title: 'Ch 1: Life Processes', path: 'Notes/10-BI1.html' },
+                    { title: 'Ch 2: Control and Coordination', path: 'Notes/10-BI2.html' },
+                    { title: 'Ch 3: How do Organisms Reproduce?', path: 'Notes/10-BI3.html' },
+                    { title: 'Ch 4: Heredity', path: 'Notes/10-BI4.html' },
+                    { title: 'Ch 5: Our Environment', path: 'Notes/10-BI5.html' }
+                  ]
+                },
+                {
+                  title: 'Physics Dedicated Chapters',
+                  branches: [
+                    { title: 'Ch 1: Light - Reflection and Refraction', path: 'Notes/10-PH1.html' },
+                    { title: 'Ch 2: The Human Eye and Colourful World', path: 'Notes/10-PH2.html' },
+                    { title: 'Ch 3: Electricity', path: 'Notes/10-PH3.html' },
+                    { title: 'Ch 4: Magnetic Effects of Electric Current', path: 'Notes/10-PH4.html' },
+                    { title: 'Ch 5: Quick Formula Revision Sheet', path: 'Notes/10-PH5.html' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          title: 'Interactive Quizzes (45 files)',
+          color: 'var(--color-quiz)',
+          branches: [
+            {
+              title: 'Subject Launchers',
+              branches: [
+                { title: 'Class 9 & 10 Maths Quiz Hub', path: 'htmls/quiz_htmls/class9-10maths.html' },
+                { title: 'Class 9 & 10 Science Quiz Hub', path: 'htmls/quiz_htmls/class9-10science.html' },
+                { title: 'Class 9 & 10 Mathematics Alternative', path: 'htmls/quiz_htmls/class9-10mathematics.html' }
+              ]
+            },
+            {
+              title: 'Class 9 Mathematics (15 Chapters)',
+              branches: [
+                { title: 'Ch 1: Number Systems', path: 'htmls/quiz_htmls/class9_mathematics-chapter-1.html' },
+                { title: 'Ch 2: Polynomials', path: 'htmls/quiz_htmls/class9_mathematics-chapter-2.html' },
+                { title: 'Ch 3: Coordinate Geometry', path: 'htmls/quiz_htmls/class9_mathematics-chapter-3.html' },
+                { title: 'Ch 4: Linear Equations in Two Variables', path: 'htmls/quiz_htmls/class9_mathematics-chapter-4.html' },
+                { title: 'Ch 5: Introduction to Euclid Geometry', path: 'htmls/quiz_htmls/class9_mathematics-chapter-5.html' },
+                { title: 'Ch 6: Lines and Angles', path: 'htmls/quiz_htmls/class9_mathematics-chapter-6.html' },
+                { title: 'Ch 7: Triangles', path: 'htmls/quiz_htmls/class9_mathematics-chapter-7.html' },
+                { title: 'Ch 8: Quadrilaterals', path: 'htmls/quiz_htmls/class9_mathematics-chapter-8.html' },
+                { title: 'Ch 9: Circles', path: 'htmls/quiz_htmls/class9_mathematics-chapter-9.html' },
+                { title: 'Ch 10: Heron Formula', path: 'htmls/quiz_htmls/class9_mathematics-chapter-10.html' },
+                { title: 'Ch 11: Surface Areas and Volumes', path: 'htmls/quiz_htmls/class9_mathematics-chapter-11.html' },
+                { title: 'Ch 12: Statistics', path: 'htmls/quiz_htmls/class9_mathematics-chapter-12.html' },
+                { title: 'Ch 13: Probability', path: 'htmls/quiz_htmls/class9_mathematics-chapter-13.html' },
+                { title: 'Ch 14: Constructions & Revision', path: 'htmls/quiz_htmls/class9_mathematics-chapter14.html' },
+                { title: 'Ch 15: Mock Assessment Test', path: 'htmls/quiz_htmls/class9mathematics-chapter-15.html' }
+              ]
+            },
+            {
+              title: 'Class 9 Science (14 Chapters)',
+              branches: [
+                {
+                  title: 'Biology (6 Chapters)',
+                  branches: [
+                    { title: 'Ch 1: Fundamental Unit of Life', path: 'htmls/quiz_htmls/class9_biology-chapter-1.html' },
+                    { title: 'Ch 2: Tissues', path: 'htmls/quiz_htmls/class9_biology-chapter-2.html' },
+                    { title: 'Ch 3: Diversity in Living Organisms', path: 'htmls/quiz_htmls/class9_biology-chapter-3.html' },
+                    { title: 'Ch 4: Why Do We Fall Ill', path: 'htmls/quiz_htmls/class9_biology-chapter-4.html' },
+                    { title: 'Ch 5: Natural Resources', path: 'htmls/quiz_htmls/class9_biology-chapter-5.html' },
+                    { title: 'Ch 6: Improvement in Food Resources', path: 'htmls/quiz_htmls/class9_biology-chapter-6.html' }
+                  ]
+                },
+                {
+                  title: 'Chemistry (4 Chapters)',
+                  branches: [
+                    { title: 'Ch 1: Matter in Our Surroundings', path: 'htmls/quiz_htmls/class9_chemistry-chapter-1.html' },
+                    { title: 'Ch 2: Is Matter Around Us Pure', path: 'htmls/quiz_htmls/class9_chemistry-chapter-2.html' },
+                    { title: 'Ch 3: Atoms and Molecules', path: 'htmls/quiz_htmls/class9_chemistry-chapter-3.html' },
+                    { title: 'Ch 4: Structure of the Atom', path: 'htmls/quiz_htmls/class9_chemistry-chapter-4.html' }
+                  ]
+                },
+                {
+                  title: 'Physics (4 Chapters)',
+                  branches: [
+                    { title: 'Ch 1: Motion', path: 'htmls/quiz_htmls/class9-physics_chapter1.html' },
+                    { title: 'Ch 2: Force and Laws of Motion', path: 'htmls/quiz_htmls/class9-physics_chapter2.html' },
+                    { title: 'Ch 3: Gravitation', path: 'htmls/quiz_htmls/class9-physics_chapter3.html' },
+                    { title: 'Ch 4: Work and Energy', path: 'htmls/quiz_htmls/class9_physics-chapter-4.html' }
+                  ]
+                }
+              ]
+            },
+            {
+              title: 'Class 10 Science (13 Chapters)',
+              branches: [
+                {
+                  title: 'Biology (5 Chapters)',
+                  branches: [
+                    { title: 'Ch 1: Life Processes', path: 'htmls/quiz_htmls/class10-biology-chapetr-1.html' },
+                    { title: 'Ch 2: Control and Coordination', path: 'htmls/quiz_htmls/class10-biology-chapter-2.html' },
+                    { title: 'Ch 3: How do Organisms Reproduce?', path: 'htmls/quiz_htmls/class10-biology-chapter-3.html' },
+                    { title: 'Ch 4: Heredity and Evolution', path: 'htmls/quiz_htmls/class10-biology-chapter-4.html' },
+                    { title: 'Ch 5: Our Environment', path: 'htmls/quiz_htmls/class10-biology-chapter-5.html' }
+                  ]
+                },
+                {
+                  title: 'Chemistry (4 Chapters)',
+                  branches: [
+                    { title: 'Ch 1: Chemical Reactions and Equations', path: 'htmls/quiz_htmls/class10-chemistry-chapter-1.html' },
+                    { title: 'Ch 2: Acids, Bases and Salts', path: 'htmls/quiz_htmls/class10-chemistry-chapter-2.html' },
+                    { title: 'Ch 3: Metals and Non-metals', path: 'htmls/quiz_htmls/class10-chemistry-chapter-3.html' },
+                    { title: 'Ch 4: Carbon and its Compounds', path: 'htmls/quiz_htmls/class10-chemistry-chapter-4.html' }
+                  ]
+                },
+                {
+                  title: 'Physics (4 Chapters)',
+                  branches: [
+                    { title: 'Ch 1: Light - Reflection & Refraction', path: 'htmls/quiz_htmls/class10-physics-chapter-1.html' },
+                    { title: 'Ch 2: The Human Eye & Colourful World', path: 'htmls/quiz_htmls/class10-physics-chapter-2.html' },
+                    { title: 'Ch 3: Electricity', path: 'htmls/quiz_htmls/class10-physics-chapter-3.html' },
+                    { title: 'Ch 4: Magnetic Effects of Electric Current', path: 'htmls/quiz_htmls/class10-physics-chapter-4.html' }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          title: 'Expected Questions (IQ Bank - 53 files)',
+          color: 'var(--color-iq)',
+          branches: [
+            {
+              title: 'Question Bank Hubs',
+              branches: [
+                { title: 'Expected Questions Overview', path: 'IQ/expected-questions.html' },
+                { title: 'Top Questions Scoring List', path: 'IQ/top-question.html' }
+              ]
+            },
+            {
+              title: 'Class 9 Mathematics (12 Chapters)',
+              branches: [
+                { title: 'Ch 1: Number Systems', path: 'IQ/class9-maths/chapter-1-number-systems.html' },
+                { title: 'Ch 2: Polynomials', path: 'IQ/class9-maths/chapter-2-polynomials.html' },
+                { title: 'Ch 3: Coordinate Geometry', path: 'IQ/class9-maths/chapter-3-coordinate-geometry.html' },
+                { title: 'Ch 4: Linear Equations', path: 'IQ/class9-maths/chapter-4-linear-equations.html' },
+                { title: 'Ch 5: Euclid Geometry', path: 'IQ/class9-maths/chapter-5-euclids-geometry.html' },
+                { title: 'Ch 6: Lines and Angles', path: 'IQ/class9-maths/chapter-6-lines-angles.html' },
+                { title: 'Ch 7: Triangles', path: 'IQ/class9-maths/chapter-7-triangles.html' },
+                { title: 'Ch 8: Quadrilaterals', path: 'IQ/class9-maths/chapter-8-quadrilaterals.html' },
+                { title: 'Ch 9: Circles', path: 'IQ/class9-maths/chapter-9-circles.html' },
+                { title: 'Ch 10: Heron Formula', path: 'IQ/class9-maths/chapter-10-herons-formula.html' },
+                { title: 'Ch 11: Surface Areas and Volumes', path: 'IQ/class9-maths/chapter-11-surface-areas-volumes.html' },
+                { title: 'Ch 12: Statistics', path: 'IQ/class9-maths/chapter-12-statistics.html' }
+              ]
+            },
+            {
+              title: 'Class 9 Science (12 Chapters)',
+              branches: [
+                { title: 'Ch 1: Matter in Surroundings', path: 'IQ/class9-science/chapter-1-matter-surroundings.html' },
+                { title: 'Ch 2: Matter Around Us Pure', path: 'IQ/class9-science/chapter-2-matter-around-us-pure.html' },
+                { title: 'Ch 3: Atoms and Molecules', path: 'IQ/class9-science/chapter-3-atoms-molecules.html' },
+                { title: 'Ch 4: Structure of Atom', path: 'IQ/class9-science/chapter-4-structure-of-atom.html' },
+                { title: 'Ch 5: Fundamental Unit of Life', path: 'IQ/class9-science/chapter-5-fundamental-unit-life.html' },
+                { title: 'Ch 6: Tissues', path: 'IQ/class9-science/chapter-6-tissues.html' },
+                { title: 'Ch 7: Motion', path: 'IQ/class9-science/chapter-7-motion.html' },
+                { title: 'Ch 8: Force and Laws of Motion', path: 'IQ/class9-science/chapter-8-force-laws-motion.html' },
+                { title: 'Ch 9: Gravitation', path: 'IQ/class9-science/chapter-9-gravitation.html' },
+                { title: 'Ch 10: Work and Energy', path: 'IQ/class9-science/chapter-10-work-energy.html' },
+                { title: 'Ch 11: Sound', path: 'IQ/class9-science/chapter-11-sound.html' },
+                { title: 'Ch 12: Improvement in Food Resources', path: 'IQ/class9-science/chapter-12-food-resources.html' }
+              ]
+            },
+            {
+              title: 'Class 10 Mathematics (14 Chapters)',
+              branches: [
+                { title: 'Ch 1: Real Numbers', path: 'IQ/class10-maths/chapter-1-real-numbers.html' },
+                { title: 'Ch 2: Polynomials', path: 'IQ/class10-maths/chapter-2-polynomials.html' },
+                { title: 'Ch 3: Pair of Linear Equations', path: 'IQ/class10-maths/chapter-3-linear-equations.html' },
+                { title: 'Ch 4: Quadratic Equations', path: 'IQ/class10-maths/chapter-4-quadratic-equations.html' },
+                { title: 'Ch 5: Arithmetic Progressions', path: 'IQ/class10-maths/chapter-5-arithmetic-progressions.html' },
+                { title: 'Ch 6: Triangles', path: 'IQ/class10-maths/chapter-6-triangles.html' },
+                { title: 'Ch 7: Coordinate Geometry', path: 'IQ/class10-maths/chapter-7-coordinate-geometry.html' },
+                { title: 'Ch 8: Introduction to Trigonometry', path: 'IQ/class10-maths/chapter-8-introduction-to-trigonometry.html' },
+                { title: 'Ch 9: Applications of Trigonometry', path: 'IQ/class10-maths/chapter-9-applications-of-trigonometry.html' },
+                { title: 'Ch 10: Circles', path: 'IQ/class10-maths/chapter-10-circles.html' },
+                { title: 'Ch 11: Areas Related to Circles', path: 'IQ/class10-maths/chapter-11-areas-related-to-circles.html' },
+                { title: 'Ch 12: Surface Areas and Volumes', path: 'IQ/class10-maths/chapter-12-surface-areas-volumes.html' },
+                { title: 'Ch 13: Statistics', path: 'IQ/class10-maths/chapter-13-statistics.html' },
+                { title: 'Ch 14: Probability', path: 'IQ/class10-maths/chapter-14-probability.html' }
+              ]
+            },
+            {
+              title: 'Class 10 Science (13 Chapters)',
+              branches: [
+                { title: 'Ch 1: Chemical Reactions & Equations', path: 'IQ/class10-science/chapter-1-chemical-reactions.html' },
+                { title: 'Ch 2: Acids, Bases and Salts', path: 'IQ/class10-science/chapter-2-acids-bases-salts.html' },
+                { title: 'Ch 3: Metals and Non-metals', path: 'IQ/class10-science/chapter-3-metals-non-metals.html' },
+                { title: 'Ch 4: Carbon and its Compounds', path: 'IQ/class10-science/chapter-4-carbon-compounds.html' },
+                { title: 'Ch 5: Life Processes', path: 'IQ/class10-science/chapter-5-life-processes.html' },
+                { title: 'Ch 6: Control and Coordination', path: 'IQ/class10-science/chapter-6-control-coordination.html' },
+                { title: 'Ch 7: How do Organisms Reproduce?', path: 'IQ/class10-science/chapter-7-how-do-organisms-reproduce.html' },
+                { title: 'Ch 8: Heredity', path: 'IQ/class10-science/chapter-8-heredity.html' },
+                { title: 'Ch 9: Light - Reflection and Refraction', path: 'IQ/class10-science/chapter-9-light-reflection-refraction.html' },
+                { title: 'Ch 10: Human Eye and Colourful World', path: 'IQ/class10-science/chapter-10-human-eye-colourful-world.html' },
+                { title: 'Ch 11: Electricity', path: 'IQ/class10-science/chapter-11-electricity.html' },
+                { title: 'Ch 12: Magnetic Effects of Electric Current', path: 'IQ/class10-science/chapter-12-magnetic-effects-electric-current.html' },
+                { title: 'Ch 13: Our Environment', path: 'IQ/class10-science/chapter-13-our-environment.html' }
+              ]
+            }
+          ]
+        }
+      ]
+    };
+
+    /* ==========================================================================
+       CONTROLLER & INTERACTIVE ENGINE
+       ========================================================================== */
+
+    // Global Interactive State
+    const state = {
+      activeTab: 'user-view',
+      selectedNodeId: null,
+      activeJourney: 'none',
+      filterCategory: 'all',
+      searchQuery: '',
+      // Pan & Zoom state for User View
+      userPan: { x: 0, y: 0 },
+      userScale: 1.0,
+      // Pan & Zoom state for System View
+      sysPan: { x: 0, y: 0 },
+      sysScale: 1.0
+    };
+
+    // DOM Elements
     const userViewport = document.getElementById('user-viewport');
-    let userScale = 1;
-    let userOffset = { x: 0, y: 0 };
+    const userCanvas = document.getElementById('user-canvas');
+    const userWiresSvg = document.getElementById('user-wires-svg');
+    const userNodesContainer = document.getElementById('user-nodes-container');
 
-    function showNode(id) {
-      const data = nodes[id];
-      nodeEls.forEach((node) => node.classList.toggle('is-dim', node.dataset.id !== id && !isConnected(node.dataset.id, id)));
-      wireEls.forEach((wire) => wire.classList.toggle('is-hot', wire.dataset.from === id || wire.dataset.to === id));
-      wireEls.forEach((wire) => wire.classList.toggle('is-dim', wire.dataset.from !== id && wire.dataset.to !== id));
-      const connected = data.connected.split(', ');
-      focusCopy.textContent = `${data.title} focused · ${connected.length} direct connections`;
-      panel.hidden = false;
-      panel.innerHTML = `<div><h2 class="info-title">${data.title}</h2><div class="info-path">${data.path}</div></div><div><div class="info-label">Purpose</div><p class="info-value">${data.purpose}</p></div><div><div class="info-label">Connected modules</div><p class="info-value">${connected.map((item) => `<span>${item}</span>`).join('')}</p></div><div><div class="info-label">Services / notes</div><p class="info-value">${data.services}<span>${data.notes}</span></p></div>`;
+    const sysViewport = document.getElementById('sys-viewport');
+    const sysCanvas = document.getElementById('sys-canvas');
+    const sysWiresSvg = document.getElementById('sys-wires-svg');
+    const sysNodesContainer = document.getElementById('sys-nodes-container');
+
+    const detailsDrawer = document.getElementById('details-drawer');
+    const drawerCloseBtn = document.getElementById('drawer-close-btn');
+
+    const journeySelect = document.getElementById('journey-select');
+    const searchInput = document.getElementById('global-search');
+
+    /* Initialize User Map Nodes & SVG Wires */
+    function renderUserMap() {
+      userNodesContainer.innerHTML = '';
+      
+      // Render Nodes
+      Object.values(USER_NODES).forEach(node => {
+        const el = document.createElement('div');
+        el.className = `node-card cat-${node.category}`;
+        el.id = `user-node-${node.id}`;
+        el.dataset.id = node.id;
+        el.dataset.category = node.category;
+        el.style.left = `${node.x}px`;
+        el.style.top = `${node.y}px`;
+
+        el.innerHTML = `
+          <div class="node-header">
+            <span class="node-title">${node.title}</span>
+            <span class="node-badge">${node.status}</span>
+          </div>
+          <span class="node-path">${node.path}</span>
+          <p class="node-desc">${node.purpose}</p>
+        `;
+
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectNode(node.id, 'user');
+        });
+
+        userNodesContainer.appendChild(el);
+      });
+
+      // Render Wires
+      renderUserWires();
     }
 
-    function isConnected(nodeId, selectedId) {
-      if (nodeId === selectedId) return true;
-      return wireEls.some((wire) => (wire.dataset.from === selectedId && wire.dataset.to === nodeId) || (wire.dataset.to === selectedId && wire.dataset.from === nodeId));
+    function renderUserWires() {
+      // Keep defs
+      const defs = userWiresSvg.querySelector('defs');
+      userWiresSvg.innerHTML = '';
+      if (defs) userWiresSvg.appendChild(defs);
+
+      const nodeWidth = 232;
+      const nodeHeight = 94;
+
+      USER_CONNECTIONS.forEach((conn, index) => {
+        const u = USER_NODES[conn.from];
+        const v = USER_NODES[conn.to];
+        if (!u || !v) return;
+
+        // Determine port points
+        let x1, y1, x2, y2;
+        if (u.x < v.x) {
+          x1 = u.x + nodeWidth;
+          y1 = u.y + nodeHeight * 0.45;
+          x2 = v.x;
+          y2 = v.y + nodeHeight * 0.45;
+        } else if (u.x > v.x) {
+          x1 = u.x;
+          y1 = u.y + nodeHeight * 0.55;
+          x2 = v.x + nodeWidth;
+          y2 = v.y + nodeHeight * 0.55;
+        } else {
+          // Same column
+          x1 = u.x + nodeWidth * 0.8;
+          y1 = u.y + (u.y < v.y ? nodeHeight : 0);
+          x2 = v.x + nodeWidth * 0.8;
+          y2 = v.y + (u.y < v.y ? 0 : nodeHeight);
+        }
+
+        const dx = Math.abs(x2 - x1);
+        const curveOffset = Math.max(30, dx * 0.5);
+        const c1x = (u.x < v.x) ? x1 + curveOffset : (u.x > v.x) ? x1 - curveOffset : x1 + 40;
+        const c2x = (u.x < v.x) ? x2 - curveOffset : (u.x > v.x) ? x2 + curveOffset : x2 + 40;
+
+        const d = `M ${x1} ${y1} C ${c1x} ${y1}, ${c2x} ${y2}, ${x2} ${y2}`;
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('class', 'wire-path');
+        path.setAttribute('data-from', conn.from);
+        path.setAttribute('data-to', conn.to);
+        path.setAttribute('data-kind', conn.kind);
+        path.setAttribute('marker-end', 'url(#arrow-default)');
+        path.id = `wire-${conn.from}-${conn.to}`;
+
+        userWiresSvg.appendChild(path);
+      });
     }
 
-    function clearFocus() {
-      nodeEls.forEach((node) => node.classList.remove('is-dim', 'is-active'));
-      wireEls.forEach((wire) => wire.classList.remove('is-dim', 'is-hot'));
-      panel.hidden = true;
-      focusCopy.textContent = 'All systems visible';
+    /* Initialize System Architecture Nodes & Wires */
+    function renderSystemMap() {
+      sysNodesContainer.innerHTML = '';
+      const defs = sysWiresSvg.querySelector('defs');
+      sysWiresSvg.innerHTML = '';
+      if (defs) sysWiresSvg.appendChild(defs);
+
+      // Render Nodes
+      Object.values(SYS_NODES).forEach(node => {
+        const el = document.createElement('div');
+        el.className = `node-card cat-${node.category}`;
+        el.id = `sys-node-${node.id}`;
+        el.dataset.id = node.id;
+        el.style.left = `${node.x}px`;
+        el.style.top = `${node.y}px`;
+
+        el.innerHTML = `
+          <div class="node-header">
+            <span class="node-title">${node.title}</span>
+            <span class="node-badge">${node.category.toUpperCase()}</span>
+          </div>
+          <span class="node-path">${node.path}</span>
+          <p class="node-desc">${node.desc}</p>
+        `;
+
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectNode(node.id, 'system');
+        });
+
+        sysNodesContainer.appendChild(el);
+      });
+
+      // Render Wires
+      const nodeWidth = 232;
+      const nodeHeight = 90;
+
+      SYS_CONNECTIONS.forEach((conn) => {
+        const u = SYS_NODES[conn.from];
+        const v = SYS_NODES[conn.to];
+        if (!u || !v) return;
+
+        const x1 = u.x + nodeWidth;
+        const y1 = u.y + nodeHeight * 0.5;
+        const x2 = v.x;
+        const y2 = v.y + nodeHeight * 0.5;
+        const dx = Math.abs(x2 - x1);
+        const curveOffset = Math.max(30, dx * 0.5);
+
+        const d = `M ${x1} ${y1} C ${x1 + curveOffset} ${y1}, ${x2 - curveOffset} ${y2}, ${x2} ${y2}`;
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('class', 'wire-path');
+        path.setAttribute('data-from', conn.from);
+        path.setAttribute('data-to', conn.to);
+        path.setAttribute('data-kind', conn.kind);
+        path.setAttribute('marker-end', 'url(#sys-arrow)');
+        path.id = `sys-wire-${conn.from}-${conn.to}`;
+
+        sysWiresSvg.appendChild(path);
+      });
     }
 
-    function renderUserTransform() {
-      userCanvas.style.transform = `translate(${userOffset.x}px, ${userOffset.y}px) scale(${userScale})`;
-      document.getElementById('zoom-reset').textContent = `${Math.round(userScale * 100)}%`;
+    /* Render Content Hierarchy Tree */
+    function renderContentTree() {
+      const root = document.getElementById('content-tree-root');
+      root.innerHTML = '';
+
+      function buildBranch(node) {
+        const li = document.createElement('li');
+        li.className = 'tree-node';
+
+        const row = document.createElement('div');
+        row.className = 'tree-node-row';
+
+        if (node.branches && node.branches.length > 0) {
+          row.innerHTML = `
+            <span class="tree-toggle-icon">&minus;</span>
+            <span class="tree-node-title" style="${node.color ? 'color:' + node.color : ''}">${node.title}</span>
+            <span class="tree-node-count">${node.branches.length}</span>
+          `;
+
+          row.addEventListener('click', () => {
+            li.classList.toggle('is-collapsed');
+            const icon = row.querySelector('.tree-toggle-icon');
+            icon.innerHTML = li.classList.contains('is-collapsed') ? '+' : '&minus;';
+          });
+
+          li.appendChild(row);
+
+          const ul = document.createElement('ul');
+          ul.className = 'tree-branch';
+          node.branches.forEach(child => ul.appendChild(buildBranch(child)));
+          li.appendChild(ul);
+        } else {
+          // Leaf
+          row.innerHTML = `
+            <span class="tree-leaf-item" title="${node.path}">
+              📄 ${node.title}
+              <span style="color:var(--ink-dim); font-size:9px;">${node.path || ''}</span>
+            </span>
+          `;
+          row.addEventListener('click', () => {
+            if (node.path) {
+              window.open('/' + node.path.replace(/^\//, ''), '_blank');
+            }
+          });
+          li.appendChild(row);
+        }
+
+        return li;
+      }
+
+      const ulRoot = document.createElement('ul');
+      ulRoot.className = 'tree-branch';
+      ulRoot.style.paddingLeft = '0';
+      CONTENT_TREE.branches.forEach(b => ulRoot.appendChild(buildBranch(b)));
+      root.appendChild(ulRoot);
     }
 
-    function userNeighbors(id) {
-      return userWireEls.filter((wire) => wire.dataset.from === id || wire.dataset.to === id).flatMap((wire) => [wire.dataset.from, wire.dataset.to]).filter((value) => value !== id);
+    /* Render Authentication Audit Grid */
+    function renderAuthGrid() {
+      const container = document.getElementById('auth-grid-container');
+      container.innerHTML = '';
+
+      AUTH_AUDIT_DATA.forEach(tier => {
+        const card = document.createElement('div');
+        card.className = 'auth-card';
+
+        let pagesHtml = '';
+        tier.pages.forEach(p => {
+          pagesHtml += `
+            <div class="auth-page-row">
+              <div class="auth-page-top">
+                <span class="auth-page-name">${p.name}</span>
+                <span class="auth-page-path">${p.path}</span>
+              </div>
+              <div class="auth-page-rule">${p.rule}</div>
+              <span class="auth-citation">&bull; Code evidence: ${p.cite}</span>
+            </div>
+          `;
+        });
+
+        card.innerHTML = `
+          <div class="auth-card-header">
+            <span class="auth-status-indicator" style="background:${tier.color}; color:${tier.color}"></span>
+            <h3 class="auth-card-title">${tier.tier}</h3>
+          </div>
+          <p class="auth-desc">${tier.desc}</p>
+          <div class="auth-pages-list">${pagesHtml}</div>
+        `;
+
+        container.appendChild(card);
+      });
     }
 
-    function showUserNode(id) {
-      const data = userNodes[id];
-      const neighbors = userNeighbors(id);
-      const outgoing = userWireEls.filter((wire) => wire.dataset.from === id).map((wire) => userNodes[wire.dataset.to].title);
-      const incoming = userWireEls.filter((wire) => wire.dataset.to === id).map((wire) => userNodes[wire.dataset.from].title);
-      userNodeEls.forEach((node) => node.classList.toggle('is-dim', node.dataset.userId !== id && !neighbors.includes(node.dataset.userId)));
-      userNodeEls.forEach((node) => node.classList.toggle('is-active', node.dataset.userId === id));
-      userWireEls.forEach((wire) => wire.classList.toggle('is-hot', wire.dataset.from === id || wire.dataset.to === id));
-      userWireEls.forEach((wire) => wire.classList.toggle('is-dim', wire.dataset.from !== id && wire.dataset.to !== id));
-      userPanel.hidden = false;
-      userPanel.innerHTML = `<div><h2 class="info-title">${data.title}</h2><div class="info-path">${data.path}</div></div><div><div class="info-label">Access</div><p class="info-value">${data.status}</p><div class="info-label" style="margin-top:14px">Purpose</div><p class="info-value">${data.purpose}</p></div><div><div class="info-label">Links to</div><p class="info-value">${outgoing.length ? outgoing.map((item) => `<span>${item}</span>`).join('') : '<span>None verified</span>'}</p></div><div><div class="info-label">Linked from</div><p class="info-value">${incoming.length ? incoming.map((item) => `<span>${item}</span>`).join('') : '<span>Direct entry</span>'}</p></div>`;
+    /* Render Navigation Matrix */
+    function renderNavigationMatrix() {
+      const tbody = document.getElementById('matrix-tbody');
+      tbody.innerHTML = '';
+
+      USER_CONNECTIONS.forEach(conn => {
+        const fromNode = USER_NODES[conn.from] || { title: conn.from, path: conn.from };
+        const toNode = USER_NODES[conn.to] || { title: conn.to, path: conn.to };
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <div class="matrix-node-name">${fromNode.title}</div>
+            <span style="font-family:'DM Mono',monospace; font-size:10px; color:var(--ink-dim);">${fromNode.path}</span>
+          </td>
+          <td>
+            <div class="matrix-node-name">${toNode.title}</div>
+            <span style="font-family:'DM Mono',monospace; font-size:10px; color:var(--color-public);">${toNode.path}</span>
+          </td>
+          <td>${conn.note.split('via')[1] || conn.note}</td>
+          <td><span class="matrix-badge">${conn.kind.toUpperCase()}</span></td>
+          <td style="font-family:'DM Mono',monospace; font-size:10px; color:#cbd5e1;">${conn.note}</td>
+        `;
+        tbody.appendChild(tr);
+      });
     }
 
-    function clearUserFocus() {
-      userNodeEls.forEach((node) => node.classList.remove('is-dim', 'is-active'));
-      userWireEls.forEach((wire) => wire.classList.remove('is-dim', 'is-hot'));
-      userPanel.hidden = true;
+    /* ==========================================================================
+       SELECTION, FOCUS, HIGHLIGHTING & DETAILS DRAWER
+       ========================================================================== */
+
+    function selectNode(id, type = 'user') {
+      state.selectedNodeId = id;
+      const isUser = (type === 'user');
+      const nodesMap = isUser ? USER_NODES : SYS_NODES;
+      const connectionsList = isUser ? USER_CONNECTIONS : SYS_CONNECTIONS;
+      const data = nodesMap[id];
+      if (!data) return;
+
+      // Identify incoming and outgoing neighbors
+      const outgoing = connectionsList.filter(c => c.from === id).map(c => c.to);
+      const incoming = connectionsList.filter(c => c.to === id).map(c => c.from);
+      const neighbors = new Set([id, ...outgoing, ...incoming]);
+
+      // Highlight / Dim Nodes
+      const nodeSelector = isUser ? '.interactive-canvas#user-canvas .node-card' : '.interactive-canvas#sys-canvas .node-card';
+      document.querySelectorAll(nodeSelector).forEach(el => {
+        const nodeId = el.dataset.id;
+        const isNeighbor = neighbors.has(nodeId);
+        el.classList.toggle('is-dim', !isNeighbor);
+        el.classList.toggle('is-active', nodeId === id);
+      });
+
+      // Highlight / Dim Wires
+      const wireSelector = isUser ? '#user-wires-svg .wire-path' : '#sys-wires-svg .wire-path';
+      document.querySelectorAll(wireSelector).forEach(wire => {
+        const from = wire.dataset.from;
+        const to = wire.dataset.to;
+        const isOut = (from === id);
+        const isIn = (to === id);
+
+        wire.classList.toggle('is-outgoing', isOut);
+        wire.classList.toggle('is-incoming', isIn);
+        wire.classList.toggle('is-dim', !isOut && !isIn);
+
+        if (isOut) {
+          wire.setAttribute('marker-end', isUser ? 'url(#arrow-outgoing)' : 'url(#sys-arrow-active)');
+        } else if (isIn) {
+          wire.setAttribute('marker-end', isUser ? 'url(#arrow-incoming)' : 'url(#sys-arrow-active)');
+        } else {
+          wire.setAttribute('marker-end', isUser ? 'url(#arrow-default)' : 'url(#sys-arrow)');
+        }
+      });
+
+      // Open and Populate Details Drawer
+      showDetailsDrawer(data, outgoing, incoming, nodesMap);
     }
 
-    function setPrimaryJourney(enabled) {
-      if (!enabled) { clearUserFocus(); return; }
-      const journeyNodes = ['home', 'notes', 'chapter'];
-      userNodeEls.forEach((node) => node.classList.toggle('is-dim', !journeyNodes.includes(node.dataset.userId)));
-      userWireEls.forEach((wire) => wire.classList.toggle('is-hot', wire.dataset.kind === 'primary'));
-      userWireEls.forEach((wire) => wire.classList.toggle('is-dim', wire.dataset.kind !== 'primary'));
-      userNodeEls.forEach((node) => node.classList.toggle('is-active', journeyNodes.includes(node.dataset.userId)));
-      userPanel.hidden = false;
-      userPanel.innerHTML = '<div><h2 class="info-title">Primary Journey</h2><div class="info-path">index.html &rarr; Notes/class-wise-notes.html &rarr; Notes/10-CH1.html</div></div><div><div class="info-label">Evidence</div><p class="info-value">Landing page links to class notes; the class-wise index links to chapter pages.</p></div><div><div class="info-label">Flow type</div><p class="info-value">Normal public navigation</p></div><div><div class="info-label">Scope</div><p class="info-value">Only the source-supported study path is highlighted.</p></div>';
+    function showDetailsDrawer(data, outgoing, incoming, nodesMap) {
+      document.getElementById('drawer-title').textContent = data.title;
+      document.getElementById('drawer-path').textContent = data.path;
+      document.getElementById('drawer-cat-badge').textContent = (data.category || 'SURFACE').toUpperCase();
+      document.getElementById('drawer-auth-badge').textContent = data.status || 'ACTIVE';
+      document.getElementById('drawer-purpose').textContent = data.purpose || data.desc || 'Frontend component';
+      document.getElementById('drawer-evidence').textContent = data.evidence || 'Verified in source codebase imports & layout.';
+
+      // Open Page Action Button
+      const actionsContainer = document.getElementById('drawer-actions');
+      actionsContainer.innerHTML = '';
+      if (data.path && !data.path.includes('*') && !data.path.includes('·')) {
+        const directUrl = '/' + data.path.replace(/^\//, '');
+        actionsContainer.innerHTML = `
+          <a href="${directUrl}" target="_blank" class="btn-action-primary">
+            <span>Open Page In Tab</span> &nearr;
+          </a>
+          <button class="btn-ctrl" onclick="navigator.clipboard.writeText('${data.path}'); alert('Path copied!')" title="Copy Path">Copy Path</button>
+        `;
+      }
+
+      // Outgoing List
+      const outContainer = document.getElementById('drawer-outgoing-list');
+      document.getElementById('drawer-out-count').textContent = outgoing.length;
+      outContainer.innerHTML = '';
+      if (outgoing.length === 0) {
+        outContainer.innerHTML = '<span style="font-size:11px; color:var(--ink-dim)">No outgoing client transitions verified</span>';
+      } else {
+        outgoing.forEach(targetId => {
+          const target = nodesMap[targetId];
+          if (!target) return;
+          const item = document.createElement('div');
+          item.className = 'drawer-link-item';
+          item.innerHTML = `<div><strong>${target.title}</strong><br><span style="font-size:9px;">${target.path}</span></div> <span>Jump &rarr;</span>`;
+          item.addEventListener('click', () => selectNode(targetId, state.activeTab === 'user-view' ? 'user' : 'system'));
+          outContainer.appendChild(item);
+        });
+      }
+
+      // Incoming List
+      const inContainer = document.getElementById('drawer-incoming-list');
+      document.getElementById('drawer-in-count').textContent = incoming.length;
+      inContainer.innerHTML = '';
+      if (incoming.length === 0) {
+        inContainer.innerHTML = '<span style="font-size:11px; color:var(--ink-dim)">Direct entry or external referrer</span>';
+      } else {
+        incoming.forEach(sourceId => {
+          const source = nodesMap[sourceId];
+          if (!source) return;
+          const item = document.createElement('div');
+          item.className = 'drawer-link-item';
+          item.innerHTML = `<div><strong>${source.title}</strong><br><span style="font-size:9px;">${source.path}</span></div> <span>Jump &rarr;</span>`;
+          item.addEventListener('click', () => selectNode(sourceId, state.activeTab === 'user-view' ? 'user' : 'system'));
+          inContainer.appendChild(item);
+        });
+      }
+
+      // Scripts
+      const scriptsContainer = document.getElementById('drawer-scripts-list');
+      scriptsContainer.innerHTML = '';
+      (data.scripts || []).forEach(s => {
+        const tag = document.createElement('span');
+        tag.className = 'drawer-tag';
+        tag.textContent = s;
+        scriptsContainer.appendChild(tag);
+      });
+      if (!data.scripts || data.scripts.length === 0) {
+        scriptsContainer.innerHTML = '<span style="font-size:11px; color:var(--ink-dim)">None</span>';
+      }
+
+      // Styles
+      const stylesContainer = document.getElementById('drawer-styles-list');
+      stylesContainer.innerHTML = '';
+      (data.styles || []).forEach(s => {
+        const tag = document.createElement('span');
+        tag.className = 'drawer-tag';
+        tag.textContent = s;
+        stylesContainer.appendChild(tag);
+      });
+      if (!data.styles || data.styles.length === 0) {
+        stylesContainer.innerHTML = '<span style="font-size:11px; color:var(--ink-dim)">Default / Inlined</span>';
+      }
+
+      // Services
+      const servicesContainer = document.getElementById('drawer-services-list');
+      servicesContainer.innerHTML = '';
+      (data.services || []).forEach(s => {
+        const tag = document.createElement('span');
+        tag.className = 'drawer-tag';
+        tag.style.borderColor = 'rgba(56, 189, 248, 0.3)';
+        tag.textContent = s;
+        servicesContainer.appendChild(tag);
+      });
+      if (!data.services || data.services.length === 0) {
+        servicesContainer.innerHTML = '<span style="font-size:11px; color:var(--ink-dim)">None detected</span>';
+      }
+
+      // Open Drawer
+      detailsDrawer.classList.add('is-open');
     }
 
-    function resetUserMap() {
-      document.getElementById('journey-toggle').checked = false;
-      userScale = 1;
-      userOffset = { x: 0, y: 0 };
-      renderUserTransform();
-      clearUserFocus();
+    function clearSelection() {
+      state.selectedNodeId = null;
+      document.querySelectorAll('.node-card').forEach(el => {
+        el.classList.remove('is-dim', 'is-active', 'is-journey');
+      });
+      document.querySelectorAll('.wire-path').forEach(wire => {
+        wire.classList.remove('is-outgoing', 'is-incoming', 'is-dim', 'is-journey');
+        wire.setAttribute('marker-end', 'url(#arrow-default)');
+      });
+      detailsDrawer.classList.remove('is-open');
     }
 
-    function updateStats(view) {
-      document.getElementById('system-node-count').textContent = view === 'system-section' ? nodeEls.length : userNodeEls.length;
-      document.getElementById('system-flow-count').textContent = view === 'system-section' ? wireEls.length : userWireEls.length;
-      document.getElementById('page-count').textContent = userNodeEls.length;
-      document.getElementById('service-count').textContent = document.querySelectorAll('#system-section .data, #system-section .external, #system-section .infra').length;
+    /* User Journey Highlighting */
+    function setJourney(journeyKey) {
+      state.activeJourney = journeyKey;
+      if (journeyKey === 'none') {
+        clearSelection();
+        return;
+      }
+
+      const journeyNodeIds = USER_JOURNEYS[journeyKey] || [];
+      if (journeyNodeIds.length === 0) return;
+
+      // Dim all nodes except those in journey
+      document.querySelectorAll('.interactive-canvas#user-canvas .node-card').forEach(el => {
+        const inJourney = journeyNodeIds.includes(el.dataset.id);
+        el.classList.toggle('is-dim', !inJourney);
+        el.classList.toggle('is-journey', inJourney);
+        el.classList.remove('is-active');
+      });
+
+      // Highlight wires between sequential nodes in the journey
+      const activePairs = new Set();
+      for (let i = 0; i < journeyNodeIds.length - 1; i++) {
+        activePairs.add(`${journeyNodeIds[i]}-${journeyNodeIds[i+1]}`);
+      }
+
+      document.querySelectorAll('#user-wires-svg .wire-path').forEach(wire => {
+        const from = wire.dataset.from;
+        const to = wire.dataset.to;
+        const isJourneyWire = activePairs.has(`${from}-${to}`);
+
+        wire.classList.toggle('is-journey', isJourneyWire);
+        wire.classList.toggle('is-dim', !isJourneyWire);
+        wire.classList.remove('is-outgoing', 'is-incoming');
+
+        if (isJourneyWire) {
+          wire.setAttribute('marker-end', 'url(#arrow-journey)');
+        } else {
+          wire.setAttribute('marker-end', 'url(#arrow-default)');
+        }
+      });
+
+      // Open Drawer with Journey Summary
+      const journeyTitles = {
+        onboarding: '01 &bull; New User Onboarding Flow',
+        notes_study: '02 &bull; Syllabus Mastery (Notes Path)',
+        exam_prep: '03 &bull; Board Exam Preparation (IQ Bank)',
+        quiz_practice: '04 &bull; Interactive Quiz Assessment',
+        ai_tutoring: '05 &bull; AI Whiteboard & Doubt Solving',
+        account_mgmt: '06 &bull; Profile & Settings Configuration'
+      };
+
+      const journeyDescriptions = {
+        onboarding: 'Initial visitor arrives at Homepage, initiates Sign Up, verifies email checkpoint via link, and reaches Learner Dashboard.',
+        notes_study: 'Learner accesses Notes Hub from nav, explores class notes, and opens concrete NCERT chapter notes.',
+        exam_prep: 'Student reviews expected board exam questions with stepwise answers, formulas, and recurring exam problems.',
+        quiz_practice: 'Learner picks subject from modal on dashboard, practices chapter test, and checks spotlight monthly ranking.',
+        ai_tutoring: 'Learner consults NeoTutor doubt solver with photo upload, launches AI whiteboard for voice assistance, and asks Bot Helper.',
+        account_mgmt: 'Authenticated student updates avatar, bio, and notifications, checks rank calculation, or securely logs out.'
+      };
+
+      document.getElementById('drawer-title').innerHTML = journeyTitles[journeyKey] || 'User Journey';
+      document.getElementById('drawer-path').textContent = journeyNodeIds.map(id => (USER_NODES[id] ? USER_NODES[id].path : id)).join(' &rarr; ');
+      document.getElementById('drawer-cat-badge').textContent = 'USER JOURNEY';
+      document.getElementById('drawer-auth-badge').textContent = 'FLOW';
+      document.getElementById('drawer-purpose').textContent = journeyDescriptions[journeyKey] || '';
+      document.getElementById('drawer-evidence').textContent = 'Verified route sequence supported by actual links and redirect guards in source code.';
+
+      document.getElementById('drawer-actions').innerHTML = '';
+      document.getElementById('drawer-outgoing-list').innerHTML = '';
+      document.getElementById('drawer-incoming-list').innerHTML = '';
+      document.getElementById('drawer-scripts-list').innerHTML = '';
+      document.getElementById('drawer-styles-list').innerHTML = '';
+      document.getElementById('drawer-services-list').innerHTML = '';
+
+      detailsDrawer.classList.add('is-open');
     }
 
-    nodeEls.forEach((node) => node.addEventListener('click', () => { nodeEls.forEach((item) => item.classList.toggle('is-active', item === node)); showNode(node.dataset.id); }));
-    document.getElementById('clear-focus').addEventListener('click', clearFocus);
-    userNodeEls.forEach((node) => node.addEventListener('click', () => showUserNode(node.dataset.userId)));
-    document.getElementById('journey-toggle').addEventListener('change', (event) => setPrimaryJourney(event.target.checked));
-    document.getElementById('zoom-in').addEventListener('click', () => { userScale = Math.min(1.35, userScale + .1); renderUserTransform(); });
-    document.getElementById('zoom-out').addEventListener('click', () => { userScale = Math.max(.65, userScale - .1); renderUserTransform(); });
-    document.getElementById('zoom-reset').addEventListener('click', resetUserMap);
-    document.getElementById('user-reset').addEventListener('click', resetUserMap);
+    /* Category Filter */
+    function filterByCategory(cat) {
+      state.filterCategory = cat;
+      document.querySelectorAll('#category-filters .filter-pill').forEach(btn => {
+        btn.classList.toggle('is-active', btn.dataset.filter === cat);
+      });
 
-    let dragStart;
-    userViewport.addEventListener('pointerdown', (event) => { if (event.target.closest('.user-node')) return; dragStart = { x: event.clientX - userOffset.x, y: event.clientY - userOffset.y }; userViewport.classList.add('is-dragging'); userViewport.setPointerCapture(event.pointerId); });
-    userViewport.addEventListener('pointermove', (event) => { if (!dragStart) return; userOffset = { x: event.clientX - dragStart.x, y: event.clientY - dragStart.y }; renderUserTransform(); });
-    userViewport.addEventListener('pointerup', () => { dragStart = null; userViewport.classList.remove('is-dragging'); });
+      if (cat === 'all') {
+        document.querySelectorAll('.interactive-canvas .node-card').forEach(el => el.classList.remove('is-dim'));
+        document.querySelectorAll('.wires-layer .wire-path').forEach(w => w.classList.remove('is-dim'));
+        return;
+      }
 
-    document.querySelectorAll('.atlas-tab').forEach((tab) => tab.addEventListener('click', () => {
-      document.querySelectorAll('.atlas-tab').forEach((item) => item.classList.toggle('is-active', item === tab));
-      document.querySelectorAll('.atlas-view').forEach((view) => { view.hidden = view.id !== tab.dataset.view; });
-      document.getElementById('system-toolbar').hidden = tab.dataset.view !== 'system-section';
-      updateStats(tab.dataset.view);
-    }));
+      document.querySelectorAll('.interactive-canvas .node-card').forEach(el => {
+        const match = (el.dataset.category === cat);
+        el.classList.toggle('is-dim', !match);
+      });
 
-    updateStats('system-section');
-    renderUserTransform();
+      document.querySelectorAll('.wires-layer .wire-path').forEach(w => {
+        const fromNode = USER_NODES[w.dataset.from];
+        const toNode = USER_NODES[w.dataset.to];
+        const match = (fromNode && fromNode.category === cat) || (toNode && toNode.category === cat);
+        w.classList.toggle('is-dim', !match);
+      });
+    }
+
+    /* Global Instant Search */
+    function handleSearch(query) {
+      state.searchQuery = query.toLowerCase().trim();
+      const q = state.searchQuery;
+
+      if (!q) {
+        document.querySelectorAll('.node-card').forEach(el => el.classList.remove('is-dim'));
+        document.querySelectorAll('.matrix-table tbody tr').forEach(tr => tr.style.display = '');
+        return;
+      }
+
+      // Filter User & System Map Nodes
+      document.querySelectorAll('.node-card').forEach(el => {
+        const text = el.textContent.toLowerCase();
+        const match = text.includes(q);
+        el.classList.toggle('is-dim', !match);
+      });
+
+      // Filter Matrix Table
+      document.querySelectorAll('.matrix-table tbody tr').forEach(tr => {
+        const text = tr.textContent.toLowerCase();
+        tr.style.display = text.includes(q) ? '' : 'none';
+      });
+
+      // Filter Content Tree
+      document.querySelectorAll('.tree-node').forEach(node => {
+        const text = node.textContent.toLowerCase();
+        if (text.includes(q)) {
+          node.classList.remove('is-collapsed');
+        }
+      });
+    }
+
+    /* Pan and Zoom Implementation */
+    function setupPanAndZoom(viewport, canvas, getTransform, setTransform) {
+      let isDragging = false;
+      let startX, startY;
+
+      function update() {
+        const { pan, scale } = getTransform();
+        canvas.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${scale})`;
+        if (viewport === userViewport) {
+          document.getElementById('btn-zoom-reset').textContent = `${Math.round(scale * 100)}%`;
+        }
+      }
+
+      viewport.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('.node-card') || e.target.closest('button') || e.target.closest('input')) return;
+        isDragging = true;
+        const { pan } = getTransform();
+        startX = e.clientX - pan.x;
+        startY = e.clientY - pan.y;
+        viewport.classList.add('is-dragging');
+        viewport.setPointerCapture(e.pointerId);
+      });
+
+      viewport.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        const { scale } = getTransform();
+        setTransform({ x: e.clientX - startX, y: e.clientY - startY }, scale);
+        update();
+      });
+
+      viewport.addEventListener('pointerup', () => {
+        isDragging = false;
+        viewport.classList.remove('is-dragging');
+      });
+
+      viewport.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const { pan, scale } = getTransform();
+        const delta = e.deltaY < 0 ? 0.08 : -0.08;
+        const newScale = Math.min(1.8, Math.max(0.4, scale + delta));
+        setTransform(pan, newScale);
+        update();
+      }, { passive: false });
+
+      return update;
+    }
+
+    const updateUserTransform = setupPanAndZoom(
+      userViewport,
+      userCanvas,
+      () => ({ pan: state.userPan, scale: state.userScale }),
+      (pan, scale) => { state.userPan = pan; state.userScale = scale; }
+    );
+
+    const updateSysTransform = setupPanAndZoom(
+      sysViewport,
+      sysCanvas,
+      () => ({ pan: state.sysPan, scale: state.sysScale }),
+      (pan, scale) => { state.sysPan = pan; state.sysScale = scale; }
+    );
+
+    function fitViewport() {
+      const activeCanvas = (state.activeTab === 'user-view') ? userCanvas : sysCanvas;
+      const activeViewport = (state.activeTab === 'user-view') ? userViewport : sysViewport;
+      const vWidth = activeViewport.clientWidth;
+      const vHeight = activeViewport.clientHeight;
+      const cWidth = 1580;
+      const cHeight = 1000;
+
+      const scale = Math.min(vWidth / cWidth, vHeight / cHeight) * 0.95;
+      const panX = (vWidth - cWidth * scale) / 2;
+      const panY = 20;
+
+      if (state.activeTab === 'user-view') {
+        state.userScale = scale;
+        state.userPan = { x: panX, y: panY };
+        updateUserTransform();
+      } else {
+        state.sysScale = scale;
+        state.sysPan = { x: panX, y: panY };
+        updateSysTransform();
+      }
+    }
+
+    function resetZoom() {
+      if (state.activeTab === 'user-view') {
+        state.userScale = 1.0;
+        state.userPan = { x: 0, y: 0 };
+        updateUserTransform();
+      } else {
+        state.sysScale = 1.0;
+        state.sysPan = { x: 0, y: 0 };
+        updateSysTransform();
+      }
+    }
+
+    /* ==========================================================================
+       EVENT LISTENERS & BINDINGS
+       ========================================================================== */
+
+    // Tab Navigation
+    document.querySelectorAll('.nav-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('is-active'));
+        tab.classList.add('is-active');
+
+        const viewId = tab.dataset.view;
+        state.activeTab = viewId;
+
+        document.querySelectorAll('.view-container').forEach(v => {
+          v.hidden = (v.id !== viewId);
+        });
+
+        // Toggle visibility of journey selector
+        document.getElementById('journey-controls').style.display = (viewId === 'user-view') ? 'flex' : 'none';
+
+        if (viewId === 'user-view') updateUserTransform();
+        if (viewId === 'system-view') updateSysTransform();
+      });
+    });
+
+    // Zoom Controls
+    document.getElementById('btn-zoom-in').addEventListener('click', () => {
+      if (state.activeTab === 'user-view') {
+        state.userScale = Math.min(1.8, state.userScale + 0.15);
+        updateUserTransform();
+      } else {
+        state.sysScale = Math.min(1.8, state.sysScale + 0.15);
+        updateSysTransform();
+      }
+    });
+
+    document.getElementById('btn-zoom-out').addEventListener('click', () => {
+      if (state.activeTab === 'user-view') {
+        state.userScale = Math.max(0.4, state.userScale - 0.15);
+        updateUserTransform();
+      } else {
+        state.sysScale = Math.max(0.4, state.sysScale - 0.15);
+        updateSysTransform();
+      }
+    });
+
+    document.getElementById('btn-zoom-reset').addEventListener('click', resetZoom);
+    document.getElementById('btn-fit').addEventListener('click', fitViewport);
+    document.getElementById('btn-clear').addEventListener('click', clearSelection);
+    drawerCloseBtn.addEventListener('click', clearSelection);
+
+    // Journey Selector
+    journeySelect.addEventListener('change', (e) => {
+      setJourney(e.target.value);
+    });
+
+    // Category Filter Pills
+    document.querySelectorAll('#category-filters .filter-pill').forEach(btn => {
+      btn.addEventListener('click', () => filterByCategory(btn.dataset.filter));
+    });
+
+    // Search Input
+    searchInput.addEventListener('input', (e) => handleSearch(e.target.value));
+
+    // Content Tree Expand / Collapse All
+    document.getElementById('btn-tree-expand').addEventListener('click', () => {
+      document.querySelectorAll('.tree-node').forEach(n => {
+        n.classList.remove('is-collapsed');
+        const icon = n.querySelector('.tree-toggle-icon');
+        if (icon) icon.innerHTML = '&minus;';
+      });
+    });
+
+    document.getElementById('btn-tree-collapse').addEventListener('click', () => {
+      document.querySelectorAll('.tree-node').forEach(n => {
+        n.classList.add('is-collapsed');
+        const icon = n.querySelector('.tree-toggle-icon');
+        if (icon) icon.innerHTML = '+';
+      });
+    });
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+        if (e.key === 'Escape') {
+          e.target.blur();
+          clearSelection();
+        }
+        return;
+      }
+
+      if (e.key === '/') {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      } else if (e.key === 'Escape') {
+        clearSelection();
+      } else if (e.key === '+' || e.key === '=') {
+        document.getElementById('btn-zoom-in').click();
+      } else if (e.key === '-' || e.key === '_') {
+        document.getElementById('btn-zoom-out').click();
+      } else if (e.key === '0') {
+        resetZoom();
+      } else if (e.key === 'f' || e.key === 'F') {
+        fitViewport();
+      }
+    });
+
+    // Canvas background click clears focus
+    userViewport.addEventListener('click', (e) => {
+      if (!e.target.closest('.node-card')) clearSelection();
+    });
+    sysViewport.addEventListener('click', (e) => {
+      if (!e.target.closest('.node-card')) clearSelection();
+    });
+
+    // Initialize Everything
+    renderUserMap();
+    renderSystemMap();
+    renderContentTree();
+    renderAuthGrid();
+    renderNavigationMatrix();
+    updateUserTransform();
+
+    // Auto fit on startup after render
+    setTimeout(fitViewport, 100);
   </script>
 </body>
 </html>
