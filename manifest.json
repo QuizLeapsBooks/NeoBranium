@@ -1,0 +1,16 @@
+{
+  "name": "NeoBranium - AI Learning Platform",
+  "short_name": "NeoBranium",
+  "description": "Free NCERT Class 9 & 10 notes, science & maths solutions, top questions, and instant AI doubt solving.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a2233",
+  "icons": [
+    {
+      "src": "/online-graduation_16847316.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png"
+    }
+  ]
+}

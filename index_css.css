@@ -970,6 +970,7 @@ footer {
   border-radius: 12px;
   margin-bottom: 2rem;
   line-height: 1.8;
+  white-space: pre-wrap;
 }
 
 .modal-footer {

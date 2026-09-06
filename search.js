@@ -4,6 +4,11 @@
 
 const SEARCH_INDEX = [
   // ---- BLOG POSTS ----
+  { category: 'Blog', icon: '📝', title: 'Competency-Based Questions: The 50% Shift in 2026 Boards', excerpt: 'CBSE increased competency-based questions to 50%. Learn to shift from rote learning to application excellence.', url: '/blog/blog.html#cbq-2026' },
+  { category: 'Blog', icon: '📝', title: 'Double Board Exams: Understanding the New CBSE Two-Term System', excerpt: 'Two board exams in one year? Learn how this system reduces stress and gives you a second chance at success.', url: '/blog/blog.html#double-board' },
+  { category: 'Blog', icon: '📝', title: 'Tackling Case Study Questions in Science & Maths', excerpt: 'Master the art of scanning information, identifying keywords, and connecting passages to theory.', url: '/blog/blog.html#case-study' },
+  { category: 'Blog', icon: '📝', title: 'AI & Computational Thinking: Why They Are Your Superpower', excerpt: 'How to use AI ethically to accelerate your understanding rather than copying answers.', url: '/blog/blog.html#ai-education' },
+  { category: 'Blog', icon: '📝', title: 'Effective Revision: Stop Memorizing, Start Practicing (Active Recall)', excerpt: 'Proven memory techniques: flashcards, blurting, and spaced repetition that outperform re-reading.', url: '/blog/blog.html#active-recall' },
   { category: 'Blog', icon: '📝', title: 'Beyond the Grades: What to do when you feel like giving up', excerpt: 'A letter to every student who feels the weight of the world on their shoulders.', url: '/blog/blog.html#resilience' },
   { category: 'Blog', icon: '📝', title: 'The Spark Within: Finding your true passion through curiosity', excerpt: 'How one question changed everything. Discover how to ignite your own flame.', url: '/blog/blog.html#passion' },
   { category: 'Blog', icon: '📝', title: 'The Beauty of Falling: Why failure is your best teacher', excerpt: 'Every setback is a setup for a comeback. Learn why your losses are wins.', url: '/blog/blog.html#failure' },
@@ -78,6 +83,17 @@ const SEARCH_INDEX = [
   { category: 'Class 10 Notes', icon: '📖', title: 'The Human Eye and the Colourful World', excerpt: 'Myopia, hypermetropia, presbyopia, dispersion, Tyndall effect, rainbow, blue sky.', url: '/Notes/notes-science-class10.html#phy-ch2' },
   { category: 'Class 10 Notes', icon: '📖', title: 'Electricity', excerpt: "Ohm's law V=IR, resistance, series/parallel circuits, Joule's heating law, power.", url: '/Notes/notes-science-class10.html#phy-ch3' },
   { category: 'Class 10 Notes', icon: '📖', title: 'Magnetic Effects of Electric Current', excerpt: "Fleming's rules, solenoid, electromagnet, electric motor, domestic circuits, earthing.", url: '/Notes/notes-science-class10.html#phy-ch4' },
+
+  // ---- EXPECTED QUESTIONS ----
+  { category: 'Expected Questions', icon: '🎯', title: 'Most Expected Questions Hub - Class 9 & 10 CBSE Board Exam', excerpt: 'Chapter-wise most expected questions and stepwise solutions for Class 9 and 10.', url: '/IQ/expected-questions.html' },
+  { category: 'Expected Questions', icon: '🎯', title: 'Class 10 Chemical Reactions: Most Expected Board Questions', excerpt: 'Balance reactions, types of chemical reactions, redox, corrosion with detailed solutions.', url: '/IQ/class10-science/chapter-1-chemical-reactions.html' },
+  { category: 'Expected Questions', icon: '🎯', title: 'Class 10 Life Processes: Most Expected Board Questions', excerpt: 'Double circulation, nephron structure, photosynthesis, digestion detailed solutions.', url: '/IQ/class10-science/chapter-5-life-processes.html' },
+  { category: 'Expected Questions', icon: '🎯', title: 'Class 10 Electricity: Most Expected Board Questions', excerpt: "Ohm's law, equivalent resistance in series/parallel, Joule's heating law numericals.", url: '/IQ/class10-science/chapter-11-electricity.html' },
+  { category: 'Expected Questions', icon: '🎯', title: 'Class 10 Real Numbers: Most Expected Board Questions', excerpt: 'Fundamental Theorem of Arithmetic, proving irrationality of √2, √3, √5.', url: '/IQ/class10-maths/chapter-1-real-numbers.html' },
+  { category: 'Expected Questions', icon: '🎯', title: 'Class 10 Quadratic Equations: Most Expected Board Questions', excerpt: 'Nature of roots, discriminant D=b²-4ac, word problems on speed and age.', url: '/IQ/class10-maths/chapter-4-quadratic-equations.html' },
+  { category: 'Expected Questions', icon: '🎯', title: 'Class 10 Trigonometry: Most Expected Board Questions', excerpt: 'Trigonometric identities, values table proofs, angle of elevation/depression.', url: '/IQ/class10-maths/chapter-8-introduction-to-trigonometry.html' },
+  { category: 'Expected Questions', icon: '🎯', title: 'Class 9 Matter in Our Surroundings: Most Expected Questions', excerpt: 'States of matter, latent heat of vaporization/fusion, evaporation factors.', url: '/IQ/class9-science/chapter-1-matter-surroundings.html' },
+  { category: 'Expected Questions', icon: '🎯', title: 'Class 9 Number Systems: Most Expected Questions', excerpt: 'Rational numbers between two numbers, rationalizing denominators, laws of exponents.', url: '/IQ/class9-maths/chapter-1-number-systems.html' },
 ];
 
 // Category color map
@@ -86,6 +102,7 @@ const CATEGORY_COLORS = {
   'Question': '#f59e0b',
   'Class 9 Notes': '#10b981',
   'Class 10 Notes': '#0ea5e9',
+  'Expected Questions': '#f59e0b',
 };
 
 function initGlobalSearch() {
