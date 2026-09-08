@@ -94,6 +94,19 @@ const SEARCH_INDEX = [
   { category: 'Expected Questions', icon: '🎯', title: 'Class 10 Trigonometry: Most Expected Board Questions', excerpt: 'Trigonometric identities, values table proofs, angle of elevation/depression.', url: '/IQ/class10-maths/chapter-8-introduction-to-trigonometry.html' },
   { category: 'Expected Questions', icon: '🎯', title: 'Class 9 Matter in Our Surroundings: Most Expected Questions', excerpt: 'States of matter, latent heat of vaporization/fusion, evaporation factors.', url: '/IQ/class9-science/chapter-1-matter-surroundings.html' },
   { category: 'Expected Questions', icon: '🎯', title: 'Class 9 Number Systems: Most Expected Questions', excerpt: 'Rational numbers between two numbers, rationalizing denominators, laws of exponents.', url: '/IQ/class9-maths/chapter-1-number-systems.html' },
+  // --- Class 11 Notes ---
+  { title: "Physics Notes Class 11", url: "/Notes/notes-physics-class11.html", category: "Class 11 Notes", excerpt: "Complete physics notes for class 11 covering mechanics, thermodynamics, and waves." },
+  { title: "Chemistry Notes Class 11", url: "/Notes/notes-chemistry-class11.html", category: "Class 11 Notes", excerpt: "Complete chemistry notes for class 11 covering physical, organic, and inorganic." },
+  { title: "Mathematics Notes Class 11", url: "/Notes/notes-mathematics-class11.html", category: "Class 11 Notes", excerpt: "Complete mathematics notes for class 11." },
+  { title: "Biology Notes Class 11", url: "/Notes/notes-biology-class11.html", category: "Class 11 Notes", excerpt: "Complete biology notes for class 11." },
+  { title: "Accountancy Notes Class 11", url: "/Notes/notes-accountancy-class11.html", category: "Class 11 Notes", excerpt: "Complete accountancy notes for class 11 commerce." },
+  { title: "Business Studies Notes Class 11", url: "/Notes/notes-business-studies-class11.html", category: "Class 11 Notes", excerpt: "Complete business studies notes for class 11 commerce." },
+  { title: "Economics Notes Class 11", url: "/Notes/notes-economics-class11.html", category: "Class 11 Notes", excerpt: "Complete economics notes for class 11." },
+  { title: "History Notes Class 11", url: "/Notes/notes-history-class11.html", category: "Class 11 Notes", excerpt: "Complete history notes for class 11 humanities." },
+  { title: "Political Science Notes Class 11", url: "/Notes/notes-political-science-class11.html", category: "Class 11 Notes", excerpt: "Complete political science notes for class 11 humanities." },
+  { title: "Geography Notes Class 11", url: "/Notes/notes-geography-class11.html", category: "Class 11 Notes", excerpt: "Complete geography notes for class 11 humanities." },
+  { title: "Sociology Notes Class 11", url: "/Notes/notes-sociology-class11.html", category: "Class 11 Notes", excerpt: "Complete sociology notes for class 11 humanities." },
+  { title: "Class 11 Notes Directory", url: "/Notes/class11-notes.html", category: "Class 11 Notes", excerpt: "Directory of all notes for Class 11 Science, Commerce, and Humanities." }
 ];
 
 // Category color map
@@ -101,6 +114,7 @@ const CATEGORY_COLORS = {
   'Blog': '#8b5cf6',
   'Question': '#f59e0b',
   'Class 9 Notes': '#10b981',
+    'Class 11 Notes': { bg: '#e0e7ff', text: '#4338ca', icon: 'fa-book-open' },
   'Class 10 Notes': '#0ea5e9',
   'Expected Questions': '#f59e0b',
 };
