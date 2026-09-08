@@ -107,6 +107,19 @@ const SEARCH_INDEX = [
   { title: "Geography Notes Class 11", url: "/Notes/notes-geography-class11.html", category: "Class 11 Notes", excerpt: "Complete geography notes for class 11 humanities." },
   { title: "Sociology Notes Class 11", url: "/Notes/notes-sociology-class11.html", category: "Class 11 Notes", excerpt: "Complete sociology notes for class 11 humanities." },
   { title: "Class 11 Notes Directory", url: "/Notes/class11-notes.html", category: "Class 11 Notes", excerpt: "Directory of all notes for Class 11 Science, Commerce, and Humanities." }
+  // --- Class 12 Notes ---
+  { title: "Physics Notes Class 12", url: "/Notes/notes-physics-class12.html", category: "Class 12 Notes", excerpt: "Complete physics notes for class 12 covering electromagnetism, optics, and modern physics." },
+  { title: "Chemistry Notes Class 12", url: "/Notes/notes-chemistry-class12.html", category: "Class 12 Notes", excerpt: "Complete chemistry notes for class 12 covering physical, organic, and inorganic." },
+  { title: "Mathematics Notes Class 12", url: "/Notes/notes-mathematics-class12.html", category: "Class 12 Notes", excerpt: "Complete mathematics notes for class 12." },
+  { title: "Biology Notes Class 12", url: "/Notes/notes-biology-class12.html", category: "Class 12 Notes", excerpt: "Complete biology notes for class 12." },
+  { title: "Accountancy Notes Class 12", url: "/Notes/notes-accountancy-class12.html", category: "Class 12 Notes", excerpt: "Complete accountancy notes for class 12 commerce." },
+  { title: "Business Studies Notes Class 12", url: "/Notes/notes-business-studies-class12.html", category: "Class 12 Notes", excerpt: "Complete business studies notes for class 12 commerce." },
+  { title: "Economics Notes Class 12", url: "/Notes/notes-economics-class12.html", category: "Class 12 Notes", excerpt: "Complete economics notes for class 12." },
+  { title: "History Notes Class 12", url: "/Notes/notes-history-class12.html", category: "Class 12 Notes", excerpt: "Complete history notes for class 12 humanities." },
+  { title: "Political Science Notes Class 12", url: "/Notes/notes-political-science-class12.html", category: "Class 12 Notes", excerpt: "Complete political science notes for class 12 humanities." },
+  { title: "Geography Notes Class 12", url: "/Notes/notes-geography-class12.html", category: "Class 12 Notes", excerpt: "Complete geography notes for class 12 humanities." },
+  { title: "Sociology Notes Class 12", url: "/Notes/notes-sociology-class12.html", category: "Class 12 Notes", excerpt: "Complete sociology notes for class 12 humanities." },
+  { title: "Class 12 Notes Directory", url: "/Notes/class12-notes.html", category: "Class 12 Notes", excerpt: "Directory of all notes for Class 12 Science, Commerce, and Humanities." }
 ];
 
 // Category color map
@@ -114,7 +127,8 @@ const CATEGORY_COLORS = {
   'Blog': '#8b5cf6',
   'Question': '#f59e0b',
   'Class 9 Notes': '#10b981',
-    'Class 11 Notes': { bg: '#e0e7ff', text: '#4338ca', icon: 'fa-book-open' },
+      'Class 12 Notes': { bg: '#fee2e2', text: '#b91c1c', icon: 'fa-graduation-cap' },
+  'Class 11 Notes': { bg: '#e0e7ff', text: '#4338ca', icon: 'fa-book-open' },
   'Class 10 Notes': '#0ea5e9',
   'Expected Questions': '#f59e0b',
 };
