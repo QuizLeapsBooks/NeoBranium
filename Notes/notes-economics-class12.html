@@ -14,16 +14,22 @@
   <link rel="stylesheet" href="notes.css">
   <style>
     .subject-accent { color: #10b981; }
-    .coming-soon-section {
-      background: #f8fafc;
-      border: 2px dashed #cbd5e1;
-      border-radius: 16px;
-      padding: 2rem;
-      text-align: center;
-      color: #64748b;
-      margin: 2rem 0;
-    }
-    .coming-soon-section .cs-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .coming-soon-section { background:#f8fafc; border:2px dashed #cbd5e1; border-radius:16px; padding:2rem; text-align:center; color:#64748b; margin:2rem 0; }
+    .coming-soon-section .cs-icon { font-size:2rem; margin-bottom:0.5rem; }
+    .notes-content { line-height:1.8; color:#334155; }
+    .notes-content h3 { color:#0f172a; font-size:1.05rem; margin:1.25rem 0 0.6rem 0; font-weight:700; }
+    .notes-content p { margin-bottom:0.9rem; }
+    .notes-content ul { padding-left:1.5rem; margin-bottom:1rem; }
+    .notes-content ul li { margin-bottom:0.35rem; }
+    .notes-content table { width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.85rem; }
+    .notes-content th { background:#ecfdf5; padding:0.6rem 0.8rem; text-align:left; font-weight:700; border:1px solid #a7f3d0; }
+    .notes-content td { padding:0.55rem 0.8rem; border:1px solid #e2e8f0; vertical-align:top; }
+    .key-point-box { background:#f0fdf4; border-left:4px solid #10b981; border-radius:0 12px 12px 0; padding:1rem 1.25rem; margin:1.2rem 0; }
+    .key-point-box .kp-title { font-weight:700; color:#065f46; margin-bottom:0.4rem; font-size:0.82rem; }
+    .formula-box { background:#fef3c7; border:1px solid #fcd34d; border-radius:10px; padding:0.9rem 1.2rem; margin:1rem 0; font-family:monospace; font-size:0.9rem; color:#78350f; }
+    .formula-box .f-label { font-weight:700; font-size:0.8rem; margin-bottom:0.3rem; color:#92400e; font-family:sans-serif; }
+    .def-box { background:#eff6ff; border-left:4px solid #3b82f6; border-radius:0 10px 10px 0; padding:0.8rem 1.1rem; margin:1rem 0; }
+    .def-box .d-label { font-weight:700; color:#1d4ed8; font-size:0.82rem; margin-bottom:0.3rem; }
   </style>
 </head>
 <body>
@@ -83,73 +89,203 @@
 
       <section id="ch1" class="chapter-section">
         <h2>Chapter 1: National Income and Related Aggregates</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Meaning of Macroeconomics</h3>
+          <p>Macroeconomics studies the economy as a whole, dealing with aggregates like national income, general price level, and total employment.</p>
+          <h3>Circular Flow of Income</h3>
+          <p>The flow of money income or flow of goods and services across different sectors of the economy. In a 2-sector model (Households &amp; Firms):</p>
+          <ul>
+            <li><strong>Real Flow:</strong> Flow of factor services from households to firms, and flow of goods from firms to households.</li>
+            <li><strong>Money Flow:</strong> Flow of factor payments from firms to households, and consumption expenditure from households to firms.</li>
+          </ul>
+          <h3>Basic Concepts</h3>
+          <ul>
+            <li><strong>Domestic Territory:</strong> Geographical territory plus ships/aircrafts operated by residents, embassies abroad, etc.</li>
+            <li><strong>Normal Resident:</strong> A person/institution who ordinarily resides in the country and whose centre of economic interest lies there.</li>
+            <li><strong>Factor Income vs Transfer Income:</strong> Factor income is earned for rendering services (Rent, Wages, Interest, Profit). Transfer income is unearned (Gifts, Pensions) - not included in National Income.</li>
+          </ul>
+          <h3>Aggregates</h3>
+          <ul>
+            <li><strong>Gross vs Net:</strong> Net = Gross - Depreciation.</li>
+            <li><strong>Domestic vs National:</strong> National = Domestic + Net Factor Income from Abroad (NFIA).</li>
+            <li><strong>Market Price (MP) vs Factor Cost (FC):</strong> FC = MP - Net Indirect Taxes (Indirect Taxes - Subsidies).</li>
+          </ul>
+          <h3>Methods of Calculating National Income (NNP at FC)</h3>
+          <ol>
+            <li><strong>Value Added Method:</strong> Value of Output - Intermediate Consumption = GDP at MP.</li>
+            <li><strong>Income Method:</strong> Compensation of Employees + Operating Surplus (Rent+Interest+Profit) + Mixed Income = NDP at FC.</li>
+            <li><strong>Expenditure Method:</strong> Private Final Consumption Exp. + Govt. Final Consumption Exp. + Gross Domestic Capital Formation + Net Exports = GDP at MP.</li>
+          </ol>
         </div>
       </section>
       <hr>
       <section id="ch2" class="chapter-section">
         <h2>Chapter 2: Money and Banking</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Meaning and Functions of Money</h3>
+          <p>Money is anything which is generally accepted as a medium of exchange, measure of value, store of value, and means for standard of deferred payment.</p>
+          <h3>Money Supply</h3>
+          <p>Total stock of money in circulation among the public at a particular point of time (it is a stock concept). Does not include money held by government or banking system.</p>
+          <ul><li><strong>M1 Measure:</strong> Currency with public + Demand deposits with commercial banks + Other deposits with RBI.</li></ul>
+          <h3>Commercial Banks and Credit Creation</h3>
+          <p>Commercial banks accept deposits and grant loans. They create credit/money in the economy based on the deposits received and the Cash Reserve Ratio (CRR).</p>
+          <div class="formula-box"><div class="f-label">Money Multiplier</div>Money Multiplier = 1 / LRR (Legal Reserve Ratio). Total Credit Created = Initial Deposit × Money Multiplier.</div>
+          <h3>Central Bank (RBI)</h3>
+          <p>The apex body that controls, operates, regulates, and directs the entire banking and monetary structure of the country.</p>
+          <h3>Functions of RBI</h3>
+          <ul>
+            <li>Currency Authority (Bank of issue).</li>
+            <li>Banker to the Government.</li>
+            <li>Banker's Bank and Supervisor.</li>
+            <li>Controller of Money Supply and Credit.</li>
+          </ul>
+          <h3>Tools of Credit Control</h3>
+          <ul>
+            <li><strong>Quantitative:</strong> Repo Rate, Bank Rate, Open Market Operations (OMO), CRR, SLR (Statutory Liquidity Ratio).</li>
+            <li><strong>Qualitative:</strong> Margin Requirements, Moral Suasion.</li>
+          </ul>
         </div>
       </section>
       <hr>
       <section id="ch3" class="chapter-section">
         <h2>Chapter 3: Determination of Income and Employment</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Aggregate Demand (AD) and Aggregate Supply (AS)</h3>
+          <ul>
+            <li><strong>AD:</strong> Total demand for final goods and services in the economy. AD = C + I + G + (X-M). In a 2-sector model, AD = C + I.</li>
+            <li><strong>AS:</strong> Total value of final goods and services planned to be produced. AS = National Income (Y) = C + S.</li>
+          </ul>
+          <h3>Consumption Function</h3>
+          <p>Relationship between consumption and income. C = c̅ + bY, where c̅ is autonomous consumption (consumption when Y=0) and b is Marginal Propensity to Consume (MPC).</p>
+          <ul>
+            <li><strong>APC:</strong> Average Propensity to Consume = C/Y.</li>
+            <li><strong>MPC:</strong> Change in C / Change in Y.</li>
+          </ul>
+          <h3>Saving Function</h3>
+          <p>S = -c̅ + (1-b)Y, where (1-b) is Marginal Propensity to Save (MPS). Note: MPC + MPS = 1, and APC + APS = 1.</p>
+          <h3>Equilibrium Level of Income</h3>
+          <p>Achieved when AD = AS (or C+I = C+S, which means I = S). Planned Investment = Planned Saving.</p>
+          <h3>Investment Multiplier (K)</h3>
+          <p>Ratio of change in income to the initial change in investment. K = ΔY / ΔI. Also, K = 1 / (1-MPC) = 1 / MPS.</p>
+          <h3>Deficient Demand and Excess Demand</h3>
+          <ul>
+            <li><strong>Deficient Demand:</strong> AD &lt; AS at full employment level. Creates a <em>Deflationary Gap</em>. Remedied by expansionary policy (decrease repo rate, CRR, taxes; increase govt spending).</li>
+            <li><strong>Excess Demand:</strong> AD &gt; AS at full employment level. Creates an <em>Inflationary Gap</em>. Remedied by contractionary policy (increase repo rate, CRR, taxes; decrease govt spending).</li>
+          </ul>
         </div>
       </section>
       <hr>
       <section id="ch4" class="chapter-section">
         <h2>Chapter 4: Government Budget and the Economy</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Meaning of Government Budget</h3>
+          <p>An annual statement showing item-wise estimates of expected receipts and anticipated expenditure of the government during a fiscal year.</p>
+          <h3>Objectives of Budget</h3>
+          <p>Reallocation of resources, reducing inequalities in income and wealth, economic stability, management of public enterprises, economic growth.</p>
+          <h3>Components of Budget</h3>
+          <ul>
+            <li><strong>Revenue Budget:</strong> Revenue Receipts and Revenue Expenditure.</li>
+            <li><strong>Capital Budget:</strong> Capital Receipts and Capital Expenditure.</li>
+          </ul>
+          <h3>Revenue vs Capital Receipts</h3>
+          <ul>
+            <li><strong>Revenue Receipts:</strong> Neither create liability nor reduce assets. (Tax revenue like Income Tax, GST, and Non-Tax revenue like fees, fines).</li>
+            <li><strong>Capital Receipts:</strong> Either create a liability (Borrowings) or reduce assets (Disinvestment, Recovery of loans).</li>
+          </ul>
+          <h3>Revenue vs Capital Expenditure</h3>
+          <ul>
+            <li><strong>Revenue Expenditure:</strong> Neither creates assets nor reduces liabilities. (Salaries, pensions, interest payments, subsidies).</li>
+            <li><strong>Capital Expenditure:</strong> Either creates assets (Building roads, schools) or reduces liabilities (Repayment of loans).</li>
+          </ul>
+          <h3>Budget Deficits</h3>
+          <ol>
+            <li><strong>Revenue Deficit:</strong> Revenue Expenditure - Revenue Receipts. (Indicates inability to meet regular expenses).</li>
+            <li><strong>Fiscal Deficit:</strong> Total Expenditure - Total Receipts excluding borrowings. (Indicates total borrowing requirement).</li>
+            <li><strong>Primary Deficit:</strong> Fiscal Deficit - Interest Payments. (Indicates borrowing needed to meet expenses other than interest).</li>
+          </ol>
         </div>
       </section>
       <hr>
       <section id="ch5" class="chapter-section">
         <h2>Chapter 5: Balance of Payments</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Meaning of Balance of Payments (BoP)</h3>
+          <div class="def-box"><div class="d-label">Definition</div>BoP is a systematic record of all economic transactions between residents of a country and the rest of the world during a given period of time.</div>
+          <h3>Components of BoP</h3>
+          <ol>
+            <li><strong>Current Account:</strong> Records exports and imports of goods (visible items), services (invisible items), and unilateral transfers (gifts, remittances). It does not affect the asset/liability status of the country.</li>
+            <li><strong>Capital Account:</strong> Records transactions that affect the asset or liability status of the country (e.g., FDI, FII, borrowings, lending).</li>
+          </ol>
+          <h3>Balance of Trade (BoT)</h3>
+          <p>Difference between the value of exports and imports of <em>visible</em> goods only. BoT is a part of Current Account.</p>
+          <h3>Foreign Exchange Rate</h3>
+          <p>The rate at which one currency is exchanged for another.</p>
+          <ul>
+            <li><strong>Fixed Exchange Rate:</strong> Set and maintained by the government/central bank.</li>
+            <li><strong>Flexible Exchange Rate:</strong> Determined by market forces of demand and supply of foreign exchange.</li>
+            <li><strong>Managed Floating:</strong> Market determines the rate, but central bank intervenes to prevent excessive fluctuations (also called "Dirty Floating").</li>
+          </ul>
+          <h3>Appreciation vs Depreciation (Flexible System)</h3>
+          <p>Depreciation of domestic currency means it loses value relative to foreign currency (e.g., $1 goes from ₹70 to ₹75). It makes exports cheaper and imports expensive. Appreciation is the opposite.</p>
+          <h3>Devaluation vs Revaluation (Fixed System)</h3>
+          <p>Devaluation is the intentional reduction in the value of domestic currency by the government. Revaluation is intentional increase.</p>
         </div>
       </section>
       <hr>
       <section id="ch6" class="chapter-section">
         <h2>Chapter 6: Development Experience (1947-90) and Economic Reforms since 1991</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Brief Overview</h3>
+          <p>This section is closely related to the Indian Economic Development syllabus taught in Class 11/12 depending on the curriculum year.</p>
+          <p>Between 1947-1990, India followed an inward-looking, protectionist, state-led model (Five Year Plans, Public Sector dominance, Licence Raj, Import Substitution). This led to slow "Hindu rate of growth" and eventual BoP crisis in 1991.</p>
+          <h3>Economic Reforms of 1991 (LPG)</h3>
+          <ul>
+            <li><strong>Liberalisation:</strong> Freeing the economy from direct controls. Included industrial deregulation, financial sector reforms, tax reforms, and foreign exchange reforms.</li>
+            <li><strong>Privatisation:</strong> Transfer of ownership/management of public enterprises to private sector (through disinvestment/denationalisation).</li>
+            <li><strong>Globalisation:</strong> Integrating the national economy with the world economy. Removal of trade barriers, encouraging FDI.</li>
+          </ul>
+          <div class="key-point-box"><div class="kp-title">Key Impacts</div>
+          Increased forex reserves, higher GDP growth driven by the service sector (IT/BPO), control of inflation. However, agriculture was largely neglected, leading to jobless growth and increased inequality.</div>
         </div>
       </section>
       <hr>
       <section id="ch7" class="chapter-section">
         <h2>Chapter 7: Current Challenges facing Indian Economy</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Human Capital Formation</h3>
+          <p>Investment in education, health, and training to increase the productive capacity of the population.</p>
+          <h3>Rural Development</h3>
+          <p>Focuses on action plans for the development of areas lagging behind. Key issues: Agricultural credit (NABARD, SHGs), Agricultural marketing (APMC, MSP), Diversification into non-farm activities (animal husbandry, fisheries), Organic farming.</p>
+          <h3>Employment</h3>
+          <p>Major issues include jobless growth, informalisation of the workforce (shift from formal secure jobs to informal insecure contracts), and disguised unemployment in agriculture.</p>
+          <h3>Sustainable Economic Development</h3>
+          <p>Development that meets present needs without compromising the ability of future generations. Key environmental issues in India: land degradation, biodiversity loss, air/water pollution, solid waste management.</p>
         </div>
       </section>
       <hr>
       <section id="ch8" class="chapter-section">
         <h2>Chapter 8: Development Experience of India – A Comparison with Neighbours</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Comparison: India, China, Pakistan</h3>
+          <p>All three nations started their development journeys around the same time (late 1940s) but diverged significantly.</p>
+          <h3>China</h3>
+          <ul>
+            <li>Reforms started in 1978 under Deng Xiaoping.</li>
+            <li>Strategy: Focus on manufacturing, export-led growth, Special Economic Zones (SEZs) to attract FDI, dual pricing.</li>
+            <li>Result: Fastest growing economy, massive poverty reduction, high HDI, but political restrictions exist.</li>
+          </ul>
+          <h3>Pakistan</h3>
+          <ul>
+            <li>Reforms started in 1988.</li>
+            <li>Strategy: Relied heavily on foreign aid and remittances, political instability hampered consistent policy.</li>
+            <li>Result: Lower growth rate, severe debt crises, lagging social indicators (education/health).</li>
+          </ul>
+          <h3>India</h3>
+          <ul>
+            <li>Reforms started in 1991.</li>
+            <li>Strategy: Service-sector led growth, democratic setup, strong domestic demand.</li>
+            <li>Result: Strong IT sector, moderate poverty reduction, but manufacturing still lags behind China, and significant inequalities persist.</li>
+          </ul>
         </div>
       </section>
       <hr>

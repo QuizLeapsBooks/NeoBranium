@@ -14,16 +14,24 @@
   <link rel="stylesheet" href="notes.css">
   <style>
     .subject-accent { color: #8b5cf6; }
-    .coming-soon-section {
-      background: #f8fafc;
-      border: 2px dashed #cbd5e1;
-      border-radius: 16px;
-      padding: 2rem;
-      text-align: center;
-      color: #64748b;
-      margin: 2rem 0;
-    }
-    .coming-soon-section .cs-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .coming-soon-section { background:#f8fafc; border:2px dashed #cbd5e1; border-radius:16px; padding:2rem; text-align:center; color:#64748b; margin:2rem 0; }
+    .coming-soon-section .cs-icon { font-size:2rem; margin-bottom:0.5rem; }
+    .notes-content { line-height:1.8; color:#334155; }
+    .notes-content h3 { color:#0f172a; font-size:1.05rem; margin:1.25rem 0 0.6rem 0; font-weight:700; }
+    .notes-content p { margin-bottom:0.9rem; }
+    .notes-content ul { padding-left:1.5rem; margin-bottom:1rem; }
+    .notes-content ul li { margin-bottom:0.35rem; }
+    .notes-content table { width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.85rem; }
+    .notes-content th { background:#f1f5f9; padding:0.6rem 0.8rem; text-align:left; font-weight:700; border:1px solid #e2e8f0; }
+    .notes-content td { padding:0.55rem 0.8rem; border:1px solid #e2e8f0; vertical-align:top; }
+    .key-point-box { background:#f5f3ff; border-left:4px solid #8b5cf6; border-radius:0 12px 12px 0; padding:1rem 1.25rem; margin:1.2rem 0; }
+    .key-point-box .kp-title { font-weight:700; color:#6d28d9; margin-bottom:0.4rem; font-size:0.82rem; }
+    .formula-box { background:#fef3c7; border:1px solid #fcd34d; border-radius:10px; padding:0.9rem 1.2rem; margin:1rem 0; font-family:monospace; font-size:0.9rem; color:#78350f; }
+    .formula-box .f-label { font-weight:700; font-size:0.8rem; margin-bottom:0.3rem; color:#92400e; font-family:sans-serif; }
+    .example-box { background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:0.9rem 1.2rem; margin:1rem 0; }
+    .example-box .e-label { font-weight:700; color:#15803d; font-size:0.82rem; margin-bottom:0.3rem; }
+    .def-box { background:#eff6ff; border-left:4px solid #3b82f6; border-radius:0 10px 10px 0; padding:0.8rem 1.1rem; margin:1rem 0; }
+    .def-box .d-label { font-weight:700; color:#1d4ed8; font-size:0.82rem; margin-bottom:0.3rem; }
   </style>
 </head>
 <body>
@@ -56,7 +64,7 @@
           <div class="dropdown-menu">
             <div class="dropdown-submenu"><h5>Class 9</h5><ul><li><a href="notes-science-class9.html">Science</a></li><li><a href="notes-math-class9.html">Mathematics</a></li></ul></div>
             <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;"><h5>Class 10</h5><ul><li><a href="notes-science-class10.html">Science</a></li><li><a href="notes-math-class10.html">Mathematics</a></li></ul></div>
-            <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;"><h5>Class 11</h5><ul><li><a href="class11-notes.html">All Subjects →</a></li><li><a href="notes-physics-class11.html">Physics</a></li><li><a href="notes-chemistry-class11.html">Chemistry</a></li><li><a href="notes-mathematics-class11.html">Mathematics</a></li><li><a href="notes-biology-class11.html">Biology</a></li></ul></div>
+            <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;"><h5>Class 11</h5><ul><li><a href="class11-notes.html">All Subjects →</a></li><li><a href="notes-physics-class11.html">Physics</a></li><li><a href="notes-chemistry-class11.html">Chemistry</a></li><li><a href="notes-mathematics-class11.html">Mathematics</a></li><li><a href="notes-biology-class11.html">Biology</a></li><li><a href="notes-accountancy-class11.html">Accountancy</a></li><li><a href="notes-business-studies-class11.html">Business Studies</a></li><li><a href="notes-economics-class11.html">Economics</a></li><li><a href="notes-english-core-class11.html">English Core</a></li></ul></div>
             <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;">
               <h5>Class 12</h5>
               <ul>
@@ -105,109 +113,447 @@
 
       <section id="ch1" class="chapter-section">
         <h2>Chapter 1: Introduction to Accounting</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>What is Accounting?</h3>
+          <div class="def-box"><div class="d-label">Definition</div>
+          Accounting is the process of identifying, recording, classifying, summarising, and communicating financial information to enable informed decisions by users.</div>
+          <h3>Objectives of Accounting</h3>
+          <ul>
+            <li>Maintain systematic records of business transactions.</li>
+            <li>Ascertain the profit or loss for a given period.</li>
+            <li>Determine the financial position (assets and liabilities).</li>
+            <li>Provide information to users for decision-making.</li>
+            <li>Ensure legal compliance.</li>
+          </ul>
+          <h3>Users of Accounting Information</h3>
+          <table><tr><th>Internal Users</th><th>External Users</th></tr>
+          <tr><td>Owners / Shareholders</td><td>Creditors / Lenders</td></tr>
+          <tr><td>Management</td><td>Government / Tax Authorities</td></tr>
+          <tr><td>Employees</td><td>Investors / Potential Investors</td></tr>
+          <tr><td></td><td>Customers, Public</td></tr></table>
+          <h3>Branches of Accounting</h3>
+          <ul>
+            <li><strong>Financial Accounting:</strong> Records and reports past transactions.</li>
+            <li><strong>Cost Accounting:</strong> Determines cost of production.</li>
+            <li><strong>Management Accounting:</strong> Helps management in planning and control.</li>
+          </ul>
+          <h3>Accounting as a Science and Art</h3>
+          <p>Accounting is a <strong>science</strong> (based on principles) and an <strong>art</strong> (requires skill and judgement in application).</p>
+          <div class="key-point-box"><div class="kp-title">Key Terms</div>
+          <ul>
+            <li><strong>Transaction:</strong> Any business event that can be measured in money.</li>
+            <li><strong>Capital:</strong> Amount invested by the owner.</li>
+            <li><strong>Liability:</strong> Amount owed to outsiders.</li>
+            <li><strong>Asset:</strong> Resources owned by the business.</li>
+            <li><strong>Revenue:</strong> Income earned from business activities.</li>
+            <li><strong>Expense:</strong> Cost incurred to earn revenue.</li>
+          </ul></div>
+          <h3>Accounting Equation</h3>
+          <div class="formula-box"><div class="f-label">Basic Accounting Equation</div>Assets = Capital + Liabilities<br>OR<br>Capital = Assets − Liabilities</div>
         </div>
       </section>
       <hr>
       <section id="ch2" class="chapter-section">
         <h2>Chapter 2: Theory Base of Accounting</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Accounting Assumptions (GAAP)</h3>
+          <p>Generally Accepted Accounting Principles (GAAP) are the standard rules and guidelines for financial reporting.</p>
+          <h3>Basic Accounting Assumptions</h3>
+          <ul>
+            <li><strong>Going Concern Assumption:</strong> The business will continue to operate indefinitely (not wind up soon).</li>
+            <li><strong>Consistency Assumption:</strong> Same accounting methods are used from year to year.</li>
+            <li><strong>Accrual Assumption:</strong> Revenues and expenses are recorded when earned/incurred, not when cash is received/paid.</li>
+          </ul>
+          <h3>Accounting Principles</h3>
+          <table><tr><th>Principle</th><th>Meaning</th></tr>
+          <tr><td>Revenue Recognition</td><td>Revenue is recorded when earned, regardless of cash receipt.</td></tr>
+          <tr><td>Matching Principle</td><td>Expenses are matched with related revenues in the same period.</td></tr>
+          <tr><td>Full Disclosure</td><td>All material information must be disclosed in financial statements.</td></tr>
+          <tr><td>Cost Principle</td><td>Assets are recorded at historical cost, not market value.</td></tr>
+          <tr><td>Objectivity Principle</td><td>Entries should be based on verifiable evidence.</td></tr>
+          <tr><td>Materiality</td><td>Only material (significant) items need to be disclosed separately.</td></tr>
+          <tr><td>Conservatism (Prudence)</td><td>Anticipate no profit, but provide for all possible losses.</td></tr>
+          <tr><td>Dual Aspect</td><td>Every transaction has two aspects — debit and credit (equal and opposite).</td></tr></table>
+          <h3>Accounting Standards</h3>
+          <p>Accounting Standards (AS) are written statements issued by the ICAI (Institute of Chartered Accountants of India) to ensure uniformity in financial reporting. India follows <strong>Indian Accounting Standards (Ind AS)</strong> aligned with IFRS.</p>
+          <div class="key-point-box"><div class="kp-title">Difference: Assumptions vs. Principles vs. Conventions</div>
+          <ul>
+            <li><strong>Assumptions:</strong> Fundamental truths taken for granted (Going Concern, Consistency, Accrual).</li>
+            <li><strong>Principles:</strong> Rules derived from assumptions (Matching, Revenue Recognition).</li>
+            <li><strong>Conventions:</strong> Customs followed in practice (Conservatism, Materiality, Full Disclosure).</li>
+          </ul></div>
+          <h3>Systems of Accounting</h3>
+          <ul>
+            <li><strong>Cash Basis:</strong> Transactions recorded only when cash is received or paid. Simple but incomplete.</li>
+            <li><strong>Accrual Basis:</strong> Transactions recorded when they occur, regardless of cash flow. Gives a true picture.</li>
+          </ul>
         </div>
       </section>
       <hr>
       <section id="ch3" class="chapter-section">
         <h2>Chapter 3: Recording of Transactions — I</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Source Documents</h3>
+          <p>Source documents are the original records of a transaction: Cash Memo, Invoice, Receipt, Debit Note, Credit Note, Pay-in-Slip, Cheque, etc.</p>
+          <h3>Accounting Voucher</h3>
+          <p>A voucher is a written document prepared on the basis of source documents, authorising an entry. Types: <strong>Cash Voucher</strong> (payment/receipt), <strong>Non-Cash / Transfer Voucher</strong> (journal entry).</p>
+          <h3>Double Entry System</h3>
+          <div class="def-box"><div class="d-label">Principle</div>Every transaction has two effects — a debit (Dr.) and a credit (Cr.) of equal amounts. Total Debits = Total Credits always.</div>
+          <h3>Rules of Debit and Credit</h3>
+          <table><tr><th>Account Type</th><th>Debit (Dr.)</th><th>Credit (Cr.)</th></tr>
+          <tr><td>Personal Account</td><td>Receiver</td><td>Giver</td></tr>
+          <tr><td>Real Account</td><td>What comes in</td><td>What goes out</td></tr>
+          <tr><td>Nominal Account</td><td>Expenses &amp; Losses</td><td>Incomes &amp; Gains</td></tr></table>
+          <h3>Types of Accounts</h3>
+          <ul>
+            <li><strong>Personal Accounts:</strong> Accounts of persons/firms/companies (e.g., Ram's A/c, Bank A/c).</li>
+            <li><strong>Real Accounts:</strong> Tangible and intangible assets (Cash, Land, Goodwill).</li>
+            <li><strong>Nominal Accounts:</strong> Expenses, incomes, gains, losses (Salary, Rent, Sales).</li>
+          </ul>
+          <h3>Journal</h3>
+          <p>The Journal (or Day Book) is the book of original entry where all transactions are first recorded chronologically.</p>
+          <div class="formula-box"><div class="f-label">Journal Entry Format</div>Date | Particulars | L.F. | Dr. Amount | Cr. Amount</div>
+          <div class="example-box"><div class="e-label">Example</div>
+          Purchased goods for cash ₹10,000:<br>
+          <strong>Purchases A/c Dr. ₹10,000</strong><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;To Cash A/c ₹10,000<br>
+          (Goods purchased for cash)
+          </div>
+          <h3>Ledger</h3>
+          <p>The Ledger is the principal book of accounts. Each account has a separate page (T-account / account). Posting = transferring journal entries to the ledger.</p>
+          <h3>Balancing of Ledger Accounts</h3>
+          <p>At the end of the period, each account is balanced: <strong>Debit side total − Credit side total = Balance.</strong> If Dr. &gt; Cr. → Debit Balance; if Cr. &gt; Dr. → Credit Balance.</p>
+          <div class="key-point-box"><div class="kp-title">Key Points</div>
+          <ul>
+            <li>Journal → Ledger → Trial Balance → Financial Statements (the accounting cycle).</li>
+            <li>Narration is a brief explanation written below each journal entry.</li>
+            <li>L.F. (Ledger Folio) = page number of the ledger account.</li>
+          </ul></div>
         </div>
       </section>
       <hr>
       <section id="ch4" class="chapter-section">
         <h2>Chapter 4: Recording of Transactions — II</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Cash Book</h3>
+          <div class="def-box"><div class="d-label">Definition</div>A Cash Book is a special journal that records all cash receipts and payments. It serves the dual purpose of a Journal and a Ledger for cash.</div>
+          <h3>Types of Cash Book</h3>
+          <ul>
+            <li><strong>Simple (Single Column) Cash Book:</strong> Records only cash transactions.</li>
+            <li><strong>Double Column Cash Book:</strong> Records cash + bank transactions (two columns).</li>
+            <li><strong>Triple Column Cash Book:</strong> Cash + Bank + Discount columns.</li>
+          </ul>
+          <h3>Petty Cash Book</h3>
+          <p>Records small, frequent cash payments (stationery, postage, refreshments). <strong>Imprest System:</strong> A fixed amount is given to the petty cashier at the start; at the end of the period, the amount spent is reimbursed, restoring the imprest amount.</p>
+          <h3>Special Purpose / Subsidiary Books</h3>
+          <table><tr><th>Book</th><th>Records</th></tr>
+          <tr><td>Purchases Book</td><td>Credit purchases of goods only</td></tr>
+          <tr><td>Sales Book</td><td>Credit sales of goods only</td></tr>
+          <tr><td>Purchases Return Book</td><td>Goods returned to suppliers</td></tr>
+          <tr><td>Sales Return Book</td><td>Goods returned by customers</td></tr>
+          <tr><td>Bills Receivable Book</td><td>Bills received from debtors</td></tr>
+          <tr><td>Bills Payable Book</td><td>Bills accepted in favour of creditors</td></tr>
+          <tr><td>Journal Proper</td><td>Transactions not recorded in any other book</td></tr></table>
+          <h3>Contra Entry</h3>
+          <p>A contra entry affects both Cash and Bank columns — both debit and credit appear in the same cash book. Example: Cash deposited into bank, or cash withdrawn from bank.</p>
+          <div class="key-point-box"><div class="kp-title">Key Points</div>
+          <ul>
+            <li>Credit purchases of goods → Purchases Book; cash purchases → Cash Book.</li>
+            <li>Cash Book always has a debit balance (or nil) — never a credit balance.</li>
+            <li>Discount Allowed (to debtors) → Dr. side; Discount Received (from creditors) → Cr. side.</li>
+          </ul></div>
         </div>
       </section>
       <hr>
       <section id="ch5" class="chapter-section">
         <h2>Chapter 5: Bank Reconciliation Statement</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>What is Bank Reconciliation Statement (BRS)?</h3>
+          <div class="def-box"><div class="d-label">Definition</div>BRS is a statement prepared to reconcile (explain the difference between) the balance as per the Cash Book (Bank column) and the balance as per the Bank Passbook (Statement) on a given date.</div>
+          <h3>Why Does a Difference Arise?</h3>
+          <ul>
+            <li>Cheques issued but not yet presented for payment.</li>
+            <li>Cheques deposited but not yet cleared/credited by the bank.</li>
+            <li>Bank charges/interest debited by bank but not yet recorded in Cash Book.</li>
+            <li>Interest credited by bank but not yet recorded in Cash Book.</li>
+            <li>Direct payments/receipts by bank not intimated to customer.</li>
+            <li>Errors in Cash Book or Passbook.</li>
+          </ul>
+          <h3>Favourable vs. Unfavourable Balance</h3>
+          <table><tr><th>Condition</th><th>Cash Book</th><th>Passbook</th></tr>
+          <tr><td>Favourable (Dr. balance in CB)</td><td>Debit balance</td><td>Credit balance</td></tr>
+          <tr><td>Unfavourable (overdraft)</td><td>Credit balance</td><td>Debit balance</td></tr></table>
+          <h3>Preparation of BRS</h3>
+          <div class="formula-box"><div class="f-label">Starting from Cash Book Balance (Favourable)</div>
+          Balance as per Cash Book (Dr.) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ₹ ___<br>
+          Add: Cheques deposited but not yet cleared &nbsp; ₹ ___<br>
+          Less: Cheques issued but not yet presented &nbsp; ₹ ___<br>
+          Add: Bank charges not entered in CB &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ₹ ___<br>
+          Add/Less: Errors &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ₹ ___<br>
+          = Balance as per Passbook &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ₹ ___</div>
+          <div class="key-point-box"><div class="kp-title">Key Points</div>
+          <ul>
+            <li>BRS is not a part of the accounting books — it is just a reconciliation statement.</li>
+            <li>BRS is usually prepared at the end of a month.</li>
+            <li>Bank's books and the firm's books are maintained independently — hence differences.</li>
+          </ul></div>
         </div>
       </section>
       <hr>
       <section id="ch6" class="chapter-section">
         <h2>Chapter 6: Trial Balance and Rectification of Errors</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Trial Balance</h3>
+          <div class="def-box"><div class="d-label">Definition</div>A Trial Balance is a list of all ledger account balances prepared at the end of an accounting period to verify the arithmetical accuracy of the ledger. Total of Dr. balances = Total of Cr. balances.</div>
+          <h3>Objectives of Trial Balance</h3>
+          <ul>
+            <li>Verify arithmetical accuracy of accounting records.</li>
+            <li>Detect errors (some types).</li>
+            <li>Help in preparation of financial statements.</li>
+          </ul>
+          <h3>Limitations: Errors NOT revealed by Trial Balance</h3>
+          <ul>
+            <li>Error of Omission — transaction completely omitted.</li>
+            <li>Error of Commission — wrong amount posted to wrong account of same type.</li>
+            <li>Error of Principle — wrong type of account used.</li>
+            <li>Compensating Errors — errors that cancel each other out.</li>
+          </ul>
+          <h3>Types of Errors</h3>
+          <table><tr><th>Type</th><th>Example</th><th>Revealed by TB?</th></tr>
+          <tr><td>Error of Omission</td><td>Transaction not recorded at all</td><td>No</td></tr>
+          <tr><td>Error of Commission</td><td>Wrong amount entered</td><td>Only if one-sided</td></tr>
+          <tr><td>Error of Principle</td><td>Revenue treated as capital</td><td>No</td></tr>
+          <tr><td>Compensating Error</td><td>Two errors cancel out</td><td>No</td></tr>
+          <tr><td>Errors of Duplication</td><td>Same entry made twice</td><td>No</td></tr></table>
+          <h3>Suspense Account</h3>
+          <p>When a Trial Balance does not agree, the difference is temporarily placed in a <strong>Suspense Account</strong> to make it balance. As errors are found and corrected, the Suspense Account is closed.</p>
+          <h3>Rectification of Errors</h3>
+          <div class="example-box"><div class="e-label">Example — Error of Omission Rectification</div>
+          Goods purchased ₹5,000 was not recorded at all.<br>
+          Rectification: Purchases A/c Dr. ₹5,000 / To Creditor A/c ₹5,000
+          </div>
+          <div class="key-point-box"><div class="kp-title">Key Points</div>
+          <ul>
+            <li>Errors before Trial Balance: corrected by journal entry.</li>
+            <li>Errors after Trial Balance: corrected via Suspense Account entries.</li>
+            <li>Errors affecting one account → one-sided error → affect Trial Balance.</li>
+          </ul></div>
         </div>
       </section>
       <hr>
       <section id="ch7" class="chapter-section">
         <h2>Chapter 7: Depreciation, Provisions and Reserves</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Depreciation</h3>
+          <div class="def-box"><div class="d-label">Definition</div>Depreciation is the gradual, permanent decrease in the value of a fixed (tangible) asset due to use, passage of time, obsolescence, or wear and tear.</div>
+          <h3>Causes of Depreciation</h3>
+          <ul><li>Physical wear and tear from use.</li><li>Passage of time (even if unused).</li><li>Obsolescence (new technology making old assets outdated).</li><li>Depletion (for natural resources like mines).</li></ul>
+          <h3>Methods of Depreciation</h3>
+          <table><tr><th>Feature</th><th>Straight Line Method (SLM)</th><th>Written Down Value Method (WDV)</th></tr>
+          <tr><td>Depreciation amount</td><td>Fixed every year</td><td>Decreasing every year</td></tr>
+          <tr><td>Calculated on</td><td>Original/Historical cost</td><td>Book value (reducing balance)</td></tr>
+          <tr><td>Book value at end</td><td>Reaches zero (or scrap value)</td><td>Never reaches zero</td></tr>
+          <tr><td>Also called</td><td>Fixed Instalment Method</td><td>Diminishing Balance Method</td></tr></table>
+          <div class="formula-box"><div class="f-label">SLM Formula</div>Annual Depreciation = (Cost − Scrap Value) / Useful Life<br>Rate % = (Annual Depreciation / Cost) × 100</div>
+          <div class="formula-box"><div class="f-label">WDV Formula</div>Depreciation = Book Value at beginning of year × Rate %</div>
+          <h3>Provisions</h3>
+          <p>A provision is a charge against profit set aside for a known liability of uncertain amount. Example: Provision for Bad Debts, Provision for Taxation.</p>
+          <h3>Reserves</h3>
+          <p>A reserve is an appropriation of profit (not a charge) set aside to strengthen the financial position. Example: General Reserve, Capital Reserve, Dividend Equalisation Reserve.</p>
+          <table><tr><th>Provision</th><th>Reserve</th></tr>
+          <tr><td>Charge against profit (compulsory)</td><td>Appropriation of profit (voluntary)</td></tr>
+          <tr><td>Known liability, uncertain amount</td><td>Strengthen financial position</td></tr>
+          <tr><td>Cannot be distributed as dividend</td><td>Revenue reserves can be distributed</td></tr></table>
+          <div class="key-point-box"><div class="kp-title">Key Points</div>
+          <ul>
+            <li>Accumulated Depreciation Method: Depreciation is credited to a separate Accumulated Depreciation A/c, not the asset A/c.</li>
+            <li>Revenue Reserve: General Reserve, Dividend Equalisation Reserve — created from revenue profits.</li>
+            <li>Capital Reserve: Share Premium, Profit on sale of fixed assets — cannot be distributed as dividend.</li>
+          </ul></div>
         </div>
       </section>
       <hr>
       <section id="ch8" class="chapter-section">
         <h2>Chapter 8: Bills of Exchange</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Bill of Exchange</h3>
+          <div class="def-box"><div class="d-label">Definition (Negotiable Instruments Act, 1881)</div>A Bill of Exchange is an unconditional order in writing, addressed by one person to another, signed by the maker, directing a certain person to pay a certain sum of money only to, or to the order of, a certain person or to the bearer of the instrument.</div>
+          <h3>Parties to a Bill</h3>
+          <ul>
+            <li><strong>Drawer:</strong> The creditor who draws (creates) the bill. (Seller)</li>
+            <li><strong>Drawee/Acceptor:</strong> The debtor on whom the bill is drawn. (Buyer) — becomes Acceptor after signing.</li>
+            <li><strong>Payee:</strong> The person to whom payment is to be made (often the drawer).</li>
+          </ul>
+          <h3>Promissory Note vs. Bill of Exchange</h3>
+          <table><tr><th>Feature</th><th>Bill of Exchange</th><th>Promissory Note</th></tr>
+          <tr><td>Drawn by</td><td>Creditor (Drawer)</td><td>Debtor (Maker)</td></tr>
+          <tr><td>Parties</td><td>Three (Drawer, Drawee, Payee)</td><td>Two (Maker, Payee)</td></tr>
+          <tr><td>Acceptance</td><td>Required</td><td>Not required</td></tr></table>
+          <h3>Days of Grace</h3>
+          <p>3 days of grace are added to the stated period. E.g., if a 2-month bill is drawn on Jan 1, due date = Mar 1 + 3 days = March 4.</p>
+          <h3>Discounting a Bill</h3>
+          <p>The drawer can discount the bill with a bank before due date — the bank pays the face value less discount charges.</p>
+          <h3>Endorsement</h3>
+          <p>The payee can transfer the bill to a third party by endorsement (signing on the back).</p>
+          <h3>Dishonour of Bill</h3>
+          <p>If the drawee refuses to pay on the due date, the bill is said to be <strong>dishonoured</strong>. A <strong>Noting Charge</strong> is paid to a Notary Public as evidence of dishonour.</p>
+          <div class="key-point-box"><div class="kp-title">Key Journal Entries</div>
+          <ul>
+            <li>Bill drawn: Bills Receivable A/c Dr. / To Debtor A/c</li>
+            <li>Bill accepted: Creditor A/c Dr. / To Bills Payable A/c</li>
+            <li>Bill discounted: Bank A/c Dr. / Discount A/c Dr. / To Bills Receivable A/c</li>
+            <li>Bill dishonoured: Debtor A/c Dr. / To Bills Receivable A/c (+ Noting Charges)</li>
+          </ul></div>
         </div>
       </section>
       <hr>
       <section id="ch9" class="chapter-section">
         <h2>Chapter 9: Financial Statements — I</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Financial Statements</h3>
+          <p>Financial statements are formal reports that summarise the financial activities and position of a business. For a sole proprietorship / partnership:</p>
+          <ul>
+            <li><strong>Trading Account:</strong> Shows Gross Profit / Gross Loss.</li>
+            <li><strong>Profit &amp; Loss Account:</strong> Shows Net Profit / Net Loss.</li>
+            <li><strong>Balance Sheet:</strong> Shows financial position (Assets = Liabilities + Capital).</li>
+          </ul>
+          <h3>Trading Account</h3>
+          <div class="formula-box"><div class="f-label">Gross Profit Formula</div>
+          Gross Profit = Net Sales − Cost of Goods Sold<br>
+          COGS = Opening Stock + Purchases − Purchase Returns − Closing Stock + Direct Expenses</div>
+          <h3>Profit &amp; Loss Account</h3>
+          <div class="formula-box"><div class="f-label">Net Profit Formula</div>
+          Net Profit = Gross Profit + Other Incomes − Indirect Expenses</div>
+          <p>Indirect expenses include: Salaries, Rent, Advertising, Depreciation, Bad Debts, Insurance, etc.</p>
+          <h3>Adjustments in Financial Statements</h3>
+          <table><tr><th>Adjustment</th><th>Trading / P&amp;L Effect</th><th>Balance Sheet Effect</th></tr>
+          <tr><td>Closing Stock</td><td>Credit in Trading A/c</td><td>Asset side</td></tr>
+          <tr><td>Outstanding Expenses</td><td>Add to respective expense</td><td>Liability side</td></tr>
+          <tr><td>Prepaid Expenses</td><td>Deduct from respective expense</td><td>Asset side</td></tr>
+          <tr><td>Accrued Income</td><td>Add to respective income</td><td>Asset side</td></tr>
+          <tr><td>Income received in advance</td><td>Deduct from respective income</td><td>Liability side</td></tr>
+          <tr><td>Depreciation</td><td>Debit in P&amp;L A/c</td><td>Deduct from asset</td></tr>
+          <tr><td>Bad Debts</td><td>Debit in P&amp;L A/c</td><td>Deduct from debtors</td></tr></table>
+          <div class="key-point-box"><div class="kp-title">Key Points</div>
+          <ul>
+            <li>Every adjustment appears at two places in Final Accounts.</li>
+            <li>Direct expenses (Carriage Inward, Wages, Factory Expenses) go to Trading A/c.</li>
+            <li>Indirect expenses (Office, Selling, Finance) go to P&amp;L A/c.</li>
+          </ul></div>
         </div>
       </section>
       <hr>
       <section id="ch10" class="chapter-section">
         <h2>Chapter 10: Financial Statements — II</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Balance Sheet</h3>
+          <div class="def-box"><div class="d-label">Definition</div>A Balance Sheet is a statement of assets and liabilities of a business at a particular date. It shows the financial position of the business. Assets always equal Capital + Liabilities.</div>
+          <h3>Marshalling of Balance Sheet</h3>
+          <ul>
+            <li><strong>Order of Liquidity:</strong> Most liquid assets first (Cash, Debtors, Stock...). Liabilities in order of urgency of repayment.</li>
+            <li><strong>Order of Permanence:</strong> Most permanent assets first (Fixed Assets first).</li>
+          </ul>
+          <h3>Classification of Assets</h3>
+          <table><tr><th>Fixed Assets</th><th>Current Assets</th></tr>
+          <tr><td>Land &amp; Building, Plant, Machinery</td><td>Cash, Bank, Debtors, Stock</td></tr>
+          <tr><td>Furniture, Vehicles</td><td>Bills Receivable, Prepaid Expenses</td></tr>
+          <tr><td>Goodwill, Patents (Intangible)</td><td>Short-term Investments</td></tr></table>
+          <h3>Classification of Liabilities</h3>
+          <table><tr><th>Long-term Liabilities</th><th>Current Liabilities</th></tr>
+          <tr><td>Capital, Long-term Loans</td><td>Creditors, Bank Overdraft</td></tr>
+          <tr><td>Debentures</td><td>Bills Payable, Outstanding Expenses</td></tr></table>
+          <h3>Important Adjustments</h3>
+          <ul>
+            <li><strong>Provision for Bad and Doubtful Debts:</strong> Deducted from Debtors in B/S; debited in P&amp;L.</li>
+            <li><strong>Manager's Commission:</strong> Shown as outstanding expense on liability side.</li>
+            <li><strong>Interest on Capital:</strong> Credited to capital; debited in P&amp;L.</li>
+            <li><strong>Drawings:</strong> Deducted from Capital on B/S.</li>
+          </ul>
+          <div class="key-point-box"><div class="kp-title">Key Points</div>
+          <ul>
+            <li>Balance Sheet is NOT an account — it has no debit/credit, just Assets and Liabilities sides.</li>
+            <li>Balance Sheet is prepared AS ON a date (snapshot); P&amp;L is FOR a period.</li>
+            <li>Both sides of Balance Sheet must always be equal.</li>
+          </ul></div>
         </div>
       </section>
       <hr>
       <section id="ch11" class="chapter-section">
         <h2>Chapter 11: Accounts from Incomplete Records</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Incomplete Records / Single Entry System</h3>
+          <div class="def-box"><div class="d-label">Definition</div>When a business does not maintain full double-entry records, it is called Incomplete Records or Single Entry System. Only personal accounts (Cash Book, Debtors, Creditors) are usually maintained.</div>
+          <h3>Limitations of Single Entry System</h3>
+          <ul>
+            <li>Not systematic; no arithmetic check possible.</li>
+            <li>Cannot ascertain true profit/loss.</li>
+            <li>Cannot prepare proper Balance Sheet.</li>
+            <li>Not accepted for tax purposes.</li>
+          </ul>
+          <h3>Ascertainment of Profit — Statement of Affairs Method</h3>
+          <div class="formula-box"><div class="f-label">Profit Calculation</div>
+          Opening Capital = Opening Assets − Opening Liabilities<br>
+          Closing Capital = Closing Assets − Closing Liabilities<br>
+          Profit = Closing Capital − Opening Capital + Drawings − Additional Capital</div>
+          <h3>Conversion Method — Finding Missing Figures</h3>
+          <table><tr><th>To Find</th><th>Use</th></tr>
+          <tr><td>Credit Sales</td><td>Total Debtors A/c — fill missing figure</td></tr>
+          <tr><td>Credit Purchases</td><td>Total Creditors A/c — fill missing figure</td></tr>
+          <tr><td>Cash payments / receipts</td><td>Cash A/c — find missing figure</td></tr></table>
+          <div class="example-box"><div class="e-label">Total Debtors A/c Template</div>
+          Dr: Opening Debtors + Credit Sales = Cr: Cash received + Discount allowed + Returns + Closing Debtors
+          </div>
+          <div class="key-point-box"><div class="kp-title">Key Points</div>
+          <ul>
+            <li>Statement of Affairs ≠ Balance Sheet (SA is not formal; BS is based on complete records).</li>
+            <li>Drawings reduce closing capital; additional capital injected increases it.</li>
+            <li>Conversion Method is more accurate than Statement of Affairs Method.</li>
+          </ul></div>
         </div>
       </section>
       <hr>
       <section id="ch12" class="chapter-section">
         <h2>Chapter 12: Applications of Computers in Accounting</h2>
-        <div class="coming-soon-section">
-          <div class="cs-icon">🚧</div>
-          <h3>Detailed Notes Coming Soon</h3>
-          <p>This chapter is currently being updated for the latest CBSE 2026-27 syllabus.</p>
+        <div class="notes-content">
+          <h3>Computers in Accounting</h3>
+          <p>Computers have transformed accounting from manual ledger books to automated, accurate, and real-time financial processing. <strong>Computerised Accounting System (CAS)</strong> uses software to record, classify, and summarise transactions.</p>
+          <h3>Advantages of Computerised Accounting</h3>
+          <ul>
+            <li>Speed and accuracy — eliminates human calculation errors.</li>
+            <li>Automatic generation of Trial Balance, P&amp;L, Balance Sheet.</li>
+            <li>Easy storage, retrieval, and backup of data.</li>
+            <li>Real-time financial information.</li>
+            <li>Facilitates audit trails.</li>
+          </ul>
+          <h3>Components of Computerised Accounting</h3>
+          <ul>
+            <li><strong>Hardware:</strong> Computer, printer, storage devices.</li>
+            <li><strong>Software:</strong> Tally, QuickBooks, SAP, Busy, etc.</li>
+            <li><strong>Data:</strong> Financial transactions and records.</li>
+            <li><strong>People:</strong> Users who operate the system.</li>
+            <li><strong>Procedures:</strong> Standard operating procedures for data entry.</li>
+          </ul>
+          <h3>Database Management System (DBMS) in Accounting</h3>
+          <p>A DBMS stores all accounting data in an organised, relational database. It eliminates redundancy, allows multiple users, and ensures data integrity. Accounting software like Tally uses DBMS internally.</p>
+          <h3>Tally — Popular Accounting Software</h3>
+          <ul>
+            <li>Used widely by Indian businesses for accounting, GST, payroll, inventory.</li>
+            <li>Follows double-entry system automatically.</li>
+            <li>Generates all financial statements with one click.</li>
+          </ul>
+          <h3>Manual vs. Computerised Accounting</h3>
+          <table><tr><th>Feature</th><th>Manual</th><th>Computerised</th></tr>
+          <tr><td>Speed</td><td>Slow</td><td>Very fast</td></tr>
+          <tr><td>Accuracy</td><td>Error-prone</td><td>Highly accurate</td></tr>
+          <tr><td>Cost</td><td>Low initial cost</td><td>Higher initial cost</td></tr>
+          <tr><td>Storage</td><td>Physical books</td><td>Digital (cloud/disk)</td></tr>
+          <tr><td>Reports</td><td>Manual preparation</td><td>Instant generation</td></tr></table>
+          <div class="key-point-box"><div class="kp-title">Key Points</div>
+          <ul>
+            <li>ERP (Enterprise Resource Planning) integrates all business functions including accounting.</li>
+            <li>GST compliance is fully automated through computerised accounting software.</li>
+            <li>Data security (passwords, backups) is critical in computerised systems.</li>
+          </ul></div>
         </div>
       </section>
       <hr>
