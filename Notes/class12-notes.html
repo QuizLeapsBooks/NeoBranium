@@ -1,78 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <link rel="canonical" href="https://neobranium.web.app/Notes/class12-notes.html">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Class 12 Notes | CBSE Board 2026-27 | NeoBranium</title>
-  <meta name="description" content="Free comprehensive Class 12 notes for Science, Commerce, and Humanities. Aligned with the latest CBSE NCERT syllabus for 2026-27.">
+  <title>Class 12 Notes Directory | NeoBranium</title>
+  <meta name="description" content="Complete chapter-wise notes directory for Class 12 Science, Commerce, and Humanities. Access detailed notes for all subjects with one click. CBSE board 2026-27.">
+  <meta name="keywords" content="class 11 notes, cbse class 11, physics notes, chemistry notes, mathematics notes, biology notes, accountancy notes, business studies notes, economics notes, history notes, political science notes, geography notes, sociology notes">
+  <meta name="author" content="NeoBranium">
   <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://neobranium.web.app/Notes/class12-notes.html">
   
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
   <link rel="stylesheet" href="../index_css.css">
-  <link rel="stylesheet" href="notes.css">
+  
   <style>
-    .directory-section { margin: 4rem auto; max-width: 1200px; padding: 0 5%; }
-    .directory-heading { text-align: center; margin-bottom: 3rem; }
-    .directory-heading h1 { font-size: 3rem; color: var(--text-color); margin-bottom: 1rem; }
-    .directory-heading p { color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
-    
-    .stream-block { margin-bottom: 4rem; }
-    .stream-title { 
-      font-size: 1.8rem; 
-      margin-bottom: 1.5rem; 
-      display: flex; 
-      align-items: center; 
-      gap: 0.8rem; 
-      border-bottom: 2px solid var(--border-color); 
-      padding-bottom: 0.5rem;
+    /* Additional styles for directory page */
+    .directory-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: white;
+      padding: 3rem 2rem;
+      text-align: center;
+      margin-top: 1rem;
+      border-radius: 24px;
     }
-    
-    .subject-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.5rem;
+    .directory-hero h1 {
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
     }
-    
-    .subject-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 1.5rem;
+    .directory-hero p {
+      color: #94a3b8;
+      font-size: 1rem;
+    }
+    .subject-section {
+      margin: 2.5rem 0;
+    }
+    .subject-header {
       display: flex;
       align-items: center;
-      gap: 1.5rem;
-      transition: all 0.3s ease;
-      text-decoration: none;
-      color: var(--text-color);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 3px solid;
     }
-    
-    .subject-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-      border-color: #3b82f6;
-    }
-    
-    .subject-icon {
-      width: 60px;
-      height: 60px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .subject-header i {
       font-size: 1.8rem;
-      background: #f8fafc;
     }
+    .subject-header h2 {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin: 0;
+    }
+    .science-border { border-bottom-color: #3b82f6; }
+    .commerce-border { border-bottom-color: #f59e0b; }
+    .humanities-border { border-bottom-color: #10b981; }
     
-    .subject-info h3 { font-size: 1.2rem; margin-bottom: 0.3rem; }
-    .subject-info p { font-size: 0.9rem; color: var(--text-muted); }
+    /* Chapter Cards Grid */
+    .chapters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+    .chapter-card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+      border: 1px solid #e2e8f0;
+      text-decoration: none;
+      display: block;
+      cursor: pointer;
+    }
+    .chapter-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+      border-color: #cbd5e1;
+    }
+    .card-header {
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .card-header h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .chapter-number {
+      background: #e2e8f0;
+      padding: 0.25rem 0.7rem;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #475569;
+    }
+    .card-body {
+      padding: 1rem 1.5rem;
+    }
+    .card-body p {
+      color: #475569;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin: 0 0 0.75rem 0;
+    }
+    .topics-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .topic-tag {
+      background: #f1f5f9;
+      padding: 0.2rem 0.6rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      color: #334155;
+    }
+    .card-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .read-link {
+      color: #3b82f6;
+      font-size: 0.8rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .chapter-card:hover .read-link i {
+      transform: translateX(4px);
+    }
+    .search-container {
+      margin: 1.5rem 0;
+      display: flex;
+      justify-content: center;
+    }
+    .search-box-dir {
+      background: white;
+      border-radius: 50px;
+      padding: 0.7rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      width: 100%;
+      max-width: 450px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border: 1px solid #e2e8f0;
+    }
+    .search-box-dir i {
+      color: #94a3b8;
+    }
+    .search-box-dir input {
+      border: none;
+      outline: none;
+      width: 100%;
+      font-size: 0.9rem;
+      background: transparent;
+    }
+    .search-box-dir input::placeholder {
+      color: #94a3b8;
+    }
+    @media (max-width: 768px) {
+      .directory-hero h1 { font-size: 1.5rem; }
+      .chapters-grid { grid-template-columns: 1fr; }
+      .subject-header h2 { font-size: 1.3rem; }
+    }
   </style>
 </head>
+
 <body>
   <div class="free-access-banner">
     <span class="badge"><i class="fas fa-sparkles"></i> 100% Free Access</span>
     <span class="banner-text">All Class 12 Notes are fully open — No Sign-In Required!</span>
+  </div>
+
+  <!-- Preloader -->
+  <div id="preloader">
+    <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="preloader-logo" />
+    <div class="loader"></div>
   </div>
 
   <header>
@@ -83,7 +199,7 @@
       </div>
       <div class="header-search">
         <i class="fas fa-search"></i>
-        <input type="text" id="globalSearchInput" placeholder="Search notes..." autocomplete="off">
+        <input type="text" id="globalSearchInput" placeholder="Search Class 12 notes..." autocomplete="off">
         <div id="globalSearchResults" class="search-results-dropdown"></div>
       </div>
       <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
@@ -92,99 +208,252 @@
         <div class="nav-item">
           <a href="class12-notes.html" class="active">Notes <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i></a>
           <div class="dropdown-menu">
-            <div class="dropdown-submenu"><h5>Class 10</h5><ul><li><a href="notes-science-class10.html">Science</a></li></ul></div>
-            <div class="dropdown-submenu"><h5>Class 11</h5><ul><li><a href="class11-notes.html">All Subjects →</a></li></ul></div>
+            <div class="dropdown-submenu"><h5>Class 9</h5><ul><li><a href="notes-science-class9.html">Science</a></li><li><a href="notes-math-class9.html">Mathematics</a></li></ul></div>
+            <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;"><h5>Class 10</h5><ul><li><a href="notes-science-class10.html">Science</a></li><li><a href="notes-math-class10.html">Mathematics</a></li></ul></div>
             <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;"><h5>Class 12</h5><ul><li><a href="class12-notes.html">All Subjects →</a></li><li><a href="notes-physics-class12.html">Physics</a></li><li><a href="notes-chemistry-class12.html">Chemistry</a></li><li><a href="notes-mathematics-class12.html">Mathematics</a></li><li><a href="notes-biology-class12.html">Biology</a></li></ul></div>
+            <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;">
+              <h5>Class 12</h5>
+              <ul>
+                <li><a href="/Notes/class12-notes.html">All Subjects →</a></li>
+                <li><a href="/Notes/notes-physics-class12.html">Physics</a></li>
+                <li><a href="/Notes/notes-chemistry-class12.html">Chemistry</a></li>
+                <li><a href="/Notes/notes-mathematics-class12.html">Mathematics</a></li>
+                <li><a href="/Notes/notes-biology-class12.html">Biology</a></li>
+              </ul>
+            </div>
           </div>
         </div>
         <a href="../IQ/top-question.html">Top Questions</a>
+        <a href="../IQ/expected-questions.html">Expected Questions</a>
+        <a href="../blog/blog.html">Blog</a>
         <a href="../htmls/sign.html" class="login-btn">Login / Sign Up</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <section class="directory-section">
-      <div class="directory-heading">
-        <h1>Class 12 Notes</h1>
-        <p>Comprehensive, exam-focused study material aligned with the latest CBSE 2026-27 syllabus. Select your subject to begin.</p>
+    <div class="notes-container" style="max-width: 1400px; margin: 0 auto; padding: 2rem;">
+      
+      <!-- Hero Section -->
+      <div class="directory-hero">
+        <h1><i class="fas fa-book-open"></i> Class 12 Notes Directory</h1>
+        <p>Complete subject-wise notes for CBSE Board Exam 2026-27 | Choose your subject to start learning</p>
       </div>
 
-      <div class="stream-block">
-        <h2 class="stream-title"><i class="fas fa-flask" style="color: #3b82f6;"></i> Science Stream</h2>
-        <div class="subject-grid">
-          <a href="notes-physics-class12.html" class="subject-card">
-            <div class="subject-icon" style="color: #f59e0b; background: rgba(245,158,11,0.1);"><i class="fas fa-atom"></i></div>
-            <div class="subject-info"><h3>Physics</h3><p>Electromagnetism, Optics, Modern Physics</p></div>
+      <!-- Science Stream -->
+      <div class="subject-section" id="science-section">
+        <div class="subject-header science-border">
+          <i class="fas fa-flask" style="color: #3b82f6;"></i>
+          <h2>Science Stream</h2>
+        </div>
+        <div class="chapters-grid">
+          <a href="notes-physics-class12.html" class="chapter-card">
+            <div class="card-header">
+              <h3><i class="fas fa-atom" style="color: #f59e0b;"></i> Physics</h3>
+              <span class="chapter-number">14 Chapters</span>
+            </div>
+            <div class="card-body">
+              <p>Mechanics, Thermodynamics, Waves & Oscillations. Complete derivations and numericals.</p>
+            </div>
+            <div class="card-footer">
+              <span class="read-link"><i class="fas fa-eye"></i> View Subject <i class="fas fa-arrow-right"></i></span>
+            </div>
           </a>
-          <a href="notes-chemistry-class12.html" class="subject-card">
-            <div class="subject-icon" style="color: #10b981; background: rgba(16,185,129,0.1);"><i class="fas fa-vial"></i></div>
-            <div class="subject-info"><h3>Chemistry</h3><p>Physical, Inorganic, Organic</p></div>
+          <a href="notes-chemistry-class12.html" class="chapter-card">
+            <div class="card-header">
+              <h3><i class="fas fa-vial" style="color: #10b981;"></i> Chemistry</h3>
+              <span class="chapter-number">14 Chapters</span>
+            </div>
+            <div class="card-body">
+              <p>Physical, Organic, and Inorganic Chemistry. Reactions, mechanisms, and trends.</p>
+            </div>
+            <div class="card-footer">
+              <span class="read-link"><i class="fas fa-eye"></i> View Subject <i class="fas fa-arrow-right"></i></span>
+            </div>
           </a>
-          <a href="notes-mathematics-class12.html" class="subject-card">
-            <div class="subject-icon" style="color: #3b82f6; background: rgba(59,130,246,0.1);"><i class="fas fa-square-root-alt"></i></div>
-            <div class="subject-info"><h3>Mathematics</h3><p>Calculus, Vectors, 3D Geometry</p></div>
+          <a href="notes-mathematics-class12.html" class="chapter-card">
+            <div class="card-header">
+              <h3><i class="fas fa-square-root-alt" style="color: #3b82f6;"></i> Mathematics</h3>
+              <span class="chapter-number">15 Chapters</span>
+            </div>
+            <div class="card-body">
+              <p>Sets, Algebra, Coordinate Geometry, Calculus, and Statistics. Theorems and proofs.</p>
+            </div>
+            <div class="card-footer">
+              <span class="read-link"><i class="fas fa-eye"></i> View Subject <i class="fas fa-arrow-right"></i></span>
+            </div>
           </a>
-          <a href="notes-biology-class12.html" class="subject-card">
-            <div class="subject-icon" style="color: #10b981; background: rgba(16,185,129,0.1);"><i class="fas fa-dna"></i></div>
-            <div class="subject-info"><h3>Biology</h3><p>Genetics, Reproduction, Ecology</p></div>
+          <a href="notes-biology-class12.html" class="chapter-card">
+            <div class="card-header">
+              <h3><i class="fas fa-leaf" style="color: #10b981;"></i> Biology</h3>
+              <span class="chapter-number">22 Chapters</span>
+            </div>
+            <div class="card-body">
+              <p>Diversity, Cell Biology, Plant and Human Physiology. Detailed process explanations.</p>
+            </div>
+            <div class="card-footer">
+              <span class="read-link"><i class="fas fa-eye"></i> View Subject <i class="fas fa-arrow-right"></i></span>
+            </div>
           </a>
         </div>
       </div>
 
-      <div class="stream-block">
-        <h2 class="stream-title"><i class="fas fa-chart-line" style="color: #8b5cf6;"></i> Commerce Stream</h2>
-        <div class="subject-grid">
-          <a href="notes-accountancy-class12.html" class="subject-card">
-            <div class="subject-icon" style="color: #8b5cf6; background: rgba(139,92,246,0.1);"><i class="fas fa-calculator"></i></div>
-            <div class="subject-info"><h3>Accountancy</h3><p>Partnership, Company Accounts</p></div>
+      <!-- Commerce Stream -->
+      <div class="subject-section" id="commerce-section">
+        <div class="subject-header commerce-border">
+          <i class="fas fa-chart-line" style="color: #f59e0b;"></i>
+          <h2>Commerce Stream</h2>
+        </div>
+        <div class="chapters-grid">
+          <a href="notes-accountancy-class12.html" class="chapter-card">
+            <div class="card-header">
+              <h3><i class="fas fa-calculator" style="color: #8b5cf6;"></i> Accountancy</h3>
+              <span class="chapter-number">12 Chapters</span>
+            </div>
+            <div class="card-body">
+              <p>Accounting Principles, Journal, Ledger, BRS, Trial Balance, and Financial Statements.</p>
+            </div>
+            <div class="card-footer">
+              <span class="read-link"><i class="fas fa-eye"></i> View Subject <i class="fas fa-arrow-right"></i></span>
+            </div>
           </a>
-          <a href="notes-business-studies-class12.html" class="subject-card">
-            <div class="subject-icon" style="color: #f59e0b; background: rgba(245,158,11,0.1);"><i class="fas fa-briefcase"></i></div>
-            <div class="subject-info"><h3>Business Studies</h3><p>Management, Marketing, Finance</p></div>
+          <a href="notes-business-studies-class12.html" class="chapter-card">
+            <div class="card-header">
+              <h3><i class="fas fa-briefcase" style="color: #f59e0b;"></i> Business Studies</h3>
+              <span class="chapter-number">11 Chapters</span>
+            </div>
+            <div class="card-body">
+              <p>Forms of Organisation, Business Services, Finance, and International Business.</p>
+            </div>
+            <div class="card-footer">
+              <span class="read-link"><i class="fas fa-eye"></i> View Subject <i class="fas fa-arrow-right"></i></span>
+            </div>
           </a>
-          <a href="notes-economics-class12.html" class="subject-card">
-            <div class="subject-icon" style="color: #10b981; background: rgba(16,185,129,0.1);"><i class="fas fa-chart-bar"></i></div>
-            <div class="subject-info"><h3>Economics</h3><p>Macroeconomics, Indian Economy</p></div>
+          <a href="notes-economics-class12.html" class="chapter-card">
+            <div class="card-header">
+              <h3><i class="fas fa-chart-bar" style="color: #10b981;"></i> Economics</h3>
+              <span class="chapter-number">19 Chapters</span>
+            </div>
+            <div class="card-body">
+              <p>Indian Economic Development and Statistics for Economics. Detailed analysis.</p>
+            </div>
+            <div class="card-footer">
+              <span class="read-link"><i class="fas fa-eye"></i> View Subject <i class="fas fa-arrow-right"></i></span>
+            </div>
+          </a>
+          <a href="notes-english-core-class12.html" class="chapter-card">
+            <div class="card-header">
+              <h3><i class="fas fa-book-open" style="color: #e11d48;"></i> English Core</h3>
+              <span class="chapter-number">21 Chapters</span>
+            </div>
+            <div class="card-body">
+              <p>Hornbill (Prose &amp; Poetry) and Snapshots — summaries, themes, literary devices. CBSE 2026-27.</p>
+            </div>
+            <div class="card-footer">
+              <span class="read-link"><i class="fas fa-eye"></i> View Subject <i class="fas fa-arrow-right"></i></span>
+            </div>
           </a>
         </div>
       </div>
 
-      <div class="stream-block">
-        <h2 class="stream-title"><i class="fas fa-book-reader" style="color: #dc2626;"></i> Humanities Stream</h2>
-        <div class="subject-grid">
-          <a href="notes-history-class12.html" class="subject-card">
-            <div class="subject-icon" style="color: #dc2626; background: rgba(220,38,38,0.1);"><i class="fas fa-monument"></i></div>
-            <div class="subject-info"><h3>History</h3><p>Themes in Indian History</p></div>
+      <!-- Humanities Stream -->
+      <div class="subject-section" id="humanities-section">
+        <div class="subject-header humanities-border">
+          <i class="fas fa-landmark" style="color: #10b981;"></i>
+          <h2>Humanities / Arts Stream</h2>
+        </div>
+        <div class="chapters-grid">
+          <a href="notes-history-class12.html" class="chapter-card">
+            <div class="card-header">
+              <h3><i class="fas fa-hourglass-half" style="color: #dc2626;"></i> History</h3>
+              <span class="chapter-number">11 Chapters</span>
+            </div>
+            <div class="card-body">
+              <p>Themes in World History. From Early Societies to Modernisation.</p>
+            </div>
+            <div class="card-footer">
+              <span class="read-link"><i class="fas fa-eye"></i> View Subject <i class="fas fa-arrow-right"></i></span>
+            </div>
           </a>
-          <a href="notes-political-science-class12.html" class="subject-card">
-            <div class="subject-icon" style="color: #2563eb; background: rgba(37,99,235,0.1);"><i class="fas fa-landmark"></i></div>
-            <div class="subject-info"><h3>Political Science</h3><p>Contemporary World Politics</p></div>
+          <a href="notes-political-science-class12.html" class="chapter-card">
+            <div class="card-header">
+              <h3><i class="fas fa-balance-scale" style="color: #2563eb;"></i> Political Science</h3>
+              <span class="chapter-number">20 Chapters</span>
+            </div>
+            <div class="card-body">
+              <p>Indian Constitution at Work and Political Theory. Complete notes.</p>
+            </div>
+            <div class="card-footer">
+              <span class="read-link"><i class="fas fa-eye"></i> View Subject <i class="fas fa-arrow-right"></i></span>
+            </div>
           </a>
-          <a href="notes-geography-class12.html" class="subject-card">
-            <div class="subject-icon" style="color: #059669; background: rgba(5,150,105,0.1);"><i class="fas fa-globe-asia"></i></div>
-            <div class="subject-info"><h3>Geography</h3><p>Human Geography, India - People</p></div>
+          <a href="notes-geography-class12.html" class="chapter-card">
+            <div class="card-header">
+              <h3><i class="fas fa-globe-asia" style="color: #059669;"></i> Geography</h3>
+              <span class="chapter-number">23 Chapters</span>
+            </div>
+            <div class="card-body">
+              <p>Physical Geography and India's Physical Environment. Detailed concepts.</p>
+            </div>
+            <div class="card-footer">
+              <span class="read-link"><i class="fas fa-eye"></i> View Subject <i class="fas fa-arrow-right"></i></span>
+            </div>
           </a>
-          <a href="notes-sociology-class12.html" class="subject-card">
-            <div class="subject-icon" style="color: #6366f1; background: rgba(99,102,241,0.1);"><i class="fas fa-users"></i></div>
-            <div class="subject-info"><h3>Sociology</h3><p>Indian Society, Social Change</p></div>
+          <a href="notes-sociology-class12.html" class="chapter-card">
+            <div class="card-header">
+              <h3><i class="fas fa-users" style="color: #6366f1;"></i> Sociology</h3>
+              <span class="chapter-number">10 Chapters</span>
+            </div>
+            <div class="card-body">
+              <p>Introducing Sociology and Understanding Society. Full chapter notes.</p>
+            </div>
+            <div class="card-footer">
+              <span class="read-link"><i class="fas fa-eye"></i> View Subject <i class="fas fa-arrow-right"></i></span>
+            </div>
           </a>
         </div>
       </div>
-    </section>
+    </div>
   </main>
 
-  <footer class="chapter-summary-footer" style="margin-top: 4rem;">
+  <footer>
     <div class="footer-container">
       <div class="footer-brand">
-        <div class="logo"><img src="/online-graduation_16847316.png" alt="NeoBranium Logo"><span>NeoBranium</span></div>
+        <div class="logo">
+          <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
+          <span>NeoBranium</span>
+        </div>
         <p>A next-gen learning platform for students of all classes.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="../index.html">Home</a></li>
+          <li><a href="class12-notes.html">Class 12 Notes</a></li>
+          <li><a href="notes-science-class10.html">Class 10 Notes</a></li>
+          <li><a href="../IQ/expected-questions.html">Expected Questions</a></li>
+          <li><a href="../blog/blog.html">Blog</a></li>
+        </ul>
       </div>
       <div class="footer-bottom">
         <p>&copy; 2026 NeoBranium. All rights reserved.</p>
       </div>
     </div>
   </footer>
+
+  <script>
+    // Preloader
+    window.addEventListener('load', () => {
+      const preloader = document.getElementById('preloader');
+      setTimeout(() => {
+        if (preloader) {
+          preloader.style.opacity = '0';
+          setTimeout(() => preloader.style.display = 'none', 500);
+        }
+      }, 800);
+    });
+  </script>
   <script src="/search.js"></script>
 </body>
+
 </html>
