@@ -1071,27 +1071,56 @@ footer {
     left: 0;
     right: 0;
     background: var(--bg-white);
-    padding: 1.5rem 1.5rem 2rem;
+    padding: 1.25rem 1.25rem 2rem;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 0.5rem;
     border-bottom: 2px solid var(--border-color);
     box-shadow: 0 8px 20px rgba(0,0,0,0.06);
     z-index: 999;
+    max-height: calc(100vh - 70px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .nav-menu.active {
+  .nav-menu.active,
+  .nav-menu.open {
     display: flex;
   }
 
-  .nav-menu a {
+  .nav-menu > a,
+  .nav-item > a {
     font-size: 1rem;
-    padding: 0.6rem 0.4rem;
+    padding: 0.65rem 0.4rem;
     width: 100%;
     border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+    text-decoration: none;
+    font-weight: 600;
   }
 
-  .nav-menu a:last-child {
+  .nav-item {
+    width: 100%;
+  }
+
+  .nav-item > a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .nav-item > a .fa-chevron-down {
+    transition: transform 0.25s ease;
+    font-size: 0.75rem;
+  }
+
+  .nav-item.open > a .fa-chevron-down,
+  .nav-item.active > a .fa-chevron-down {
+    transform: rotate(180deg);
+  }
+
+  .nav-menu > a:last-child {
     border-bottom: none;
   }
 
@@ -1106,14 +1135,63 @@ footer {
   .dropdown-menu {
     position: static;
     box-shadow: none;
-    border: none;
+    border: 1px solid var(--border-color);
     opacity: 1;
     visibility: visible;
     transform: none;
     background: var(--bg-light);
-    border-radius: 8px;
-    padding: 0.5rem;
+    border-radius: 12px;
+    padding: 0.6rem 0.5rem;
     margin-top: 0.4rem;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .dropdown-submenu {
+    padding: 0.6rem 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .dropdown-submenu h5 {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.75px;
+    margin-bottom: 0.4rem;
+  }
+
+  .dropdown-submenu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .dropdown-submenu li {
+    margin-bottom: 0.2rem;
+  }
+
+  .dropdown-submenu a {
+    font-size: 0.88rem !important;
+    font-weight: 500 !important;
+    padding: 0.35rem 0.6rem !important;
+    border-radius: 6px;
+    border-bottom: none !important;
+    width: 100%;
+    display: block;
+    color: var(--text-main) !important;
+    background: transparent;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .dropdown-submenu a:hover,
+  .dropdown-submenu a:active {
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--primary) !important;
+    padding-left: 0.6rem !important;
   }
 
   .menu-toggle {
