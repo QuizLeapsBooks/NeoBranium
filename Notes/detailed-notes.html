@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detailed Notes Directory | NeoBranium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+  <link rel="stylesheet" href="../index_css.css">
+  <style>
+    .directory-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: white;
+      padding: 3rem 2rem;
+      text-align: center;
+      margin-top: 1rem;
+      border-radius: 24px;
+    }
+    .directory-hero h1 { font-size: 2.2rem; margin-bottom: 0.5rem; }
+    .directory-hero p { color: #94a3b8; font-size: 1rem; }
+    
+    .tabs-container {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: 0.75rem 1.5rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 30px;
+      background: white;
+      color: #475569;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .tab-btn.active {
+      background: #3b82f6;
+      color: white;
+      border-color: #3b82f6;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    
+    .chapters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .chapter-card {
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      border: 1px solid #e2e8f0;
+      text-decoration: none;
+      display: block;
+      transition: all 0.3s;
+    }
+    .chapter-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+    }
+    .card-header {
+      padding: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #f1f5f9;
+      background: #f8fafc;
+    }
+    .card-header h3 {
+      font-size: 1.3rem;
+      margin: 0;
+      color: #0f172a;
+    }
+    .chapter-number {
+      background: #e2e8f0;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #475569;
+    }
+    .card-footer {
+      padding: 1rem 1.5rem;
+      text-align: right;
+    }
+    .btn-read {
+      background: #10b981;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-coming {
+      background: #94a3b8;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-block;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <!-- Include header via JS or hardcode minimal nav for now, but keeping simple since it's a new page -->
+  <div class="free-access-banner">
+    <span class="badge"><i class="fas fa-sparkles"></i> 100% Free Access</span>
+    <span class="banner-text">All Class 9 & 10 Notes, Solved Questions, and Study Blogs are fully open — No Sign-In Required!</span>
+  </div>
+
+  <!-- Preloader -->
+  <div id="preloader">
+    <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="preloader-logo" />
+    <div class="loader"></div>
+  </div>
+
+  <header>
+    <div class="header-container">
+      <div class="logo" onclick="window.location.href='../index.html'">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
+        <span>NeoBranium</span>
+      </div>
+      <div class="header-search">
+        <i class="fas fa-search"></i>
+        <input type="text" id="globalSearchInput" placeholder="Search notes..." autocomplete="off">
+        <div id="globalSearchResults" class="search-results-dropdown"></div>
+      </div>
+      <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+      <nav class="nav-menu">
+        <a href="../index.html">Home</a>
+        <div class="nav-item">
+          <a href="notes-science-class10.html" class="active">Notes <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i></a>
+          <div class="dropdown-menu">
+            <div class="dropdown-submenu"><h5>Class 9</h5><ul><li><a href="notes-science-class9.html">Science</a></li></ul></div>
+            <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;"><h5>Class 10</h5><ul><li><a href="notes-science-class10.html">Science</a></li></ul></div>
+            <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;">
+              <h5>Class 11</h5>
+              <ul>
+                <li><a href="class11-notes.html">All Subjects →</a></li>
+                <li><a href="notes-physics-class11.html">Physics</a></li>
+                <li><a href="notes-chemistry-class11.html">Chemistry</a></li>
+                <li><a href="notes-mathematics-class11.html">Mathematics</a></li>
+                <li><a href="notes-biology-class11.html">Biology</a></li>
+              </ul>
+            <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;">
+              <h5>Class 12</h5>
+              <ul>
+                <li><a href="/Notes/class12-notes.html">All Subjects →</a></li>
+                <li><a href="/Notes/notes-physics-class12.html">Physics</a></li>
+                <li><a href="/Notes/notes-chemistry-class12.html">Chemistry</a></li>
+                <li><a href="/Notes/notes-mathematics-class12.html">Mathematics</a></li>
+                <li><a href="/Notes/notes-biology-class12.html">Biology</a></li>
+              </ul>
+            </div>
+            </div>
+          </div>
+        </div>
+        <a href="../IQ/top-question.html">TopQs</a>
+        <a href="../IQ/expected-questions.html">Expected Questions</a>
+        <a href="../blog/blog.html">Blog</a>
+        <a href="../htmls/sign.html" class="login-btn">Login / Sign Up</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+    <div class="directory-hero">
+      <h1>Comprehensive Detailed Notes</h1>
+      <p>Select your class to access chapter-wise detailed notes</p>
+    </div>
+
+    <div class="tabs-container">
+      <button class="tab-btn" onclick="openTab('class9')">Class 9</button>
+      <button class="tab-btn active" onclick="openTab('class10')">Class 10</button>
+      <button class="tab-btn" onclick="openTab('class11')">Class 11</button>
+      <button class="tab-btn" onclick="openTab('class12')">Class 12</button>
+    </div>
+
+    <!-- Class 9 Tab -->
+    <div id="class9" class="tab-content">
+      <div class="chapters-grid">
+        <div class="chapter-card">
+          <div class="card-header">
+            <h3>Science</h3>
+            <span class="chapter-number">Class 9</span>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="btn-coming">Coming Soon</a>
+          </div>
+        </div>
+        <div class="chapter-card">
+          <div class="card-header">
+            <h3>Mathematics</h3>
+            <span class="chapter-number">Class 9</span>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="btn-coming">Coming Soon</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Class 10 Tab -->
+    <div id="class10" class="tab-content active">
+      <div class="chapters-grid">
+        <div class="chapter-card">
+          <div class="card-header">
+            <h3>Science</h3>
+            <span class="chapter-number">Class 10</span>
+          </div>
+          <div class="card-footer">
+            <a href="class-wise-notes.html" class="btn-read">Read Notes</a>
+          </div>
+        </div>
+        <div class="chapter-card">
+          <div class="card-header">
+            <h3>Mathematics</h3>
+            <span class="chapter-number">Class 10</span>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="btn-coming">Coming Soon</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Class 11 Tab -->
+    <div id="class11" class="tab-content">
+      <div class="chapters-grid">
+        <div class="chapter-card">
+          <div class="card-header">
+            <h3>Physics</h3>
+            <span class="chapter-number">Class 11</span>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="btn-coming">Coming Soon</a>
+          </div>
+        </div>
+        <div class="chapter-card">
+          <div class="card-header">
+            <h3>Chemistry</h3>
+            <span class="chapter-number">Class 11</span>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="btn-coming">Coming Soon</a>
+          </div>
+        </div>
+        <div class="chapter-card">
+          <div class="card-header">
+            <h3>Mathematics</h3>
+            <span class="chapter-number">Class 11</span>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="btn-coming">Coming Soon</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Class 12 Tab -->
+    <div id="class12" class="tab-content">
+      <div class="chapters-grid">
+        <div class="chapter-card">
+          <div class="card-header">
+            <h3>Physics</h3>
+            <span class="chapter-number">Class 12</span>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="btn-coming">Coming Soon</a>
+          </div>
+        </div>
+        <div class="chapter-card">
+          <div class="card-header">
+            <h3>Chemistry</h3>
+            <span class="chapter-number">Class 12</span>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="btn-coming">Coming Soon</a>
+          </div>
+        </div>
+        <div class="chapter-card">
+          <div class="card-header">
+            <h3>Mathematics</h3>
+            <span class="chapter-number">Class 12</span>
+          </div>
+          <div class="card-footer">
+            <a href="#" class="btn-coming">Coming Soon</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+
+  <script>
+    function openTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+    }
+    
+    window.addEventListener('load', () => {
+      const preloader = document.getElementById('preloader');
+      setTimeout(() => {
+        if (preloader) {
+          preloader.style.opacity = '0';
+          setTimeout(() => preloader.style.display = 'none', 500);
+        }
+      }, 800);
+    });
+  </script>
+</body>
+</html>
