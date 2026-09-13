@@ -126,15 +126,15 @@ const isAllowedOrigin = (origin) => {
     return allowedOrigins.some(allowed => origin === allowed || origin === allowed + '/');
 };
 
+// CORS: reflect origin (allows credentials).
+// Actual security blocking is handled by strictOriginCheck middleware below
+// which sends a proper 403. Using a custom origin callback that returns false
+// causes the cors library to call next(undefined) and crash the request chain.
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-        if (isAllowedOrigin(origin)) return callback(null, true);
-        // Return null (not an Error) to silently reject — the strictOriginCheck below sends 403
-        return callback(null, false);
-    },
+    origin: true,
     credentials: true
 }));
+
 
 // Strict server-side origin check middleware
 const strictOriginCheck = (req, res, next) => {
@@ -163,15 +163,8 @@ app.use(strictOriginCheck);
 
 app.use(express.json({ limit: '10mb' }));
 
-// GROQ API INTEGRATION - Initialize Groq API key
+// Gemini API integration
 const groqApiKey = process.env.GROQ_API_KEY;
-if (!groqApiKey) {
-    console.error('❌ Missing GROQ_API_KEY in environment');
-    // Optionally process.exit(1) in non-dev environment,
-    // but if you want server to start and fail per-request, keep going.
-}
-
-// GROQ API INTEGRATION - Define model constant
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 const geminiApiKey = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
@@ -290,8 +283,7 @@ function sanitizeAIInput(message) {
 app.post('/api/chat', async (req, res) => {
     const isProd = process.env.NODE_ENV === 'production';
 
-    // 🛡️ SECURITY FIX: Ignore any Authorization header sent by the client.
-    // The server uses its own GROQ_API_KEY from environment variables.
+    // The server uses its own Gemini API key from environment variables.
     if (req.headers.authorization) {
         console.warn(`⚠️ Client sent Authorization header to /api/chat. Ignoring it. IP: ${req.ip}`);
     }
@@ -376,127 +368,71 @@ app.post('/api/chat', async (req, res) => {
 
 
 
-        // Build messages array
+        // Build Gemini request content. Gemini uses "model" instead of "assistant".
         const systemContent = `${systemIdentity} ${queryContext}`;
 
         const userContent = task === 'paper_generation'
             ? message // Keep specialized task prompts clean from chat instructions
             : `${personalContext}User question: ${message}\n\nRespond in a helpful, educational manner. Use markdown for formatting.\nIf explaining code, always provide examples.\nBe encouraging and patient with learners.`;
-        const messages = [
-            { role: 'system', content: systemContent },
-            ...validatedHistory,
-            { role: 'user', content: userContent }
+        if (!geminiApiKey) {
+            console.error('Missing GEMINI_API_KEY in environment');
+            return res.status(500).json({ reply: 'Gemini AI service unavailable. Configure GEMINI_API_KEY on the server.' });
+        }
+
+        const contents = [
+            ...validatedHistory.map(item => ({
+                role: item.role === 'assistant' ? 'model' : 'user',
+                parts: [{ text: item.content }]
+            })),
+            { role: 'user', parts: [{ text: userContent }] }
         ];
 
-        // Log request for debugging
-        console.log('📤 Sending to Ns-x API:', {
-            model: GROQ_MODEL,
-            messagesCount: messages.length,
-            messages: messages.map(m => ({ role: m.role, contentLength: m.content.length }))
-        });
-
-        // Prepare request body
-        const requestBody = {
-            model: GROQ_MODEL,
-            messages: messages,
-            temperature: 0.7,
-            max_tokens: 4096
-        };
-
-        console.log("FINAL GROQ REQUEST:", JSON.stringify(requestBody, null, 2));
-
-        // Question papers use Gemini; regular chat continues to use Groq.
-        if (task === 'paper_generation') {
-            if (!geminiApiKey) {
-                console.error('Missing GEMINI_API_KEY in environment');
-                return res.status(500).json({ reply: 'Gemini AI service unavailable. Configure GEMINI_API_KEY on the server.' });
-            }
-
-            let geminiResponse;
-            try {
-                geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        systemInstruction: { parts: [{ text: systemContent }] },
-                        contents: [{ role: 'user', parts: [{ text: userContent }] }],
-                        generationConfig: {
-                            temperature: 0.7,
-                            maxOutputTokens: 8192
-                        }
-                    })
-                });
-            } catch (fetchError) {
-                console.error('Gemini fetch error:', fetchError);
-                return res.status(500).json({ reply: 'Gemini AI request failed' });
-            }
-
-            if (!geminiResponse.ok) {
-                const errorText = await geminiResponse.text();
-                console.error('Gemini API error:', geminiResponse.status, errorText);
-                return res.status(500).json({ reply: 'Gemini AI request failed' });
-            }
-
-            const geminiData = await geminiResponse.json();
-            const text = geminiData.candidates?.[0]?.content?.parts?.map(part => part.text || '').join('').trim();
-            if (!text) {
-                console.error('Gemini API returned no text:', geminiData);
-                return res.status(500).json({ reply: 'Gemini AI returned an empty response' });
-            }
-
-            return res.json({ reply: text });
-        }
-
-        // Check if API key is available for regular chat
-        if (!groqApiKey) {
-            console.error('❌ Some went wrong');
-            return res.status(500).json({ reply: 'AI service unavailable' });
-        }
-
-        let groqResponse;
+        let geminiResponse;
         try {
-            groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${groqApiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestBody)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    systemInstruction: { parts: [{ text: systemContent }] },
+                    contents,
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: task === 'paper_generation' ? 8192 : 4096
+                    }
+                })
             });
         } catch (fetchError) {
-            console.error('❌ Fetch error:', fetchError);
-            return res.status(500).json({ reply: 'AI request failed' });
+            console.error('Gemini fetch error:', fetchError);
+            return res.status(502).json({ reply: 'Gemini AI request failed' });
         }
 
-        if (!groqResponse.ok) {
-            const errorText = await groqResponse.text();
-            console.error('❌ Groq API error:', groqResponse.status, errorText);
-            return res.status(500).json({ reply: 'AI request failed' });
+        if (!geminiResponse.ok) {
+            const errorText = await geminiResponse.text();
+            console.error('Gemini API error:', geminiResponse.status, errorText);
+            return res.status(502).json({ reply: 'Gemini AI request failed' });
         }
 
-        let groqData;
+        let geminiData;
         try {
-            groqData = await groqResponse.json();
+            geminiData = await geminiResponse.json();
         } catch (jsonError) {
-            console.error('❌ Failed to parse Ns-x response:', jsonError);
-            return res.status(500).json({ reply: 'AI request failed' });
+            console.error('Failed to parse Gemini response:', jsonError);
+            return res.status(502).json({ reply: 'Gemini AI request failed' });
         }
 
-        if (!groqData.choices || groqData.choices.length === 0) {
-            console.error('❌ Ns-x API returned no choices:', groqData);
-            return res.status(500).json({ reply: 'AI request failed' });
-        }
-
-        let text = groqData.choices[0].message.content;
+        let text = geminiData.candidates?.[0]?.content?.parts
+            ?.map(part => part.text || '')
+            .join('')
+            .trim();
         if (!text) {
-            console.error('❌ Ns-x API returned empty content');
-            return res.status(500).json({ reply: 'AI request failed' });
+            console.error('Gemini API returned no text:', geminiData);
+            return res.status(502).json({ reply: 'Gemini AI returned an empty response' });
         }
 
         // Format and return
         text = formatResponse(text, queryType);
 
-        console.log('✅ Chat response sent:', { reply: text.substring(0, 100) + '...' });
+        console.log('✅ Gemini chat response sent:', { reply: text.substring(0, 100) + '...' });
 
         res.json({
             reply: text

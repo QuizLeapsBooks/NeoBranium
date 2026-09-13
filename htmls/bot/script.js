@@ -1,6 +1,5 @@
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import { canSendMessage, incrementChatCount } from '../../js/usage-limits.js';
 import { isGuestUser } from '../../js/auth.js';
 
 // Configure marked for better code highlighting
@@ -142,11 +141,6 @@ class ChatAssistant {
             return;
         }
 
-        // Check chat limit before sending
-        if (!canSendMessage()) {
-            return;
-        }
-
         const userText = this.chatInput.value.trim();
         if (!userText) return;
 
@@ -161,8 +155,6 @@ class ChatAssistant {
         // Get AI response
         await this.getAIResponse(userText);
         
-        // Increment chat count after successful send
-        incrementChatCount();
     }
 
     addMessage(content, type, isThinking = false, rawContent = null) {
@@ -208,16 +200,15 @@ class ChatAssistant {
                 credentials: 'include',
                 body: JSON.stringify({
                     message: userText,
-                    history: this.chatHistory.slice(-10), // Last 10 messages for context
+                       history: this.chatHistory.slice(-11, -1), // The current question is already in chatHistory; send only prior messages.
                     userId: this.userId
                 })
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.reply || `HTTP error! status: ${response.status}`);
+                }
 
             // Remove thinking message
             thinkingMsg.remove();
