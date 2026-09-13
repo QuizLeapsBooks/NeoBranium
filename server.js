@@ -130,7 +130,8 @@ app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
         if (isAllowedOrigin(origin)) return callback(null, true);
-        return callback(new Error('CORS Error: Origin not allowed'), false);
+        // Return null (not an Error) to silently reject — the strictOriginCheck below sends 403
+        return callback(null, false);
     },
     credentials: true
 }));
@@ -138,6 +139,8 @@ app.use(cors({
 // Strict server-side origin check middleware
 const strictOriginCheck = (req, res, next) => {
     if (!req.path.startsWith('/api/')) return next();
+    // Health endpoint is public - no origin check needed
+    if (req.path === '/api/health') return next();
     const origin = req.headers.origin || req.headers.referer;
     if (!origin) {
         return res.status(403).json({ reply: 'Forbidden: Direct API access is not allowed' });

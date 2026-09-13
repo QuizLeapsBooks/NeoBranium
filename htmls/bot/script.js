@@ -55,6 +55,9 @@ class ChatAssistant {
 
         // Load chat history from session
         this.loadSessionHistory();
+
+        // Wake up server in background (handles Render free tier cold starts)
+        this.wakeUpServer();
     }
 
     getApiBaseUrl() {
@@ -66,6 +69,18 @@ class ChatAssistant {
         }
 
         return 'https://neobranium.onrender.com/api';
+    }
+
+    // Ping server to wake it up (Render free tier goes to sleep)
+    async wakeUpServer() {
+        try {
+            await fetch(`${this.API_BASE_URL}/health`, {
+                method: 'GET',
+                signal: AbortSignal.timeout(5000)
+            });
+        } catch (_) {
+            // Ignore - just a wake-up ping
+        }
     }
 
     generateUserId() {
@@ -177,7 +192,7 @@ class ChatAssistant {
         return messageDiv;
     }
 
-    async getAIResponse(userText) {
+    async getAIResponse(userText, retryCount = 0) {
         this.isProcessing = true;
         this.toggleSendButton();
 
@@ -212,7 +227,7 @@ class ChatAssistant {
                 const formattedResponse = marked.parse(data.reply);
                 this.addMessage(formattedResponse, 'ai', false, data.reply);
             } else {
-                this.addMessage('Sorry, I received an empty response.', 'ai');
+                this.addMessage('Sorry, I received an empty response. Please try again.', 'ai');
             }
 
         } catch (error) {
@@ -221,10 +236,22 @@ class ChatAssistant {
             // Remove thinking message
             thinkingMsg.remove();
 
-            // Show error message
+            // Auto-retry once (handles Render cold start / temporary network issues)
+            if (retryCount === 0) {
+                const retryMsg = this.addMessage(
+                    '<div class="message-content"><p>⏳ Server is waking up, retrying in 3 seconds...</p></div>',
+                    'ai'
+                );
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                retryMsg.remove();
+                this.isProcessing = false;
+                return this.getAIResponse(userText, 1);
+            }
+
+            // Show error message after retry failed too
             const errorMessage = `
                 <div class="message-content error-message">
-                    <p>⚠️ <strong>Connection Error ! </strong></p>
+                    <p>⚠️ <strong>Connection Error!</strong></p>
                     <p>I'm having trouble connecting to the server. Please:</p>
                     <ul>
                         <li>Check your internet connection</li>

@@ -197,9 +197,7 @@ onValue(messagesRef, (snapshot) => {
         console.error("Error processing messages:", error);
         messageList.innerHTML = "<li class='text-center text-red-400'>Failed to load messages.</li>";
     }
-}, {
-    onlyOnce: false // Ensure real-time updates
 }, (error) => {
     console.error("Error in onValue listener:", error);
-    document.getElementById("message-list").innerHTML = "<li class='text-center text-red-400'>Error fetching messages.</li>";
+    document.getElementById("message-list").innerHTML = "<li class='text-center text-red-400'>Error fetching messages. Please refresh the page.</li>";
 });
