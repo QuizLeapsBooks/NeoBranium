@@ -1,8 +1,7 @@
 import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+import { app, auth } from "../../js/auth.js";
 
-const db = getDatabase();
-const auth = getAuth();
+const db = getDatabase(app, "https://neobranium-default-rtdb.firebaseio.com");
 
 // Delete Message
 document.addEventListener('click', async (e) => {

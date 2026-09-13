@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 import { getFirestore, getDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
@@ -11,15 +11,16 @@ const firebaseConfig = {
     storageBucket: "neobranium.appspot.com",
     messagingSenderId: "59188872045",
     appId: "1:59188872045:web:450a70b28e4be5db335064",
+    databaseURL: "https://neobranium-default-rtdb.firebaseio.com"
 };
 
 // Initialize Firebase (Singleton pattern)
-const app = initializeApp(firebaseConfig);
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-export { app, auth, db, storage };
+export { app, auth, db, storage, firebaseConfig };
 
 export async function loadUserData(user) {
     try {

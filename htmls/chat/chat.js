@@ -1,30 +1,28 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
 import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 import { canSendMessage, incrementChatCount } from "../../js/usage-limits.js";
-import { isGuestUser } from "../../js/auth.js";
+import { app, auth, db, isGuestUser } from "../../js/auth.js";
 
-// Firebase config
-const firebaseConfig = {
-    apiKey: "AIzaSyA1iWJdGtmrox9RAHgWBxaK4p8KGf7ji_Y",
-    authDomain: "neobranium.firebaseapp.com",
-    projectId: "neobranium",
-    storageBucket: "neobranium.appspot.com",
-    messagingSenderId: "59188872045",
-    appId: "1:59188872045:web:450a70b28e4be5db335064",
-    databaseURL: "https://neobranium-default-rtdb.firebaseio.com"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const rtdb = getDatabase(app);
+// Use central Firebase instance
+const rtdb = getDatabase(app, "https://neobranium-default-rtdb.firebaseio.com");
 const messagesRef = ref(rtdb, "messages");
 
 // Check auth state and get username
 let currentUser = null;
+
+// UI update helper for user info
+function updateUserInfo(username, initial) {
+    const usernameEl = document.getElementById("usernameDisplay");
+    if (usernameEl) usernameEl.innerText = `Welcome, ${username}!`;
+
+    const initialEl = document.getElementById("userInitial");
+    if (initialEl) initialEl.innerText = initial;
+
+    const chatHeaderEl = document.getElementById("chatHeaderUsernameText");
+    if (chatHeaderEl) chatHeaderEl.innerText = username;
+}
+
 onAuthStateChanged(auth, async (user) => {
     try {
         if (user) {
@@ -36,20 +34,17 @@ onAuthStateChanged(auth, async (user) => {
                     username: userData.fname || user.displayName || "User"
                 };
                 console.log("User loaded:", currentUser);
-                document.getElementById("usernameDisplay").innerText = `Welcome, ${currentUser.username}!`;
-                document.getElementById("userInitial").innerText = currentUser.username.charAt(0).toUpperCase();
+                updateUserInfo(currentUser.username, currentUser.username.charAt(0).toUpperCase());
             } else {
                 console.warn("User document not found in Firestore");
-                currentUser = { uid: user.uid, username: "User" };
-                document.getElementById("usernameDisplay").innerText = `Welcome, ${currentUser.username}!`;
-                document.getElementById("userInitial").innerText = "U";
+                currentUser = { uid: user.uid, username: user.displayName || "User" };
+                updateUserInfo(currentUser.username, currentUser.username.charAt(0).toUpperCase() || "U");
             }
         } else {
             if (isGuestUser()) {
                 console.log("Guest access active in chat");
                 currentUser = { uid: "guest", username: "Guest" };
-                document.getElementById("usernameDisplay").innerText = `Welcome, Guest!`;
-                document.getElementById("userInitial").innerText = "G";
+                updateUserInfo("Guest", "G");
 
                 // Restriction for guest: Disable chat input
                 const messageInput = document.getElementById("message-input");
@@ -75,16 +70,15 @@ onAuthStateChanged(auth, async (user) => {
         }
     } catch (error) {
         console.error("Error in auth state change:", error);
-        alert("Error loading user data: " + error.message);
     }
 });
 
 // Send message
-document.getElementById("chat-form").addEventListener("submit", async (e) => {
+document.getElementById("chat-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     
     // Hardened Guest Check: Prevent bypass via DevTools
-    if (isGuestUser()) {
+    if (isGuestUser() || !currentUser || currentUser.uid === "guest") {
         alert("You're in guest mode. Sign in to send messages.");
         return;
     }
@@ -99,6 +93,7 @@ document.getElementById("chat-form").addEventListener("submit", async (e) => {
     if (messageText && currentUser) {
         try {
             const messageData = {
+                uid: currentUser.uid,
                 username: currentUser.username,
                 text: messageText,
                 timestamp: Date.now(),
@@ -125,13 +120,21 @@ document.getElementById("chat-form").addEventListener("submit", async (e) => {
     }
 });
 
+// Helper to escape HTML and prevent injection
+function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Display messages in real-time
 onValue(messagesRef, (snapshot) => {
     const messageList = document.getElementById("message-list");
+    if (!messageList) return;
     messageList.innerHTML = ""; // Clear existing messages
     try {
         const messages = snapshot.val();
-        const searchQuery = document.getElementById("search-input")?.value.toLowerCase() || "";
+        const searchQuery = document.getElementById("search-input")?.value.toLowerCase().trim() || "";
         if (messages) {
             console.log("Messages fetched:", Object.keys(messages).length, "messages");
             // Sort messages by timestamp
@@ -143,19 +146,22 @@ onValue(messagesRef, (snapshot) => {
                         return;
                     }
                     const li = document.createElement("li");
-                    const isOwnMessage = message.username === currentUser?.username;
-                    let messageText = message.deleted ? '<i>This message was deleted</i>' : message.text;
+                    const isOwnMessage = currentUser && (
+                        (message.uid && message.uid === currentUser.uid) ||
+                        message.username === currentUser.username
+                    );
+                    let messageText = message.deleted ? '<i>This message was deleted</i>' : escapeHtml(message.text);
                     // Highlight search query
-                    if (searchQuery && messageText !== '<i>This message was deleted</i>') {
-                        const regex = new RegExp(`(${searchQuery})`, 'gi');
+                    if (searchQuery && !message.deleted) {
+                        const regex = new RegExp(`(${searchQuery.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')})`, 'gi');
                         messageText = messageText.replace(regex, '<span class="bg-yellow-500/30">$1</span>');
                     }
                     li.innerHTML = `
                         <div class="message ${isOwnMessage ? 'message-sent' : 'message-received'}">
                             <div class="flex items-center justify-between gap-2">
                                 <div class="flex items-center gap-2">
-                                    <span class="avatar">${message.username.charAt(0).toUpperCase()}</span>
-                                    <div class="username">${message.username}</div>
+                                    <span class="avatar">${escapeHtml(message.username.charAt(0).toUpperCase())}</span>
+                                    <div class="username">${escapeHtml(message.username)}</div>
                                 </div>
                                 <div class="relative">
                                     <button class="menu-btn text-gray-400 hover:text-white" data-message-id="${key}">
@@ -176,7 +182,7 @@ onValue(messagesRef, (snapshot) => {
                             <div class="text">${messageText}</div>
                             <div class="timestamp flex items-center gap-2">
                                 ${new Date(message.timestamp).toLocaleString()}
-                                ${message.reported ? '<span class="w-2 h-2 bg-red-500 rounded-full"></span>' : ''}
+                                ${message.reported ? '<span class="w-2 h-2 bg-red-500 rounded-full" title="Reported"></span>' : ''}
                             </div>
                             <div class="reactions flex gap-2 mt-2">
                                 <!-- Reactions will be populated by message.js -->
@@ -191,7 +197,7 @@ onValue(messagesRef, (snapshot) => {
             messageList.scrollTop = messageList.scrollHeight; // Auto-scroll to bottom
         } else {
             console.log("No messages in database");
-            messageList.innerHTML = "<li class='text-center text-gray-400'>No messages yet.</li>";
+            messageList.innerHTML = "<li class='text-center text-gray-400'>No messages yet. Start the conversation!</li>";
         }
     } catch (error) {
         console.error("Error processing messages:", error);
@@ -199,5 +205,8 @@ onValue(messagesRef, (snapshot) => {
     }
 }, (error) => {
     console.error("Error in onValue listener:", error);
-    document.getElementById("message-list").innerHTML = "<li class='text-center text-red-400'>Error fetching messages. Please refresh the page.</li>";
+    const messageList = document.getElementById("message-list");
+    if (messageList) {
+        messageList.innerHTML = "<li class='text-center text-red-400'>Error fetching messages. Please refresh the page.</li>";
+    }
 });
