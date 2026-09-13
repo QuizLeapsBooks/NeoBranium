@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class 9 Science Chapter 8: Motion | Detailed NCERT Notes | NeoBranium</title>
+  <meta name="description" content="Most repeated and exam-focused notes for Class 9 Science Chapter 8 - Motion. Includes detailed concepts, formulas, and previous year questions. CBSE board 2025-26.">
+  <meta name="keywords" content="class 9 science chapter 8, Motion, NCERT notes, board exam">
+  <meta name="author" content="NeoBranium">
+  <meta name="robots" content="index, follow">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+  <link rel="stylesheet" href="../index_css.css">
+  <link rel="stylesheet" href="notes.css">
+  
+  <style>
+    .highlight-box { background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%); border-left: 5px solid #f59e0b; padding: 1.2rem; margin: 1.5rem 0; border-radius: 12px; }
+    .repeated-tag { display: inline-block; background: #dc2626; color: white; font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 30px; margin-left: 0.75rem; vertical-align: middle; }
+    .pyq-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 16px; padding: 1.3rem; margin: 1.8rem 0; }
+    .key-memorize { background: #fef3c7; padding: 1rem 1.3rem; border-radius: 14px; border-left: 4px solid #d97706; margin: 1.3rem 0; }
+    .formula-box-custom { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 12px; font-family: monospace; text-align: center; font-size: 1.1rem; }
+    .badge-mostimp { background: #16a34a; color: white; font-size: 0.7rem; padding: 0.2rem 0.7rem; border-radius: 20px; display: inline-block; margin-top: 0.3rem; }
+    .interactive-card { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin: 2rem 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+    .interactive-card h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+    .canvas-container { width: 100%; max-width: 600px; margin: 1rem auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; position: relative;}
+    .controls { display: flex; flex-direction: column; gap: 1rem; max-width: 400px; margin: 0 auto; background: #f1f5f9; padding: 1rem; border-radius: 8px;}
+    .control-group { display: flex; justify-content: space-between; align-items: center; }
+    .control-group input[type="range"] { flex-grow: 1; margin-left: 1rem; }
+    .example-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 1.2rem; margin: 1.2rem 0; }
+    .example-box h4 { margin-top: 0; color: #166534; }
+    .comparison-table { width: 100%; border-collapse: collapse; margin: 1.2rem 0; }
+    .comparison-table th, .comparison-table td { border: 1px solid #e2e8f0; padding: 0.75rem; text-align: left; }
+    .comparison-table th { background: #f1f5f9; }
+    .derivation-step { background: #ffffff; border-left: 3px solid #3b82f6; padding: 0.8rem 1rem; margin: 0.6rem 0; border-radius: 0 8px 8px 0; font-family: monospace; }
+    .graph-explain { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+    @media (max-width: 600px) { .graph-explain { grid-template-columns: 1fr; } }
+    .graph-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; }
+    .graph-card h5 { margin: 0 0 0.5rem; color: #1e293b; }
+    
+    .chapter-summary-footer { background: #f8fafc; margin-top: 4rem; padding: 2rem 1rem 1rem; }
+    .footer-chapter-container { max-width: 1400px; margin: 0 auto; }
+    .footer-chapter-heading { font-size: 1.8rem; text-align: center; margin-bottom: 0.5rem; color: #0f172a; }
+    .footer-chapter-subheading { text-align: center; color: #475569; margin-bottom: 2.5rem; }
+    .chapter-summary-grid { display: flex; flex-direction: column; gap: 2rem; }
+    .subject-section { background: white; border-radius: 1.5rem; padding: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .subject-title { font-size: 1.4rem; padding-bottom: 0.5rem; margin-bottom: 1rem; border-bottom: 3px solid; display: inline-block; }
+    .chemistry-title { border-bottom-color: #10b981; color: #065f46; }
+    .biology-title { border-bottom-color: #3b82f6; color: #1e3a8a; }
+    .physics-title { border-bottom-color: #f59e0b; color: #92400e; }
+    .chapter-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+    .chapter-jump-card { display: flex; align-items: center; gap: 1rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem; text-decoration: none; transition: all 0.2s ease; cursor: pointer; }
+    .chapter-jump-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-color: #94a3b8; }
+    .card-icon { font-size: 2rem; min-width: 50px; text-align: center; }
+    .card-info h4 { margin: 0 0 0.3rem; font-size: 1rem; color: #1e293b; }
+    .card-info p { margin: 0 0 0.4rem; font-size: 0.8rem; color: #475569; }
+    .jump-badge { font-size: 0.7rem; color: #3b82f6; font-weight: 500; }
+    .footer-revision-links { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin: 2rem 0 1rem; }
+    .revision-box { background: #eef2ff; padding: 0.75rem 1.2rem; border-radius: 40px; font-size: 0.85rem; color: #1e40af; }
+    @media (max-width: 768px) { .chapter-cards { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div id="preloader"><img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="preloader-logo" /><div class="loader"></div></div>
+  <header>
+    <div class="header-container">
+      <div class="logo" onclick="window.location.href='../index.html'"><img src="/online-graduation_16847316.png" alt="NeoBranium Logo"><span>NeoBranium</span></div>
+      <div class="header-search"><i class="fas fa-search"></i><input type="text" id="globalSearchInput" placeholder="Search notes..." autocomplete="off"></div>
+      <nav class="nav-menu">
+        <a href="../index.html">Home</a>
+        <div class="nav-item">
+          <a href="notes-science-class9.html" class="active">Notes <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i></a>
+        </div>
+        <a href="../IQ/top-question.html">Top Questions</a>
+        <a href="../blog/blog.html">Blog</a>
+      </nav>
+    </div>
+  </header>
+  <main class="notes-page">
+    <aside class="notes-sidebar">
+      <div class="sidebar-content">
+        <h3>📖 Chapter Contents</h3>
+        <ul>
+          <li><a href='#intro'>Introduction & Reference Frame</a></li>
+          <li><a href='#distance'>Distance & Displacement</a></li>
+          <li><a href='#velocity'>Speed & Velocity</a></li>
+          <li><a href='#acceleration'>Acceleration</a></li>
+          <li><a href='#equations'>Equations of Motion</a></li>
+          <li><a href='#graphs'>Graphical Representation</a></li>
+          <li><a href='#circular'>Uniform Circular Motion</a></li>
+          <li><a href='#pyqs'>Previous Year Questions</a></li>
+        </ul>
+      </div>
+    </aside>
+    <div class="notes-container">
+      <nav class="breadcrumb"><a href="../index.html">Home</a> / <a href="class9-science-dir.html">Notes</a> / Chapter 8: Motion</nav>
+      
+      <!-- SECTION: INTRO -->
+      <section id="intro">
+        <h1>Motion <span class="repeated-tag">High Weightage Chapter</span></h1>
+        <div class="highlight-box">
+          <i class="fas fa-star" style="color:#f59e0b;"></i> 
+          <strong>Why this chapter is important?</strong> Motion lays the foundation for all of mechanics. Graphical representation and equations of motion are heavily tested in board exams.
+        </div>
+        
+        <h2>Introduction: What is Motion?</h2>
+        <p>An object is said to be in <strong>motion</strong> if its position changes with respect to time and a reference point. If the position does not change, the object is said to be at <strong>rest</strong> [citation:2].</p>
+        
+        <h3>Reference Point and Frame of Reference</h3>
+        <p>To describe the position of an object, we need a <strong>reference point</strong> (origin). An object may appear to be moving to one observer while being stationary to another. For example, a passenger inside a moving bus sees other passengers at rest, but an observer on the road sees them in motion [citation:14]. This is why a common reference frame is needed for consistent observations.</p>
+        
+        <h3>Types of Motion</h3>
+        <ul>
+          <li><strong>Translatory Motion:</strong> Particles move from one point in space to another. This can be along a straight line (rectilinear) or a curved path (curvilinear). Example: a car on a straight road [citation:2].</li>
+          <li><strong>Rotatory Motion:</strong> Particles describe concentric circles about an axis. Example: Earth's rotation [citation:2].</li>
+          <li><strong>Vibratory Motion:</strong> Particles oscillate back and forth around a fixed point. Example: a pendulum [citation:2].</li>
+        </ul>
+      </section>
+      
+      <!-- SECTION: DISTANCE & DISPLACEMENT -->
+      <section id='distance'>
+        <h2>1. Distance and Displacement</h2>
+        
+        <h3>Distance (Scalar Quantity)</h3>
+        <p>The <strong>total path length</strong> covered by an object during motion. Distance depends only on how much ground is covered, irrespective of direction. It is always positive and can never be zero for a moving object [citation:2].</p>
+        
+        <h3>Displacement (Vector Quantity)</h3>
+        <p>The <strong>shortest straight-line distance</strong> between the initial and final positions, measured in a specific direction. Displacement can be positive, negative, or zero [citation:2].</p>
+        
+        <div class="key-memorize">
+          <strong>🎯 Key Point:</strong> Distance is always greater than or equal to displacement. The magnitude of displacement never exceeds the total distance travelled [citation:9].
+        </div>
+        
+        <div class="example-box">
+          <h4>📝 Example: Distance vs Displacement</h4>
+          <p>If you walk 8 m towards the west and then 3 m towards the east:</p>
+          <ul>
+            <li>Total distance = 8 + 3 = <strong>11 m</strong></li>
+            <li>Displacement = 8 − 3 = <strong>5 m towards the west</strong> [citation:2]</li>
+          </ul>
+        </div>
+        
+        <div class="example-box">
+          <h4>📝 Example: Circular Path</h4>
+          <p>A body moves along a circular path of radius <em>r</em>. After half a revolution:</p>
+          <ul>
+            <li>Distance covered = π × <em>r</em></li>
+            <li>Displacement = 2<em>r</em> (the diameter, since the particle is diametrically opposite) [citation:9]</li>
+          </ul>
+        </div>
+        
+        <h3>Uniform vs Non-Uniform Motion</h3>
+        <table class="comparison-table">
+          <tr><th>Uniform Motion</th><th>Non-Uniform Motion</th></tr>
+          <tr>
+            <td>Covers equal distances in equal intervals of time</td>
+            <td>Covers unequal distances in equal intervals of time</td>
+          </tr>
+          <tr>
+            <td>Speed remains constant</td>
+            <td>Speed or direction changes</td>
+          </tr>
+          <tr>
+            <td>Example: Earth revolving around the Sun</td>
+            <td>Example: A car in city traffic</td>
+          </tr>
+        </table>
+      </section>
+      
+      <!-- SECTION: SPEED & VELOCITY -->
+      <section id='velocity'>
+        <h2>2. Speed and Velocity</h2>
+        
+        <h3>Speed (Scalar Quantity)</h3>
+        <p>Speed is the rate at which an object covers distance. It tells us how fast an object is moving but does not specify direction [citation:2].</p>
+        <div class='formula-box-custom'>Speed = Distance / Time &nbsp;&nbsp;|&nbsp;&nbsp; SI Unit: m/s</div>
+        
+        <h3>Velocity (Vector Quantity)</h3>
+        <p>Velocity is the rate of change of displacement. It specifies both speed and direction [citation:14].</p>
+        <div class='formula-box-custom'>Velocity = Displacement / Time &nbsp;&nbsp;|&nbsp;&nbsp; SI Unit: m/s</div>
+        
+        <h3>Average Speed vs Average Velocity</h3>
+        <table class="comparison-table">
+          <tr><th>Average Speed</th><th>Average Velocity</th></tr>
+          <tr>
+            <td>Total distance / Total time</td>
+            <td>Total displacement / Total time</td>
+          </tr>
+          <tr>
+            <td>Always positive</td>
+            <td>Can be positive, negative, or zero</td>
+          </tr>
+        </table>
+        
+        <div class='key-memorize'>
+          <strong>📌 Important Formula:</strong> For uniform acceleration, Average Velocity = (Initial Velocity + Final Velocity) / 2 = (u + v) / 2 [citation:14]
+        </div>
+        
+        <div class="example-box">
+          <h4>📝 Example: Average Speed for Round Trip</h4>
+          <p>A car travels from A to B at 20 km/h and returns at 30 km/h. Let the distance be <em>d</em>.</p>
+          <ul>
+            <li>Time going = <em>d</em>/20, Time returning = <em>d</em>/30</li>
+            <li>Total distance = 2<em>d</em>, Total time = <em>d</em>/20 + <em>d</em>/30</li>
+            <li>Average speed = 2<em>d</em> / (<em>d</em>/20 + <em>d</em>/30) = <strong>24 km/h</strong> [citation:4]</li>
+          </ul>
+        </div>
+      </section>
+      
+      <!-- SECTION: ACCELERATION -->
+      <section id='acceleration'>
+        <h2>3. Acceleration</h2>
+        <p>Acceleration is the rate of change of velocity with respect to time. When velocity changes (either in magnitude or direction), the object is accelerating [citation:10].</p>
+        
+        <div class='formula-box-custom'>a = (v − u) / t</div>
+        <p>Where: <em>v</em> = final velocity, <em>u</em> = initial velocity, <em>t</em> = time taken. SI unit is m/s².</p>
+        
+        <h3>Key Points about Acceleration</h3>
+        <ul>
+          <li><strong>Positive acceleration:</strong> Velocity increases with time</li>
+          <li><strong>Negative acceleration (retardation):</strong> Velocity decreases with time</li>
+          <li><strong>Zero acceleration:</strong> Velocity is constant (uniform motion)</li>
+        </ul>
+        
+        <div class="key-memorize">
+          <strong>⚠️ Important:</strong> A body moving with constant speed in a circular path has <strong>non-zero acceleration</strong> because its direction changes continuously. This is called centripetal acceleration [citation:9].
+        </div>
+        
+        <div class="example-box">
+          <h4>📝 Example: Finding Acceleration</h4>
+          <p>A train starting from rest attains a velocity of 72 km/h in 5 minutes. Find its acceleration.</p>
+          <p><strong>Solution:</strong></p>
+          <ul>
+            <li>u = 0 m/s, v = 72 km/h = 72 × (5/18) = 20 m/s</li>
+            <li>t = 5 min = 300 s</li>
+            <li>a = (v − u) / t = (20 − 0) / 300 = <strong>0.067 m/s²</strong></li>
+          </ul>
+        </div>
+      </section>
+      
+      <!-- SECTION: EQUATIONS OF MOTION -->
+      <section id='equations'>
+        <h2>4. Equations of Motion</h2>
+        <p>These three equations apply only when acceleration is <strong>uniform</strong> (constant):</p>
+        
+        <div class='formula-box-custom'>
+          1. v = u + at &nbsp;&nbsp;&nbsp;(Velocity–Time relation)<br><br>
+          2. s = ut + ½at² &nbsp;&nbsp;&nbsp;(Position–Time relation)<br><br>
+          3. v² = u² + 2as &nbsp;&nbsp;&nbsp;(Position–Velocity relation)
+        </div>
+        
+        <h3>Graphical Derivation (Exam-Favourite)</h3>
+        <p>These equations can be derived from the velocity-time graph:</p>
+        
+        <div class="graph-explain">
+          <div class="graph-card">
+            <h5>Deriving v = u + at</h5>
+            <p>From the v-t graph, slope of line = acceleration</p>
+            <div class="derivation-step">a = (v − u) / t</div>
+            <div class="derivation-step">→ v = u + at</div>
+          </div>
+          <div class="graph-card">
+            <h5>Deriving s = ut + ½at²</h5>
+            <p>Area under v-t graph = displacement</p>
+            <div class="derivation-step">Area = area of rectangle + area of triangle</div>
+            <div class="derivation-step">s = ut + ½ × t × (v − u)</div>
+            <div class="derivation-step">→ s = ut + ½at²</div>
+          </div>
+        </div>
+        
+        <h3>How to Choose the Right Equation</h3>
+        <table class="comparison-table">
+          <tr><th>Given</th><th>Find</th><th>Use Equation</th></tr>
+          <tr><td>u, a, t</td><td>v</td><td>v = u + at</td></tr>
+          <tr><td>u, a, t</td><td>s</td><td>s = ut + ½at²</td></tr>
+          <tr><td>u, v, a</td><td>s</td><td>v² = u² + 2as</td></tr>
+        </table>
+        
+        <div class="key-memorize">
+          <strong>💡 Tips:</strong>
+          <ul>
+            <li>If a body starts from rest, u = 0</li>
+            <li>If a body comes to rest, v = 0</li>
+            <li>For retardation, use a = − (positive value)</li>
+            <li>Always convert km/h to m/s by multiplying with <strong>5/18</strong></li>
+          </ul>
+        </div>
+        
+        <div class="example-box">
+          <h4>📝 Example: Distance with Uniform Acceleration</h4>
+          <p>A motorboat starts from rest with acceleration 3.0 m/s² for 8.0 s. Find the distance travelled.</p>
+          <p><strong>Solution:</strong> s = ut + ½at² = 0 + ½(3)(8)² = <strong>96 m</strong> [citation:4]</p>
+        </div>
+        
+        <div class="example-box">
+          <h4>📝 Example: Two-Stage Motion</h4>
+          <p>A car starts from rest with acceleration 5 m/s² for 8 s, then moves with constant velocity. Find total distance in 12 s.</p>
+          <p><strong>Solution:</strong></p>
+          <ul>
+            <li>Phase 1: s₁ = ½(5)(8)² = 160 m; final velocity v = 5 × 8 = 40 m/s</li>
+            <li>Phase 2: s₂ = 40 × 4 = 160 m</li>
+            <li>Total distance = <strong>320 m</strong> [citation:11]</li>
+          </ul>
+        </div>
+      </section>
+      
+      <!-- SECTION: GRAPHS -->
+      <section id='graphs'>
+        <h2>5. Graphical Representation of Motion</h2>
+        
+        <h3>Distance-Time Graph</h3>
+        <table class="comparison-table">
+          <tr><th>Graph Shape</th><th>Meaning</th></tr>
+          <tr><td>Horizontal line (parallel to time axis)</td><td>Body is stationary (at rest)</td></tr>
+          <tr><td>Straight line with constant slope</td><td>Uniform speed; slope = speed</td></tr>
+          <tr><td>Curved line</td><td>Non-uniform speed; changing slope</td></tr>
+        </table>
+        
+        <h3>Velocity-Time Graph</h3>
+        <table class="comparison-table">
+          <tr><th>Graph Feature</th><th>Meaning</th></tr>
+          <tr><td>Slope of v-t graph</td><td>Acceleration</td></tr>
+          <tr><td>Area under v-t graph</td><td>Displacement</td></tr>
+          <tr><td>Horizontal line</td><td>Uniform velocity (zero acceleration)</td></tr>
+          <tr><td>Straight inclined line</td><td>Uniform acceleration</td></tr>
+        </table>
+        
+        <div class="key-memorize">
+          <strong>🎯 Exam Favourite:</strong> The area under a v-t graph has the unit <strong>metre (m)</strong> because it represents displacement [citation:9].
+        </div>
+        
+        <div class="interactive-card">
+          <h3>Interactive: Velocity-Time Graph Live Plotter</h3>
+          <p>Adjust the initial velocity (u) and acceleration (a) to see how the v-t graph changes. The area under the curve gives displacement.</p>
+          <div class="canvas-container"><canvas id="vtCanvas" width="500" height="300"></canvas></div>
+          <div class="controls">
+            <div class="control-group"><label>Initial Velocity (u): <span id="uVal">10</span> m/s</label><input type="range" id="uRange" min="0" max="50" value="10"></div>
+            <div class="control-group"><label>Acceleration (a): <span id="aVal">2</span> m/s²</label><input type="range" id="aRange" min="-5" max="10" value="2"></div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- SECTION: UNIFORM CIRCULAR MOTION -->
+      <section id='circular'>
+        <h2>6. Uniform Circular Motion</h2>
+        <p>When an object moves in a circular path with <strong>constant speed</strong>, its motion is called uniform circular motion [citation:15].</p>
+        
+        <h3>Key Characteristics</h3>
+        <ul>
+          <li>Speed is constant, but <strong>velocity changes continuously</strong> (direction changes)</li>
+          <li>Since velocity changes, there is <strong>acceleration</strong> (centripetal acceleration)</li>
+          <li>The acceleration is always directed towards the centre of the circle</li>
+        </ul>
+        
+        <div class="key-memorize">
+          <strong>⚠️ Common Exam Question:</strong> "A boy on a merry-go-round moving at constant speed of 10 m/s is in accelerated motion." This is TRUE because the direction of velocity changes continuously [citation:9].
+        </div>
+        
+        <h3>Formulas for Circular Motion</h3>
+        <div class='formula-box-custom'>
+          Speed (v) = 2πr / t<br><br>
+          Where r = radius of circular path, t = time period (time for one revolution)
+        </div>
+        
+        <div class="example-box">
+          <h4>📝 Example: Satellite Speed</h4>
+          <p>An artificial satellite orbits at radius 42,250 km and takes 24 hours for one revolution. Find its speed.</p>
+          <p><strong>Solution:</strong> v = 2πr / t = (2 × 3.14 × 42250) / 24 = <strong>3.069 km/s</strong> [citation:7]</p>
+        </div>
+        
+        <div class="interactive-card">
+          <h3>Interactive: Uniform Circular Motion Simulator</h3>
+          <p>Watch how the velocity direction changes continuously while speed remains constant.</p>
+          <div class="canvas-container"><canvas id="circularCanvas" width="400" height="300"></canvas></div>
+          <div class="controls">
+            <div class="control-group"><label>Speed: <span id="speedVal">3</span></label><input type="range" id="speedRange" min="1" max="6" value="3"></div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- SECTION: INTERACTIVE CALCULATOR -->
+      <section id="calculator">
+        <div class="interactive-card">
+          <h3>Interactive: Motion Equation Calculator</h3>
+          <p>Enter known values to solve for the unknown. Use the equation selector.</p>
+          <div style="display: grid; gap: 0.8rem; max-width: 400px; margin: 0 auto;">
+            <div class="control-group">
+              <label>Equation:</label>
+              <select id="eqSelect" style="padding: 0.4rem; border-radius: 6px; border: 1px solid #cbd5e1;">
+                <option value="vuat">v = u + at</option>
+                <option value="sut">s = ut + ½at²</option>
+                <option value="vuas">v² = u² + 2as</option>
+              </select>
+            </div>
+            <div class="control-group"><label>u (m/s):</label><input type="number" id="calcU" value="0" style="width: 100px; padding: 0.3rem;"></div>
+            <div class="control-group"><label>v (m/s):</label><input type="number" id="calcV" value="" style="width: 100px; padding: 0.3rem;" placeholder="?"></div>
+            <div class="control-group"><label>a (m/s²):</label><input type="number" id="calcA" value="2" style="width: 100px; padding: 0.3rem;"></div>
+            <div class="control-group"><label>t (s):</label><input type="number" id="calcT" value="5" style="width: 100px; padding: 0.3rem;"></div>
+            <div class="control-group"><label>s (m):</label><input type="number" id="calcS" value="" style="width: 100px; padding: 0.3rem;" placeholder="?"></div>
+            <button onclick="solveMotion()" style="padding: 0.6rem; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Solve</button>
+            <div id="calcResult" style="background: #f0fdf4; padding: 0.8rem; border-radius: 8px; text-align: center; font-weight: 600; color: #166534;">Enter values and click Solve</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION: PYQs -->
+      <section id="pyqs">
+        <h2>Most Repeated Previous Year Questions</h2>
+        <div class="pyq-box">
+          <h3>Short Answer (1-2 Marks)</h3>
+          <ol>
+            <li>Differentiate between distance and displacement with examples. <span class="badge-mostimp">Most Imp</span></li>
+            <li>What does the slope of a distance-time graph indicate? (1 Mark)</li>
+            <li>Can displacement be zero when distance is not zero? Give an example. (1 Mark)</li>
+            <li>What is the SI unit of acceleration? (1 Mark)</li>
+          </ol>
+          
+          <h3 style="margin-top: 1.5rem;">Numericals (3 Marks)</h3>
+          <ol start="5">
+            <li>A train starting from rest attains a velocity of 72 km/h in 5 minutes. Find its acceleration and distance travelled. <span class="badge-mostimp">Most Imp</span></li>
+            <li>A car accelerates uniformly from 18 km/h to 36 km/h in 5 s. Calculate the acceleration and distance covered.</li>
+            <li>A body travels along a circular path of radius 70 m. After half a revolution in 20 s, find average velocity and average speed. [citation:5]</li>
+          </ol>
+          
+          <h3 style="margin-top: 1.5rem;">Long Answer (5 Marks)</h3>
+          <ol start="8">
+            <li>Derive the three equations of motion graphically from a velocity-time graph. <span class="badge-mostimp">Most Imp</span></li>
+            <li>Draw distance-time graphs for: (a) stationary body, (b) uniform motion, (c) non-uniform motion. Explain each.</li>
+          </ol>
+        </div>
+      </section>
+      
+      <!-- QUICK REVISION -->
+      <section id="quick-revision">
+        <h2>Quick Revision - At a Glance</h2>
+        <div class="key-memorize">
+          <strong>🎯 Key Takeaways:</strong>
+          <ul>
+            <li>Distance is scalar; displacement is vector</li>
+            <li>Speed = distance/time; Velocity = displacement/time</li>
+            <li>Acceleration = rate of change of velocity</li>
+            <li>Three equations of motion (only for uniform acceleration): v = u + at, s = ut + ½at², v² = u² + 2as</li>
+            <li>Slope of v-t graph = acceleration; Area under v-t graph = displacement</li>
+            <li>Uniform circular motion has constant speed but changing velocity (accelerated motion)</li>
+            <li>Convert km/h to m/s by multiplying with 5/18</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="chapter-summary-footer">
+    <div class="footer-chapter-container">
+      <h2 class="footer-chapter-heading"><i class="fas fa-book-open"></i> Complete Chapter Index – Class 9 Science</h2>
+      <div class="chapter-summary-grid">
+        <div class="subject-section">
+          <h3 class="subject-title chemistry-title"><i class="fas fa-flask"></i> Chemistry</h3>
+          <div class="chapter-cards">
+            <a href="/Notes/9-CH1.html" class="chapter-jump-card"><div class="card-icon">⚗️</div><div class="card-info"><h4>Ch 1: Matter in Our Surroundings</h4><p>States of matter</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/9-CH2.html" class="chapter-jump-card"><div class="card-icon">🧪</div><div class="card-info"><h4>Ch 2: Is Matter Around Us Pure</h4><p>Mixtures, solutions</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/9-CH3.html" class="chapter-jump-card"><div class="card-icon">🔩</div><div class="card-info"><h4>Ch 3: Atoms and Molecules</h4><p>Laws of chemical combination</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/9-CH4.html" class="chapter-jump-card"><div class="card-icon">🌿</div><div class="card-info"><h4>Ch 4: Structure of the Atom</h4><p>Thomson, Rutherford models</p><span class="jump-badge">Jump →</span></div></a>
+          </div>
+        </div>
+        <div class="subject-section">
+          <h3 class="subject-title biology-title"><i class="fas fa-leaf"></i> Biology</h3>
+          <div class="chapter-cards">
+            <a href="/Notes/9-BI1.html" class="chapter-jump-card"><div class="card-icon">❤️</div><div class="card-info"><h4>Ch 5: The Fundamental Unit of Life</h4><p>Cell structure</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/9-BI2.html" class="chapter-jump-card"><div class="card-icon">🧠</div><div class="card-info"><h4>Ch 6: Tissues</h4><p>Plant and animal tissues</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/9-BI3.html" class="chapter-jump-card"><div class="card-icon">🌱</div><div class="card-info"><h4>Ch 7: Diversity in Living Organisms</h4><p>Classification</p><span class="jump-badge">Jump →</span></div></a>
+          </div>
+        </div>
+        <div class="subject-section">
+          <h3 class="subject-title physics-title"><i class="fas fa-atom"></i> Physics</h3>
+          <div class="chapter-cards">
+            <a href="/Notes/9-PH1.html" class="chapter-jump-card"><div class="card-icon">💡</div><div class="card-info"><h4>Ch 8: Motion</h4><p>Velocity, graphs</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/9-PH2.html" class="chapter-jump-card"><div class="card-icon">👁️</div><div class="card-info"><h4>Ch 9: Force & Laws of Motion</h4><p>Newton's laws</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/9-PH3.html" class="chapter-jump-card"><div class="card-icon">⚡</div><div class="card-info"><h4>Ch 10: Gravitation</h4><p>Universal law</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/9-PH4.html" class="chapter-jump-card"><div class="card-icon">🧲</div><div class="card-info"><h4>Ch 11: Work and Energy</h4><p>Kinetic, potential</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/9-PH5.html" class="chapter-jump-card"><div class="card-icon">📐</div><div class="card-info"><h4>Ch 12: Sound</h4><p>Propagation, characteristics</p><span class="jump-badge">Jump →</span></div></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+  
+  <script>
+    window.addEventListener('load', () => {
+      const preloader = document.getElementById('preloader');
+      if(preloader) { setTimeout(() => { preloader.style.opacity = '0'; setTimeout(() => preloader.style.display = 'none', 500); }, 800); }
+    });
+  </script>
+  
+  <!-- V-T Graph Script -->
+  <script>
+    const canvas = document.getElementById('vtCanvas');
+    const ctx = canvas.getContext('2d');
+    const uRange = document.getElementById('uRange');
+    const aRange = document.getElementById('aRange');
+    const uVal = document.getElementById('uVal');
+    const aVal = document.getElementById('aVal');
+    
+    function draw() {
+      ctx.clearRect(0,0,500,300);
+      let u = parseInt(uRange.value);
+      let a = parseInt(aRange.value);
+      uVal.innerText = u; aVal.innerText = a;
+      
+      // Draw grid
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 1;
+      for(let i=0; i<500; i+=50) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 300); ctx.stroke(); }
+      for(let i=0; i<300; i+=50) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(500, i); ctx.stroke(); }
+      
+      // Draw axes
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(50, 10); ctx.lineTo(50, 250); ctx.lineTo(490, 250);
+      ctx.stroke();
+      
+      // Draw line
+      ctx.beginPath();
+      ctx.moveTo(50, 250 - u*2);
+      ctx.lineTo(450, 250 - (u + a*10)*2);
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      
+      // Labels
+      ctx.fillStyle = "black";
+      ctx.font = "14px Arial";
+      ctx.fillText("Time (t) →", 200, 280);
+      ctx.save();
+      ctx.translate(20, 180);
+      ctx.rotate(-Math.PI/2);
+      ctx.fillText("Velocity (v)", 0, 0);
+      ctx.restore();
+    }
+    uRange.oninput = draw; aRange.oninput = draw;
+    draw();
+  </script>
+
+  <!-- Circular Motion Script -->
+  <script>
+    const circCanvas = document.getElementById('circularCanvas');
+    const circCtx = circCanvas.getContext('2d');
+    const speedRange = document.getElementById('speedRange');
+    const speedVal = document.getElementById('speedVal');
+    let angle = 0;
+    
+    function drawCircular() {
+      const speed = parseFloat(speedRange.value);
+      speedVal.innerText = speed;
+      
+      circCtx.clearRect(0, 0, 400, 300);
+      
+      const cx = 200, cy = 150, radius = 100;
+      
+      // Draw circle path
+      circCtx.beginPath();
+      circCtx.arc(cx, cy, radius, 0, 2 * Math.PI);
+      circCtx.strokeStyle = "#cbd5e1";
+      circCtx.lineWidth = 2;
+      circCtx.stroke();
+      
+      // Draw center
+      circCtx.beginPath();
+      circCtx.arc(cx, cy, 4, 0, 2 * Math.PI);
+      circCtx.fillStyle = "#64748b";
+      circCtx.fill();
+      
+      // Position on circle
+      const px = cx + radius * Math.cos(angle);
+      const py = cy + radius * Math.sin(angle);
+      
+      // Draw velocity vector (tangent)
+      const vx = -Math.sin(angle) * 30;
+      const vy = Math.cos(angle) * 30;
+      
+      circCtx.beginPath();
+      circCtx.moveTo(px, py);
+      circCtx.lineTo(px + vx, py + vy);
+      circCtx.strokeStyle = "#dc2626";
+      circCtx.lineWidth = 3;
+      circCtx.stroke();
+      
+      // Arrow head
+      circCtx.beginPath();
+      circCtx.arc(px + vx, py + vy, 4, 0, 2 * Math.PI);
+      circCtx.fillStyle = "#dc2626";
+      circCtx.fill();
+      
+      // Draw object
+      circCtx.beginPath();
+      circCtx.arc(px, py, 8, 0, 2 * Math.PI);
+      circCtx.fillStyle = "#2563eb";
+      circCtx.fill();
+      
+      // Labels
+      circCtx.fillStyle = "#1e293b";
+      circCtx.font = "12px Arial";
+      circCtx.fillText("v (velocity)", px + vx + 10, py + vy);
+      circCtx.fillText("Constant speed, changing direction", 80, 280);
+      
+      angle += speed * 0.02;
+      requestAnimationFrame(drawCircular);
+    }
+    
+    speedRange.oninput = () => {};
+    drawCircular();
+  </script>
+
+  <!-- Motion Calculator Script -->
+  <script>
+    function solveMotion() {
+      const eq = document.getElementById('eqSelect').value;
+      const u = document.getElementById('calcU').value !== '' ? parseFloat(document.getElementById('calcU').value) : null;
+      const v = document.getElementById('calcV').value !== '' ? parseFloat(document.getElementById('calcV').value) : null;
+      const a = document.getElementById('calcA').value !== '' ? parseFloat(document.getElementById('calcA').value) : null;
+      const t = document.getElementById('calcT').value !== '' ? parseFloat(document.getElementById('calcT').value) : null;
+      const s = document.getElementById('calcS').value !== '' ? parseFloat(document.getElementById('calcS').value) : null;
+      const resultDiv = document.getElementById('calcResult');
+      
+      let result = '';
+      
+      try {
+        if (eq === 'vuat') {
+          if (u !== null && a !== null && t !== null && v === null) {
+            result = `v = ${u} + ${a} × ${t} = <strong>${(u + a * t).toFixed(2)} m/s</strong>`;
+          } else if (v !== null && a !== null && t !== null && u === null) {
+            result = `u = ${v} − ${a} × ${t} = <strong>${(v - a * t).toFixed(2)} m/s</strong>`;
+          } else if (v !== null && u !== null && t !== null && a === null) {
+            result = `a = (${v} − ${u}) / ${t} = <strong>${((v - u) / t).toFixed(2)} m/s²</strong>`;
+          } else if (v !== null && u !== null && a !== null && t === null) {
+            result = `t = (${v} − ${u}) / ${a} = <strong>${((v - u) / a).toFixed(2)} s</strong>`;
+          } else {
+            result = 'Please fill exactly 3 values and leave the unknown empty.';
+          }
+        } else if (eq === 'sut') {
+          if (u !== null && a !== null && t !== null && s === null) {
+            const val = u * t + 0.5 * a * t * t;
+            result = `s = ${u}×${t} + ½×${a}×${t}² = <strong>${val.toFixed(2)} m</strong>`;
+          } else {
+            result = 'For s = ut + ½at², provide u, a, and t. Leave s empty.';
+          }
+        } else if (eq === 'vuas') {
+          if (u !== null && v !== null && a !== null && s === null) {
+            result = `s = (${v}² − ${u}²) / (2×${a}) = <strong>${((v*v - u*u) / (2*a)).toFixed(2)} m</strong>`;
+          } else if (u !== null && a !== null && s !== null && v === null) {
+            const vv = Math.sqrt(u*u + 2*a*s);
+            result = `v = √(${u}² + 2×${a}×${s}) = <strong>${vv.toFixed(2)} m/s</strong>`;
+          } else {
+            result = 'For v² = u² + 2as, provide any 3 of u, v, a, s.';
+          }
+        }
+      } catch(e) {
+        result = 'Error in calculation. Check your inputs.';
+      }
+      
+      resultDiv.innerHTML = result;
+    }
+  </script>
+</body>
+</html>
