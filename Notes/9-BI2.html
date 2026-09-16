@@ -27,6 +27,34 @@
     .controls { display: flex; flex-direction: column; gap: 1rem; max-width: 400px; margin: 0 auto; background: #f1f5f9; padding: 1rem; border-radius: 8px;}
     .control-group { display: flex; justify-content: space-between; align-items: center; }
     
+    /* Enhanced styles for new content */
+    .tissue-diagram-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin: 1.5rem 0; }
+    .tissue-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 1.2rem; transition: transform 0.2s, box-shadow 0.2s; }
+    .tissue-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+    .tissue-card h4 { color: #1e293b; margin: 0 0 0.5rem; font-size: 1.1rem; }
+    .tissue-card .cell-info { font-size: 0.85rem; color: #475569; line-height: 1.6; }
+    .tissue-card .tag { display: inline-block; font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 20px; margin-right: 0.3rem; margin-bottom: 0.3rem; }
+    .tag-living { background: #dcfce7; color: #166534; }
+    .tag-dead { background: #fce7f3; color: #9d174d; }
+    .tag-thick { background: #fef3c7; color: #92400e; }
+    .tag-thin { background: #e0f2fe; color: #0369a1; }
+    
+    .comparison-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; }
+    .comparison-table th { background: #1e293b; color: white; padding: 0.8rem 1rem; text-align: left; font-weight: 600; }
+    .comparison-table td { padding: 0.7rem 1rem; border-bottom: 1px solid #e2e8f0; }
+    .comparison-table tr:hover { background: #f8fafc; }
+    
+    .quiz-option { background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 0.8rem 1rem; margin: 0.5rem 0; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.8rem; }
+    .quiz-option:hover { border-color: #94a3b8; background: #f8fafc; }
+    .quiz-option.correct { border-color: #22c55e; background: #f0fdf4; }
+    .quiz-option.wrong { border-color: #ef4444; background: #fef2f2; }
+    .quiz-option .option-letter { width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; color: #475569; flex-shrink: 0; }
+    .quiz-option.correct .option-letter { background: #22c55e; color: white; }
+    .quiz-option.wrong .option-letter { background: #ef4444; color: white; }
+    
+    .mnemonic-box { background: linear-gradient(135deg, #ede9fe, #f5f3ff); border-radius: 16px; padding: 1.3rem; margin: 1.5rem 0; border-left: 4px solid #8b5cf6; }
+    .mnemonic-box strong { color: #6d28d9; }
+    
     .chapter-summary-footer { background: #f8fafc; margin-top: 4rem; padding: 2rem 1rem 1rem; }
     .footer-chapter-container { max-width: 1400px; margin: 0 auto; }
     .footer-chapter-heading { font-size: 1.8rem; text-align: center; margin-bottom: 0.5rem; color: #0f172a; }
@@ -46,7 +74,7 @@
     .jump-badge { font-size: 0.7rem; color: #3b82f6; font-weight: 500; }
     .footer-revision-links { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin: 2rem 0 1rem; }
     .revision-box { background: #eef2ff; padding: 0.75rem 1.2rem; border-radius: 40px; font-size: 0.85rem; color: #1e40af; }
-    @media (max-width: 768px) { .chapter-cards { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { .chapter-cards { grid-template-columns: 1fr; } .comparison-table { font-size: 0.75rem; } }
   </style>
 </head>
 <body>
@@ -69,86 +97,496 @@
     <aside class="notes-sidebar">
       <div class="sidebar-content">
         <h3>📖 Chapter Contents</h3>
-        <ul><li><a href='#plant'>Plant Tissues</a></li><li><a href='#animal'>Animal Tissues</a></li><li><a href='#nervous'>Nervous Tissue</a></li></ul>
+        <ul>
+          <li><a href="#intro">Introduction</a></li>
+          <li><a href="#plant">1. Plant Tissues</a></li>
+          <li><a href="#meristematic">Meristematic Tissue</a></li>
+          <li><a href="#simple-permanent">Simple Permanent Tissue</a></li>
+          <li><a href="#complex-permanent">Complex Permanent Tissue</a></li>
+          <li><a href="#protective">Protective Tissue</a></li>
+          <li><a href="#animal">2. Animal Tissues</a></li>
+          <li><a href="#epithelial">Epithelial Tissue</a></li>
+          <li><a href="#connective">Connective Tissue</a></li>
+          <li><a href="#muscular">Muscular Tissue</a></li>
+          <li><a href="#nervous">Nervous Tissue</a></li>
+          <li><a href="#pyqs">Previous Year Questions</a></li>
+          <li><a href="#quick-revision">Quick Revision</a></li>
+        </ul>
       </div>
     </aside>
     <div class="notes-container">
       <nav class="breadcrumb"><a href="../index.html">Home</a> / <a href="class9-science-dir.html">Notes</a> / Chapter 6: Tissues</nav>
+      
+      <!-- ==================== INTRODUCTION ==================== -->
       <section id="intro">
         <h1>Tissues <span class="repeated-tag">High Weightage Chapter</span></h1>
-        <div class="highlight-box"><i class="fas fa-star" style="color:#f59e0b;"></i> <strong>Why this chapter is important?</strong> Understanding plant and animal tissues is critical. Difference between xylem/phloem and types of muscle tissues carry heavy marks.</div>
-      </section>
-      
-      
-        <section id='plant'>
-            <h2>1. Plant Tissues</h2>
-            <p><strong>Meristematic Tissue:</strong> Dividing tissue present at growing regions (Apical, Lateral, Intercalary).</p>
-            <p><strong>Permanent Tissue:</strong> Formed from meristematic tissue when they lose the ability to divide.</p>
-            <ul>
-                <li><strong>Simple Permanent:</strong> Parenchyma (storage), Collenchyma (flexibility), Sclerenchyma (strength, e.g., coconut husk).</li>
-                <li><strong>Complex Permanent:</strong> Xylem (conducts water & minerals) and Phloem (conducts food).</li>
-            </ul>
-        </section>
-        <section id='animal'>
-            <h2>2. Animal Tissues</h2>
-            <p><strong>Epithelial:</strong> Protective covering (e.g., skin, lining of organs).</p>
-            <p><strong>Connective:</strong> Connects and supports (e.g., Blood, Bone, Cartilage, Ligament, Tendon).</p>
-            <p><strong>Muscular:</strong> Responsible for movement. Types: Striated (voluntary), Smooth (involuntary), Cardiac (heart).</p>
-        </section>
-        <section id='nervous'>
-            <h2>3. Nervous Tissue</h2>
-            <p>Highly specialized for being stimulated and transmitting stimulus rapidly. Consists of neurons (nerve cells).</p>
-        </section>
-        
-      
-      
-        <div class="interactive-card">
-          <h3>Interactive: Tissue Flashcards</h3>
-          <p>Click on a card to flip it and reveal the answer!</p>
-          <div style="display:flex; justify-content:space-around; flex-wrap:wrap; gap:1rem;">
-              
-              <!-- Card 1 -->
-              <div class="flip-card" onclick="this.classList.toggle('flipped')" style="width: 200px; height: 150px; perspective: 1000px; cursor: pointer;">
-                  <div class="flip-card-inner" style="position:relative; width:100%; height:100%; text-align:center; transition: transform 0.6s; transform-style: preserve-3d;">
-                      <div class="flip-card-front" style="position:absolute; width:100%; height:100%; backface-visibility:hidden; background:#e0f2fe; border-radius:12px; display:flex; align-items:center; justify-content:center; border:2px solid #bae6fd; font-weight:bold; color:#0369a1; padding:10px;">
-                          What tissue makes up the husk of a coconut?
-                      </div>
-                      <div class="flip-card-back" style="position:absolute; width:100%; height:100%; backface-visibility:hidden; background:#10b981; color:white; border-radius:12px; display:flex; align-items:center; justify-content:center; transform: rotateY(180deg); font-weight:bold; font-size:1.2rem;">
-                          Sclerenchyma
-                      </div>
-                  </div>
-              </div>
-
-              <!-- Card 2 -->
-              <div class="flip-card" onclick="this.classList.toggle('flipped')" style="width: 200px; height: 150px; perspective: 1000px; cursor: pointer;">
-                  <div class="flip-card-inner" style="position:relative; width:100%; height:100%; text-align:center; transition: transform 0.6s; transform-style: preserve-3d;">
-                      <div class="flip-card-front" style="position:absolute; width:100%; height:100%; backface-visibility:hidden; background:#fef3c7; border-radius:12px; display:flex; align-items:center; justify-content:center; border:2px solid #fde68a; font-weight:bold; color:#b45309; padding:10px;">
-                          Which muscle tissue is found in the heart?
-                      </div>
-                      <div class="flip-card-back" style="position:absolute; width:100%; height:100%; backface-visibility:hidden; background:#ef4444; color:white; border-radius:12px; display:flex; align-items:center; justify-content:center; transform: rotateY(180deg); font-weight:bold; font-size:1.2rem;">
-                          Cardiac Muscle
-                      </div>
-                  </div>
-              </div>
-
-          </div>
+        <div class="highlight-box">
+          <i class="fas fa-star" style="color:#f59e0b;"></i> 
+          <strong>Why this chapter is important?</strong> Understanding plant and animal tissues is critical. Difference between xylem/phloem and types of muscle tissues carry heavy marks.
         </div>
         
+        <p><strong>What is a Tissue?</strong> A tissue is a group of similar cells that work together to perform a specific function in the body [citation:1][citation:10]. Different cells join hands to form different tissues, and each tissue has a special role.</p>
+        
+        <p><strong>Levels of Organisation in Our Body:</strong></p>
+        <ul>
+          <li><strong>Cells</strong> — The basic structural and functional unit of life</li>
+          <li><strong>Tissues</strong> — Groups of similar cells performing one function</li>
+          <li><strong>Organs</strong> — Different tissues working together</li>
+          <li><strong>Organ System</strong> — Organs working together for life processes</li>
+          <li><strong>Organism</strong> — All organ systems together form a living being [citation:1]</li>
+        </ul>
 
+        <div class="mnemonic-box">
+          <strong>🧠 Memory Trick — Levels of Organisation:</strong><br>
+          <strong>C</strong>ells → <strong>T</strong>issues → <strong>O</strong>rgans → <strong>O</strong>rgan Systems → <strong>O</strong>rganism<br>
+          <em>"CTOOO — Cells Take Over Organism's Organization"</em>
+        </div>
+      </section>
+
+      <!-- ==================== PLANT TISSUES ==================== -->
+      <section id="plant">
+        <h2>1. Plant Tissues</h2>
+        <p>Plant tissues help plants grow, stay strong, and transport food and water. They are mainly divided into <strong>Meristematic Tissue</strong> and <strong>Permanent Tissue</strong> [citation:1].</p>
+
+        <h3 id="meristematic">Meristematic Tissue (Growing Tissue)</h3>
+        <p>Meristematic tissues are responsible for plant growth. Their cells divide continuously and remain active [citation:1].</p>
+        
+        <div class="key-memorize">
+          <strong>🔬 Characteristics of Meristematic Cells:</strong>
+          <ul style="margin: 0.5rem 0 0; padding-left: 1.2rem;">
+            <li>Actively dividing cells</li>
+            <li>Large nucleus and dense cytoplasm</li>
+            <li>Thin cell walls (made of cellulose)</li>
+            <li><strong>Vacuoles are absent</strong> — they need space for division, not storage [citation:2][citation:17]</li>
+          </ul>
+        </div>
+
+        <div class="tissue-diagram-grid">
+          <div class="tissue-card">
+            <h4>📍 Apical Meristem</h4>
+            <p class="cell-info"><strong>Location:</strong> Tips of roots and shoots</p>
+            <p class="cell-info"><strong>Function:</strong> Increases <strong>length</strong> (height of stem, depth of roots)</p>
+            <span class="tag tag-living">Growth in Length</span>
+          </div>
+          <div class="tissue-card">
+            <h4>📍 Lateral Meristem</h4>
+            <p class="cell-info"><strong>Location:</strong> Sides of stems and roots (cambium)</p>
+            <p class="cell-info"><strong>Function:</strong> Increases <strong>girth</strong> (thickness)</p>
+            <span class="tag tag-living">Growth in Girth</span>
+          </div>
+          <div class="tissue-card">
+            <h4>📍 Intercalary Meristem</h4>
+            <p class="cell-info"><strong>Location:</strong> At nodes and leaf bases</p>
+            <p class="cell-info"><strong>Function:</strong> Helps <strong>grasses regrow</strong> after grazing</p>
+            <span class="tag tag-living">Regrowth</span>
+          </div>
+        </div>
+
+        <h3 id="simple-permanent">Simple Permanent Tissue</h3>
+        <p>These tissues are formed when meristematic cells mature and lose the ability to divide. Made of <strong>only one type of cell</strong> [citation:1][citation:2].</p>
+
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Parenchyma</th>
+              <th>Collenchyma</th>
+              <th>Sclerenchyma</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Cell Wall</strong></td>
+              <td>Thin (cellulose)</td>
+              <td>Irregularly thickened at corners</td>
+              <td>Very thick (lignin)</td>
+            </tr>
+            <tr>
+              <td><strong>Living/Dead</strong></td>
+              <td>Living</td>
+              <td>Living</td>
+              <td>Dead at maturity</td>
+            </tr>
+            <tr>
+              <td><strong>Function</strong></td>
+              <td>Storage, photosynthesis</td>
+              <td>Flexibility, support</td>
+              <td>Strength, rigidity</td>
+            </tr>
+            <tr>
+              <td><strong>Example</strong></td>
+              <td>Leaf mesophyll</td>
+              <td>Leaf stalks</td>
+              <td>Coconut husk, pear fruit</td>
+            </tr>
+            <tr>
+              <td><strong>Special Types</strong></td>
+              <td>Chlorenchyma (photosynthesis), Aerenchyma (buoyancy)</td>
+              <td>—</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="highlight-box">
+          <strong>💡 Exam Insight:</strong> 
+          <ul style="margin: 0.5rem 0 0; padding-left: 1.2rem;">
+            <li><strong>Pear fruit crunchiness</strong> is due to sclerenchyma (lignin makes it hard) [citation:2]</li>
+            <li><strong>Coconut husk removal</strong> is difficult because of tough lignified sclerenchyma cells [citation:2]</li>
+            <li><strong>Tree branches bend in wind</strong> due to flexible collenchyma [citation:2]</li>
+          </ul>
+        </div>
+
+        <h3 id="complex-permanent">Complex Permanent Tissue</h3>
+        <p>Made of <strong>different types of cells</strong> that work together for a common function [citation:1].</p>
+
+        <div class="tissue-diagram-grid">
+          <div class="tissue-card" style="border-left: 4px solid #3b82f6;">
+            <h4>💧 Xylem — Water Transport</h4>
+            <p class="cell-info"><strong>Components:</strong> Tracheids, Vessels, Xylem parenchyma, Xylem fibres</p>
+            <p class="cell-info"><strong>Function:</strong> Conducts water and minerals <strong>vertically upward</strong> from roots to leaves</p>
+            <span class="tag tag-dead">Mostly Dead</span>
+            <span class="tag tag-thick">Lignified Walls</span>
+          </div>
+          <div class="tissue-card" style="border-left: 4px solid #10b981;">
+            <h4>🍯 Phloem — Food Transport</h4>
+            <p class="cell-info"><strong>Components:</strong> Sieve tubes, Companion cells, Phloem parenchyma, Phloem fibres</p>
+            <p class="cell-info"><strong>Function:</strong> Conducts food (sugars) <strong>up and down</strong> from leaves to all parts</p>
+            <span class="tag tag-living">Mostly Living</span>
+            <span class="tag tag-thin">Thin Walls</span>
+          </div>
+        </div>
+
+        <div class="mnemonic-box">
+          <strong>🧠 Memory Trick — Xylem vs Phloem:</strong><br>
+          <strong>X</strong>ylem = <strong>X</strong>presses water <strong>UP</strong> (like an elevator going up)<br>
+          <strong>Ph</strong>loem = <strong>F</strong>ood goes <strong>DOWN</strong> and around (like a delivery truck)
+        </div>
+
+        <h3 id="protective">Protective Tissue — Epidermis and Cork</h3>
+        <div class="tissue-diagram-grid">
+          <div class="tissue-card">
+            <h4>🛡️ Epidermis</h4>
+            <p class="cell-info">Outermost layer of all plant organs. Single layer (multilayered in desert plants).</p>
+            <p class="cell-info"><strong>Functions:</strong> Protection from mechanical injury, prevention of water loss, gas exchange through stomata [citation:6][citation:16]</p>
+          </div>
+          <div class="tissue-card">
+            <h4>🪵 Cork (Phellem)</h4>
+            <p class="cell-info">Peripheral tissue of old stems and roots. Dead cells with <strong>suberin</strong> in walls [citation:8].</p>
+            <p class="cell-info"><strong>Functions:</strong> Impermeable to water and gases, protects from infection and mechanical injury [citation:6]</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== INTERACTIVE FLASHCARDS 1 ==================== -->
+      <div class="interactive-card">
+        <h3>Interactive: Plant Tissue Flashcards</h3>
+        <p>Click on a card to flip it and reveal the answer!</p>
+        <div style="display:flex; justify-content:space-around; flex-wrap:wrap; gap:1rem;">
+            
+            <!-- Card 1 -->
+            <div class="flip-card" onclick="this.classList.toggle('flipped')" style="width: 200px; height: 150px; perspective: 1000px; cursor: pointer;">
+                <div class="flip-card-inner" style="position:relative; width:100%; height:100%; text-align:center; transition: transform 0.6s; transform-style: preserve-3d;">
+                    <div class="flip-card-front" style="position:absolute; width:100%; height:100%; backface-visibility:hidden; background:#e0f2fe; border-radius:12px; display:flex; align-items:center; justify-content:center; border:2px solid #bae6fd; font-weight:bold; color:#0369a1; padding:10px;">
+                        What tissue makes up the husk of a coconut?
+                    </div>
+                    <div class="flip-card-back" style="position:absolute; width:100%; height:100%; backface-visibility:hidden; background:#10b981; color:white; border-radius:12px; display:flex; align-items:center; justify-content:center; transform: rotateY(180deg); font-weight:bold; font-size:1.2rem;">
+                        Sclerenchyma
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="flip-card" onclick="this.classList.toggle('flipped')" style="width: 200px; height: 150px; perspective: 1000px; cursor: pointer;">
+                <div class="flip-card-inner" style="position:relative; width:100%; height:100%; text-align:center; transition: transform 0.6s; transform-style: preserve-3d;">
+                    <div class="flip-card-front" style="position:absolute; width:100%; height:100%; backface-visibility:hidden; background:#fef3c7; border-radius:12px; display:flex; align-items:center; justify-content:center; border:2px solid #fde68a; font-weight:bold; color:#b45309; padding:10px;">
+                        Which tissue helps grass regrow after grazing?
+                    </div>
+                    <div class="flip-card-back" style="position:absolute; width:100%; height:100%; backface-visibility:hidden; background:#8b5cf6; color:white; border-radius:12px; display:flex; align-items:center; justify-content:center; transform: rotateY(180deg); font-weight:bold; font-size:1.2rem;">
+                        Intercalary Meristem
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="flip-card" onclick="this.classList.toggle('flipped')" style="width: 200px; height: 150px; perspective: 1000px; cursor: pointer;">
+                <div class="flip-card-inner" style="position:relative; width:100%; height:100%; text-align:center; transition: transform 0.6s; transform-style: preserve-3d;">
+                    <div class="flip-card-front" style="position:absolute; width:100%; height:100%; backface-visibility:hidden; background:#fce7f3; border-radius:12px; display:flex; align-items:center; justify-content:center; border:2px solid #fbcfe8; font-weight:bold; color:#9d174d; padding:10px;">
+                        What makes up the gritty texture of pear fruit?
+                    </div>
+                    <div class="flip-card-back" style="position:absolute; width:100%; height:100%; backface-visibility:hidden; background:#ec4899; color:white; border-radius:12px; display:flex; align-items:center; justify-content:center; transform: rotateY(180deg); font-weight:bold; font-size:1.2rem;">
+                        Sclerenchyma (Lignin)
+                    </div>
+                </div>
+            </div>
+
+        </div>
+      </div>
+
+      <!-- ==================== ANIMAL TISSUES ==================== -->
+      <section id="animal">
+        <h2>2. Animal Tissues</h2>
+        <p>Animal tissues are categorized into four types: <strong>Epithelial, Connective, Muscular, and Nervous</strong> [citation:1][citation:6].</p>
+
+        <h3 id="epithelial">Epithelial Tissue (Covering & Lining)</h3>
+        <p>Forms the body surface and lines internal organs. Cells are <strong>closely packed</strong> with little intercellular space [citation:5].</p>
+        
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Shape</th>
+              <th>Location</th>
+              <th>Function</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Squamous</strong></td>
+              <td>Flat, scale-like</td>
+              <td>Blood vessels, alveoli, mouth lining</td>
+              <td>Diffusion, filtration</td>
+            </tr>
+            <tr>
+              <td><strong>Cuboidal</strong></td>
+              <td>Cube-shaped</td>
+              <td>Kidney tubules, salivary glands</td>
+              <td>Secretion, absorption</td>
+            </tr>
+            <tr>
+              <td><strong>Columnar</strong></td>
+              <td>Tall, pillar-like</td>
+              <td>Intestine lining</td>
+              <td>Absorption, secretion</td>
+            </tr>
+            <tr>
+              <td><strong>Ciliated</strong></td>
+              <td>Columnar with cilia</td>
+              <td>Respiratory tract, oviducts</td>
+              <td>Movement of substances</td>
+            </tr>
+            <tr>
+              <td><strong>Glandular</strong></td>
+              <td>Modified columnar</td>
+              <td>Glands, intestinal lining</td>
+              <td>Secretion (mucus, enzymes)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="highlight-box">
+          <strong>💡 Key Point:</strong> Epithelial tissue has <strong>no blood vessels</strong> (avascular). Nutrients come from underlying connective tissue [citation:5].
+        </div>
+
+        <h3 id="connective">Connective Tissue (Connecting & Supporting)</h3>
+        <p>Cells are <strong>loosely spaced</strong> and embedded in a non-living <strong>matrix</strong>. The matrix may be solid (bone), soft (areolar), or liquid (blood) [citation:5][citation:12].</p>
+
+        <div class="tissue-diagram-grid">
+          <div class="tissue-card">
+            <h4>🩸 Blood</h4>
+            <p class="cell-info"><strong>Matrix:</strong> Liquid (plasma)</p>
+            <p class="cell-info"><strong>Function:</strong> Transport of oxygen, nutrients, hormones, wastes</p>
+            <span class="tag tag-living">Fluid Connective</span>
+          </div>
+          <div class="tissue-card">
+            <h4>🦴 Bone</h4>
+            <p class="cell-info"><strong>Matrix:</strong> Hard (calcium & phosphorus salts)</p>
+            <p class="cell-info"><strong>Function:</strong> Skeletal support, protection of organs</p>
+            <span class="tag tag-dead">Skeletal Connective</span>
+          </div>
+          <div class="tissue-card">
+            <h4>👂 Cartilage</h4>
+            <p class="cell-info"><strong>Matrix:</strong> Solid but pliable (protein & sugars)</p>
+            <p class="cell-info"><strong>Function:</strong> Flexible support (ear, nose, trachea)</p>
+            <span class="tag tag-living">Skeletal Connective</span>
+          </div>
+          <div class="tissue-card">
+            <h4>🔗 Ligament</h4>
+            <p class="cell-info"><strong>Function:</strong> Connects <strong>bone to bone</strong></p>
+            <p class="cell-info"><strong>Property:</strong> Elastic, allows movement</p>
+            <span class="tag tag-living">Fibrous Connective</span>
+          </div>
+          <div class="tissue-card">
+            <h4>💪 Tendon</h4>
+            <p class="cell-info"><strong>Function:</strong> Connects <strong>muscle to bone</strong></p>
+            <p class="cell-info"><strong>Property:</strong> Strong, inelastic</p>
+            <span class="tag tag-living">Fibrous Connective</span>
+          </div>
+          <div class="tissue-card">
+            <h4>🧈 Adipose Tissue</h4>
+            <p class="cell-info"><strong>Function:</strong> Stores fat, insulation, shock absorption</p>
+            <p class="cell-info"><strong>Location:</strong> Below skin, around organs</p>
+            <span class="tag tag-living">Loose Connective</span>
+          </div>
+        </div>
+
+        <div class="mnemonic-box">
+          <strong>🧠 Memory Trick — Ligament vs Tendon:</strong><br>
+          <strong>L</strong>igament = <strong>L</strong>inks <strong>B</strong>one to <strong>B</strong>one (L-B-B)<br>
+          <strong>T</strong>endon = <strong>T</strong>ies <strong>M</strong>uscle to <strong>B</strong>one (T-M-B)
+        </div>
+
+        <h3 id="muscular">Muscular Tissue (Movement)</h3>
+        <p>Contains contractile proteins (actin and myosin) that enable contraction and relaxation [citation:8].</p>
+
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Striated (Skeletal)</th>
+              <th>Smooth (Unstriated)</th>
+              <th>Cardiac</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Control</strong></td>
+              <td>Voluntary</td>
+              <td>Involuntary</td>
+              <td>Involuntary</td>
+            </tr>
+            <tr>
+              <td><strong>Striations</strong></td>
+              <td>Present</td>
+              <td>Absent</td>
+              <td>Present</td>
+            </tr>
+            <tr>
+              <td><strong>Cell Shape</strong></td>
+              <td>Long, cylindrical, multinucleate</td>
+              <td>Spindle-shaped, uninucleate</td>
+              <td>Branched, cylindrical, uninucleate</td>
+            </tr>
+            <tr>
+              <td><strong>Location</strong></td>
+              <td>Limbs, body wall</td>
+              <td>Intestine, blood vessels</td>
+              <td>Heart</td>
+            </tr>
+            <tr>
+              <td><strong>Fatigue</strong></td>
+              <td>Fatigues quickly</td>
+              <td>Contracts slowly, long-lasting</td>
+              <td>Never fatigues</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="highlight-box">
+          <strong>💡 Exam Insight:</strong> Cardiac muscles are <strong>involuntary, striated, branched, and uninucleate</strong>. They contract rhythmically throughout life without fatigue [citation:2][citation:6].
+        </div>
+
+        <h3 id="nervous">Nervous Tissue (Communication)</h3>
+        <p>Highly specialized for being stimulated and transmitting stimulus rapidly. Consists of <strong>neurons</strong> (nerve cells) [citation:1].</p>
+
+        <div class="tissue-card" style="max-width: 500px; margin: 1rem auto;">
+          <h4>🧠 Structure of a Neuron</h4>
+          <ul style="padding-left: 1.2rem; color: #475569; line-height: 1.8;">
+            <li><strong>Cell body (Cyton):</strong> Contains nucleus and cytoplasm</li>
+            <li><strong>Dendrites:</strong> Short, branched extensions that <strong>receive</strong> signals [citation:8]</li>
+            <li><strong>Axon:</strong> Long extension that <strong>transmits</strong> signals away from cell body</li>
+            <li><strong>Nerve endings:</strong> Release neurotransmitters</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ==================== INTERACTIVE QUIZ ==================== -->
+      <div class="interactive-card">
+        <h3>🧪 Quick Quiz: Test Your Knowledge</h3>
+        <p style="color: #64748b; margin-bottom: 1rem;">Select the correct answer:</p>
+        
+        <div id="quiz-container">
+          <p><strong>Q1. Which tissue has dead cells at maturity?</strong></p>
+          <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+            <span class="option-letter">A</span> Parenchyma
+          </div>
+          <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+            <span class="option-letter">B</span> Sclerenchyma
+          </div>
+          <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+            <span class="option-letter">C</span> Collenchyma
+          </div>
+          <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+            <span class="option-letter">D</span> Epithelial tissue
+          </div>
+        </div>
+
+        <div id="quiz-container-2" style="margin-top: 1.5rem;">
+          <p><strong>Q2. Which muscle tissue is involuntary but shows striations?</strong></p>
+          <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+            <span class="option-letter">A</span> Skeletal muscle
+          </div>
+          <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+            <span class="option-letter">B</span> Smooth muscle
+          </div>
+          <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+            <span class="option-letter">C</span> Cardiac muscle
+          </div>
+          <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+            <span class="option-letter">D</span> Striated muscle
+          </div>
+        </div>
+
+        <div id="quiz-container-3" style="margin-top: 1.5rem;">
+          <p><strong>Q3. Ligament connects:</strong></p>
+          <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+            <span class="option-letter">A</span> Muscle to bone
+          </div>
+          <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+            <span class="option-letter">B</span> Bone to bone
+          </div>
+          <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+            <span class="option-letter">C</span> Nerve to muscle
+          </div>
+          <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+            <span class="option-letter">D</span> Cartilage to bone
+          </div>
+        </div>
+
+        <div id="quiz-score" style="margin-top: 1.5rem; padding: 1rem; background: #f1f5f9; border-radius: 10px; display: none; text-align: center; font-weight: 600;">
+          Your Score: <span id="score-display">0</span>/3
+        </div>
+      </div>
+
+      <!-- ==================== PYQs ==================== -->
       <section id="pyqs">
         <h2>Most Repeated Previous Year Questions</h2>
-        <div class="pyq-box"><ol>
-            <li>Differentiate between parenchyma, collenchyma, and sclerenchyma. (3 Marks)</li>
-            <li>What is the function of stomata? (2 Marks)</li>
-            <li>Draw a labeled diagram of a neuron. (3 Marks)</li>
-        </ol></div>
+        <div class="pyq-box">
+          <ol style="padding-left: 1.2rem; line-height: 2;">
+            <li><strong>Differentiate between parenchyma, collenchyma, and sclerenchyma.</strong> (3 Marks) <span class="badge-mostimp">Very Important</span></li>
+            <li><strong>What is the function of stomata?</strong> (2 Marks)</li>
+            <li><strong>Draw a labeled diagram of a neuron.</strong> (3 Marks) <span class="badge-mostimp">Very Important</span></li>
+            <li><strong>Differentiate between striated, unstriated, and cardiac muscles.</strong> (3 Marks) <span class="badge-mostimp">Very Important</span></li>
+            <li><strong>Name the constituents of xylem and phloem.</strong> (2 Marks)</li>
+            <li><strong>Why do meristematic cells lack vacuoles?</strong> (2 Marks) [citation:2]</li>
+            <li><strong>What is the specific function of cardiac muscle?</strong> (2 Marks) [citation:6]</li>
+            <li><strong>Identify the type of tissue: Skin, Bark of tree, Bone, Lining of kidney tubule.</strong> (2 Marks) [citation:7]</li>
+          </ol>
+        </div>
       </section>
-      
+
+      <!-- ==================== QUICK REVISION ==================== -->
       <section id="quick-revision">
         <h2>Quick Revision - At a Glance</h2>
         <div class="key-memorize">
-          <strong>🎯 Key Tips:</strong><br>
-          <li>Xylem transports UP; Phloem transports UP & DOWN.</li><li>Ligament connects Bone to Bone; Tendon connects Muscle to Bone.</li>
+          <strong>🎯 Key Tips:</strong>
+          <ul style="padding-left: 1.2rem; line-height: 2;">
+            <li><strong>Xylem transports UP;</strong> Phloem transports <strong>UP & DOWN</strong></li>
+            <li><strong>Ligament</strong> connects <strong>Bone to Bone;</strong> <strong>Tendon</strong> connects <strong>Muscle to Bone</strong></li>
+            <li><strong>Meristematic cells lack vacuoles</strong> — they divide, not store</li>
+            <li><strong>Sclerenchyma = Dead + Lignin</strong> (coconut husk, pear crunchiness)</li>
+            <li><strong>Cardiac muscle:</strong> Involuntary + Striated + Branched + Uninucleate + Never fatigues</li>
+            <li><strong>Epithelial tissue is avascular</strong> (no blood vessels)</li>
+            <li><strong>Adipose tissue</strong> = Fat storage (blubber of whales, hump of camels)</li>
+          </ul>
+        </div>
+
+        <div class="mnemonic-box">
+          <strong>🧠 Ultimate Memory Trick — Animal Tissues (C-MEN):</strong><br>
+          <strong>C</strong>onnective — binds & supports<br>
+          <strong>M</strong>uscular — movement<br>
+          <strong>E</strong>pithelial — covering & lining<br>
+          <strong>N</strong>ervous — communication
         </div>
       </section>
     </div>
@@ -188,16 +626,57 @@
       </div>
     </div>
   </footer>
+
   <script>
+    // Preloader
     window.addEventListener('load', () => {
       const preloader = document.getElementById('preloader');
       if(preloader) { setTimeout(() => { preloader.style.opacity = '0'; setTimeout(() => preloader.style.display = 'none', 500); }, 800); }
     });
+
+    // Quiz Logic
+    let score = 0;
+    let answered = 0;
+
+    function checkAnswer(element) {
+      const parent = element.parentElement;
+      
+      // Prevent multiple clicks on same question
+      if (parent.querySelector('.correct') || parent.querySelector('.wrong')) {
+        return;
+      }
+      
+      const isCorrect = element.dataset.correct === 'true';
+      
+      if (isCorrect) {
+        element.classList.add('correct');
+        score++;
+      } else {
+        element.classList.add('wrong');
+        // Highlight correct answer
+        parent.querySelectorAll('.quiz-option').forEach(opt => {
+          if (opt.dataset.correct === 'true') opt.classList.add('correct');
+        });
+      }
+      
+      answered++;
+      
+      // Show score after all answered
+      if (answered === 3) {
+        const scoreDiv = document.getElementById('quiz-score');
+        document.getElementById('score-display').textContent = score;
+        scoreDiv.style.display = 'block';
+        
+        // Also highlight correct answers in all questions
+        document.querySelectorAll('.quiz-option').forEach(opt => {
+          if (opt.dataset.correct === 'true') opt.classList.add('correct');
+        });
+      }
+    }
   </script>
   
-        <style>
-            .flipped .flip-card-inner { transform: rotateY(180deg); }
-        </style>
-        
+  <style>
+      .flipped .flip-card-inner { transform: rotateY(180deg); }
+  </style>
 </body>
 </html>

@@ -26,6 +26,12 @@
     .canvas-container { width: 100%; max-width: 600px; margin: 1rem auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; position: relative; min-height: 200px;}
     .controls { display: flex; flex-direction: column; gap: 1rem; max-width: 400px; margin: 0 auto; background: #f1f5f9; padding: 1rem; border-radius: 8px;}
     .control-group { display: flex; justify-content: space-between; align-items: center; }
+    .example-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 1.2rem; margin: 1.2rem 0; }
+    .example-box h4 { margin-top: 0; color: #166534; }
+    .comparison-table { width: 100%; border-collapse: collapse; margin: 1.2rem 0; }
+    .comparison-table th, .comparison-table td { border: 1px solid #e2e8f0; padding: 0.75rem; text-align: left; }
+    .comparison-table th { background: #f1f5f9; }
+    .derivation-step { background: #ffffff; border-left: 3px solid #3b82f6; padding: 0.8rem 1rem; margin: 0.6rem 0; border-radius: 0 8px 8px 0; font-family: monospace; }
     
     .chapter-summary-footer { background: #f8fafc; margin-top: 4rem; padding: 2rem 1rem 1rem; }
     .footer-chapter-container { max-width: 1400px; margin: 0 auto; }
@@ -69,80 +75,305 @@
     <aside class="notes-sidebar">
       <div class="sidebar-content">
         <h3>📖 Chapter Contents</h3>
-        <ul><li><a href='#intro'>Introduction to Cell</a></li><li><a href='#membrane'>Plasma Membrane</a></li><li><a href='#nucleus'>Nucleus & Cytoplasm</a></li><li><a href='#organelles'>Cell Organelles</a></li></ul>
+        <ul>
+          <li><a href='#intro'>Discovery of Cell</a></li>
+          <li><a href='#theory'>Cell Theory</a></li>
+          <li><a href='#structure'>Cell Structure</a></li>
+          <li><a href='#membrane'>Plasma Membrane</a></li>
+          <li><a href='#nucleus'>Nucleus</a></li>
+          <li><a href='#organelles'>Cell Organelles</a></li>
+          <li><a href='#plantanimal'>Plant vs Animal Cell</a></li>
+          <li><a href='#pyqs'>Previous Year Questions</a></li>
+        </ul>
       </div>
     </aside>
     <div class="notes-container">
       <nav class="breadcrumb"><a href="../index.html">Home</a> / <a href="class9-science-dir.html">Notes</a> / Chapter 5: The Fundamental Unit of Life</nav>
+      
+      <!-- SECTION: INTRO -->
       <section id="intro">
         <h1>The Fundamental Unit of Life <span class="repeated-tag">High Weightage Chapter</span></h1>
-        <div class="highlight-box"><i class="fas fa-star" style="color:#f59e0b;"></i> <strong>Why this chapter is important?</strong> Cell structure and organelles are highly tested. Differences between plant and animal cells are guaranteed exam questions.</div>
-      </section>
-      
-      
-        <section id='intro'>
-            <h2>1. Introduction to Cell</h2>
-            <p>Cells are the basic structural and functional units of living organisms. Discovered by <strong>Robert Hooke</strong> in 1665.</p>
-            <p><strong>Cell Theory:</strong> Proposed by Schleiden and Schwann. All plants and animals are composed of cells, and cells arise from pre-existing cells (Virchow).</p>
-        </section>
-        <section id='membrane'>
-            <h2>2. Plasma Membrane / Cell Membrane</h2>
-            <p>It is the outermost covering of the cell that separates its contents from the external environment. It is a <strong>selectively permeable membrane</strong>.</p>
-            <ul>
-                <li><strong>Diffusion:</strong> Spontaneous movement of a substance from high to low concentration (e.g., CO₂, O₂).</li>
-                <li><strong>Osmosis:</strong> Passage of water from high water concentration through a semi-permeable membrane to a low water concentration.</li>
-            </ul>
-        </section>
-        <section id='organelles'>
-            <h2>3. Cell Organelles</h2>
-            <p>Important components inside the cell, each performing specific functions:</p>
-            <ul>
-                <li><strong>Mitochondria:</strong> Powerhouse of the cell. Produces ATP.</li>
-                <li><strong>Plastids:</strong> Present only in plant cells. Chloroplasts contain chlorophyll (photosynthesis).</li>
-                <li><strong>Lysosomes:</strong> Suicide bags of the cell. Contain digestive enzymes.</li>
-                <li><strong>Ribosomes:</strong> Protein factories.</li>
-            </ul>
-        </section>
-        
-      
-      
-        <div class="interactive-card">
-          <h3>Interactive: Cell Organelle Explorer</h3>
-          <p>Hover over or tap the colorful dots (organelles) inside the cell to discover their names and functions!</p>
-          <div style="display:flex; justify-content:center; gap: 2rem; align-items:center; flex-wrap:wrap;">
-              <div style="position:relative; width: 250px; height: 250px; background:#e0f2fe; border: 4px solid #3b82f6; border-radius: 50%; box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.3);">
-                  <!-- Nucleus -->
-                  <div class="organelle" onmouseover="showInfo('Nucleus: The brain of the cell. Contains DNA.')" style="position:absolute; top:80px; left:90px; width:60px; height:60px; background:#8b5cf6; border-radius:50%; cursor:pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2);"></div>
-                  <!-- Mitochondria -->
-                  <div class="organelle" onmouseover="showInfo('Mitochondria: Powerhouse of the cell. Produces ATP.')" style="position:absolute; top:40px; left:50px; width:40px; height:20px; background:#ef4444; border-radius:10px; cursor:pointer; transform: rotate(45deg);"></div>
-                  <div class="organelle" onmouseover="showInfo('Mitochondria: Powerhouse of the cell. Produces ATP.')" style="position:absolute; top:170px; left:160px; width:40px; height:20px; background:#ef4444; border-radius:10px; cursor:pointer; transform: rotate(-30deg);"></div>
-                  <!-- Lysosome -->
-                  <div class="organelle" onmouseover="showInfo('Lysosome: Suicide bag. Contains digestive enzymes.')" style="position:absolute; top:150px; left:40px; width:25px; height:25px; background:#10b981; border-radius:50%; cursor:pointer;"></div>
-                  <!-- Golgi -->
-                  <div class="organelle" onmouseover="showInfo('Golgi Apparatus: Packaging and dispatching unit.')" style="position:absolute; top:70px; left:170px; width:30px; height:40px; background:#f59e0b; border-radius:8px; cursor:pointer;"></div>
-              </div>
-              <div style="background:#fff; border:2px dashed #cbd5e1; padding: 1.5rem; border-radius: 12px; max-width: 250px; min-height: 120px;">
-                  <h4 style="margin-top:0; color:#334155;">Organelle Info</h4>
-                  <p id="orgInfo" style="color:#64748b; font-size:0.95rem;">Hover over an organelle to see its details here.</p>
-              </div>
-          </div>
+        <div class="highlight-box">
+          <i class="fas fa-star" style="color:#f59e0b;"></i> 
+          <strong>Why this chapter is important?</strong> Cell structure and organelles are highly tested. Differences between plant and animal cells are guaranteed exam questions.
         </div>
         
-
-      <section id="pyqs">
-        <h2>Most Repeated Previous Year Questions</h2>
-        <div class="pyq-box"><ol>
-            <li>Why is the plasma membrane called a selectively permeable membrane? (2 Marks)</li>
-            <li>What would happen if the plasma membrane ruptures or breaks down? (2 Marks)</li>
-            <li>Differentiate between rough and smooth endoplasmic reticulum. (3 Marks)</li>
-        </ol></div>
+        <h2>1. Discovery of Cell</h2>
+        <p>The cell is the basic structural and functional unit of all living organisms. Its discovery marked a revolution in biology [citation:1].</p>
+        
+        <table class="comparison-table">
+          <tr><th>Scientist</th><th>Year</th><th>Discovery/Contribution</th></tr>
+          <tr><td>Robert Hooke</td><td>1665</td><td>Discovered cells in cork; coined the term "cell" [citation:1][citation:5]</td></tr>
+          <tr><td>Anton Van Leeuwenhoek</td><td>1674</td><td>First observed living cells in pond water [citation:1][citation:9]</td></tr>
+          <tr><td>Robert Brown</td><td>1831</td><td>Discovered the nucleus [citation:1][citation:9]</td></tr>
+          <tr><td>Purkinje</td><td>1839</td><td>Coined the term "protoplasm" [citation:1]</td></tr>
+          <tr><td>Schleiden and Schwann</td><td>1838-1839</td><td>Proposed the Cell Theory [citation:1][citation:9]</td></tr>
+          <tr><td>Rudolf Virchow</td><td>1855</td><td>Stated "Omnis cellula e cellula" — all cells arise from pre-existing cells [citation:1][citation:9]</td></tr>
+        </table>
+        
+        <h3>Unicellular and Multicellular Organisms</h3>
+        <ul>
+          <li><strong>Unicellular:</strong> Made of a single cell. Examples: Amoeba, Paramecium [citation:1]</li>
+          <li><strong>Multicellular:</strong> Made of many cells. Examples: Humans, plants, fungi [citation:1]</li>
+        </ul>
       </section>
       
+      <!-- SECTION: CELL THEORY -->
+      <section id="theory">
+        <h2>2. Cell Theory</h2>
+        <div class="key-memorize">
+          <strong>Cell Theory (Schleiden & Schwann, expanded by Virchow):</strong>
+          <ul>
+            <li>All living organisms are composed of one or more cells [citation:12]</li>
+            <li>The cell is the basic unit of structure and function in living organisms [citation:12]</li>
+            <li>All cells arise from pre-existing cells [citation:1][citation:4]</li>
+          </ul>
+        </div>
+        
+        <h3>Prokaryotic vs Eukaryotic Cells</h3>
+        <table class="comparison-table">
+          <tr><th>Feature</th><th>Prokaryotic Cells</th><th>Eukaryotic Cells</th></tr>
+          <tr><td>Nucleus</td><td>Absent (nucleoid region) [citation:1]</td><td>Well-defined nucleus present [citation:1]</td></tr>
+          <tr><td>Membrane-bound organelles</td><td>Absent [citation:1]</td><td>Present [citation:1]</td></tr>
+          <tr><td>Chromosomes</td><td>Single [citation:1]</td><td>Multiple [citation:1]</td></tr>
+          <tr><td>Examples</td><td>Bacteria, blue-green algae [citation:1]</td><td>Plant and animal cells [citation:1]</td></tr>
+        </table>
+      </section>
+      
+      <!-- SECTION: CELL STRUCTURE -->
+      <section id="structure">
+        <h2>3. Basic Structure of the Cell</h2>
+        <p>A cell consists of three main features [citation:1]:</p>
+        <ul>
+          <li><strong>Plasma Membrane:</strong> The outer covering</li>
+          <li><strong>Nucleus:</strong> The control centre</li>
+          <li><strong>Cytoplasm:</strong> The fluid inside the cell</li>
+        </ul>
+      </section>
+      
+      <!-- SECTION: PLASMA MEMBRANE -->
+      <section id="membrane">
+        <h2>4. Plasma Membrane / Cell Membrane</h2>
+        <p>The plasma membrane is the outermost covering of the cell that separates its contents from the external environment. It is a <strong>selectively permeable membrane</strong> [citation:1][citation:3].</p>
+        
+        <h3>Structure</h3>
+        <p>Made of lipids, proteins, and carbohydrates. The fluid mosaic model describes it as a dynamic structure with proteins embedded in a lipid bilayer [citation:12].</p>
+        
+        <h3>Functions</h3>
+        <ul>
+          <li>Separates cell contents from external environment [citation:9]</li>
+          <li>Allows selective entry and exit of substances [citation:1]</li>
+          <li>Provides shape to the cell [citation:9]</li>
+          <li>Enables endocytosis in Amoeba [citation:9]</li>
+        </ul>
+        
+        <h3>Diffusion</h3>
+        <p>The spontaneous movement of molecules from a region of high concentration to a region of low concentration. Example: O₂ and CO₂ move across the membrane by diffusion [citation:1][citation:3].</p>
+        
+        <h3>Osmosis</h3>
+        <p>The movement of water molecules from a region of high water concentration to a region of low water concentration through a selectively permeable membrane [citation:1][citation:5].</p>
+        
+        <h3>Types of Solutions</h3>
+        <table class="comparison-table">
+          <tr><th>Solution Type</th><th>Water Concentration Outside</th><th>Effect on Cell</th></tr>
+          <tr><td>Hypotonic</td><td>Higher than inside</td><td>Cell gains water, swells [citation:1][citation:12]</td></tr>
+          <tr><td>Isotonic</td><td>Same as inside</td><td>No net movement [citation:1][citation:12]</td></tr>
+          <tr><td>Hypertonic</td><td>Lower than inside</td><td>Cell loses water, shrinks [citation:1][citation:14]</td></tr>
+        </table>
+        
+        <div class="key-memorize">
+          <strong>📌 Plasmolysis:</strong> When a plant cell is placed in a hypertonic solution, water moves out, causing the cytoplasm to shrink away from the cell wall. This phenomenon is called plasmolysis [citation:3][citation:14].
+        </div>
+      </section>
+      
+      <!-- SECTION: NUCLEUS -->
+      <section id="nucleus">
+        <h2>5. Nucleus</h2>
+        <p>The nucleus is the most important organelle — the <strong>control centre</strong> of the cell. It was discovered by Robert Brown in 1831 [citation:1][citation:9].</p>
+        
+        <h3>Structure</h3>
+        <ul>
+          <li><strong>Nuclear Membrane:</strong> Double-layered membrane with pores for material exchange [citation:4]</li>
+          <li><strong>Nucleoplasm:</strong> Dense fluid inside the nucleus [citation:4]</li>
+          <li><strong>Chromatin Material:</strong> Network of thread-like structures made of DNA and proteins [citation:4]</li>
+          <li><strong>Nucleolus:</strong> Round structure containing RNA and proteins; helps in ribosome formation [citation:1][citation:4]</li>
+        </ul>
+        
+        <h3>Chromosomes</h3>
+        <p>Chromatin condenses into rod-shaped chromosomes during cell division. They contain DNA (Deoxyribonucleic Acid) which stores hereditary information [citation:4].</p>
+        
+        <h3>Functions</h3>
+        <ul>
+          <li>Controls all metabolic activities of the cell [citation:4]</li>
+          <li>Contains genetic information (DNA) [citation:4]</li>
+          <li>Directs cell division and protein synthesis [citation:4]</li>
+          <li>Transmits hereditary traits from one generation to another [citation:9]</li>
+        </ul>
+      </section>
+      
+      <!-- SECTION: CYTOPLASM -->
+      <section id="cytoplasm">
+        <h2>6. Cytoplasm</h2>
+        <p>The fluid-like substance present between the plasma membrane and the nucleus. It contains various cell organelles and molecules [citation:1].</p>
+        
+        <h3>Functions</h3>
+        <ul>
+          <li>Supports cell organelles and molecules [citation:1]</li>
+          <li>Helps in protein formation [citation:1]</li>
+          <li>Allows transportation of hormones [citation:1]</li>
+          <li>Dissolves cellular waste [citation:1]</li>
+        </ul>
+      </section>
+      
+      <!-- SECTION: CELL ORGANELLES -->
+      <section id="organelles">
+        <h2>7. Cell Organelles</h2>
+        <p>Each organelle performs specific functions essential for the cell's survival [citation:12].</p>
+        
+        <h3>Mitochondria</h3>
+        <ul>
+          <li><strong>Nickname:</strong> Powerhouse of the cell [citation:4][citation:12]</li>
+          <li><strong>Function:</strong> Produces ATP (Adenosine Triphosphate) — the energy currency of the cell [citation:4][citation:12]</li>
+          <li>Has its own DNA and ribosomes [citation:15]</li>
+        </ul>
+        
+        <h3>Plastids</h3>
+        <ul>
+          <li>Present only in plant cells [citation:2]</li>
+          <li><strong>Chloroplasts:</strong> Contain chlorophyll; site of photosynthesis; gives green colour [citation:4]</li>
+          <li><strong>Chromoplasts:</strong> Contain pigments like carotenoids; give yellow, orange, red colours [citation:4]</li>
+          <li>Have their own DNA [citation:15]</li>
+        </ul>
+        
+        <h3>Lysosomes</h3>
+        <ul>
+          <li><strong>Nickname:</strong> Suicide bags of the cell [citation:4]</li>
+          <li><strong>Function:</strong> Contain digestive enzymes that break down waste materials and worn-out organelles [citation:12]</li>
+        </ul>
+        
+        <h3>Endoplasmic Reticulum (ER)</h3>
+        <ul>
+          <li><strong>Rough ER (RER):</strong> Has ribosomes on surface; synthesizes proteins [citation:12]</li>
+          <li><strong>Smooth ER (SER):</strong> No ribosomes; synthesizes lipids and detoxifies poisons [citation:12]</li>
+        </ul>
+        
+        <h3>Golgi Apparatus</h3>
+        <ul>
+          <li><strong>Function:</strong> Modifies, sorts, packages, and dispatches proteins and lipids [citation:12]</li>
+          <li>Involved in formation of lysosomes [citation:15]</li>
+        </ul>
+        
+        <h3>Ribosomes</h3>
+        <ul>
+          <li><strong>Function:</strong> Protein synthesis [citation:12]</li>
+          <li>Present in both prokaryotic and eukaryotic cells [citation:17]</li>
+        </ul>
+        
+        <h3>Vacuoles</h3>
+        <ul>
+          <li><strong>Plant cells:</strong> Large central vacuole (occupies up to 90% of cell volume); maintains turgidity [citation:6]</li>
+          <li><strong>Animal cells:</strong> Small, numerous vacuoles [citation:6]</li>
+        </ul>
+      </section>
+      
+      <!-- SECTION: PLANT VS ANIMAL CELL -->
+      <section id="plantanimal">
+        <h2>8. Plant Cell vs Animal Cell</h2>
+        
+        <table class="comparison-table">
+          <tr><th>Feature</th><th>Plant Cell</th><th>Animal Cell</th></tr>
+          <tr><td>Cell Wall</td><td>Present (made of cellulose) [citation:2][citation:3]</td><td>Absent [citation:2]</td></tr>
+          <tr><td>Plastids/Chloroplasts</td><td>Present [citation:2]</td><td>Absent [citation:2]</td></tr>
+          <tr><td>Vacuole</td><td>Large, single [citation:2][citation:6]</td><td>Small, many [citation:2][citation:6]</td></tr>
+          <tr><td>Centrosome</td><td>Absent [citation:10]</td><td>Present [citation:10]</td></tr>
+          <tr><td>Lysosomes</td><td>Rare/absent [citation:10]</td><td>Present [citation:10]</td></tr>
+          <tr><td>Shape</td><td>Rigid, regular [citation:6]</td><td>Flexible, irregular [citation:6]</td></tr>
+        </table>
+        
+        <div class="key-memorize">
+          <strong>🎯 Key Point:</strong> The cell wall in plant cells is made of <strong>cellulose</strong>. It provides structural strength and allows plant cells to withstand hypotonic solutions without bursting [citation:3][citation:16].
+        </div>
+      </section>
+      
+      <!-- INTERACTIVE: CELL ORGANELLE EXPLORER -->
+      <div class="interactive-card">
+        <h3>Interactive: Cell Organelle Explorer</h3>
+        <p>Hover over or tap the colorful dots (organelles) inside the cell to discover their names and functions!</p>
+        <div style="display:flex; justify-content:center; gap: 2rem; align-items:center; flex-wrap:wrap;">
+            <div style="position:relative; width: 250px; height: 250px; background:#e0f2fe; border: 4px solid #3b82f6; border-radius: 50%; box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.3);">
+                <!-- Nucleus -->
+                <div class="organelle" onmouseover="showInfo('Nucleus: The brain of the cell. Contains DNA. Controls all cell activities.')" style="position:absolute; top:80px; left:90px; width:60px; height:60px; background:#8b5cf6; border-radius:50%; cursor:pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2);"></div>
+                <!-- Mitochondria -->
+                <div class="organelle" onmouseover="showInfo('Mitochondria: Powerhouse of the cell. Produces ATP (energy currency).')" style="position:absolute; top:40px; left:50px; width:40px; height:20px; background:#ef4444; border-radius:10px; cursor:pointer; transform: rotate(45deg);"></div>
+                <div class="organelle" onmouseover="showInfo('Mitochondria: Powerhouse of the cell. Produces ATP (energy currency).')" style="position:absolute; top:170px; left:160px; width:40px; height:20px; background:#ef4444; border-radius:10px; cursor:pointer; transform: rotate(-30deg);"></div>
+                <!-- Lysosome -->
+                <div class="organelle" onmouseover="showInfo('Lysosome: Suicide bag. Contains digestive enzymes to break down waste.')" style="position:absolute; top:150px; left:40px; width:25px; height:25px; background:#10b981; border-radius:50%; cursor:pointer;"></div>
+                <!-- Golgi -->
+                <div class="organelle" onmouseover="showInfo('Golgi Apparatus: Packaging and dispatching unit. Modifies and sorts proteins.')" style="position:absolute; top:70px; left:170px; width:30px; height:40px; background:#f59e0b; border-radius:8px; cursor:pointer;"></div>
+                <!-- Ribosome -->
+                <div class="organelle" onmouseover="showInfo('Ribosome: Protein factory. Synthesizes proteins.')" style="position:absolute; top:180px; left:80px; width:12px; height:12px; background:#ec4899; border-radius:50%; cursor:pointer;"></div>
+                <!-- Vacuole -->
+                <div class="organelle" onmouseover="showInfo('Vacuole: Storage organelle. Stores water, nutrients, and waste.')" style="position:absolute; top:30px; left:130px; width:35px; height:35px; background:#06b6d4; border-radius:50%; cursor:pointer;"></div>
+            </div>
+            <div style="background:#fff; border:2px dashed #cbd5e1; padding: 1.5rem; border-radius: 12px; max-width: 250px; min-height: 120px;">
+                <h4 style="margin-top:0; color:#334155;">Organelle Info</h4>
+                <p id="orgInfo" style="color:#64748b; font-size:0.95rem;">Hover over an organelle to see its details here.</p>
+            </div>
+        </div>
+      </div>
+
+      <!-- SECTION: PYQs -->
+      <section id="pyqs">
+        <h2>Most Repeated Previous Year Questions</h2>
+        <div class="pyq-box">
+          <h3>Very Short Answer (1 Mark)</h3>
+          <ol>
+            <li>Who discovered the cell? [citation:8]</li>
+            <li>What is the basic structural and functional unit of life? [citation:8]</li>
+            <li>Name any two cell organelles found only in plant cells. [citation:8]</li>
+            <li>What is the full form of ATP? [citation:4]</li>
+          </ol>
+          
+          <h3 style="margin-top: 1.5rem;">Short Answer (2-3 Marks)</h3>
+          <ol start="5">
+            <li>Why is the plasma membrane called a selectively permeable membrane? (2 Marks) [citation:4] <span class="badge-mostimp">Most Imp</span></li>
+            <li>What would happen if the plasma membrane ruptures or breaks down? (2 Marks) [citation:8]</li>
+            <li>Differentiate between rough and smooth endoplasmic reticulum. (3 Marks) [citation:8]</li>
+            <li>Differentiate between prokaryotic and eukaryotic cells. (3 Marks) [citation:8]</li>
+            <li>What is osmosis? Give one example. (2 Marks) [citation:8]</li>
+            <li>Name the cell organelle which is termed as the powerhouse of the cell. (1 Mark) [citation:4]</li>
+          </ol>
+          
+          <h3 style="margin-top: 1.5rem;">Long Answer (4-5 Marks)</h3>
+          <ol start="11">
+            <li>Compare plant and animal cells with at least five points. [citation:8] <span class="badge-mostimp">Most Imp</span></li>
+            <li>Describe the structure of the nucleus and its functions. [citation:4]</li>
+            <li>Explain the structure and functions of mitochondria. [citation:8]</li>
+            <li>What are plastids? Name the types and write their functions. [citation:8]</li>
+            <li>Draw a labelled diagram of a plant cell. [citation:8]</li>
+          </ol>
+        </div>
+      </section>
+      
+      <!-- QUICK REVISION -->
       <section id="quick-revision">
         <h2>Quick Revision - At a Glance</h2>
         <div class="key-memorize">
-          <strong>🎯 Key Tips:</strong><br>
-          <li>Plant cells have a cell wall made of cellulose; animal cells do not.</li><li>Nucleus controls all activities of the cell.</li><li>ATP = Adenosine Triphosphate.</li>
+          <strong>🎯 Key Takeaways:</strong>
+          <ul>
+            <li>Cell discovered by Robert Hooke (1665); nucleus by Robert Brown (1831)</li>
+            <li>Cell Theory: Schleiden & Schwann; expanded by Virchow [citation:1]</li>
+            <li><strong>Plasma Membrane:</strong> Selectively permeable; controls entry/exit</li>
+            <li><strong>Nucleus:</strong> Control centre; contains DNA (hereditary material)</li>
+            <li><strong>Mitochondria:</strong> Powerhouse of the cell; produces ATP</li>
+            <li><strong>Plastids:</strong> Only in plant cells; chloroplasts for photosynthesis</li>
+            <li><strong>Lysosomes:</strong> Suicide bags; contain digestive enzymes</li>
+            <li><strong>Plant cell:</strong> Cell wall (cellulose), large vacuole, plastids</li>
+            <li><strong>Animal cell:</strong> No cell wall, small vacuoles, centrioles present</li>
+            <li>Plant cells have a cell wall made of cellulose; animal cells do not [citation:3]</li>
+            <li>Nucleus controls all activities of the cell [citation:9]</li>
+            <li>ATP = Adenosine Triphosphate (energy currency) [citation:4]</li>
+          </ul>
         </div>
       </section>
     </div>
@@ -182,6 +413,7 @@
       </div>
     </div>
   </footer>
+  
   <script>
     window.addEventListener('load', () => {
       const preloader = document.getElementById('preloader');
@@ -189,13 +421,12 @@
     });
   </script>
   
-        <script>
-          function showInfo(text) {
-              document.getElementById('orgInfo').innerText = text;
-              document.getElementById('orgInfo').style.color = '#0f172a';
-              document.getElementById('orgInfo').style.fontWeight = '500';
-          }
-        </script>
-        
+  <script>
+    function showInfo(text) {
+        document.getElementById('orgInfo').innerText = text;
+        document.getElementById('orgInfo').style.color = '#0f172a';
+        document.getElementById('orgInfo').style.fontWeight = '500';
+    }
+  </script>
 </body>
 </html>

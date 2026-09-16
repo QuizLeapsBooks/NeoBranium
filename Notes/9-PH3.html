@@ -27,6 +27,12 @@
     .controls { display: flex; flex-direction: column; gap: 1rem; max-width: 400px; margin: 0 auto; background: #f1f5f9; padding: 1rem; border-radius: 8px;}
     .control-group { display: flex; justify-content: space-between; align-items: center; }
     .control-group input[type="range"] { flex-grow: 1; margin-left: 1rem; }
+    .example-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 1.2rem; margin: 1.2rem 0; }
+    .example-box h4 { margin-top: 0; color: #166534; }
+    .comparison-table { width: 100%; border-collapse: collapse; margin: 1.2rem 0; }
+    .comparison-table th, .comparison-table td { border: 1px solid #e2e8f0; padding: 0.75rem; text-align: left; }
+    .comparison-table th { background: #f1f5f9; }
+    .derivation-step { background: #ffffff; border-left: 3px solid #3b82f6; padding: 0.8rem 1rem; margin: 0.6rem 0; border-radius: 0 8px 8px 0; font-family: monospace; }
     
     .chapter-summary-footer { background: #f8fafc; margin-top: 4rem; padding: 2rem 1rem 1rem; }
     .footer-chapter-container { max-width: 1400px; margin: 0 auto; }
@@ -70,62 +76,397 @@
     <aside class="notes-sidebar">
       <div class="sidebar-content">
         <h3>📖 Chapter Contents</h3>
-        <ul><li><a href='#univ'>Universal Law</a></li><li><a href='#freefall'>Free Fall & g</a></li><li><a href='#massweight'>Mass vs Weight</a></li><li><a href='#buoyancy'>Thrust & Buoyancy</a></li></ul>
+        <ul>
+          <li><a href='#intro'>Introduction to Gravitation</a></li>
+          <li><a href='#univ'>Universal Law of Gravitation</a></li>
+          <li><a href='#freefall'>Free Fall & Acceleration Due to Gravity</a></li>
+          <li><a href='#massweight'>Mass vs Weight</a></li>
+          <li><a href='#thrust'>Thrust & Pressure</a></li>
+          <li><a href='#buoyancy'>Buoyancy & Archimedes' Principle</a></li>
+          <li><a href='#density'>Density & Relative Density</a></li>
+          <li><a href='#pyqs'>Previous Year Questions</a></li>
+        </ul>
       </div>
     </aside>
     <div class="notes-container">
       <nav class="breadcrumb"><a href="../index.html">Home</a> / <a href="class9-science-dir.html">Notes</a> / Chapter 10: Gravitation</nav>
+      
+      <!-- SECTION: INTRO -->
       <section id="intro">
         <h1>Gravitation <span class="repeated-tag">High Weightage Chapter</span></h1>
-        <div class="highlight-box"><i class="fas fa-star" style="color:#f59e0b;"></i> <strong>Why this chapter is important?</strong> Understanding universal gravitation and gravity formulas is key for class 11 physics. Derivations are frequent.</div>
-      </section>
-      
-      
-        <section id='univ'>
-            <h2>1. Universal Law of Gravitation</h2>
-            <p>Every object in the universe attracts every other object with a force which is proportional to the product of their masses and inversely proportional to the square of the distance between them.</p>
-            <div class='formula-box-custom'>F = G × (M × m) / d²</div>
-            <p>Where G is the Universal Gravitation Constant (6.673 × 10⁻¹¹ N m²/kg²).</p>
-        </section>
-        <section id='freefall'>
-            <h2>2. Free Fall and Acceleration Due to Gravity (g)</h2>
-            <p>Whenever objects fall towards the earth under this force alone, we say that the objects are in free fall.</p>
-            <div class='formula-box-custom'>g = G × M / R²</div>
-            <p>Value of g on the surface of earth is <strong>9.8 m/s²</strong>.</p>
-        </section>
-        <section id='massweight'>
-            <h2>3. Mass and Weight</h2>
-            <p><strong>Mass:</strong> Quantity of matter contained in a body. It remains constant everywhere.</p>
-            <p><strong>Weight:</strong> The force with which the earth attracts an object. W = m × g. Weight varies with location (e.g., Weight on Moon = 1/6th of Weight on Earth).</p>
-        </section>
-        
-      
-      
-        <div class="interactive-card">
-          <h3>Interactive: Projectile Motion Simulator</h3>
-          <p>Fire a projectile under gravity. Adjust velocity and angle to see the trajectory!</p>
-          <div class="canvas-container"><canvas id="projCanvas" width="500" height="300"></canvas></div>
-          <div class="controls">
-            <div class="control-group"><label>Velocity: <span id="vVal">50</span> m/s</label><input type="range" id="vRange" min="10" max="100" value="50"></div>
-            <div class="control-group"><label>Angle: <span id="angVal">45</span>°</label><input type="range" id="angRange" min="10" max="80" value="45"></div>
-          </div>
+        <div class="highlight-box">
+          <i class="fas fa-star" style="color:#f59e0b;"></i> 
+          <strong>Why this chapter is important?</strong> Understanding universal gravitation and gravity formulas is key for class 11 physics. Derivations and numericals are frequent in board exams.
         </div>
         
-
-      <section id="pyqs">
-        <h2>Most Repeated Previous Year Questions</h2>
-        <div class="pyq-box"><ol>
-            <li>State the universal law of gravitation. (2 Marks)</li>
-            <li>Differentiate between mass and weight. (3 Marks)</li>
-            <li>Why is the weight of an object on the moon 1/6th its weight on the earth? (2 Marks)</li>
-        </ol></div>
+        <h2>Introduction: What is Gravitation?</h2>
+        <p>We know that the Earth attracts every object towards it. But have you ever wondered whether this attraction is mutual? Does an apple attract the Earth as well? The answer is <strong>yes</strong>. In 1687, Isaac Newton gave the <strong>Universal Law of Gravitation</strong>, which states that every object in the universe attracts every other object with a force [citation:9].</p>
+        
+        <p>This gravitational force explains a wide range of phenomena:</p>
+        <ul>
+          <li>The motion of the Moon around the Earth</li>
+          <li>The motion of planets around the Sun</li>
+          <li>The occurrence of high and low tides</li>
+          <li>The presence of an atmosphere around the Earth [citation:6]</li>
+        </ul>
       </section>
       
+      <!-- SECTION: UNIVERSAL LAW -->
+      <section id='univ'>
+        <h2>1. Universal Law of Gravitation</h2>
+        
+        <h3>Statement</h3>
+        <div class="key-memorize">
+          <strong>Universal Law of Gravitation:</strong> Every object in the universe attracts every other object with a force which is directly proportional to the product of their masses and inversely proportional to the square of the distance between their centres. The force acts along the line joining the centres of the two objects [citation:1].
+        </div>
+        
+        <h3>Mathematical Formulation</h3>
+        <div class='formula-box-custom'>
+          F = G × (M × m) / d²
+        </div>
+        
+        <p>Where:</p>
+        <ul>
+          <li><strong>F</strong> = Gravitational force between the two objects (in Newton, N)</li>
+          <li><strong>M and m</strong> = Masses of the two objects (in kg)</li>
+          <li><strong>d</strong> = Distance between the centres of the two objects (in metres)</li>
+          <li><strong>G</strong> = Universal Gravitation Constant = 6.673 × 10⁻¹¹ N m²/kg²</li>
+        </ul>
+        
+        <h3>Why is G called the Universal Constant?</h3>
+        <p><strong>G</strong> is called the universal constant because its value remains the same throughout the universe and is independent of the masses of the objects, the distance between them, or the medium in which they are placed [citation:3].</p>
+        
+        <h3>Effects of Changing Mass and Distance</h3>
+        <table class="comparison-table">
+          <tr><th>Change</th><th>Effect on Gravitational Force</th></tr>
+          <tr><td>Mass of one object doubled</td><td>Force doubles (F ∝ M)</td></tr>
+          <tr><td>Distance between objects doubled</td><td>Force becomes one-fourth (F ∝ 1/d²)</td></tr>
+          <tr><td>Both masses doubled AND distance doubled</td><td>Force remains unchanged [citation:3]</td></tr>
+          <tr><td>Distance reduced to half</td><td>Force becomes four times larger [citation:1]</td></tr>
+        </table>
+        
+        <div class="example-box">
+          <h4>📝 Solved Example: Gravitational Force Between Earth and a 1 kg Object</h4>
+          <p><strong>Question:</strong> What is the magnitude of the gravitational force between the Earth and a 1 kg object on its surface? (Mass of Earth = 6 × 10²⁴ kg, Radius of Earth = 6.4 × 10⁶ m)</p>
+          <p><strong>Solution:</strong></p>
+          <p>M = 6 × 10²⁴ kg, m = 1 kg, d = 6.4 × 10⁶ m, G = 6.67 × 10⁻¹¹ N m²/kg²</p>
+          <p>F = (6.67 × 10⁻¹¹ × 6 × 10²⁴ × 1) / (6.4 × 10⁶)²</p>
+          <p>F = (6.67 × 6 × 10¹³) / (40.96 × 10¹²)</p>
+          <p>F = <strong>9.8 N</strong> [citation:1]</p>
+        </div>
+        
+        <div class="example-box">
+          <h4>📝 Solved Example: Force Between Two Small Spheres</h4>
+          <p><strong>Question:</strong> What is the force of gravitation between two point masses of 1 kg and 2 kg kept 1 m apart?</p>
+          <p><strong>Solution:</strong> F = (6.67 × 10⁻¹¹ × 1 × 2) / (1)² = <strong>13.34 × 10⁻¹¹ N</strong>. This is an extremely small force [citation:4].</p>
+        </div>
+        
+        <h3>Important Conceptual Points</h3>
+        <ul>
+          <li><strong>Equal Force:</strong> The Earth attracts the Moon with the same force with which the Moon attracts the Earth [citation:1].</li>
+          <li><strong>Why doesn't Earth move towards Moon?</strong> Because the Earth's mass is much larger, its acceleration (a = F/M) is negligible. The Moon accelerates much more [citation:1].</li>
+          <li><strong>Why don't we feel gravitational force between small objects?</strong> Because G is extremely small, the force between ordinary objects is negligible.</li>
+        </ul>
+      </section>
+      
+      <!-- SECTION: FREE FALL -->
+      <section id='freefall'>
+        <h2>2. Free Fall and Acceleration Due to Gravity (g)</h2>
+        
+        <h3>What is Free Fall?</h3>
+        <p>When an object falls towards the Earth under the influence of gravitational force alone (without any air resistance), the motion is called <strong>free fall</strong> [citation:1].</p>
+        
+        <h3>Acceleration Due to Gravity (g)</h3>
+        <p>When an object is in free fall, it experiences an acceleration due to the Earth's gravitational pull. This acceleration is called <strong>acceleration due to gravity (g)</strong>.</p>
+        
+        <div class='formula-box-custom'>
+          g = G × M / R²
+        </div>
+        
+        <p>Where:</p>
+        <ul>
+          <li><strong>M</strong> = Mass of the Earth = 6 × 10²⁴ kg</li>
+          <li><strong>R</strong> = Radius of the Earth = 6.4 × 10⁶ m</li>
+          <li><strong>G</strong> = 6.67 × 10⁻¹¹ N m²/kg²</li>
+        </ul>
+        
+        <p>The value of <strong>g on the surface of the Earth is 9.8 m/s²</strong> [citation:1].</p>
+        
+        <h3>Key Points About g</h3>
+        <ul>
+          <li><strong>g is independent of mass:</strong> A heavy object does NOT fall faster than a light object (in the absence of air resistance). Both fall with the same acceleration [citation:1].</li>
+          <li><strong>g varies with location:</strong> It is maximum at the poles and minimum at the equator. It decreases with height and depth.</li>
+          <li><strong>g on Moon:</strong> The value of g on the Moon is about 1/6th of its value on Earth (≈ 1.63 m/s²).</li>
+        </ul>
+        
+        <div class="key-memorize">
+          <strong>🎯 Important:</strong> The equations of motion (v = u + at, s = ut + ½at², v² = u² + 2as) can be used for freely falling bodies by replacing <strong>a</strong> with <strong>g</strong>. For upward motion, g is taken as negative (−g). For downward motion, g is taken as positive (+g) [citation:4].
+        </div>
+        
+        <div class="example-box">
+          <h4>📝 Solved Example: Velocity of a Falling Ball</h4>
+          <p><strong>Question:</strong> A ball is dropped from the top of a tower 40 m high. What is its velocity when it has covered 20 m? (Take g = 10 m/s²)</p>
+          <p><strong>Solution:</strong> u = 0, a = g = 10 m/s², s = 20 m</p>
+          <p>v² = u² + 2as = 0 + 2 × 10 × 20 = 400</p>
+          <p>v = <strong>20 m/s</strong> [citation:4]</p>
+        </div>
+        
+        <div class="example-box">
+          <h4>📝 Solved Example: Ball Thrown Upwards</h4>
+          <p><strong>Question:</strong> A particle is thrown up vertically with a velocity of 50 m/s. (a) What is its velocity at the highest point? (b) How high does it rise? (c) What time does it take to reach the highest point?</p>
+          <p><strong>Solution:</strong></p>
+          <ul>
+            <li>(a) At the highest point, velocity = <strong>0</strong> [citation:3]</li>
+            <li>(b) v² = u² − 2gs → 0 = 50² − 2 × 9.8 × s → s = <strong>127.5 m</strong></li>
+            <li>(c) v = u − gt → 0 = 50 − 9.8t → t = <strong>5.1 s</strong> [citation:4]</li>
+          </ul>
+        </div>
+        
+        <div class="example-box">
+          <h4>📝 Solved Example: Value of g at Height</h4>
+          <p><strong>Question:</strong> Calculate the value of g at a height of 3200 km from the Earth's surface. (Me = 6 × 10²⁴ kg, Re = 6400 km)</p>
+          <p><strong>Solution:</strong> r = Re + h = 6400 + 3200 = 9600 km = 9.6 × 10⁶ m</p>
+          <p>g = GM/r² = (6.67 × 10⁻¹¹ × 6 × 10²⁴) / (9.6 × 10⁶)²</p>
+          <p>g = <strong>4.3 m/s²</strong> [citation:10]</p>
+        </div>
+      </section>
+      
+      <!-- SECTION: MASS AND WEIGHT -->
+      <section id='massweight'>
+        <h2>3. Mass and Weight</h2>
+        
+        <h3>Mass</h3>
+        <p><strong>Mass</strong> is the quantity of matter contained in a body. It is a measure of the body's inertia [citation:3].</p>
+        <ul>
+          <li>Mass is a <strong>scalar quantity</strong> (only magnitude)</li>
+          <li>SI unit: <strong>kilogram (kg)</strong></li>
+          <li>Mass remains <strong>constant everywhere</strong> in the universe</li>
+        </ul>
+        
+        <h3>Weight</h3>
+        <p><strong>Weight</strong> is the force with which the Earth attracts an object. It is the gravitational force acting on the body [citation:3].</p>
+        <div class='formula-box-custom'>W = m × g</div>
+        <ul>
+          <li>Weight is a <strong>vector quantity</strong> (directed towards the centre of the Earth)</li>
+          <li>SI unit: <strong>Newton (N)</strong></li>
+          <li>Weight <strong>varies</strong> from place to place (depends on g)</li>
+        </ul>
+        
+        <h3>Comparison: Mass vs Weight</h3>
+        <table class="comparison-table">
+          <tr><th>Mass</th><th>Weight</th></tr>
+          <tr><td>Quantity of matter</td><td>Force of gravity on the object</td></tr>
+          <tr><td>Scalar quantity</td><td>Vector quantity</td></tr>
+          <tr><td>SI unit: kg</td><td>SI unit: N</td></tr>
+          <tr><td>Constant everywhere</td><td>Varies with location</td></tr>
+          <tr><td>Measured by beam balance</td><td>Measured by spring balance</td></tr>
+        </table>
+        
+        <h3>Weight on the Moon</h3>
+        <p>The mass of the Moon is much less than the Earth's mass, and its radius is about 1/4th of Earth's radius. Due to this, the value of g on the Moon is about <strong>1/6th</strong> of its value on Earth [citation:3].</p>
+        
+        <div class="key-memorize">
+          <strong>📌 Key Point:</strong> Weight on Moon = (1/6) × Weight on Earth. For example, if your weight on Earth is 60 N, on the Moon it will be 10 N.
+        </div>
+        
+        <div class="example-box">
+          <h4>📝 Solved Example: Weight on Neptune</h4>
+          <p><strong>Question:</strong> The ratio of gravitational force on Neptune to the gravitational force on Earth is 9:8. Ramesh weighs 792 N on Earth. Calculate his weight on Neptune.</p>
+          <p><strong>Solution:</strong> Weight on Neptune = (9/8) × 792 = <strong>891 N</strong> [citation:3]</p>
+        </div>
+        
+        <div class="example-box">
+          <h4>📝 Solved Example: Weight on a Different Planet</h4>
+          <p><strong>Question:</strong> The weight of a body on the surface of the Earth is 392 N. What will be its weight on a planet whose mass is double that of Earth and radius is four times that of Earth?</p>
+          <p><strong>Solution:</strong> g_planet / g_earth = (M_p/M_e) × (R_e/R_p)² = 2 × (1/4)² = 2/16 = 1/8</p>
+          <p>Weight on planet = 392 × (1/8) = <strong>49 N</strong> [citation:6]</p>
+        </div>
+      </section>
+      
+      <!-- SECTION: THRUST AND PRESSURE -->
+      <section id='thrust'>
+        <h2>4. Thrust and Pressure</h2>
+        
+        <h3>Thrust</h3>
+        <p><strong>Thrust</strong> is the force acting on a body perpendicular to its surface. It is a vector quantity and its SI unit is <strong>Newton (N)</strong> [citation:5].</p>
+        
+        <h3>Pressure</h3>
+        <p><strong>Pressure</strong> is the thrust per unit area. It is a scalar quantity [citation:5].</p>
+        <div class='formula-box-custom'>Pressure = Thrust / Area &nbsp;&nbsp;|&nbsp;&nbsp; SI Unit: Pascal (Pa)</div>
+        
+        <p><strong>1 Pascal</strong> = 1 N/m². It is the pressure exerted when a force of 1 N acts on an area of 1 m² [citation:3].</p>
+        
+        <h3>Effect of Area on Pressure</h3>
+        <table class="comparison-table">
+          <tr><th>Area</th><th>Pressure</th><th>Example</th></tr>
+          <tr><td>Smaller area</td><td>Larger pressure</td><td>Nail has a pointed tip</td></tr>
+          <tr><td>Larger area</td><td>Smaller pressure</td><td>Buildings have wide foundations</td></tr>
+        </table>
+        
+        <div class="example-box">
+          <h4>📝 Solved Example: Pressure Calculation</h4>
+          <p><strong>Question:</strong> A force of 200 N is applied perpendicular to a surface having an area of 4 square metres. Calculate the pressure.</p>
+          <p><strong>Solution:</strong> Pressure = Thrust/Area = 200/4 = <strong>50 Pa</strong> [citation:4]</p>
+        </div>
+      </section>
+      
+      <!-- SECTION: BUOYANCY -->
+      <section id='buoyancy'>
+        <h2>5. Buoyancy and Archimedes' Principle</h2>
+        
+        <h3>Buoyancy (Upthrust)</h3>
+        <p>When a body is partially or wholly immersed in a fluid (liquid or gas), it experiences an upward force. This upward force is called <strong>buoyant force</strong> or <strong>upthrust</strong>. The phenomenon is called <strong>buoyancy</strong> [citation:5][citation:8].</p>
+        
+        <h3>Factors Affecting Buoyant Force</h3>
+        <p>The buoyant force depends on [citation:2]:</p>
+        <ul>
+          <li><strong>Volume of the body submerged:</strong> Greater the volume submerged, greater the upthrust.</li>
+          <li><strong>Density of the fluid:</strong> Greater the density of the fluid, greater the upthrust.</li>
+        </ul>
+        
+        <h3>Why Does Buoyancy Occur?</h3>
+        <p>Pressure in a liquid increases with depth. The pressure on the bottom of a submerged object is greater than the pressure on the top. This pressure difference creates a net upward force — the upthrust [citation:2].</p>
+        
+        <h3>Archimedes' Principle</h3>
+        <div class="key-memorize">
+          <strong>Archimedes' Principle:</strong> When an object is immersed wholly or partially in a fluid, it experiences an upthrust which is equal to the weight of the fluid displaced by it [citation:2][citation:5].
+        </div>
+        <div class='formula-box-custom'>
+          Buoyant Force = Weight of Fluid Displaced = ρ × V × g
+        </div>
+        
+        <h3>Conditions for Floating and Sinking</h3>
+        <table class="comparison-table">
+          <tr><th>Condition</th><th>Result</th></tr>
+          <tr><td>Weight of body < Buoyant force (W < F<sub>B</sub>)</td><td>Body floats (partially submerged)</td></tr>
+          <tr><td>Weight of body = Buoyant force (W = F<sub>B</sub>)</td><td>Body floats (fully submerged)</td></tr>
+          <tr><td>Weight of body > Buoyant force (W > F<sub>B</sub>)</td><td>Body sinks [citation:2]</td></tr>
+        </table>
+        
+        <h3>Why Does a Ship Float but a Steel Needle Sinks?</h3>
+        <p>A steel needle sinks because the density of steel is greater than the density of water. A ship is made of steel but is given a hollow shape. This increases the volume of water displaced, making the effective density of the ship less than that of water. Hence, the buoyant force becomes greater than the weight of the ship, and it floats [citation:3].</p>
+        
+        <div class="example-box">
+          <h4>📝 Solved Example: Will a Plastic Bottle Float?</h4>
+          <p><strong>Question:</strong> A plastic bottle of 500 g has a volume of 450 cm³. Will it float or sink in water? (Density of water = 1 g/cm³)</p>
+          <p><strong>Solution:</strong> Density of bottle = 500/450 = 1.11 g/cm³</p>
+          <p>Since density of bottle (1.11 g/cm³) > density of water (1 g/cm³), the bottle will <strong>sink</strong> [citation:4].</p>
+        </div>
+      </section>
+      
+      <!-- SECTION: DENSITY -->
+      <section id='density'>
+        <h2>6. Density and Relative Density</h2>
+        
+        <h3>Density</h3>
+        <p><strong>Density</strong> of a substance is defined as its mass per unit volume [citation:2].</p>
+        <div class='formula-box-custom'>Density (ρ) = Mass (M) / Volume (V)</div>
+        <ul>
+          <li>SI unit: <strong>kg/m³</strong></li>
+          <li>CGS unit: <strong>g/cm³</strong></li>
+          <li>1 g/cm³ = 1000 kg/m³ [citation:3]</li>
+        </ul>
+        
+        <h3>Relative Density</h3>
+        <p><strong>Relative Density</strong> of a substance is the ratio of its density to the density of water at 4°C [citation:2].</p>
+        <div class='formula-box-custom'>Relative Density = Density of substance / Density of water</div>
+        <ul>
+          <li>Relative density has <strong>no unit</strong> (it is a ratio)</li>
+          <li>If relative density > 1, the substance sinks in water</li>
+          <li>If relative density < 1, the substance floats in water</li>
+        </ul>
+        
+        <div class="example-box">
+          <h4>📝 Solved Example: Density Conversion</h4>
+          <p><strong>Question:</strong> The density of an object is 1.8 g/cm³. Express it in kg/m³.</p>
+          <p><strong>Solution:</strong> 1 g/cm³ = 1000 kg/m³</p>
+          <p>1.8 g/cm³ = 1.8 × 1000 = <strong>1800 kg/m³</strong> [citation:3]</p>
+        </div>
+        
+        <div class="example-box">
+          <h4>📝 Solved Example: Density of Iron</h4>
+          <p><strong>Question:</strong> The relative density of iron is 7. Calculate the density of iron in SI units. (Density of water = 1000 kg/m³)</p>
+          <p><strong>Solution:</strong> Density of iron = Relative Density × Density of water = 7 × 1000 = <strong>7000 kg/m³</strong> [citation:4]</p>
+        </div>
+      </section>
+      
+      <!-- INTERACTIVE: PROJECTILE MOTION SIMULATOR -->
+      <div class="interactive-card">
+        <h3>Interactive: Projectile Motion Simulator</h3>
+        <p>Fire a projectile under gravity. Adjust velocity and angle to see the trajectory!</p>
+        <div class="canvas-container"><canvas id="projCanvas" width="500" height="300"></canvas></div>
+        <div class="controls">
+          <div class="control-group"><label>Velocity: <span id="vVal">50</span> m/s</label><input type="range" id="vRange" min="10" max="100" value="50"></div>
+          <div class="control-group"><label>Angle: <span id="angVal">45</span>°</label><input type="range" id="angRange" min="10" max="80" value="45"></div>
+        </div>
+      </div>
+      
+      <!-- INTERACTIVE: GRAVITATIONAL FORCE CALCULATOR -->
+      <div class="interactive-card">
+        <h3>Interactive: Gravitational Force Calculator</h3>
+        <p>Change masses and distance to see how the gravitational force changes.</p>
+        <div class="controls">
+          <div class="control-group"><label>Mass 1 (M): <span id="m1Val">6</span> × 10²⁴ kg</label><input type="range" id="m1Range" min="1" max="100" value="6"></div>
+          <div class="control-group"><label>Mass 2 (m): <span id="m2Val">1</span> kg</label><input type="range" id="m2Range" min="1" max="100" value="1"></div>
+          <div class="control-group"><label>Distance (d): <span id="dVal">6.4</span> × 10⁶ m</label><input type="range" id="dRange" min="1" max="50" value="6.4"></div>
+          <div style="text-align:center;font-weight:bold;margin-top:10px;background:#eef2ff;padding:10px;border-radius:8px;">Force: <span id="forceResult">9.8</span> N</div>
+        </div>
+      </div>
+
+      <!-- SECTION: PYQs -->
+      <section id="pyqs">
+        <h2>Most Repeated Previous Year Questions</h2>
+        <div class="pyq-box">
+          <h3>Short Answer (1-2 Marks)</h3>
+          <ol>
+            <li>State the universal law of gravitation. (2 Marks) <span class="badge-mostimp">Most Imp</span></li>
+            <li>Why is G called a universal constant? (1 Mark) [citation:3]</li>
+            <li>Define 1 Pascal. (1 Mark) [citation:3]</li>
+            <li>What is the SI unit of pressure? (1 Mark) [citation:3]</li>
+            <li>Why does a man feel lighter on the Moon than on Earth? (2 Marks) [citation:3]</li>
+            <li>Mass is scalar but weight is a vector. Why? (2 Marks) [citation:3]</li>
+            <li>A ball is thrown vertically upwards. What is its velocity at the highest point? (1 Mark) [citation:3]</li>
+            <li>What is force of buoyancy? (1 Mark) [citation:3]</li>
+            <li>Name the force responsible for the stability of our universe. (1 Mark) [citation:3]</li>
+          </ol>
+          
+          <h3 style="margin-top: 1.5rem;">Numericals (3 Marks)</h3>
+          <ol start="10">
+            <li>Differentiate between mass and weight. (3 Marks) <span class="badge-mostimp">Most Imp</span></li>
+            <li>Why is the weight of an object on the Moon 1/6th its weight on Earth? (2 Marks) [citation:3]</li>
+            <li>A steel needle sinks in water but a steel ship floats. Explain. (3 Marks) [citation:3]</li>
+            <li>The ratio of gravitational force on Neptune to Earth is 9:8. Ramesh weighs 792 N on Earth. Calculate his weight on Neptune. (3 Marks) [citation:3]</li>
+            <li>The value of g on Earth's surface is 9.8 m/s². Suppose Earth shrinks to one-third of its present size without losing mass. What is the new value of g? (3 Marks) [citation:3]</li>
+            <li>The gravitational force between two small spheres is F. What happens if masses of both spheres and the distance between them are doubled? (2 Marks) [citation:3]</li>
+            <li>A sealed tin of Coca Cola of 400 g has a volume of 300 cm³. Calculate the density of the tin. (2 Marks) [citation:4]</li>
+            <li>A force of 200 N is applied perpendicular to a surface having an area of 4 m². Calculate the pressure. (2 Marks) [citation:4]</li>
+          </ol>
+          
+          <h3 style="margin-top: 1.5rem;">Long Answer (5 Marks)</h3>
+          <ol start="18">
+            <li>State and explain the Universal Law of Gravitation. Derive the expression for g. </li>
+            <li>State Archimedes' Principle. Describe an experiment to verify it. </li>
+            <li>Explain the conditions for a body to float or sink in a fluid. </li>
+          </ol>
+        </div>
+      </section>
+      
+      <!-- QUICK REVISION -->
       <section id="quick-revision">
         <h2>Quick Revision - At a Glance</h2>
         <div class="key-memorize">
-          <strong>🎯 Key Tips:</strong><br>
-          <li>G is constant everywhere, g varies with height and depth.</li><li>Equations of motion can be used for freely falling bodies by replacing 'a' with 'g'.</li>
+          <strong>🎯 Key Takeaways:</strong>
+          <ul>
+            <li><strong>Universal Law of Gravitation:</strong> F = G(Mm)/d²</li>
+            <li><strong>G</strong> = 6.67 × 10⁻¹¹ N m²/kg² (constant everywhere)</li>
+            <li><strong>g</strong> = GM/R² = 9.8 m/s² on Earth's surface</li>
+            <li><strong>Mass</strong> = scalar, constant; <strong>Weight</strong> = vector, varies (W = mg)</li>
+            <li><strong>Weight on Moon</strong> = (1/6) × Weight on Earth</li>
+            <li><strong>Pressure</strong> = Thrust/Area; SI unit: Pascal (Pa)</li>
+            <li><strong>Archimedes' Principle:</strong> Buoyant force = Weight of fluid displaced</li>
+            <li><strong>Relative Density</strong> = Density of substance / Density of water (no unit)</li>
+            <li>Equations of motion for free fall: replace a with g</li>
+          </ul>
         </div>
       </section>
     </div>
@@ -165,6 +506,7 @@
       </div>
     </div>
   </footer>
+  
   <script>
     window.addEventListener('load', () => {
       const preloader = document.getElementById('preloader');
@@ -172,46 +514,70 @@
     });
   </script>
   
-        <script>
-          const pCanv = document.getElementById('projCanvas');
-          const pCtx = pCanv.getContext('2d');
-          function drawProj() {
-            let v = parseInt(document.getElementById('vRange').value);
-            let ang = parseInt(document.getElementById('angRange').value);
-            document.getElementById('vVal').innerText = v;
-            document.getElementById('angVal').innerText = ang;
-            
-            pCtx.clearRect(0,0,500,300);
-            
-            // Draw grid
-            pCtx.strokeStyle = "#e2e8f0"; pCtx.lineWidth = 1;
-            for(let i=0; i<500; i+=50) { pCtx.beginPath(); pCtx.moveTo(i, 0); pCtx.lineTo(i, 300); pCtx.stroke(); }
-            
-            // Draw ground
-            pCtx.fillStyle = "#22c55e"; pCtx.fillRect(0, 290, 500, 10);
-            
-            // Draw trajectory
-            pCtx.beginPath();
-            pCtx.moveTo(10, 290);
-            let rad = ang * Math.PI / 180;
-            let g = 9.8;
-            for(let t=0; t<20; t+=0.1) {
-              let x = 10 + (v * Math.cos(rad) * t);
-              let y = 290 - (v * Math.sin(rad) * t - 0.5 * g * t * t);
-              if (y > 290 && t > 0.1) {
-                pCtx.lineTo(x, 290);
-                break;
-              }
-              pCtx.lineTo(x, y);
-            }
-            pCtx.strokeStyle = '#ef4444'; 
-            pCtx.lineWidth = 3;
-            pCtx.stroke();
-          }
-          document.getElementById('vRange').oninput = drawProj;
-          document.getElementById('angRange').oninput = drawProj;
-          drawProj();
-        </script>
-        
+  <!-- Projectile Motion Script -->
+  <script>
+    const pCanv = document.getElementById('projCanvas');
+    const pCtx = pCanv.getContext('2d');
+    
+    function drawProj() {
+      let v = parseInt(document.getElementById('vRange').value);
+      let ang = parseInt(document.getElementById('angRange').value);
+      document.getElementById('vVal').innerText = v;
+      document.getElementById('angVal').innerText = ang;
+      
+      pCtx.clearRect(0,0,500,300);
+      
+      // Draw grid
+      pCtx.strokeStyle = "#e2e8f0"; pCtx.lineWidth = 1;
+      for(let i=0; i<500; i+=50) { pCtx.beginPath(); pCtx.moveTo(i, 0); pCtx.lineTo(i, 300); pCtx.stroke(); }
+      
+      // Draw ground
+      pCtx.fillStyle = "#22c55e"; pCtx.fillRect(0, 290, 500, 10);
+      
+      // Draw trajectory
+      pCtx.beginPath();
+      pCtx.moveTo(10, 290);
+      let rad = ang * Math.PI / 180;
+      let g = 9.8;
+      for(let t=0; t<20; t+=0.1) {
+        let x = 10 + (v * Math.cos(rad) * t);
+        let y = 290 - (v * Math.sin(rad) * t - 0.5 * g * t * t);
+        if (y > 290 && t > 0.1) {
+          pCtx.lineTo(x, 290);
+          break;
+        }
+        pCtx.lineTo(x, y);
+      }
+      pCtx.strokeStyle = '#ef4444'; 
+      pCtx.lineWidth = 3;
+      pCtx.stroke();
+    }
+    
+    document.getElementById('vRange').oninput = drawProj;
+    document.getElementById('angRange').oninput = drawProj;
+    drawProj();
+  </script>
+
+  <!-- Gravitational Force Calculator Script -->
+  <script>
+    function updateGravity() {
+      let M = parseFloat(document.getElementById('m1Range').value) * Math.pow(10, 24);
+      let m = parseFloat(document.getElementById('m2Range').value);
+      let d = parseFloat(document.getElementById('dRange').value) * Math.pow(10, 6);
+      let G = 6.67e-11;
+      
+      let F = G * M * m / (d * d);
+      
+      document.getElementById('m1Val').innerText = (M / 1e24).toFixed(0);
+      document.getElementById('m2Val').innerText = m;
+      document.getElementById('dVal').innerText = (d / 1e6).toFixed(1);
+      document.getElementById('forceResult').innerText = F.toFixed(2);
+    }
+    
+    document.getElementById('m1Range').oninput = updateGravity;
+    document.getElementById('m2Range').oninput = updateGravity;
+    document.getElementById('dRange').oninput = updateGravity;
+    updateGravity();
+  </script>
 </body>
 </html>

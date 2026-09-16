@@ -8,12 +8,12 @@
   <meta name="keywords" content="class 9 science chapter 11, Work and Energy, NCERT notes, board exam">
   <meta name="author" content="NeoBranium">
   <meta name="robots" content="index, follow">
-  
+
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
   <link rel="stylesheet" href="../index_css.css">
   <link rel="stylesheet" href="notes.css">
-  
+
   <style>
     .highlight-box { background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%); border-left: 5px solid #f59e0b; padding: 1.2rem; margin: 1.5rem 0; border-radius: 12px; }
     .repeated-tag { display: inline-block; background: #dc2626; color: white; font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 30px; margin-left: 0.75rem; vertical-align: middle; }
@@ -27,7 +27,7 @@
     .controls { display: flex; flex-direction: column; gap: 1rem; max-width: 400px; margin: 0 auto; background: #f1f5f9; padding: 1rem; border-radius: 8px;}
     .control-group { display: flex; justify-content: space-between; align-items: center; }
     .control-group input[type="range"] { flex-grow: 1; margin-left: 1rem; }
-    
+
     .chapter-summary-footer { background: #f8fafc; margin-top: 4rem; padding: 2rem 1rem 1rem; }
     .footer-chapter-container { max-width: 1400px; margin: 0 auto; }
     .footer-chapter-heading { font-size: 1.8rem; text-align: center; margin-bottom: 0.5rem; color: #0f172a; }
@@ -70,76 +70,209 @@
     <aside class="notes-sidebar">
       <div class="sidebar-content">
         <h3>📖 Chapter Contents</h3>
-        <ul><li><a href='#work'>Work</a></li><li><a href='#energy'>Energy (KE & PE)</a></li><li><a href='#power'>Power</a></li></ul>
+        <ul>
+          <li><a href='#work'>1. Work Done</a></li>
+          <li><a href='#energy'>2. Energy (KE & PE)</a></li>
+          <li><a href='#power'>3. Power</a></li>
+          <li><a href='#pyqs'>4. Previous Year Questions</a></li>
+        </ul>
       </div>
     </aside>
     <div class="notes-container">
       <nav class="breadcrumb"><a href="../index.html">Home</a> / <a href="class9-science-dir.html">Notes</a> / Chapter 11: Work and Energy</nav>
+
+      <!-- INTRO SECTION -->
       <section id="intro">
         <h1>Work and Energy <span class="repeated-tag">High Weightage Chapter</span></h1>
-        <div class="highlight-box"><i class="fas fa-star" style="color:#f59e0b;"></i> <strong>Why this chapter is important?</strong> Understanding conservation of energy is crucial. Numerical questions on Kinetic and Potential energy are very common.</div>
-      </section>
-      
-      
-        <section id='work'>
-            <h2>1. Work Done</h2>
-            <p>Work is said to be done when a force acts on an object and the object is displaced in the direction of the force.</p>
-            <div class='formula-box-custom'>W = F × s</div>
-            <p>SI unit of work is <strong>Joule (J)</strong>.</p>
-        </section>
-        <section id='energy'>
-            <h2>2. Kinetic and Potential Energy</h2>
-            <p><strong>Kinetic Energy (K.E.):</strong> Energy possessed by an object due to its motion.</p>
-            <div class='formula-box-custom'>K.E. = ½ m v²</div>
-            <p><strong>Potential Energy (P.E.):</strong> Energy possessed by an object due to its position or shape.</p>
-            <div class='formula-box-custom'>P.E. = m × g × h</div>
-        </section>
-        <section id='power'>
-            <h2>3. Power</h2>
-            <p>Power is defined as the rate of doing work or the rate of transfer of energy.</p>
-            <div class='formula-box-custom'>P = W / t</div>
-            <p>SI unit of power is <strong>Watt (W)</strong>. 1 kW = 1000 W. Commercial unit of energy is kWh (1 kWh = 3.6 × 10⁶ J).</p>
-        </section>
-        
-      
-      
-        <div class="interactive-card">
-          <h3>Interactive: Energy Conservation Pendulum</h3>
-          <p>Watch how Kinetic Energy (Red) and Potential Energy (Blue) convert into each other as the pendulum swings.</p>
-          <div class="canvas-container" style="display:flex; justify-content:space-around; align-items:flex-end; height:200px; padding:20px; background:#f8fafc;">
-             <div style="text-align:center; width: 60px;">
-                <div style="width:100%; background:#3b82f6; height:100%; border-radius:4px 4px 0 0;" id="peBar"></div>
-                <strong>PE</strong>
-             </div>
-             <div style="text-align:center; width: 60px;">
-                <div style="width:100%; background:#ef4444; height:0%; border-radius:4px 4px 0 0;" id="keBar"></div>
-                <strong>KE</strong>
-             </div>
-             <div style="text-align:center; width: 60px;">
-                <div style="width:100%; background:#10b981; height:100%; border-radius:4px 4px 0 0;"></div>
-                <strong>Total</strong>
-             </div>
-          </div>
-          <div style="text-align:center; margin-top:1rem;">
-             <button onclick="startSwing()" style="background:#10b981;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-weight:bold;">Start Swing</button>
-          </div>
+        <div class="highlight-box">
+          <i class="fas fa-star" style="color:#f59e0b;"></i>
+          <strong>Why this chapter is important?</strong> Understanding the conservation of energy is crucial. Numerical questions on Kinetic and Potential energy are very common in board exams.
         </div>
-        
+      </section>
 
+      <!-- WORK SECTION -->
+      <section id='work'>
+        <h2>1. Work Done</h2>
+        <p>In physics, work is said to be done when a force acts on an object and the object is displaced in the direction of the force [citation:2].</p>
+
+        <div class='formula-box-custom'>
+          W = F × s × cos θ
+        </div>
+        <p>Where:</p>
+        <ul>
+          <li><strong>F</strong> = Force applied (Newton)</li>
+          <li><strong>s</strong> = Displacement (meter)</li>
+          <li><strong>θ</strong> = Angle between force and displacement</li>
+        </ul>
+
+        <h3>Special Cases of Work</h3>
+        <ul>
+          <li><strong>Positive Work:</strong> When θ = 0°, force and displacement are in the same direction. Example: Pushing a box forward [citation:1].</li>
+          <li><strong>Negative Work:</strong> When θ = 180°, force and displacement are in opposite directions. Example: Friction acting on a moving object [citation:1].</li>
+          <li><strong>Zero Work:</strong> When θ = 90° (force perpendicular to displacement) or when there is no displacement. Example: Carrying a bag while walking horizontally [citation:1].</li>
+        </ul>
+
+        <div class='key-memorize'>
+          <strong>📌 Exam Tip:</strong> Work is a <strong>scalar quantity</strong> — it has magnitude but no direction [citation:12]. The SI unit of work is <strong>Joule (J)</strong>.
+        </div>
+
+        <h3>Definition of 1 Joule</h3>
+        <p>1 Joule of work is said to be done when a force of 1 Newton displaces an object through a distance of 1 meter in the direction of the force [citation:6].</p>
+      </section>
+
+      <!-- ENERGY SECTION -->
+      <section id='energy'>
+        <h2>2. Energy</h2>
+        <p>Energy is defined as the <strong>capacity to do work</strong>. It is a scalar quantity and its SI unit is Joule (J) [citation:1][citation:9].</p>
+
+        <h3>Forms of Energy</h3>
+        <p>Energy exists in various forms: Light, Heat, Chemical, Electrical, and Mechanical. In this chapter, we focus on <strong>Mechanical Energy</strong>, which is the sum of Kinetic and Potential Energy [citation:9][citation:12].</p>
+
+        <!-- KINETIC ENERGY -->
+        <h3>A. Kinetic Energy (K.E.)</h3>
+        <p>Kinetic energy is the energy possessed by an object due to its <strong>motion</strong>. Any moving object — a ball, a car, or a running person — has kinetic energy [citation:1].</p>
+
+        <div class='formula-box-custom'>
+          K.E. = ½ m v²
+        </div>
+        <p>Where:</p>
+        <ul>
+          <li><strong>m</strong> = Mass of the object (kg)</li>
+          <li><strong>v</strong> = Velocity of the object (m/s)</li>
+        </ul>
+
+        <div class='key-memorize'>
+          <strong>🔑 Important Relationship:</strong> If velocity is doubled, Kinetic Energy becomes <strong>4 times</strong> (since v is squared). If velocity is tripled, K.E. becomes <strong>9 times</strong> [citation:6].
+        </div>
+
+        <!-- POTENTIAL ENERGY -->
+        <h3>B. Potential Energy (P.E.)</h3>
+        <p>Potential energy is the energy possessed by an object due to its <strong>position</strong> or <strong>configuration</strong> (shape) [citation:1][citation:5].</p>
+
+        <p>Example: Water stored in a reservoir can rotate a turbine at a lower level. The water possesses energy due to its elevated position [citation:5].</p>
+
+        <div class='formula-box-custom'>
+          P.E. = m × g × h
+        </div>
+        <p>Where:</p>
+        <ul>
+          <li><strong>m</strong> = Mass (kg)</li>
+          <li><strong>g</strong> = Acceleration due to gravity (9.8 m/s²)</li>
+          <li><strong>h</strong> = Height above the ground (m)</li>
+        </ul>
+
+        <!-- WORK-ENERGY THEOREM -->
+        <h3>C. Work-Energy Theorem</h3>
+        <p>The work-energy theorem states that the work done by a force on an object is equal to the <strong>change in its kinetic energy</strong> [citation:1].</p>
+
+        <div class='formula-box-custom'>
+          W = K.E.<sub>final</sub> − K.E.<sub>initial</sub>
+        </div>
+
+        <!-- LAW OF CONSERVATION -->
+        <h3>D. Law of Conservation of Energy</h3>
+        <p>Energy can neither be created nor destroyed; it can only be transformed from one form to another. The total energy of an isolated system always remains constant [citation:1][citation:5].</p>
+
+        <p><strong>Example — A Falling Ball:</strong></p>
+        <ul>
+          <li><strong>At the top:</strong> Only Potential Energy (P.E. = mgh, K.E. = 0)</li>
+          <li><strong>Midway:</strong> P.E. + K.E. (some energy converted)</li>
+          <li><strong>Just before hitting the ground:</strong> Maximum K.E., minimum P.E.</li>
+          <li><strong>Total Energy</strong> = Constant at every point [citation:1]</li>
+        </ul>
+      </section>
+
+      <!-- POWER SECTION -->
+      <section id='power'>
+        <h2>3. Power</h2>
+        <p>Power is defined as the <strong>rate of doing work</strong> or the rate of transfer of energy [citation:6].</p>
+
+        <div class='formula-box-custom'>
+          P = W / t
+        </div>
+        <p>Where:</p>
+        <ul>
+          <li><strong>W</strong> = Work done (Joule)</li>
+          <li><strong>t</strong> = Time taken (second)</li>
+        </ul>
+
+        <p>SI unit of power is <strong>Watt (W)</strong>. 1 Watt = 1 Joule/second [citation:6].</p>
+
+        <h3>Commercial Unit of Energy</h3>
+        <p>In homes and industries, a larger unit called <strong>kilowatt-hour (kWh)</strong> is used. It is also known as 1 "Unit" of electricity [citation:3][citation:7].</p>
+
+        <div class='formula-box-custom'>
+          1 kWh = 1000 W × 3600 s = 3.6 × 10⁶ J
+        </div>
+
+        <div class='key-memorize'>
+          <strong>⚡ Why kWh instead of Joules?</strong> Joules are too small for measuring large amounts of household or industrial energy consumption. kWh makes calculations easier [citation:7].
+        </div>
+      </section>
+
+      <!-- INTERACTIVE PENDULUM -->
+      <div class="interactive-card">
+        <h3>🎯 Interactive: Energy Conservation Pendulum</h3>
+        <p>Watch how Kinetic Energy (Red) and Potential Energy (Blue) convert into each other as the pendulum swings. The Total Energy (Green) remains constant!</p>
+        <div class="canvas-container" style="display:flex; justify-content:space-around; align-items:flex-end; height:200px; padding:20px; background:#f8fafc;">
+           <div style="text-align:center; width: 80px;">
+              <div style="width:100%; background:#3b82f6; height:100%; border-radius:4px 4px 0 0; transition: height 0.1s;" id="peBar"></div>
+              <strong>PE</strong>
+           </div>
+           <div style="text-align:center; width: 80px;">
+              <div style="width:100%; background:#ef4444; height:0%; border-radius:4px 4px 0 0; transition: height 0.1s;" id="keBar"></div>
+              <strong>KE</strong>
+           </div>
+           <div style="text-align:center; width: 80px;">
+              <div style="width:100%; background:#10b981; height:100%; border-radius:4px 4px 0 0;"></div>
+              <strong>Total</strong>
+           </div>
+        </div>
+        <div style="text-align:center; margin-top:1rem;">
+           <button onclick="startSwing()" style="background:#10b981;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-weight:bold;">▶ Start Swing</button>
+           <button onclick="stopSwing()" style="background:#64748b;color:white;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-weight:bold;margin-left:0.5rem;">⏹ Stop</button>
+        </div>
+      </div>
+
+      <!-- PYQs -->
       <section id="pyqs">
         <h2>Most Repeated Previous Year Questions</h2>
-        <div class="pyq-box"><ol>
-            <li>Define 1 Joule of work. (1 Mark)</li>
-            <li>What is the kinetic energy of an object of mass m moving with a velocity v? (1 Mark)</li>
-            <li>Calculate the electricity bill amount for a 100W bulb used for 10 hours a day for 30 days if cost is Rs 5 per kWh. (3 Marks)</li>
-        </ol></div>
+        <div class="pyq-box">
+          <ol>
+            <li>Define 1 Joule of work. <strong>(1 Mark)</strong> — <em>Answer: When 1 N force displaces an object through 1 m in its direction, 1 J work is done.</em></li>
+            <li>What is the kinetic energy of an object of mass m moving with a velocity v? <strong>(1 Mark)</strong> — <em>Answer: K.E. = ½ m v²</em></li>
+            <li>A pair of bullocks exerts a force of 140 N on a plough. The field being ploughed is 15 m long. How much work is done? <strong>(2 Marks)</strong> — <em>Answer: W = F × s = 140 × 15 = 2100 J</em></li>
+            <li>Calculate the electricity bill for a 100W bulb used for 10 hours a day for 30 days if cost is Rs 5 per kWh. <strong>(3 Marks)</strong> — <em>Answer: Energy = 100W × 10h × 30 = 30000 Wh = 30 kWh. Bill = 30 × 5 = Rs 150.</em></li>
+            <li>When a body falls freely towards the earth, what happens to its total energy? <strong>(1 Mark)</strong> — <em>Answer: Remains constant (Law of Conservation of Energy).</em></li>
+            <li>In case of negative work, what is the angle between force and displacement? <strong>(1 Mark)</strong> — <em>Answer: 180°</em></li>
+            <li>A car is accelerated on a levelled road and attains a velocity 4 times its initial velocity. What happens to its potential energy? <strong>(1 Mark)</strong> — <em>Answer: Does not change (height remains constant).</em></li>
+          </ol>
+        </div>
       </section>
-      
+
+      <!-- QUICK REVISION -->
       <section id="quick-revision">
-        <h2>Quick Revision - At a Glance</h2>
+        <h2>Quick Revision — At a Glance</h2>
         <div class="key-memorize">
-          <strong>🎯 Key Tips:</strong><br>
-          <li>Total Mechanical Energy = Kinetic Energy + Potential Energy = Constant (Law of Conservation of Energy).</li><li>Work can be zero if force and displacement are perpendicular.</li>
+          <strong>🎯 Key Formulas to Memorize:</strong><br>
+          <ul>
+            <li><strong>Work:</strong> W = F × s</li>
+            <li><strong>Kinetic Energy:</strong> K.E. = ½ m v²</li>
+            <li><strong>Potential Energy:</strong> P.E. = mgh</li>
+            <li><strong>Work-Energy Theorem:</strong> W = ΔK.E.</li>
+            <li><strong>Power:</strong> P = W / t</li>
+            <li><strong>Commercial Energy:</strong> 1 kWh = 3.6 × 10⁶ J</li>
+          </ul>
+        </div>
+
+        <div class="key-memorize">
+          <strong>🎯 Key Tips for Exam:</strong><br>
+          <ul>
+            <li>Total Mechanical Energy = K.E. + P.E. = Constant (Law of Conservation of Energy).</li>
+            <li>Work can be zero if force and displacement are perpendicular.</li>
+            <li>Work is a scalar quantity — it has no direction.</li>
+            <li>If velocity doubles, Kinetic Energy becomes 4 times.</li>
+          </ul>
         </div>
       </section>
     </div>
@@ -152,54 +285,59 @@
         <div class="subject-section">
           <h3 class="subject-title chemistry-title"><i class="fas fa-flask"></i> Chemistry</h3>
           <div class="chapter-cards">
-            <a href="/Notes/9-CH1.html" class="chapter-jump-card"><div class="card-icon">⚗️</div><div class="card-info"><h4>Ch 1: Matter in Our Surroundings</h4><p>States of matter</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-CH2.html" class="chapter-jump-card"><div class="card-icon">🧪</div><div class="card-info"><h4>Ch 2: Is Matter Around Us Pure</h4><p>Mixtures, solutions</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-CH3.html" class="chapter-jump-card"><div class="card-icon">🔩</div><div class="card-info"><h4>Ch 3: Atoms and Molecules</h4><p>Laws of chemical combination</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-CH4.html" class="chapter-jump-card"><div class="card-icon">🌿</div><div class="card-info"><h4>Ch 4: Structure of the Atom</h4><p>Thomson, Rutherford models</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-CH1.html" class="chapter-jump-card"><div class="card-icon">⚗️</div><div class="card-info"><h4>Ch 1: Matter in Our Surroundings</h4><p>States of matter</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-CH2.html" class="chapter-jump-card"><div class="card-icon">🧪</div><div class="card-info"><h4>Ch 2: Is Matter Around Us Pure</h4><p>Mixtures, solutions</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-CH3.html" class="chapter-jump-card"><div class="card-icon">🔩</div><div class="card-info"><h4>Ch 3: Atoms and Molecules</h4><p>Laws of chemical combination</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-CH4.html" class="chapter-jump-card"><div class="card-icon">🌿</div><div class="card-info"><h4>Ch 4: Structure of the Atom</h4><p>Thomson, Rutherford models</p><span class="jump-badge">Jump →</span></div></a>
           </div>
         </div>
         <div class="subject-section">
           <h3 class="subject-title biology-title"><i class="fas fa-leaf"></i> Biology</h3>
           <div class="chapter-cards">
-            <a href="/Notes/9-BI1.html" class="chapter-jump-card"><div class="card-icon">❤️</div><div class="card-info"><h4>Ch 5: The Fundamental Unit of Life</h4><p>Cell structure</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-BI2.html" class="chapter-jump-card"><div class="card-icon">🧠</div><div class="card-info"><h4>Ch 6: Tissues</h4><p>Plant and animal tissues</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-BI3.html" class="chapter-jump-card"><div class="card-icon">🌱</div><div class="card-info"><h4>Ch 7: Diversity in Living Organisms</h4><p>Classification</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-BI1.html" class="chapter-jump-card"><div class="card-icon">❤️</div><div class="card-info"><h4>Ch 5: The Fundamental Unit of Life</h4><p>Cell structure</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-BI2.html" class="chapter-jump-card"><div class="card-icon">🧠</div><div class="card-info"><h4>Ch 6: Tissues</h4><p>Plant and animal tissues</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-BI3.html" class="chapter-jump-card"><div class="card-icon">🌱</div><div class="card-info"><h4>Ch 7: Diversity in Living Organisms</h4><p>Classification</p><span class="jump-badge">Jump →</span></div></a>
           </div>
         </div>
         <div class="subject-section">
           <h3 class="subject-title physics-title"><i class="fas fa-atom"></i> Physics</h3>
           <div class="chapter-cards">
-            <a href="/Notes/9-PH1.html" class="chapter-jump-card"><div class="card-icon">💡</div><div class="card-info"><h4>Ch 8: Motion</h4><p>Velocity, graphs</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-PH2.html" class="chapter-jump-card"><div class="card-icon">👁️</div><div class="card-info"><h4>Ch 9: Force & Laws of Motion</h4><p>Newton's laws</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-PH3.html" class="chapter-jump-card"><div class="card-icon">⚡</div><div class="card-info"><h4>Ch 10: Gravitation</h4><p>Universal law</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-PH4.html" class="chapter-jump-card"><div class="card-icon">🧲</div><div class="card-info"><h4>Ch 11: Work and Energy</h4><p>Kinetic, potential</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-PH5.html" class="chapter-jump-card"><div class="card-icon">📐</div><div class="card-info"><h4>Ch 12: Sound</h4><p>Propagation, characteristics</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-PH1.html" class="chapter-jump-card"><div class="card-icon">💡</div><div class="card-info"><h4>Ch 8: Motion</h4><p>Velocity, graphs</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-PH2.html" class="chapter-jump-card"><div class="card-icon">👁️</div><div class="card-info"><h4>Ch 9: Force & Laws of Motion</h4><p>Newton's laws</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-PH3.html" class="chapter-jump-card"><div class="card-icon">⚡</div><div class="card-info"><h4>Ch 10: Gravitation</h4><p>Universal law</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-PH4.html" class="chapter-jump-card"><div class="card-icon">🧲</div><div class="card-info"><h4>Ch 11: Work and Energy</h4><p>Kinetic, potential</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-PH5.html" class="chapter-jump-card"><div class="card-icon">📐</div><div class="card-info"><h4>Ch 12: Sound</h4><p>Propagation, characteristics</p><span class="jump-badge">Jump →</span></div></a>
           </div>
         </div>
       </div>
     </div>
   </footer>
+
   <script>
     window.addEventListener('load', () => {
       const preloader = document.getElementById('preloader');
       if(preloader) { setTimeout(() => { preloader.style.opacity = '0'; setTimeout(() => preloader.style.display = 'none', 500); }, 800); }
     });
   </script>
-  
-        <script>
-          let swingInterval;
-          function startSwing() {
-            if(swingInterval) clearInterval(swingInterval);
-            let t = 0;
-            swingInterval = setInterval(()=>{
-              t += 0.1;
-              // Cosine wave for PE (max at ends, min at center)
-              let pe = (Math.cos(t) + 1) * 50; 
-              document.getElementById('peBar').style.height = pe + '%';
-              document.getElementById('keBar').style.height = (100 - pe) + '%';
-            }, 50);
-          }
-        </script>
-        
+
+  <script>
+    let swingInterval;
+    function startSwing() {
+      if(swingInterval) clearInterval(swingInterval);
+      let t = 0;
+      swingInterval = setInterval(()=>{
+        t += 0.08;
+        // Cosine wave for PE (max at ends, min at center)
+        let pe = (Math.cos(t) + 1) * 50;
+        document.getElementById('peBar').style.height = pe + '%';
+        document.getElementById('keBar').style.height = (100 - pe) + '%';
+      }, 50);
+    }
+
+    function stopSwing() {
+      if(swingInterval) clearInterval(swingInterval);
+    }
+  </script>
+
 </body>
 </html>

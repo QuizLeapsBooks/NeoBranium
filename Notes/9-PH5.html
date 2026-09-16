@@ -27,7 +27,7 @@
     .controls { display: flex; flex-direction: column; gap: 1rem; max-width: 400px; margin: 0 auto; background: #f1f5f9; padding: 1rem; border-radius: 8px;}
     .control-group { display: flex; justify-content: space-between; align-items: center; }
     .control-group input[type="range"] { flex-grow: 1; margin-left: 1rem; }
-    
+    .echo-result { background: #dcfce7; padding: 0.8rem; border-radius: 8px; text-align: center; font-weight: 600; color: #166534; margin-top: 0.8rem; }
     .chapter-summary-footer { background: #f8fafc; margin-top: 4rem; padding: 2rem 1rem 1rem; }
     .footer-chapter-container { max-width: 1400px; margin: 0 auto; }
     .footer-chapter-heading { font-size: 1.8rem; text-align: center; margin-bottom: 0.5rem; color: #0f172a; }
@@ -47,6 +47,7 @@
     .jump-badge { font-size: 0.7rem; color: #3b82f6; font-weight: 500; }
     .footer-revision-links { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin: 2rem 0 1rem; }
     .revision-box { background: #eef2ff; padding: 0.75rem 1.2rem; border-radius: 40px; font-size: 0.85rem; color: #1e40af; }
+    .ear-diagram { background: #f1f5f9; border-radius: 12px; padding: 1rem; margin: 1rem 0; }
     @media (max-width: 768px) { .chapter-cards { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -70,61 +71,236 @@
     <aside class="notes-sidebar">
       <div class="sidebar-content">
         <h3>📖 Chapter Contents</h3>
-        <ul><li><a href='#prod'>Production & Propagation</a></li><li><a href='#char'>Characteristics of Sound</a></li><li><a href='#echo'>Reflection & Echo</a></li></ul>
+        <ul>
+          <li><a href='#prod'>Production & Propagation</a></li>
+          <li><a href='#char'>Characteristics of Sound</a></li>
+          <li><a href='#echo'>Reflection & Echo</a></li>
+          <li><a href='#reverb'>Reverberation</a></li>
+          <li><a href='#hearing'>Range of Hearing</a></li>
+          <li><a href='#sonar'>Ultrasound & SONAR</a></li>
+          <li><a href='#ear'>Human Ear</a></li>
+        </ul>
       </div>
     </aside>
     <div class="notes-container">
       <nav class="breadcrumb"><a href="../index.html">Home</a> / <a href="class9-science-dir.html">Notes</a> / Chapter 12: Sound</nav>
       <section id="intro">
         <h1>Sound <span class="repeated-tag">High Weightage Chapter</span></h1>
-        <div class="highlight-box"><i class="fas fa-star" style="color:#f59e0b;"></i> <strong>Why this chapter is important?</strong> Sound characteristics (frequency, amplitude, pitch, loudness) are crucial concepts. Echo numericals are board favorites.</div>
+        <div class="highlight-box"><i class="fas fa-star" style="color:#f59e0b;"></i> <strong>Why this chapter is important?</strong> Sound characteristics (frequency, amplitude, pitch, loudness) are crucial concepts. Echo numericals are board favorites. SONAR and human ear are frequently asked in 3-5 mark questions.</div>
       </section>
-      
-      
-        <section id='prod'>
-            <h2>1. Production and Propagation</h2>
-            <p>Sound is produced by vibrating objects. It is a mechanical wave and needs a material medium (solid, liquid, or gas) to propagate. It cannot travel in vacuum.</p>
-            <p>It propagates through compressions (C) and rarefactions (R) in a medium.</p>
-        </section>
-        <section id='char'>
-            <h2>2. Characteristics of Sound Wave</h2>
-            <p><strong>Frequency (v):</strong> Number of oscillations per second. Unit is Hertz (Hz). Determines the pitch.</p>
-            <p><strong>Amplitude (A):</strong> Maximum displacement of the medium particles. Determines the loudness.</p>
-            <div class='formula-box-custom'>Speed (v) = Wavelength (λ) × Frequency (ν)</div>
-        </section>
-        <section id='echo'>
-            <h2>3. Reflection of Sound and Echo</h2>
-            <p>The sensation of sound persists in our brain for about 0.1 s. To hear a distinct echo, the time interval between the original sound and the reflected one must be at least 0.1s.</p>
-            <div class='formula-box-custom'>Distance = Speed × Time / 2</div>
-        </section>
+
+      <section id='prod'>
+        <h2>1. Production and Propagation of Sound</h2>
+        <p>Sound is a form of energy that produces the sensation of hearing. It is produced by <strong>vibrating objects</strong>. When an object vibrates, it sets the neighbouring particles of the medium into motion, creating a disturbance that travels through the medium [citation:5].</p>
+        <p>Sound is a <strong>mechanical wave</strong> and needs a material medium (solid, liquid, or gas) to propagate. It <strong>cannot travel through vacuum</strong> because there are no particles to carry the vibrations [citation:1].</p>
         
-      
-      
-        <div class="interactive-card">
-          <h3>Interactive: Sound Waveform Visualizer</h3>
-          <p>Change the frequency and amplitude to see how the sound wave changes visually.</p>
-          <div class="canvas-container"><canvas id="waveCanvas" width="500" height="200"></canvas></div>
-          <div class="controls">
-            <div class="control-group"><label>Frequency (Pitch): <span id="fqVal">5</span></label><input type="range" id="fqRange" min="1" max="20" value="5"></div>
-            <div class="control-group"><label>Amplitude (Loudness): <span id="ampVal">50</span></label><input type="range" id="ampRange" min="10" max="100" value="50"></div>
-          </div>
+        <div class="key-memorize">
+          <strong>🧪 Classic Experiment — Bell Jar:</strong> An electric bell is suspended inside an airtight glass jar connected to a vacuum pump. As air is gradually removed, the sound becomes fainter and eventually becomes inaudible, even though the hammer keeps striking. This proves sound needs a medium to travel [citation:2][citation:12].
         </div>
+
+        <h3>How Sound Propagates: Compressions & Rarefactions</h3>
+        <p>When a vibrating object (like a tuning fork) moves forward, it pushes the air molecules ahead, creating a region of <strong>high pressure</strong> called a <strong>Compression (C)</strong>. When it moves backward, it creates a region of <strong>low pressure</strong> called a <strong>Rarefaction (R)</strong> [citation:5][citation:12].</p>
+        <p>As the object vibrates back and forth, a continuous series of compressions and rarefactions travels through the medium. This is how sound waves propagate. The particles of the medium <strong>do not move from one place to another</strong>—they simply oscillate back and forth about their mean positions, passing the disturbance forward.</p>
+
+        <div class="highlight-box">
+          <strong>📌 Key Point:</strong> Sound waves are <strong>longitudinal waves</strong> because the particles of the medium vibrate in the <strong>same direction</strong> as the wave propagates [citation:5][citation:6].
+        </div>
+      </section>
+
+      <section id='char'>
+        <h2>2. Characteristics of Sound Wave</h2>
+        <p>There are four main characteristics of a sound wave:</p>
+
+        <h3>Frequency (ν)</h3>
+        <p>The number of oscillations (vibrations) completed per second is called frequency. Its SI unit is <strong>Hertz (Hz)</strong>. One hertz equals one vibration per second [citation:2][citation:13].</p>
+        <p><strong>Frequency determines the pitch</strong> of the sound. Higher frequency = higher pitch (shrill sound). Lower frequency = lower pitch (deep sound).</p>
+
+        <h3>Amplitude (A)</h3>
+        <p>The maximum displacement of a particle from its mean position is called amplitude. Its unit is <strong>meter (m)</strong> [citation:2].</p>
+        <p><strong>Amplitude determines the loudness</strong> of the sound. Greater amplitude = louder sound. Smaller amplitude = fainter sound [citation:3][citation:10].</p>
+
+        <h3>Time Period (T)</h3>
+        <p>The time taken by two consecutive compressions or rarefactions to cross a fixed point is called the time period. It is the reciprocal of frequency.</p>
+
+        <h3>Wavelength (λ)</h3>
+        <p>The distance between two consecutive compressions or two consecutive rarefactions is called wavelength. It is denoted by the Greek letter lambda (λ). Unit: meter (m).</p>
+
+        <div class='formula-box-custom'>
+          Speed of Sound (v) = Wavelength (λ) × Frequency (ν) &nbsp;&nbsp;|&nbsp;&nbsp; Time Period (T) = 1 / Frequency
+        </div>
+
+        <div class="key-memorize">
+          <strong>🎯 Exam Tip — Loudness vs Pitch:</strong><br>
+          • <strong>Loudness</strong> depends on <strong>Amplitude</strong> (measured in decibels).<br>
+          • <strong>Pitch</strong> depends on <strong>Frequency</strong> (measured in Hz).<br>
+          • <strong>Quality/Timbre</strong> helps you distinguish between sounds of the same pitch and loudness (e.g., identifying a friend's voice in a dark room) [citation:3][citation:5].
+        </div>
+      </section>
+
+      <!-- Interactive: Waveform Visualizer -->
+      <div class="interactive-card">
+        <h3>🎛 Interactive: Sound Waveform Visualizer</h3>
+        <p>Change the frequency (pitch) and amplitude (loudness) to see how the sound wave changes visually.</p>
+        <div class="canvas-container"><canvas id="waveCanvas" width="500" height="200"></canvas></div>
+        <div class="controls">
+          <div class="control-group"><label>Frequency (Pitch): <span id="fqVal">5</span></label><input type="range" id="fqRange" min="1" max="20" value="5"></div>
+          <div class="control-group"><label>Amplitude (Loudness): <span id="ampVal">50</span></label><input type="range" id="ampRange" min="10" max="100" value="50"></div>
+        </div>
+      </div>
+
+      <section id='speed'>
+        <h2>3. Speed of Sound in Different Media</h2>
+        <p>The speed of sound depends on the <strong>elasticity</strong> and <strong>density</strong> of the medium, as well as its <strong>temperature</strong> [citation:2].</p>
         
+        <div class="key-memorize">
+          <strong>📊 Speed Order:</strong> Solids > Liquids > Gases<br>
+          <strong>Reason:</strong> In solids, particles are tightly packed, so vibrations transfer very quickly. In gases, particles are far apart, making sound travel the slowest [citation:8].
+        </div>
+
+        <p><strong>Effect of Temperature:</strong> As temperature increases, the speed of sound in a medium also increases. This is why sound travels faster on a hot summer day than on a cold winter day [citation:6][citation:11].</p>
+
+        <table style="width:100%; border-collapse: collapse; margin: 1rem 0;">
+          <tr style="background: #1e293b; color: white;">
+            <th style="padding: 0.6rem; border: 1px solid #334155;">Medium</th>
+            <th style="padding: 0.6rem; border: 1px solid #334155;">Speed (m/s) at 25°C</th>
+          </tr>
+          <tr><td style="padding: 0.5rem; border: 1px solid #e2e8f0;">Air</td><td style="padding: 0.5rem; border: 1px solid #e2e8f0; text-align:center;">346</td></tr>
+          <tr style="background:#f8fafc;"><td style="padding: 0.5rem; border: 1px solid #e2e8f0;">Water (Sea)</td><td style="padding: 0.5rem; border: 1px solid #e2e8f0; text-align:center;">1531</td></tr>
+          <tr><td style="padding: 0.5rem; border: 1px solid #e2e8f0;">Iron</td><td style="padding: 0.5rem; border: 1px solid #e2e8f0; text-align:center;">5950</td></tr>
+          <tr style="background:#f8fafc;"><td style="padding: 0.5rem; border: 1px solid #e2e8f0;">Aluminium</td><td style="padding: 0.5rem; border: 1px solid #e2e8f0; text-align:center;">6420</td></tr>
+        </table>
+      </section>
+
+      <section id='echo'>
+        <h2>4. Reflection of Sound and Echo</h2>
+        <p>Sound bounces off solid or liquid surfaces just like light. This phenomenon is called <strong>reflection of sound</strong> [citation:2].</p>
+
+        <h3>Laws of Reflection of Sound</h3>
+        <p>Sound follows the same two laws as light [citation:7][citation:9]:</p>
+        <ol>
+          <li>The angle of incidence is equal to the angle of reflection.</li>
+          <li>The incident sound wave, the reflected sound wave, and the normal at the point of incidence all lie in the same plane.</li>
+        </ol>
+
+        <h3>Echo</h3>
+        <p>An echo is the sound heard after reflection from a distant rigid obstacle (like a cliff or a large wall) [citation:13].</p>
+        <p><strong>Condition for hearing a distinct echo:</strong> The time interval between the original sound and the reflected sound must be at least <strong>0.1 seconds</strong> [citation:6].</p>
+        <p>Since speed of sound in air is approximately 344 m/s, the minimum distance required for an echo is:</p>
+        <div class='formula-box-custom'>
+          Distance = Speed × Time / 2 = (344 × 0.1) / 2 = <strong>17.2 meters</strong>
+        </div>
+        <p>So, to hear an echo, the reflecting surface must be at least 17.2 meters away from the source [citation:6].</p>
+
+        <div class="highlight-box">
+          <strong>🔥 Board Favorite Numericals:</strong> A person claps near a cliff and hears the echo after 2 seconds. Distance of cliff = (346 × 2) / 2 = <strong>346 meters</strong>.
+        </div>
+      </section>
+
+      <!-- Interactive: Echo Distance Calculator -->
+      <div class="interactive-card">
+        <h3>🧮 Interactive: Echo Distance Calculator</h3>
+        <p>Enter the time taken for the echo to return. The calculator will show the distance to the reflecting surface (assuming speed of sound = 346 m/s).</p>
+        <div class="controls">
+          <div class="control-group">
+            <label>Time for Echo (seconds):</label>
+            <input type="number" id="echoTime" value="2" step="0.1" min="0.1" style="padding: 0.5rem; border-radius: 6px; border: 1px solid #cbd5e1; width: 120px;">
+          </div>
+          <button onclick="calculateEcho()" style="background: #3b82f6; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer;">Calculate Distance</button>
+          <div class="echo-result" id="echoResult">Distance = 346 meters</div>
+        </div>
+      </div>
+
+      <section id='reverb'>
+        <h2>5. Reverberation</h2>
+        <p><strong>Reverberation</strong> is the persistence of sound due to repeated reflections within a closed space, even after the source has stopped producing sound [citation:4].</p>
+        <p>For example, in an empty room with hard walls, sound keeps bouncing back and forth, making it difficult to hear distinctly.</p>
+        <p><strong>How to reduce reverberation:</strong> By covering walls and ceilings with sound-absorbing materials like <strong>fiber boards, curtains, carpets, and acoustic panels</strong> [citation:3].</p>
+
+        <h3>Practical Applications of Multiple Reflection</h3>
+        <ul>
+          <li><strong>Megaphone / Loudhailer:</strong> A funnel-shaped tube prevents sound from spreading in all directions, sending it in a specific direction [citation:3].</li>
+          <li><strong>Stethoscope:</strong> Uses multiple reflections of sound to transmit body sounds (like heartbeat) to the doctor's ears [citation:3][citation:7].</li>
+          <li><strong>Curved ceilings of concert halls:</strong> Sound waves reflect off curved surfaces and spread uniformly to all corners of the hall [citation:5][citation:6].</li>
+        </ul>
+      </section>
+
+      <section id='hearing'>
+        <h2>6. Range of Hearing</h2>
+        <p>The average human ear can hear sounds with frequencies between <strong>20 Hz and 20,000 Hz (20 kHz)</strong>. This is called the <strong>audible range</strong> [citation:3][citation:5].</p>
+
+        <div class="key-memorize">
+          <strong>🔊 Frequency Ranges:</strong><br>
+          • <strong>Infrasound:</strong> Less than 20 Hz. Produced by earthquakes, volcanoes. Some animals like rhinoceroses and whales use infrasound to communicate [citation:10][citation:13].<br>
+          • <strong>Audible range:</strong> 20 Hz to 20,000 Hz. Humans can hear these.<br>
+          • <strong>Ultrasound:</strong> More than 20,000 Hz. Bats, dolphins, and moths use ultrasound for navigation and communication [citation:6][citation:13].
+        </div>
+
+        <p><strong>Why can't we hear a pendulum's vibrations?</strong> A simple pendulum oscillates at a frequency less than 20 Hz, which is below the audible range, so we cannot hear it [citation:9].</p>
+      </section>
+
+      <section id='sonar'>
+        <h2>7. Applications of Ultrasound and SONAR</h2>
+
+        <h3>Medical and Industrial Uses of Ultrasound</h3>
+        <ul>
+          <li><strong>Echocardiography:</strong> Ultrasound reflects from various parts of the heart to form an image of the heart [citation:6].</li>
+          <li><strong>Ultrasonography:</strong> Used to examine organs, detect abnormalities, and monitor foetal development during pregnancy [citation:6].</li>
+          <li><strong>Industrial flaw detection:</strong> Ultrasound is used to detect cracks and flaws in metal blocks without damaging them [citation:6].</li>
+        </ul>
+
+        <h3>SONAR — Sound Navigation and Ranging</h3>
+        <p>SONAR is a technique that uses <strong>ultrasonic waves</strong> to measure the depth of the sea, locate underwater objects like submarines, icebergs, and sunken ships [citation:6][citation:15].</p>
+        <p><strong>Working Principle:</strong> A transmitter on a ship emits ultrasonic pulses into the water. These pulses reflect off the seabed or objects and return to a detector. The time interval between emission and reception is recorded.</p>
+        <div class='formula-box-custom'>
+          Depth (d) = (Speed of Sound in Water × Time) / 2
+        </div>
+        <p>The factor of 2 is used because the sound travels to the object and back [citation:5].</p>
+      </section>
+
+      <section id='ear'>
+        <h2>8. Structure of the Human Ear</h2>
+        <p>The human ear is a remarkable organ that converts sound wave pressure variations into electrical signals that the brain interprets as sound [citation:8].</p>
+
+        <div class="ear-diagram">
+          <h3 style="color:#0f172a; margin-bottom:0.8rem;">Parts and Functions:</h3>
+          <ul>
+            <li><strong>Outer Ear (Pinna):</strong> Collects sound waves and directs them into the ear canal.</li>
+            <li><strong>Ear Canal:</strong> Carries sound waves to the eardrum.</li>
+            <li><strong>Eardrum (Tympanic Membrane):</strong> Vibrates when sound waves hit it. These vibrations are passed to the middle ear.</li>
+            <li><strong>Middle Ear (Three tiny bones — Hammer, Anvil, Stirrup):</strong> Amplifies the vibrations and transmits them to the inner ear [citation:8].</li>
+            <li><strong>Inner Ear (Cochlea):</strong> Contains fluid and hair cells. Sound vibrations create pressure waves in the fluid, which stimulate hair cells to generate electrical signals.</li>
+            <li><strong>Auditory Nerve:</strong> Carries electrical signals from the cochlea to the brain, which interprets them as sound.</li>
+          </ul>
+        </div>
+      </section>
 
       <section id="pyqs">
         <h2>Most Repeated Previous Year Questions</h2>
-        <div class="pyq-box"><ol>
-            <li>Explain how sound is produced by your school bell. (2 Marks)</li>
-            <li>A person clapped his hands near a cliff and heard the echo after 2 s. What is the distance of the cliff? (Speed of sound = 346 m/s) (3 Marks)</li>
-            <li>What is the audible range of the average human ear? (1 Mark)</li>
-        </ol></div>
+        <div class="pyq-box">
+          <ol>
+            <li>Explain how sound is produced by your school bell. (2 Marks) <em>[Answer: The bell vibrates when struck, causing compressions and rarefactions in the surrounding air, producing sound.]</em></li>
+            <li>A person clapped his hands near a cliff and heard the echo after 2 s. What is the distance of the cliff? (Speed of sound = 346 m/s) (3 Marks) <em>[Answer: Distance = (346 × 2) / 2 = 346 m]</em></li>
+            <li>What is the audible range of the average human ear? (1 Mark) <em>[Answer: 20 Hz to 20,000 Hz]</em></li>
+            <li>Why are sound waves called mechanical waves? (2 Marks) <em>[Answer: Because they require a material medium (solid, liquid, or gas) for propagation and cannot travel through vacuum.]</em></li>
+            <li>Give two practical applications of reflection of sound waves. (2 Marks) <em>[Answer: (i) Megaphone, (ii) Stethoscope. Also SONAR and curved concert hall ceilings.]</em></li>
+            <li>Distinguish between loudness and intensity of sound. (2 Marks) <em>[Answer: Loudness is the ear's perception (measured in decibels), while intensity is a physical quantity (energy per unit area per second).]</em></li>
+            <li>What is reverberation? How can it be reduced? (2 Marks) <em>[Answer: Persistence of sound due to repeated reflections. Reduced by using sound-absorbing materials like curtains, carpets, and acoustic panels.]</em></li>
+            <li>A stone is dropped from the top of a tower 500 m high into a pond. When is the splash heard at the top? (g = 10 m/s², speed of sound = 340 m/s) (5 Marks) <em>[Answer: Time for stone to fall = 10 s, Time for sound to travel back = 500/340 ≈ 1.47 s, Total ≈ 11.47 s]</em></li>
+          </ol>
+        </div>
       </section>
-      
+
       <section id="quick-revision">
-        <h2>Quick Revision - At a Glance</h2>
+        <h2>Quick Revision — At a Glance</h2>
         <div class="key-memorize">
           <strong>🎯 Key Tips:</strong><br>
-          <li>Speed of sound: Solid > Liquid > Gas.</li><li>Pitch depends on frequency; Loudness depends on amplitude.</li><li>Ultrasound has frequency > 20,000 Hz.</li>
+          <li>Sound is produced by vibrations and travels as longitudinal waves.</li>
+          <li>Speed of sound: Solid > Liquid > Gas.</li>
+          <li>Pitch depends on frequency; Loudness depends on amplitude; Quality/Timbre helps identify voices.</li>
+          <li>Audible range: 20 Hz to 20,000 Hz. Ultrasound: >20,000 Hz. Infrasound: <20 Hz.</li>
+          <li>Minimum distance for echo = 17.2 m (at 25°C in air).</li>
+          <li>SONAR uses ultrasound for underwater navigation and depth measurement.</li>
+          <li>Human ear: Pinna → Ear canal → Eardrum → Middle ear bones → Cochlea → Auditory nerve → Brain.</li>
         </div>
       </section>
     </div>
@@ -137,28 +313,28 @@
         <div class="subject-section">
           <h3 class="subject-title chemistry-title"><i class="fas fa-flask"></i> Chemistry</h3>
           <div class="chapter-cards">
-            <a href="/Notes/9-CH1.html" class="chapter-jump-card"><div class="card-icon">⚗️</div><div class="card-info"><h4>Ch 1: Matter in Our Surroundings</h4><p>States of matter</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-CH2.html" class="chapter-jump-card"><div class="card-icon">🧪</div><div class="card-info"><h4>Ch 2: Is Matter Around Us Pure</h4><p>Mixtures, solutions</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-CH3.html" class="chapter-jump-card"><div class="card-icon">🔩</div><div class="card-info"><h4>Ch 3: Atoms and Molecules</h4><p>Laws of chemical combination</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-CH4.html" class="chapter-jump-card"><div class="card-icon">🌿</div><div class="card-info"><h4>Ch 4: Structure of the Atom</h4><p>Thomson, Rutherford models</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-CH1.html" class="chapter-jump-card"><div class="card-icon">⚗️</div><div class="card-info"><h4>Ch 1: Matter in Our Surroundings</h4><p>States of matter</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-CH2.html" class="chapter-jump-card"><div class="card-icon">🧪</div><div class="card-info"><h4>Ch 2: Is Matter Around Us Pure</h4><p>Mixtures, solutions</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-CH3.html" class="chapter-jump-card"><div class="card-icon">🔩</div><div class="card-info"><h4>Ch 3: Atoms and Molecules</h4><p>Laws of chemical combination</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-CH4.html" class="chapter-jump-card"><div class="card-icon">🌿</div><div class="card-info"><h4>Ch 4: Structure of the Atom</h4><p>Thomson, Rutherford models</p><span class="jump-badge">Jump →</span></div></a>
           </div>
         </div>
         <div class="subject-section">
           <h3 class="subject-title biology-title"><i class="fas fa-leaf"></i> Biology</h3>
           <div class="chapter-cards">
-            <a href="/Notes/9-BI1.html" class="chapter-jump-card"><div class="card-icon">❤️</div><div class="card-info"><h4>Ch 5: The Fundamental Unit of Life</h4><p>Cell structure</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-BI2.html" class="chapter-jump-card"><div class="card-icon">🧠</div><div class="card-info"><h4>Ch 6: Tissues</h4><p>Plant and animal tissues</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-BI3.html" class="chapter-jump-card"><div class="card-icon">🌱</div><div class="card-info"><h4>Ch 7: Diversity in Living Organisms</h4><p>Classification</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-BI1.html" class="chapter-jump-card"><div class="card-icon">❤️</div><div class="card-info"><h4>Ch 5: The Fundamental Unit of Life</h4><p>Cell structure</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-BI2.html" class="chapter-jump-card"><div class="card-icon">🧠</div><div class="card-info"><h4>Ch 6: Tissues</h4><p>Plant and animal tissues</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-BI3.html" class="chapter-jump-card"><div class="card-icon">🌱</div><div class="card-info"><h4>Ch 7: Diversity in Living Organisms</h4><p>Classification</p><span class="jump-badge">Jump →</span></div></a>
           </div>
         </div>
         <div class="subject-section">
           <h3 class="subject-title physics-title"><i class="fas fa-atom"></i> Physics</h3>
           <div class="chapter-cards">
-            <a href="/Notes/9-PH1.html" class="chapter-jump-card"><div class="card-icon">💡</div><div class="card-info"><h4>Ch 8: Motion</h4><p>Velocity, graphs</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-PH2.html" class="chapter-jump-card"><div class="card-icon">👁️</div><div class="card-info"><h4>Ch 9: Force & Laws of Motion</h4><p>Newton's laws</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-PH3.html" class="chapter-jump-card"><div class="card-icon">⚡</div><div class="card-info"><h4>Ch 10: Gravitation</h4><p>Universal law</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-PH4.html" class="chapter-jump-card"><div class="card-icon">🧲</div><div class="card-info"><h4>Ch 11: Work and Energy</h4><p>Kinetic, potential</p><span class="jump-badge">Jump →</span></div></a>
-            <a href="/Notes/9-PH5.html" class="chapter-jump-card"><div class="card-icon">📐</div><div class="card-info"><h4>Ch 12: Sound</h4><p>Propagation, characteristics</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-PH1.html" class="chapter-jump-card"><div class="card-icon">💡</div><div class="card-info"><h4>Ch 8: Motion</h4><p>Velocity, graphs</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-PH2.html" class="chapter-jump-card"><div class="card-icon">👁️</div><div class="card-info"><h4>Ch 9: Force & Laws of Motion</h4><p>Newton's laws</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-PH3.html" class="chapter-jump-card"><div class="card-icon">⚡</div><div class="card-info"><h4>Ch 10: Gravitation</h4><p>Universal law</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-PH4.html" class="chapter-jump-card"><div class="card-icon">🧲</div><div class="card-info"><h4>Ch 11: Work and Energy</h4><p>Kinetic, potential</p><span class="jump-badge">Jump →</span></div></a>
+            <a href="/Notes/class-9/9-PH5.html" class="chapter-jump-card"><div class="card-icon">📐</div><div class="card-info"><h4>Ch 12: Sound</h4><p>Propagation, characteristics</p><span class="jump-badge">Jump →</span></div></a>
           </div>
         </div>
       </div>
@@ -171,38 +347,50 @@
     });
   </script>
   
-        <script>
-          const wCtx = document.getElementById('waveCanvas').getContext('2d');
-          function drawWave() {
-            let f = parseInt(document.getElementById('fqRange').value);
-            let a = parseInt(document.getElementById('ampRange').value);
-            document.getElementById('fqVal').innerText = f;
-            document.getElementById('ampVal').innerText = a;
-            
-            wCtx.clearRect(0,0,500,200);
-            
-            // Draw center line
-            wCtx.beginPath();
-            wCtx.moveTo(0,100);
-            wCtx.lineTo(500,100);
-            wCtx.strokeStyle = "#cbd5e1";
-            wCtx.lineWidth = 1;
-            wCtx.stroke();
-            
-            // Draw wave
-            wCtx.beginPath();
-            wCtx.moveTo(0,100);
-            for(let i=0; i<500; i++) {
-              wCtx.lineTo(i, 100 + a * Math.sin(i * f * 0.015));
-            }
-            wCtx.strokeStyle = '#8b5cf6'; 
-            wCtx.lineWidth = 3;
-            wCtx.stroke();
-          }
-          document.getElementById('fqRange').oninput = drawWave;
-          document.getElementById('ampRange').oninput = drawWave;
-          drawWave();
-        </script>
-        
+  <script>
+    // Waveform Visualizer
+    const wCtx = document.getElementById('waveCanvas').getContext('2d');
+    function drawWave() {
+      let f = parseInt(document.getElementById('fqRange').value);
+      let a = parseInt(document.getElementById('ampRange').value);
+      document.getElementById('fqVal').innerText = f;
+      document.getElementById('ampVal').innerText = a;
+      
+      wCtx.clearRect(0,0,500,200);
+      
+      // Draw center line
+      wCtx.beginPath();
+      wCtx.moveTo(0,100);
+      wCtx.lineTo(500,100);
+      wCtx.strokeStyle = "#cbd5e1";
+      wCtx.lineWidth = 1;
+      wCtx.stroke();
+      
+      // Draw wave
+      wCtx.beginPath();
+      wCtx.moveTo(0,100);
+      for(let i=0; i<500; i++) {
+        wCtx.lineTo(i, 100 + a * Math.sin(i * f * 0.015));
+      }
+      wCtx.strokeStyle = '#8b5cf6'; 
+      wCtx.lineWidth = 3;
+      wCtx.stroke();
+    }
+    document.getElementById('fqRange').oninput = drawWave;
+    document.getElementById('ampRange').oninput = drawWave;
+    drawWave();
+
+    // Echo Calculator
+    function calculateEcho() {
+      const time = parseFloat(document.getElementById('echoTime').value);
+      if (isNaN(time) || time <= 0) {
+        document.getElementById('echoResult').innerText = 'Please enter a valid time.';
+        return;
+      }
+      const speed = 346; // m/s
+      const distance = (speed * time) / 2;
+      document.getElementById('echoResult').innerText = 'Distance = ' + distance.toFixed(1) + ' meters';
+    }
+  </script>
 </body>
 </html>
