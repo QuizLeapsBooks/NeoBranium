@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 - Page Not Found | NeoBranium</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="/online-graduation_16847316.png" type="image/png">
+  <link rel="apple-touch-icon" href="/online-graduation_16847316.png">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-gradient: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+      --bg-light: #f8fafc;
+      --text-dark: #1a2233;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+      text-align: center;
+    }
+    .error-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 3rem 2rem;
+      max-width: 560px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+    .logo-img {
+      width: 56px;
+      height: 56px;
+      margin-bottom: 1.5rem;
+    }
+    .error-code {
+      font-family: 'Outfit', sans-serif;
+      font-size: 5rem;
+      font-weight: 800;
+      line-height: 1;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.75rem;
+    }
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 0.75rem;
+    }
+    p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    .action-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .btn-home {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: var(--primary-gradient);
+      color: #ffffff;
+      padding: 0.85rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .btn-home:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+    }
+    .links-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border-color);
+    }
+    .link-item {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      background: #eff6ff;
+      transition: background 0.2s ease;
+    }
+    .link-item:hover {
+      background: #dbeafe;
+    }
+  </style>
+</head>
+<body>
+  <div class="error-card">
+    <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="logo-img">
+    <div class="error-code">404</div>
+    <h1>Page Not Found</h1>
+    <p>The page you are looking for might have been moved, renamed, or is temporarily unavailable.</p>
+    <div class="action-btns">
+      <a href="/" class="btn-home"><i class="fas fa-home"></i> Back to Homepage</a>
+    </div>
+    <div class="links-grid">
+      <a href="/Notes/notes-science-class10.html" class="link-item"><i class="fas fa-book"></i> Class 10 Notes</a>
+      <a href="/Notes/class-wise-notes.html" class="link-item"><i class="fas fa-graduation-cap"></i> All Notes</a>
+      <a href="/IQ/top-question.html" class="link-item"><i class="fas fa-star"></i> Top Questions</a>
+      <a href="/blog/blog.html" class="link-item"><i class="fas fa-newspaper"></i> Blog</a>
+    </div>
+  </div>
+</body>
+</html>

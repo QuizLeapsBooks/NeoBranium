@@ -155,12 +155,6 @@
         "destination": "/Notes/notes-math-class10.html",
         "type": 308
       }
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
     ]
   },
   "functions": [
