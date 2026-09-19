@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Class 10 Mathematics Chapter 2: Polynomials | Detailed NCERT Notes | NeoBranium</title>
+    <meta name="description" content="Most repeated and exam-focused notes for Class 10 Mathematics Chapter 2 - Polynomials. Includes detailed concepts, formulas, zeroes and coefficients relationship, division algorithm, and previous year questions. CBSE board 2025-26.">
+    <meta name="keywords" content="class 10 maths chapter 2, Polynomials, NCERT notes, board exam, zeroes of polynomial, division algorithm">
+    <meta name="author" content="NeoBranium">
+    <meta name="robots" content="index, follow">
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="stylesheet" href="../index_css.css">
+    <link rel="stylesheet" href="notes.css">
+
+    <style>
+        .highlight-box { background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%); border-left: 5px solid #f59e0b; padding: 1.2rem; margin: 1.5rem 0; border-radius: 12px; }
+        .repeated-tag { display: inline-block; background: #dc2626; color: white; font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 30px; margin-left: 0.75rem; vertical-align: middle; }
+        .pyq-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 16px; padding: 1.3rem; margin: 1.8rem 0; }
+        .key-memorize { background: #fef3c7; padding: 1rem 1.3rem; border-radius: 14px; border-left: 4px solid #d97706; margin: 1.3rem 0; }
+        .formula-box-custom { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 12px; font-family: monospace; text-align: center; font-size: 1.1rem; }
+        .badge-mostimp { background: #16a34a; color: white; font-size: 0.7rem; padding: 0.2rem 0.7rem; border-radius: 20px; display: inline-block; margin-top: 0.3rem; }
+        .interactive-card { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin: 2rem 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .interactive-card h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .canvas-container { width: 100%; max-width: 600px; margin: 1rem auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; position: relative; min-height: 200px;}
+        .controls { display: flex; flex-direction: column; gap: 1rem; max-width: 400px; margin: 0 auto; background: #f1f5f9; padding: 1rem; border-radius: 8px;}
+        .control-group { display: flex; justify-content: space-between; align-items: center; }
+        .control-group input[type="range"] { flex-grow: 1; margin-left: 1rem; }
+        .control-group select { flex-grow: 1; margin-left: 1rem; padding: 0.5rem; border-radius: 4px; border: 1px solid #cbd5e1; }
+
+        .chapter-summary-footer { background: #f8fafc; margin-top: 4rem; padding: 2rem 1rem 1rem; }
+        .footer-chapter-container { max-width: 1400px; margin: 0 auto; }
+        .footer-chapter-heading { font-size: 1.8rem; text-align: center; margin-bottom: 0.5rem; color: #0f172a; }
+        .footer-chapter-subheading { text-align: center; color: #475569; margin-bottom: 2.5rem; }
+        .chapter-summary-grid { display: flex; flex-direction: column; gap: 2rem; }
+        .subject-section { background: white; border-radius: 1.5rem; padding: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .subject-title { font-size: 1.4rem; padding-bottom: 0.5rem; margin-bottom: 1rem; border-bottom: 3px solid; display: inline-block; }
+        .maths-title { border-bottom-color: #8b5cf6; color: #5b21b6; }
+        .science-title { border-bottom-color: #10b981; color: #065f46; }
+        .chapter-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+        .chapter-jump-card { display: flex; align-items: center; gap: 1rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem; text-decoration: none; transition: all 0.2s ease; cursor: pointer; }
+        .chapter-jump-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-color: #94a3b8; }
+        .card-icon { font-size: 2rem; min-width: 50px; text-align: center; }
+        .card-info h4 { margin: 0 0 0.3rem; font-size: 1rem; color: #1e293b; }
+        .card-info p { margin: 0 0 0.4rem; font-size: 0.8rem; color: #475569; }
+        .jump-badge { font-size: 0.7rem; color: #3b82f6; font-weight: 500; }
+        .footer-revision-links { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin: 2rem 0 1rem; }
+        .revision-box { background: #eef2ff; padding: 0.75rem 1.2rem; border-radius: 40px; font-size: 0.85rem; color: #1e40af; }
+        @media (max-width: 768px) { .chapter-cards { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div id="preloader">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="preloader-logo" />
+        <div class="loader"></div>
+    </div>
+
+    <header>
+        <div class="header-container">
+            <div class="logo" onclick="window.location.href='../index.html'">
+                <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
+                <span>NeoBranium</span>
+            </div>
+            <div class="header-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="globalSearchInput" placeholder="Search notes..." autocomplete="off">
+                <div id="globalSearchResults" class="search-results-dropdown"></div>
+            </div>
+            <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+            <nav class="nav-menu">
+                <a href="../index.html">Home</a>
+                <div class="nav-item">
+                    <a href="class10-maths-dir.html" class="active">Notes <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i></a>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-submenu">
+                            <h5>Class 9</h5>
+                            <ul>
+                                <li><a href="class9-science-dir.html">Science</a></li>
+                                <li><a href="class9-maths-dir.html">Mathematics</a></li>
+                            </ul>
+                        </div>
+                        <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;">
+                            <h5>Class 10</h5>
+                            <ul>
+                                <li><a href="class-wise-notes.html">Science</a></li>
+                                <li><a href="class10-maths-dir.html">Mathematics</a></li>
+                            </ul>
+                        </div>
+                        <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;">
+                            <h5>Class 11</h5>
+                            <ul>
+                                <li><a href="class11-physics-dir.html">Physics</a></li>
+                                <li><a href="class11-chemistry-dir.html">Chemistry</a></li>
+                                <li><a href="class11-maths-dir.html">Mathematics</a></li>
+                            </ul>
+                        </div>
+                        <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;">
+                            <h5>Class 12</h5>
+                            <ul>
+                                <li><a href="class12-physics-dir.html">Physics</a></li>
+                                <li><a href="class12-chemistry-dir.html">Chemistry</a></li>
+                                <li><a href="class12-maths-dir.html">Mathematics</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <a href="../IQ/top-question.html">Top Questions</a>
+                <a href="../blog/blog.html">Blog</a>
+                <a href="../htmls/sign.html" class="login-btn">Login / Sign Up</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="notes-page">
+        <aside class="notes-sidebar">
+            <div class="sidebar-content">
+                <h3>📖 Chapter Contents</h3>
+                <ul>
+                    <li><a href="#intro">Introduction</a></li>
+                    <li><a href="#degree">1. Degree & Types</a></li>
+                    <li><a href="#geometrical">2. Geometrical Meaning of Zeroes</a></li>
+                    <li><a href="#relationship">3. Zeroes & Coefficients</a></li>
+                    <li><a href="#division">4. Division Algorithm</a></li>
+                    <li><a href="#pyqs">5. Previous Year Questions</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <div class="notes-container">
+            <nav class="breadcrumb">
+                <a href="../index.html">Home</a> / <a href="class10-maths-dir.html">Notes</a> / <a href="class10-maths-dir.html">Class 10 Mathematics</a> / Chapter 2: Polynomials
+            </nav>
+
+            <!-- INTRO SECTION -->
+            <section id="intro">
+                <h1>Chapter 2: Polynomials <span class="repeated-tag">High Weightage Chapter</span></h1>
+                <div class="highlight-box">
+                    <i class="fas fa-star" style="color:#f59e0b;"></i>
+                    <strong>Why this chapter is important?</strong> The relationship between zeroes and coefficients, and the division algorithm are frequently tested. Every year, 6-10 marks questions appear from this chapter in CBSE board exams.
+                </div>
+            </section>
+
+            <!-- DEGREE & TYPES SECTION -->
+            <section id="degree">
+                <h2>1. Polynomial & Degree</h2>
+                <p>A <strong>polynomial</strong> is an algebraic expression made up of variables and coefficients, involving only addition, subtraction, multiplication, and non-negative integer exponents of variables [citation:12].</p>
+
+                <h3>Standard Form</h3>
+                <p>A polynomial in one variable <em>x</em> is written as:</p>
+                <div class="formula-box-custom">
+                    p(x) = aₙxⁿ + aₙ₋₁xⁿ⁻¹ + ... + a₁x + a₀
+                </div>
+                <p>where aₙ ≠ 0 and a₀, a₁, ..., aₙ are real numbers (coefficients) [citation:8].</p>
+
+                <h3>Degree of a Polynomial</h3>
+                <p>The <strong>degree</strong> is the highest exponent of the variable in the polynomial [citation:16].</p>
+
+                <h3>Types Based on Degree</h3>
+                <ul>
+                    <li><strong>Linear Polynomial:</strong> Degree 1. Example: 2x + 3</li>
+                    <li><strong>Quadratic Polynomial:</strong> Degree 2. Example: x² + 5x − 6</li>
+                    <li><strong>Cubic Polynomial:</strong> Degree 3. Example: 2x³ − 3x² + 5x − 7</li>
+                    <li><strong>Constant Polynomial:</strong> Degree 0. Example: 5</li>
+                </ul>
+
+                <h3>Types Based on Number of Terms</h3>
+                <ul>
+                    <li><strong>Monomial:</strong> One term. Example: 3x²</li>
+                    <li><strong>Binomial:</strong> Two terms. Example: x² + 1</li>
+                    <li><strong>Trinomial:</strong> Three terms. Example: x² + x + 1</li>
+                </ul>
+
+                <div class="key-memorize">
+                    <strong>📌 Degree vs Number of Zeroes:</strong> A polynomial of degree <em>n</em> can have <strong>at most n zeroes</strong> [citation:14]. For example, a quadratic polynomial (degree 2) can have 0, 1, or 2 real zeroes.
+                </div>
+            </section>
+
+            <!-- GEOMETRICAL MEANING SECTION -->
+            <section id="geometrical">
+                <h2>2. Geometrical Meaning of Zeroes</h2>
+                <p>A <strong>zero</strong> of a polynomial p(x) is a real number <em>k</em> such that <strong>p(k) = 0</strong> [citation:2]. Geometrically, zeroes are the x-coordinates of the points where the graph of y = p(x) intersects the x-axis [citation:14].</p>
+
+                <h3>Graph of Linear Polynomial (ax + b)</h3>
+                <ul>
+                    <li>The graph is a <strong>straight line</strong>.</li>
+                    <li>It intersects the x-axis at exactly <strong>one point</strong>.</li>
+                    <li>Therefore, a linear polynomial has <strong>exactly one zero</strong> [citation:2].</li>
+                </ul>
+
+                <h3>Graph of Quadratic Polynomial (ax² + bx + c)</h3>
+                <ul>
+                    <li>The graph is a <strong>parabola</strong> — open upwards if a > 0, open downwards if a < 0 [citation:6].</li>
+                    <li>It can intersect the x-axis at <strong>0, 1, or 2 points</strong>.</li>
+                </ul>
+
+                <div class="key-memorize">
+                    <strong>🔑 Three Cases for Quadratic Polynomial:</strong>
+                    <ul>
+                        <li><strong>Two distinct zeroes:</strong> Graph cuts x-axis at two points.</li>
+                        <li><strong>One zero (repeated):</strong> Graph touches x-axis at one point.</li>
+                        <li><strong>No real zeroes:</strong> Graph does not intersect x-axis at all [citation:2].</li>
+                    </ul>
+                </div>
+
+                <h3>Graph of Cubic Polynomial (ax³ + bx² + cx + d)</h3>
+                <ul>
+                    <li>The graph is an <strong>S-shaped curve</strong>.</li>
+                    <li>It can intersect the x-axis at <strong>up to 3 points</strong> [citation:14].</li>
+                    <li>An odd-degree polynomial always has at least <strong>one real zero</strong>.</li>
+                </ul>
+            </section>
+
+            <!-- RELATIONSHIP SECTION -->
+            <section id="relationship">
+                <h2>3. Relationship Between Zeroes & Coefficients</h2>
+                <p>This is the <strong>most important section</strong> for board exams. The sum and product of zeroes can be directly calculated from the coefficients [citation:19].</p>
+
+                <h3>A. For Quadratic Polynomial: ax² + bx + c</h3>
+                <p>If α and β are the zeroes, then:</p>
+                <div class="formula-box-custom">
+                    Sum of zeroes: α + β = −b/a<br><br>
+                    Product of zeroes: αβ = c/a
+                </div>
+
+                <h3>B. For Cubic Polynomial: ax³ + bx² + cx + d</h3>
+                <p>If α, β, and γ are the zeroes, then:</p>
+                <div class="formula-box-custom">
+                    Sum: α + β + γ = −b/a<br><br>
+                    Sum of products (two at a time): αβ + βγ + γα = c/a<br><br>
+                    Product: αβγ = −d/a
+                </div>
+
+                <h3>Forming a Quadratic Polynomial from Zeroes</h3>
+                <p>If α and β are the zeroes, the polynomial is:</p>
+                <div class="formula-box-custom">
+                    p(x) = x² − (α + β)x + αβ
+                </div>
+                <p>That is: <strong>x² − (sum of zeroes)x + (product of zeroes)</strong> [citation:6].</p>
+
+                <h3>Forming a Cubic Polynomial from Zeroes</h3>
+                <div class="formula-box-custom">
+                    p(x) = x³ − (α+β+γ)x² + (αβ+βγ+γα)x − αβγ
+                </div>
+
+                <div class="key-memorize">
+                    <strong>📌 Solved Example:</strong> Find zeroes of p(x) = x² + 7x + 12 and verify the relationship.<br><br>
+                    <strong>Solution:</strong> p(x) = (x + 3)(x + 4) ⇒ Zeroes are −3 and −4.<br>
+                    Sum = −3 + (−4) = −7 = −b/a = −(7)/1 ✓<br>
+                    Product = (−3)(−4) = 12 = c/a = 12/1 ✓ [citation:6]
+                </div>
+            </section>
+
+            <!-- DIVISION ALGORITHM SECTION -->
+            <section id="division">
+                <h2>4. Division Algorithm for Polynomials</h2>
+                <p>If p(x) and g(x) are any two polynomials with g(x) ≠ 0, then we can find polynomials q(x) and r(x) such that:</p>
+
+                <div class="formula-box-custom">
+                    p(x) = g(x) × q(x) + r(x)<br><br>
+                    where r(x) = 0 or degree of r(x) &lt; degree of g(x)
+                </div>
+
+                <p>Here:</p>
+                <ul>
+                    <li><strong>p(x)</strong> = Dividend</li>
+                    <li><strong>g(x)</strong> = Divisor</li>
+                    <li><strong>q(x)</strong> = Quotient</li>
+                    <li><strong>r(x)</strong> = Remainder [citation:6]</li>
+                </ul>
+
+                <h3>Steps for Long Division</h3>
+                <ol>
+                    <li>Arrange both polynomials in <strong>descending order</strong> of their degrees.</li>
+                    <li>Divide the <strong>highest degree term</strong> of the dividend by the highest degree term of the divisor — this gives the first term of the quotient.</li>
+                    <li><strong>Multiply</strong> the entire divisor by this term and subtract from the dividend.</li>
+                    <li><strong>Bring down</strong> the next term and repeat until the degree of the remainder is less than the divisor [citation:15].</li>
+                </ol>
+
+                <div class="key-memorize">
+                    <strong>🔑 Solved Example:</strong> Divide p(x) = x³ − 3x² + x + 2 by g(x) = x − 2.<br><br>
+                    <strong>Step 1:</strong> x³ ÷ x = x²<br>
+                    <strong>Step 2:</strong> Multiply: x²(x − 2) = x³ − 2x². Subtract: (−3x² + x) − (−2x²) = −x² + x<br>
+                    <strong>Step 3:</strong> −x² ÷ x = −x. Multiply: −x(x − 2) = −x² + 2x. Subtract: (x + 2) − (2x) = −x + 2<br>
+                    <strong>Step 4:</strong> −x ÷ x = −1. Multiply: −1(x − 2) = −x + 2. Subtract: 0.<br><br>
+                    <strong>Quotient = x² − x − 1, Remainder = 0</strong>
+                </div>
+
+                <h3>Remainder Theorem</h3>
+                <p>If p(x) is divided by (x − a), then the remainder is <strong>p(a)</strong> [citation:11].</p>
+
+                <h3>Factor Theorem</h3>
+                <p>If p(a) = 0, then (x − a) is a <strong>factor</strong> of p(x). Conversely, if (x − a) is a factor, then p(a) = 0 [citation:11].</p>
+            </section>
+
+            <!-- INTERACTIVE: ZEROES VISUALIZER -->
+            <div class="interactive-card">
+                <h3>🔬 Interactive: Quadratic Zeroes Visualizer</h3>
+                <p>Adjust coefficients a, b, c to see how the parabola changes and how zeroes behave.</p>
+                <div class="controls">
+                    <div class="control-group">
+                        <label>a: <span id="aVal">1</span></label>
+                        <input type="range" id="aRange" min="-3" max="3" value="1" step="0.5">
+                    </div>
+                    <div class="control-group">
+                        <label>b: <span id="bVal">-3</span></label>
+                        <input type="range" id="bRange" min="-10" max="10" value="-3" step="1">
+                    </div>
+                    <div class="control-group">
+                        <label>c: <span id="cVal">-4</span></label>
+                        <input type="range" id="cRange" min="-10" max="10" value="-4" step="1">
+                    </div>
+                    <div style="background:#eef2ff; padding:15px; border-radius:8px; margin-top:10px; text-align:center;">
+                        <h4 style="margin:0 0 10px 0; color:#1e40af;">Analysis</h4>
+                        <div><strong>Polynomial:</strong> <span id="polyDisplay">x² - 3x - 4</span></div>
+                        <div style="margin-top:5px;"><strong>Discriminant (D):</strong> <span id="discDisplay">25</span></div>
+                        <div style="margin-top:5px;"><strong>Number of Zeroes:</strong> <span id="zeroCount">2 (Two distinct real zeroes)</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PYQs SECTION -->
+            <section id="pyqs">
+                <h2>Most Repeated Previous Year Questions</h2>
+                <div class="pyq-box">
+                    <ol>
+                        <li>Find the zeroes of the quadratic polynomial x² + 7x + 10 and verify the relationship between zeroes and coefficients. <strong>(3 Marks)</strong> — <em>Answer: Zeroes: −5, −2. Sum = −7 = −b/a, Product = 10 = c/a.</em></li>
+                        <li>If α and β are zeroes of p(x) = x² + x − 1, find the value of 1/α + 1/β. <strong>(CBSE 2023)</strong> — <em>Answer: 1/α + 1/β = (α + β)/αβ = (−1)/(−1) = 1.</em></li>
+                        <li>Find a quadratic polynomial whose sum and product of zeroes are 3 and −2 respectively. <strong>(2 Marks)</strong> — <em>Answer: x² − 3x − 2.</em></li>
+                        <li>Divide p(x) = 3x² − x³ − 3x + 5 by g(x) = x − 1 − x² and verify division algorithm. <strong>(CBSE 2020)</strong> — <em>Answer: Quotient = x − 2, Remainder = 3.</em></li>
+                        <li>Find all zeroes of 2x⁴ − 3x³ − 3x² + 6x − 2, if two of its zeroes are √2 and −√2. <strong>(3 Marks)</strong> — <em>Answer: Zeroes: √2, −√2, 1, 1/2.</em></li>
+                        <li>If one zero of the polynomial (a² − 9)x² + 13x + 6a is the reciprocal of the other, find the value of 'a'. <strong>(3 Marks)</strong> — <em>Answer: Product = 1 ⇒ 6a/(a²−9) = 1 ⇒ a² − 6a − 9 = 0.</em></li>
+                        <li>Find the value of k such that x² − (k+6)x + 2(2k−1) has sum of zeroes equal to half of their product. <strong>(CBSE 2019)</strong> — <em>Answer: k = 7.</em></li>
+                        <li>If α, β are zeroes of px² + qx + r, find the value of α³β + β³α. <strong>(2 Marks)</strong> — <em>Answer: (r/p³)(q² − 2pr).</em></li>
+                        <li>On dividing x³ − 3x² + x + 2 by a polynomial g(x), the quotient and remainder were x − 2 and −2x + 4. Find g(x). <strong>(3 Marks)</strong> — <em>Answer: g(x) = x² − x + 1.</em></li>
+                        <li>Find the number of zeroes of the polynomial from its graph given in the figure. <strong>(1 Mark)</strong> — <em>Answer: Count the number of times the graph cuts/touches the x-axis.</em></li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- QUICK REVISION SECTION -->
+            <section id="quick-revision">
+                <h2>Quick Revision — At a Glance</h2>
+
+                <div class="key-memorize">
+                    <strong>🎯 Key Formulas to Memorize:</strong><br>
+                    <ul>
+                        <li><strong>Quadratic (ax² + bx + c):</strong> α + β = −b/a, αβ = c/a</li>
+                        <li><strong>Cubic (ax³ + bx² + cx + d):</strong> α+β+γ = −b/a, αβ+βγ+γα = c/a, αβγ = −d/a</li>
+                        <li><strong>Forming Quadratic:</strong> x² − (sum)x + (product)</li>
+                        <li><strong>Division Algorithm:</strong> p(x) = g(x)·q(x) + r(x)</li>
+                        <li><strong>Remainder Theorem:</strong> Remainder = p(a) when divided by (x − a)</li>
+                        <li><strong>Factor Theorem:</strong> p(a) = 0 ⇒ (x − a) is a factor</li>
+                    </ul>
+                </div>
+
+                <div class="key-memorize">
+                    <strong>🎯 Key Tips for Exam:</strong><br>
+                    <ul>
+                        <li>A polynomial of degree <em>n</em> has at most <strong>n zeroes</strong>.</li>
+                        <li>Graph of a linear polynomial is a <strong>straight line</strong>; quadratic is a <strong>parabola</strong>.</li>
+                        <li>Quadratic graph can have <strong>0, 1, or 2 real zeroes</strong>.</li>
+                        <li>Always verify zeroes by substituting back into p(x) = 0.</li>
+                        <li>For division, arrange polynomials in <strong>descending order</strong> of degree first.</li>
+                        <li>If remainder is 0, the divisor is a <strong>factor</strong> of the dividend.</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <i class="fas fa-lightbulb" style="color:#f59e0b;"></i>
+                    <strong>Did You Know?</strong> The word "polynomial" comes from the Greek words <strong>"poly"</strong> (many) and <strong>"nominal"</strong> (terms). The study of polynomial equations dates back to ancient Babylonians (2000 BCE), and the quadratic formula was first derived by Indian mathematician <strong>Brahmagupta</strong> in 628 CE!
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="chapter-summary-footer">
+        <div class="footer-chapter-container">
+            <h2 class="footer-chapter-heading"><i class="fas fa-book-open"></i> Complete Chapter Index – Class 10 Mathematics</h2>
+            <div class="chapter-summary-grid">
+                <div class="subject-section">
+                    <h3 class="subject-title maths-title"><i class="fas fa-calculator"></i> Mathematics</h3>
+                    <div class="chapter-cards">
+                        <a href="class10-maths-ch1.html" class="chapter-jump-card"><div class="card-icon">📐</div><div class="card-info"><h4>Ch 1: Real Numbers</h4><p>Euclid's division, irrational numbers</p><span class="jump-badge">Jump →</span></div></a>
+                        <a href="class10-maths-ch2.html" class="chapter-jump-card"><div class="card-icon">📊</div><div class="card-info"><h4>Ch 2: Polynomials</h4><p>Zeroes, relationship</p><span class="jump-badge">Jump →</span></div></a>
+                        <a href="class10-maths-ch3.html" class="chapter-jump-card"><div class="card-icon">⚖️</div><div class="card-info"><h4>Ch 3: Linear Equations</h4><p>Two variables</p><span class="jump-badge">Jump →</span></div></a>
+                        <a href="class10-maths-ch4.html" class="chapter-jump-card"><div class="card-icon">🔷</div><div class="card-info"><h4>Ch 4: Quadratic Equations</h4><p>Roots, discriminant</p><span class="jump-badge">Jump →</span></div></a>
+                        <a href="class10-maths-ch5.html" class="chapter-jump-card"><div class="card-icon">📈</div><div class="card-info"><h4>Ch 5: Arithmetic Progressions</h4><p>nth term, sum</p><span class="jump-badge">Jump →</span></div></a>
+                    </div>
+                </div>
+                <div class="subject-section">
+                    <h3 class="subject-title science-title"><i class="fas fa-flask"></i> Science</h3>
+                    <div class="chapter-cards">
+                        <a href="class-wise-notes.html" class="chapter-jump-card"><div class="card-icon">⚗️</div><div class="card-info"><h4>Ch 1: Chemical Reactions</h4><p>Equations, types</p><span class="jump-badge">Jump →</span></div></a>
+                        <a href="class-wise-notes.html" class="chapter-jump-card"><div class="card-icon">🧪</div><div class="card-info"><h4>Ch 2: Acids, Bases & Salts</h4><p>pH, indicators</p><span class="jump-badge">Jump →</span></div></a>
+                        <a href="class-wise-notes.html" class="chapter-jump-card"><div class="card-icon">🔩</div><div class="card-info"><h4>Ch 3: Metals and Non-metals</h4><p>Reactivity, extraction</p><span class="jump-badge">Jump →</span></div></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('load', () => {
+            const preloader = document.getElementById('preloader');
+            setTimeout(() => { if (preloader) { preloader.style.opacity = '0'; setTimeout(() => preloader.style.display = 'none', 500); } }, 800);
+        });
+        const menuToggle = document.querySelector('.menu-toggle');
+        const navMenu = document.querySelector('.nav-menu');
+        if (menuToggle) menuToggle.addEventListener('click', () => { navMenu.classList.toggle('active'); menuToggle.setAttribute('aria-expanded', navMenu.classList.contains('active')); });
+    </script>
+
+    <script>
+        function updateVisualizer() {
+            let a = parseFloat(document.getElementById('aRange').value);
+            let b = parseFloat(document.getElementById('bRange').value);
+            let c = parseFloat(document.getElementById('cRange').value);
+
+            document.getElementById('aVal').innerText = a;
+            document.getElementById('bVal').innerText = b;
+            document.getElementById('cVal').innerText = c;
+
+            let polyStr = '';
+            if (a === 1) polyStr += 'x²';
+            else if (a === -1) polyStr += '−x²';
+            else if (a !== 0) polyStr += a + 'x²';
+
+            if (b > 0) polyStr += ' + ' + b + 'x';
+            else if (b < 0) polyStr += ' − ' + Math.abs(b) + 'x';
+
+            if (c > 0) polyStr += ' + ' + c;
+            else if (c < 0) polyStr += ' − ' + Math.abs(c);
+
+            document.getElementById('polyDisplay').innerText = polyStr || '0';
+
+            let D = b*b - 4*a*c;
+            document.getElementById('discDisplay').innerText = D.toFixed(1);
+
+            let zeroText = '';
+            if (D > 0) zeroText = '2 (Two distinct real zeroes)';
+            else if (D === 0) zeroText = '1 (One repeated real zero)';
+            else zeroText = '0 (No real zeroes)';
+            document.getElementById('zeroCount').innerText = zeroText;
+        }
+
+        document.getElementById('aRange').oninput = updateVisualizer;
+        document.getElementById('bRange').oninput = updateVisualizer;
+        document.getElementById('cRange').oninput = updateVisualizer;
+        updateVisualizer();
+    </script>
+    <script src="/search.js"></script>
+</body>
+</html>

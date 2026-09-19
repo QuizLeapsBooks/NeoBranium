@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Class 10 Mathematics Chapter 1: Real Numbers | Detailed NCERT Notes | NeoBranium</title>
+    <meta name="description" content="Most repeated and exam-focused notes for Class 10 Mathematics Chapter 1 - Real Numbers. Includes detailed concepts, Euclid's Division Lemma, Fundamental Theorem of Arithmetic, HCF and LCM, and previous year questions. CBSE board 2025-26.">
+    <meta name="keywords" content="class 10 maths chapter 1, Real Numbers, NCERT notes, board exam, Euclid's Division Lemma, Fundamental Theorem of Arithmetic, HCF, LCM">
+    <meta name="author" content="NeoBranium">
+    <meta name="robots" content="index, follow">
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="stylesheet" href="../index_css.css">
+    <link rel="stylesheet" href="notes.css">
+
+    <style>
+        .highlight-box { background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%); border-left: 5px solid #f59e0b; padding: 1.2rem; margin: 1.5rem 0; border-radius: 12px; }
+        .repeated-tag { display: inline-block; background: #dc2626; color: white; font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 30px; margin-left: 0.75rem; vertical-align: middle; }
+        .pyq-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 16px; padding: 1.3rem; margin: 1.8rem 0; }
+        .key-memorize { background: #fef3c7; padding: 1rem 1.3rem; border-radius: 14px; border-left: 4px solid #d97706; margin: 1.3rem 0; }
+        .formula-box-custom { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 12px; font-family: monospace; text-align: center; font-size: 1.1rem; }
+        .badge-mostimp { background: #16a34a; color: white; font-size: 0.7rem; padding: 0.2rem 0.7rem; border-radius: 20px; display: inline-block; margin-top: 0.3rem; }
+        .interactive-card { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin: 2rem 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .interactive-card h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .canvas-container { width: 100%; max-width: 600px; margin: 1rem auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; display: flex; justify-content: center; position: relative; min-height: 200px;}
+        .controls { display: flex; flex-direction: column; gap: 1rem; max-width: 400px; margin: 0 auto; background: #f1f5f9; padding: 1rem; border-radius: 8px;}
+        .control-group { display: flex; justify-content: space-between; align-items: center; }
+        .control-group input[type="range"] { flex-grow: 1; margin-left: 1rem; }
+        .control-group select { flex-grow: 1; margin-left: 1rem; padding: 0.5rem; border-radius: 4px; border: 1px solid #cbd5e1; }
+
+        .chapter-summary-footer { background: #f8fafc; margin-top: 4rem; padding: 2rem 1rem 1rem; }
+        .footer-chapter-container { max-width: 1400px; margin: 0 auto; }
+        .footer-chapter-heading { font-size: 1.8rem; text-align: center; margin-bottom: 0.5rem; color: #0f172a; }
+        .footer-chapter-subheading { text-align: center; color: #475569; margin-bottom: 2.5rem; }
+        .chapter-summary-grid { display: flex; flex-direction: column; gap: 2rem; }
+        .subject-section { background: white; border-radius: 1.5rem; padding: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .subject-title { font-size: 1.4rem; padding-bottom: 0.5rem; margin-bottom: 1rem; border-bottom: 3px solid; display: inline-block; }
+        .chemistry-title { border-bottom-color: #10b981; color: #065f46; }
+        .biology-title { border-bottom-color: #3b82f6; color: #1e3a8a; }
+        .physics-title { border-bottom-color: #f59e0b; color: #92400e; }
+        .maths-title { border-bottom-color: #8b5cf6; color: #5b21b6; }
+        .chapter-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+        .chapter-jump-card { display: flex; align-items: center; gap: 1rem; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem; text-decoration: none; transition: all 0.2s ease; cursor: pointer; }
+        .chapter-jump-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-color: #94a3b8; }
+        .card-icon { font-size: 2rem; min-width: 50px; text-align: center; }
+        .card-info h4 { margin: 0 0 0.3rem; font-size: 1rem; color: #1e293b; }
+        .card-info p { margin: 0 0 0.4rem; font-size: 0.8rem; color: #475569; }
+        .jump-badge { font-size: 0.7rem; color: #3b82f6; font-weight: 500; }
+        .footer-revision-links { display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin: 2rem 0 1rem; }
+        .revision-box { background: #eef2ff; padding: 0.75rem 1.2rem; border-radius: 40px; font-size: 0.85rem; color: #1e40af; }
+        @media (max-width: 768px) { .chapter-cards { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div id="preloader">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="preloader-logo" />
+        <div class="loader"></div>
+    </div>
+
+    <header>
+        <div class="header-container">
+            <div class="logo" onclick="window.location.href='../index.html'">
+                <img src="/online-graduation_16847316.png" alt="NeoBranium Logo">
+                <span>NeoBranium</span>
+            </div>
+            <div class="header-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="globalSearchInput" placeholder="Search notes..." autocomplete="off">
+                <div id="globalSearchResults" class="search-results-dropdown"></div>
+            </div>
+            <button class="menu-toggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+            <nav class="nav-menu">
+                <a href="../index.html">Home</a>
+                <div class="nav-item">
+                    <a href="class10-maths-dir.html" class="active">Notes <i class="fas fa-chevron-down" style="font-size: 0.7rem;"></i></a>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-submenu">
+                            <h5>Class 9</h5>
+                            <ul>
+                                <li><a href="class9-science-dir.html">Science</a></li>
+                                <li><a href="class9-maths-dir.html">Mathematics</a></li>
+                            </ul>
+                        </div>
+                        <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;">
+                            <h5>Class 10</h5>
+                            <ul>
+                                <li><a href="class-wise-notes.html">Science</a></li>
+                                <li><a href="class10-maths-dir.html">Mathematics</a></li>
+                            </ul>
+                        </div>
+                        <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;">
+                            <h5>Class 11</h5>
+                            <ul>
+                                <li><a href="class11-physics-dir.html">Physics</a></li>
+                                <li><a href="class11-chemistry-dir.html">Chemistry</a></li>
+                                <li><a href="class11-maths-dir.html">Mathematics</a></li>
+                            </ul>
+                        </div>
+                        <div class="dropdown-submenu" style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 1rem;">
+                            <h5>Class 12</h5>
+                            <ul>
+                                <li><a href="class12-physics-dir.html">Physics</a></li>
+                                <li><a href="class12-chemistry-dir.html">Chemistry</a></li>
+                                <li><a href="class12-maths-dir.html">Mathematics</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <a href="../IQ/top-question.html">Top Questions</a>
+                <a href="../blog/blog.html">Blog</a>
+                <a href="../htmls/sign.html" class="login-btn">Login / Sign Up</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="notes-page">
+        <aside class="notes-sidebar">
+            <div class="sidebar-content">
+                <h3>📖 Chapter Contents</h3>
+                <ul>
+                    <li><a href="#intro">Introduction</a></li>
+                    <li><a href="#euclid">1. Euclid's Division Lemma</a></li>
+                    <li><a href="#fta">2. Fundamental Theorem of Arithmetic</a></li>
+                    <li><a href="#hcf-lcm">3. HCF and LCM</a></li>
+                    <li><a href="#irrational">4. Irrational Numbers</a></li>
+                    <li><a href="#decimal">5. Decimal Expansions</a></li>
+                    <li><a href="#pyqs">6. Previous Year Questions</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <div class="notes-container">
+            <nav class="breadcrumb">
+                <a href="../index.html">Home</a> / <a href="class10-maths-dir.html">Notes</a> / <a href="class10-maths-dir.html">Class 10 Mathematics</a> / Chapter 1: Real Numbers
+            </nav>
+
+            <!-- INTRO SECTION -->
+            <section id="intro">
+                <h1>Chapter 1: Real Numbers <span class="repeated-tag">High Weightage Chapter</span></h1>
+                <div class="highlight-box">
+                    <i class="fas fa-star" style="color:#f59e0b;"></i>
+                    <strong>Why this chapter is important?</strong> Real Numbers is the foundation of Class 10 Mathematics. It introduces key concepts like Euclid's Division Lemma, the Fundamental Theorem of Arithmetic, HCF and LCM, and irrational numbers. Questions from this chapter are frequently asked in board exams and carry significant weightage.
+                </div>
+
+                <h3>What are Real Numbers?</h3>
+                <p>All rational numbers and irrational numbers together are called <strong>real numbers</strong>. In simple terms, every number that can be represented on a number line is a real number. Examples: 2, -5, 3/4, 0.25, √2, √5.</p>
+
+                <h3>Rational and Irrational Numbers</h3>
+                <ul>
+                    <li><strong>Rational Number:</strong> A number that can be written in the form p/q, where p and q are integers and q ≠ 0. Examples: 1/2, -3/4, 5, 0, 0.75.</li>
+                    <li><strong>Irrational Number:</strong> A number that cannot be expressed in the form p/q. Its decimal expansion is non-terminating and non-repeating. Examples: √2, √3, √5, π.</li>
+                </ul>
+
+                <div class='key-memorize'>
+                    <strong>📌 Number System Hierarchy:</strong>
+                    <ul>
+                        <li><strong>Natural Numbers (N):</strong> {1, 2, 3, 4, ...}</li>
+                        <li><strong>Whole Numbers (W):</strong> {0, 1, 2, 3, ...}</li>
+                        <li><strong>Integers (Z):</strong> {..., -3, -2, -1, 0, 1, 2, 3, ...}</li>
+                        <li><strong>Rational Numbers (Q):</strong> p/q form where q ≠ 0</li>
+                        <li><strong>Irrational Numbers (Q'):</strong> Cannot be written in p/q form</li>
+                        <li><strong>Real Numbers (R):</strong> All rational + all irrational numbers</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- EUCLID'S DIVISION LEMMA SECTION -->
+            <section id="euclid">
+                <h2>1. Euclid's Division Lemma</h2>
+                <p>Euclid's Division Lemma is a fundamental result in number theory that helps in finding the Highest Common Factor (HCF) of two positive integers.</p>
+
+                <div class='formula-box-custom'>
+                    For any two positive integers a and b, there exist unique integers q and r such that:<br><br>
+                    <strong>a = bq + r</strong>, where 0 ≤ r < b
+                </div>
+
+                <p>Here, <strong>a</strong> is the dividend, <strong>b</strong> is the divisor, <strong>q</strong> is the quotient, and <strong>r</strong> is the remainder.</p>
+
+                <h3>Euclid's Division Algorithm</h3>
+                <p>Euclid's Division Algorithm is a technique to compute the HCF of two given positive integers using Euclid's Division Lemma. To find the HCF of two positive integers c and d (c > d), follow these steps:</p>
+                <ol>
+                    <li>Apply Euclid's Division Lemma to c and d: c = dq + r, where 0 ≤ r < d.</li>
+                    <li>If r = 0, then d is the HCF of c and d.</li>
+                    <li>If r ≠ 0, apply the division lemma to d and r.</li>
+                    <li>Continue the process until the remainder is zero. The divisor at this stage will be the required HCF.</li>
+                </ol>
+
+                <div class='key-memorize'>
+                    <strong>📌 Important Note:</strong>
+                    <ul>
+                        <li>Euclid's Division Lemma is stated for positive integers only, but it can be extended for all integers except zero.</li>
+                        <li>Lemma: A proven statement used for proving another statement.</li>
+                        <li>Algorithm: A series of well-defined steps which give a procedure for solving a type of problem.</li>
+                    </ul>
+                </div>
+
+                <h3>Worked Example: HCF of 135 and 225</h3>
+                <div class='formula-box-custom' style="text-align:left; font-size:0.95rem;">
+                    <strong>Step 1:</strong> 225 = 135 × 1 + 90<br>
+                    <strong>Step 2:</strong> 135 = 90 × 1 + 45<br>
+                    <strong>Step 3:</strong> 90 = 45 × 2 + 0<br><br>
+                    Since remainder = 0, the divisor 45 is the HCF.<br>
+                    <strong>HCF (135, 225) = 45</strong>
+                </div>
+            </section>
+
+            <!-- FUNDAMENTAL THEOREM SECTION -->
+            <section id="fta">
+                <h2>2. Fundamental Theorem of Arithmetic</h2>
+                <p>The Fundamental Theorem of Arithmetic states that every composite number can be expressed (factorised) as a product of primes, and this factorisation is unique, apart from the order in which the prime factors occur.</p>
+
+                <div class='formula-box-custom'>
+                    x = p₁ × p₂ × p₃ × ... × pₙ<br>
+                    where p₁, p₂, ..., pₙ are primes (arranged in ascending order)
+                </div>
+
+                <h3>Prime Factorisation</h3>
+                <p>Prime factorisation means writing a composite number entirely as a product of prime numbers.</p>
+                <div class='key-memorize'>
+                    <strong>Examples of Prime Factorisation:</strong>
+                    <ul>
+                        <li>140 = 2 × 2 × 5 × 7 = 2² × 5 × 7</li>
+                        <li>156 = 2 × 2 × 3 × 13 = 2² × 3 × 13</li>
+                        <li>3825 = 3 × 3 × 5 × 5 × 17 = 3² × 5² × 17</li>
+                        <li>5005 = 5 × 7 × 11 × 13</li>
+                        <li>7429 = 17 × 19 × 23</li>
+                    </ul>
+                </div>
+
+                <div class='highlight-box'>
+                    <i class="fas fa-lightbulb" style="color:#f59e0b;"></i>
+                    <strong>Exam Tip:</strong> Do not stop a prime factorisation while any factor is still composite. For example, 140 = 4 × 35 is not the final prime factorisation.
+                </div>
+
+                <h3>Applications of Fundamental Theorem of Arithmetic</h3>
+                <ul>
+                    <li>To find the HCF and LCM of two or more positive integers.</li>
+                    <li>To prove the irrationality of numbers like √2, √3, √5.</li>
+                    <li>To determine the nature of the decimal expansion of rational numbers.</li>
+                </ul>
+            </section>
+
+            <!-- HCF AND LCM SECTION -->
+            <section id="hcf-lcm">
+                <h2>3. HCF and LCM</h2>
+                <p>The <strong>Highest Common Factor (HCF)</strong> is the greatest number that divides all given numbers exactly. The <strong>Least Common Multiple (LCM)</strong> is the smallest positive number exactly divisible by all given numbers.</p>
+
+                <div class='key-memorize'>
+                    <strong>📌 Rules for HCF and LCM:</strong>
+                    <ul>
+                        <li><strong>HCF Rule:</strong> Take the smallest powers of the common prime factors.</li>
+                        <li><strong>LCM Rule:</strong> Take the greatest powers of all prime factors involved.</li>
+                    </ul>
+                </div>
+
+                <h3>Worked Example: HCF and LCM of 12 and 18</h3>
+                <div class='formula-box-custom' style="text-align:left; font-size:0.95rem;">
+                    <strong>Prime Factorisation:</strong><br>
+                    12 = 2² × 3¹<br>
+                    18 = 2¹ × 3²<br><br>
+                    <strong>HCF:</strong> 2¹ × 3¹ = 6 (smallest powers of common factors)<br>
+                    <strong>LCM:</strong> 2² × 3² = 36 (greatest powers of all factors)
+                </div>
+
+                <h3>Important Relationship</h3>
+                <div class='formula-box-custom'>
+                    <strong>HCF (a, b) × LCM (a, b) = a × b</strong><br>
+                    (For any two positive integers a and b)
+                </div>
+
+                <div class='highlight-box'>
+                    <i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i>
+                    <strong>Note:</strong> This relationship is only valid for two positive integers. For three numbers, HCF(a, b, c) × LCM(a, b, c) ≠ a × b × c.
+                </div>
+
+                <h3>Finding HCF and LCM of Three Numbers</h3>
+                <div class='formula-box-custom' style="font-size:0.95rem;">
+                    HCF (a, b, c) = (a × b × c × LCM (a, b, c)) / (LCM (a, b) × LCM (b, c) × LCM (a, c))
+                </div>
+            </section>
+
+            <!-- IRRATIONAL NUMBERS SECTION -->
+            <section id="irrational">
+                <h2>4. Irrational Numbers</h2>
+                <p>An <strong>irrational number</strong> is a number that cannot be expressed in the form p/q, where p and q are integers and q ≠ 0. Its decimal expansion is non-terminating and non-repeating.</p>
+
+                <h3>Examples of Irrational Numbers</h3>
+                <ul>
+                    <li>√2 = 1.41421356...</li>
+                    <li>√3 = 1.73205080...</li>
+                    <li>√5 = 2.23606797...</li>
+                    <li>π = 3.14159265...</li>
+                </ul>
+
+                <h3>Proving Irrationality (Proof by Contradiction)</h3>
+                <p>To prove that a number is irrational, we use the method of <strong>proof by contradiction</strong>. We assume the opposite (that the number is rational) and then show that this assumption leads to a contradiction.</p>
+
+                <div class='key-memorize'>
+                    <strong>📌 Key Properties:</strong>
+                    <ul>
+                        <li>The sum or difference of a rational and an irrational number is always irrational.</li>
+                        <li>The product or quotient of a non-zero rational number and an irrational number is always irrational.</li>
+                        <li>If p is a prime number, then √p is irrational.</li>
+                    </ul>
+                </div>
+
+                <h3>Worked Example: Prove that √2 is irrational</h3>
+                <div class='formula-box-custom' style="text-align:left; font-size:0.9rem;">
+                    <strong>Proof:</strong><br><br>
+                    <strong>Step 1 (Assumption):</strong> Let √2 be rational. Then √2 = a/b, where a and b are coprime integers (b ≠ 0).<br><br>
+                    <strong>Step 2:</strong> Squaring both sides: 2 = a²/b² ⟹ a² = 2b²<br><br>
+                    <strong>Step 3:</strong> This means 2 divides a², so 2 divides a (by the property: if p divides a², then p divides a).<br><br>
+                    <strong>Step 4:</strong> Let a = 2c for some integer c. Then (2c)² = 2b² ⟹ 4c² = 2b² ⟹ b² = 2c²<br><br>
+                    <strong>Step 5:</strong> This means 2 divides b², so 2 divides b.<br><br>
+                    <strong>Step 6:</strong> But a and b are coprime, so they cannot both be divisible by 2. This is a contradiction.<br><br>
+                    <strong>Conclusion:</strong> Our assumption is wrong. Hence, √2 is irrational.
+                </div>
+            </section>
+
+            <!-- DECIMAL EXPANSIONS SECTION -->
+            <section id="decimal">
+                <h2>5. Decimal Expansions of Rational Numbers</h2>
+                <p>Rational numbers can be expressed in decimal form. Their decimal expansion can be of two types:</p>
+
+                <h3>Type 1: Terminating Decimal</h3>
+                <p>A decimal that has a finite number of digits after the decimal point. Example: 0.5, 1.75, -3.25.</p>
+
+                <h3>Type 2: Non-Terminating Repeating Decimal</h3>
+                <p>A decimal that continues indefinitely but follows a cyclic pattern. Example: 0.333... (1/3), 0.142857... (1/7).</p>
+
+                <div class='key-memorize'>
+                    <strong>📌 Important Theorem:</strong>
+                    <ul>
+                        <li>Let x = p/q be a rational number in its simplest form (p and q are coprime).</li>
+                        <li><strong>x is a terminating decimal</strong> if the prime factorisation of q is of the form <strong>2ⁿ × 5ᵐ</strong>, where n and m are non-negative integers.</li>
+                        <li><strong>x is a non-terminating repeating decimal</strong> if the prime factorisation of q is <strong>not</strong> of the form 2ⁿ × 5ᵐ.</li>
+                    </ul>
+                </div>
+
+                <h3>Examples</h3>
+                <div class='formula-box-custom' style="text-align:left; font-size:0.95rem;">
+                    <strong>Terminating:</strong> 3/8 = 3/(2³) = 0.375 (denominator is of form 2ⁿ)<br><br>
+                    <strong>Terminating:</strong> 7/20 = 7/(2² × 5) = 0.35 (denominator is of form 2ⁿ × 5ᵐ)<br><br>
+                    <strong>Non-Terminating Repeating:</strong> 1/3 = 0.333... (denominator 3 is not of form 2ⁿ × 5ᵐ)<br><br>
+                    <strong>Non-Terminating Repeating:</strong> 5/11 = 0.454545... (denominator 11 is not of form 2ⁿ × 5ᵐ)
+                </div>
+            </section>
+
+            <!-- PYQs SECTION -->
+            <section id="pyqs">
+                <h2>Most Repeated Previous Year Questions</h2>
+                <div class="pyq-box">
+                    <ol>
+                        <li>Use Euclid's division algorithm to find the HCF of 135 and 225. <strong>(2 Marks)</strong> — <em>Answer: 225 = 135 × 1 + 90; 135 = 90 × 1 + 45; 90 = 45 × 2 + 0. HCF = 45.</em></li>
+                        <li>Express 140 as a product of its prime factors. <strong>(1 Mark)</strong> — <em>Answer: 140 = 2² × 5 × 7.</em></li>
+                        <li>Given that HCF (306, 657) = 9, find LCM (306, 657). <strong>(2 Marks)</strong> — <em>Answer: LCM = (306 × 657) / 9 = 22338.</em></li>
+                        <li>Prove that √5 is an irrational number. <strong>(3 Marks)</strong> — <em>Answer: By contradiction, assume √5 is rational. Then √5 = a/b, leading to a contradiction when both a and b become divisible by 5.</em></li>
+                        <li>Check whether 6ⁿ can end with the digit 0 for any natural number n. <strong>(2 Marks)</strong> — <em>Answer: No, because 6ⁿ = (2 × 3)ⁿ, and 5 is not a prime factor, so it cannot be divisible by 10.</em></li>
+                        <li>The LCM of two prime numbers p and q (p > q) is 221. Find the value of 3p - q. <strong>(2 Marks)</strong> — <em>Answer: p = 17, q = 13. 3(17) - 13 = 38.</em></li>
+                        <li>Show that 5 × 11 × 17 + 3 × 11 is a composite number. <strong>(2 Marks)</strong> — <em>Answer: 5 × 11 × 17 + 3 × 11 = 11(5 × 17 + 3) = 11 × 88. Since it has factors other than 1 and itself, it is composite.</em></li>
+                        <li>Find the HCF of 1260 and 7344 using Euclid's algorithm. <strong>(2 Marks)</strong> — <em>Answer: HCF = 12.</em></li>
+                        <li>Prove that 3 + 2√5 is irrational, given that √5 is irrational. <strong>(3 Marks)</strong> — <em>Answer: By contradiction, assume 3 + 2√5 is rational. Then 2√5 = a/b - 3, leading to √5 being rational, which is a contradiction.</em></li>
+                        <li>What is the greatest possible speed at which a girl can walk 95 m and 171 m in an exact number of minutes? <strong>(2 Marks)</strong> — <em>Answer: HCF(95, 171) = 19 m/min.</em></li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- QUICK REVISION SECTION -->
+            <section id="quick-revision">
+                <h2>Quick Revision — At a Glance</h2>
+
+                <div class="key-memorize">
+                    <strong>🎯 Key Formulas & Concepts:</strong>
+                    <ul>
+                        <li><strong>Euclid's Division Lemma:</strong> a = bq + r, 0 ≤ r < b</li>
+                        <li><strong>HCF × LCM = Product of two numbers</strong></li>
+                        <li><strong>Terminating Decimal:</strong> Denominator is of form 2ⁿ × 5ᵐ</li>
+                        <li><strong>Non-Terminating Repeating:</strong> Denominator is not of form 2ⁿ × 5ᵐ</li>
+                        <li><strong>Irrational Numbers:</strong> Cannot be written in p/q form, non-terminating non-repeating</li>
+                        <li><strong>Fundamental Theorem of Arithmetic:</strong> Every composite number has a unique prime factorisation</li>
+                    </ul>
+                </div>
+
+                <div class="key-memorize">
+                    <strong>🎯 Key Tips for Exam:</strong>
+                    <ul>
+                        <li>Always verify that the denominator is in its simplest form before checking for terminating decimal.</li>
+                        <li>For irrationality proofs, always use proof by contradiction.</li>
+                        <li>Remember: HCF × LCM = a × b only for two numbers.</li>
+                        <li>If p is prime and p divides a², then p divides a.</li>
+                        <li>The sum of a rational and an irrational number is always irrational.</li>
+                        <li>The product of a non-zero rational and an irrational number is always irrational.</li>
+                    </ul>
+                </div>
+
+                <div class="highlight-box">
+                    <i class="fas fa-lightbulb" style="color:#f59e0b;"></i>
+                    <strong>Did You Know?</strong> The Fundamental Theorem of Arithmetic was first recorded as Proposition 14 of Book IX in Euclid's Elements. However, the first correct proof was given by Carl Friedrich Gauss, often referred to as the 'Prince of Mathematicians.'
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="chapter-summary-footer">
+        <div class="footer-chapter-container">
+            <h2 class="footer-chapter-heading"><i class="fas fa-book-open"></i> Complete Chapter Index – Class 10 Mathematics</h2>
+            <div class="chapter-summary-grid">
+                <div class="subject-section">
+                    <h3 class="subject-title maths-title"><i class="fas fa-calculator"></i> Mathematics</h3>
+                    <div class="chapter-cards">
+                        <a href="/Notes/10-MA1.html" class="chapter-jump-card"><div class="card-icon">🔢</div><div class="card-info"><h4>Ch 1: Real Numbers</h4><p>Euclid's Lemma, HCF, LCM</p><span class="jump-badge">Jump →</span></div></a>
+                        <a href="/Notes/10-MA2.html" class="chapter-jump-card"><div class="card-icon">📐</div><div class="card-info"><h4>Ch 2: Polynomials</h4><p>Zeros, coefficients</p><span class="jump-badge">Jump →</span></div></a>
+                        <a href="/Notes/10-MA3.html" class="chapter-jump-card"><div class="card-icon">➗</div><div class="card-info"><h4>Ch 3: Pair of Linear Equations</h4><p>Graphical, algebraic methods</p><span class="jump-badge">Jump →</span></div></a>
+                        <a href="/Notes/10-MA4.html" class="chapter-jump-card"><div class="card-icon">📊</div><div class="card-info"><h4>Ch 4: Quadratic Equations</h4><p>Roots, discriminant</p><span class="jump-badge">Jump →</span></div></a>
+                        <a href="/Notes/10-MA5.html" class="chapter-jump-card"><div class="card-icon">🔺</div><div class="card-info"><h4>Ch 5: Arithmetic Progressions</h4><p>nth term, sum</p><span class="jump-badge">Jump →</span></div></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('load', () => {
+            const preloader = document.getElementById('preloader');
+            setTimeout(() => { if (preloader) { preloader.style.opacity = '0'; setTimeout(() => preloader.style.display = 'none', 500); } }, 800);
+        });
+        const menuToggle = document.querySelector('.menu-toggle');
+        const navMenu = document.querySelector('.nav-menu');
+        if (menuToggle) menuToggle.addEventListener('click', () => { navMenu.classList.toggle('active'); menuToggle.setAttribute('aria-expanded', navMenu.classList.contains('active')); });
+    </script>
+    <script src="/search.js"></script>
+</body>
+</html>
