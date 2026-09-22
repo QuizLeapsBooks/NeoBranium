@@ -113,16 +113,13 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStatus('Quantum System Online. Waiting for input...', false);
 
     const getApiBaseUrl = () => {
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            return 'http://localhost:3000/api';
-        }
-        // Production — check if there is a meta tag with a specific backend URL
+        // Always use the production Render backend.
+        // (Live Server / localhost development also hits the hosted backend)
         const metaBackend = document.querySelector('meta[name="backend-url"]');
         if (metaBackend && metaBackend.getAttribute('content')) {
             const val = metaBackend.getAttribute('content');
             return val.endsWith('/') ? `${val}api` : `${val}/api`;
         }
-        // Default production backend API
         return 'https://neobranium.onrender.com/api';
     };
 

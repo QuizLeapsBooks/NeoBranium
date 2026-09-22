@@ -36,10 +36,6 @@ export async function loadUserData(user) {
 export async function verifyBoardAccess() {
     try {
         const apiBase = (() => {
-            const host = window.location.hostname;
-            if (host === 'localhost' || host === '127.0.0.1') {
-                return 'http://localhost:3000';
-            }
             const metaBackend = document.querySelector('meta[name="backend-url"]');
             if (metaBackend && metaBackend.getAttribute('content')) {
                 return metaBackend.getAttribute('content');
@@ -246,13 +242,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert("Rate limit exceeded. Please wait a few minutes and try again.");
                 window.location.href = "/htmls/dashboard.html";
             } else if (access.status === 403) {
-                alert("Your session has expired or is invalid. Please log in again.");
-                window.location.href = "/htmls/sign.html";
+                // 403 can happen if backend session is missing (e.g. server restarted).
+                // Don't force sign-out — just silently allow access (fresh session).
+                console.warn("Usage check: no server session found, treating as fresh access.");
+                return;
+            } else if (access.reason === 'network_error' || access.status === 503) {
+                // Backend unreachable (cold start, offline) — don't block user
+                console.warn("Usage check: backend unreachable, skipping limit check.");
+                return;
             } else if (access.status) {
-                alert(`Server Error: ${access.reason} (Status: ${access.status})`);
-                window.location.href = "/htmls/dashboard.html";
+                console.warn(`Usage check server error: ${access.reason} (${access.status})`);
+                // Non-critical server error — don't block user, just log it
+                return;
             } else {
-                // This means remainingMinutes <= 0
+                // This means remainingMinutes <= 0 (genuine usage limit hit)
                 alert("Your 20-minute AI usage limit has finished. Please try again later.");
                 window.location.href = "/htmls/dashboard.html";
             }

@@ -113,8 +113,12 @@ const allowedOrigins = [
     'https://neo-branium.vercel.app',
     'http://localhost:5500',
     'http://localhost:5501',
+    'http://localhost:5502',
+    'http://localhost:5503',
     'http://127.0.0.1:5500',
     'http://127.0.0.1:5501',
+    'http://127.0.0.1:5502',
+    'http://127.0.0.1:5503',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     ...((process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean))
@@ -1222,7 +1226,10 @@ app.post('/api/board-session-end', async (req, res) => {
 app.get('/api/board-queue-status', async (req, res) => {
     try {
         const userId = req.session?.id;
-        if (!userId) return res.status(403).json({ error: 'No session' });
+        // If no session exists yet, this is a fresh user — grant full access (don't block as "expired")
+        if (!userId) {
+            return res.json({ sessionData: null });
+        }
         const position = queueManager.getPosition(userId);
         const { getSessionStatus } = await import('./firebaseAdmin.js');
         const sessionData = await getSessionStatus(userId).catch(() => null);
