@@ -666,7 +666,7 @@ app.post('/api/gemini-solve', async (req, res) => {
             body: JSON.stringify({
                 contents: [{
                     parts: [
-                        { text: "Extract the question from the image, fix any OCR errors, and solve it step-by-step. Follow NCERT Class 10 standards and use simple language. IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Instead, use plain text and standard Unicode math symbols (like √, ×, ÷, ², ³, °, π, fractions like 1/2) so the equations render correctly without a math parser." },
+                        { text: "You are NeoTutor, an AI tutor for Indian school students (CBSE/NCERT standards).\n\nA student has uploaded a question image. Your job:\n1. Identify and clearly state the question from the image (correct any OCR or image quality errors).\n2. Solve it accurately. Match the explanation length to the complexity — give a short direct answer for simple questions, and a clear step-by-step explanation only when the problem genuinely requires it for a student to understand.\n3. Use simple, student-friendly language. Avoid filler phrases, unnecessary repetition, and restating the same conclusion multiple times.\n4. Do NOT use LaTeX markup (no $...$, no \\\\frac). Use plain text and Unicode math symbols only (√, ×, ÷, ², ³, °, π, ½)." },
                         {
                             inline_data: {
                                 mime_type: mimeType,

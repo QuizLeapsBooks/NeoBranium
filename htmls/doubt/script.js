@@ -1,10 +1,54 @@
-import { db, storage } from "/js/auth.js";
+import { db, auth } from "/js/auth.js";
 import DOMPurify from "dompurify";
 import { collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-import { ref, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
-
-import { auth } from "/js/auth.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+
+// ── IndexedDB helpers for client-side image storage ───────────────────────
+// Images are stored locally in the browser and never uploaded to Firebase.
+const IDB_NAME = 'neobranium_tutor';
+const IDB_STORE = 'session_images';
+const IDB_VERSION = 1;
+
+function openImageDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+        req.onupgradeneeded = (e) => {
+            e.target.result.createObjectStore(IDB_STORE);
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = (e) => reject(e.target.error);
+    });
+}
+
+async function saveImageToIDB(key, base64DataUrl) {
+    try {
+        const idb = await openImageDB();
+        return new Promise((resolve, reject) => {
+            const tx = idb.transaction(IDB_STORE, 'readwrite');
+            tx.objectStore(IDB_STORE).put(base64DataUrl, key);
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = (e) => reject(e.target.error);
+        });
+    } catch (err) {
+        console.warn('NeoTutor IDB: Could not save image to IndexedDB:', err);
+        return false;
+    }
+}
+
+async function loadImageFromIDB(key) {
+    try {
+        const idb = await openImageDB();
+        return new Promise((resolve) => {
+            const tx = idb.transaction(IDB_STORE, 'readonly');
+            const req = tx.objectStore(IDB_STORE).get(key);
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => resolve(null);
+        });
+    } catch {
+        return null;
+    }
+}
+// ─────────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
     let loggedInUserId = null;
@@ -387,45 +431,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
         btnSolved.disabled = true;
         btnUnsolved.disabled = true;
-        const originalSolvedText = btnSolved.innerHTML;
-        const originalUnsolvedText = btnUnsolved.innerHTML;
 
         if (status === 'solved') btnSolved.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
         else btnUnsolved.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
+        // Generate a unique key to link this session's image in IndexedDB
+        const sessionKey = `doubt_${loggedInUserId}_${Date.now()}`;
+
         try {
             updateStatus('Archiving query to Knowledge Base...', false);
-            const storagePath = `users/${loggedInUserId}/doubts/${Date.now()}.jpg`;
-            const storageRef = ref(storage, storagePath);
 
-            const base64Data = currentBase64.split(',')[1];
-            await uploadString(storageRef, base64Data, 'base64', {
-                contentType: 'image/jpeg'
-            });
+            // ── Step 1: Save image locally to IndexedDB (best-effort, non-blocking) ──
+            // This never contacts Firebase. If it fails, the text save still proceeds.
+            const imageSaved = await saveImageToIDB(sessionKey, currentBase64);
+            if (!imageSaved) {
+                console.warn('NeoTutor: Image could not be saved to IndexedDB. Text session will still be archived.');
+            }
 
-            const downloadURL = await getDownloadURL(storageRef);
-
+            // ── Step 2: Save only text/structured data to Firestore (no image, no Storage URL) ──
             const collectionName = status === 'solved' ? 'solvedDoubts' : 'unsolvedDoubts';
             await addDoc(collection(db, `users/${loggedInUserId}/${collectionName}`), {
                 questionText: lastGeneratedText,
-                image: downloadURL,
+                sessionKey: sessionKey,  // Used to retrieve image from IndexedDB later
                 timestamp: Date.now()
+                // NOTE: No 'image' field — images are stored client-side only
             });
 
-            btnSolved.innerHTML = 'Archived ✅';
+            // ── Step 3: Update UI on success ──
             btnUnsolved.style.display = 'none';
-            updateStatus('Query archived successfully.', false);
-            if (status === 'unsolved') {
+            if (status === 'solved') {
+                btnSolved.innerHTML = 'Archived ✅';
+            } else {
                 btnSolved.innerHTML = 'Logged ❌';
                 btnSolved.classList.replace('solved-btn', 'unsolved-btn');
             }
+            updateStatus('Query archived successfully.', false);
+
         } catch (error) {
+            // Firestore save failed — re-enable buttons so user can retry
             console.error("Error saving doubt:", error);
-            btnSolved.innerHTML = 'Save Failed';
+            btnSolved.innerHTML = status === 'solved'
+                ? '<i class="fa-solid fa-check"></i> Retry Save'
+                : '<i class="fa-solid fa-xmark"></i> Retry';
             btnSolved.disabled = false;
             btnUnsolved.disabled = false;
-            updateStatus('Archive failure.', false);
-            alert("Archive Error: " + error.message);
+            updateStatus('Archive failure. Session data preserved.', false);
+            alert("Could not save session: " + error.message + "\n\nYour AI answer is still available in the current session.");
         }
     }
 
@@ -493,9 +544,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const textSrc = data.questionText || "No response generated";
                 const snippet = textSrc.replace(/<[^>]*>?/gm, '').substring(0, 120) + '...';
 
+                // Image preview: use a neutral icon placeholder instead of a remote URL.
+                // The actual image (if saved) is retrieved from IndexedDB when the item is opened.
                 html += `
                     <div class="history-item" data-id="${docId}" style="cursor: pointer;">
-                        <img src="${data.image}" alt="Doubt Image">
+                        <div class="history-item-icon" style="
+                            display:flex; align-items:center; justify-content:center;
+                            width:60px; height:60px; flex-shrink:0;
+                            background:rgba(0,245,255,0.07); border-radius:10px;
+                            border:1px solid rgba(0,245,255,0.15); font-size:22px;
+                            color:var(--primary);">
+                            <i class="fa-solid fa-image"></i>
+                        </div>
                         <div class="history-item-content">
                             <span class="history-item-date">${date}</span>
                             <div class="history-item-text">${snippet}</div>
@@ -519,13 +579,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function openDoubt(data) {
+    async function openDoubt(data) {
         historyModal.classList.add('hidden');
-        currentBase64 = data.image;
-        imagePreview.src = currentBase64;
-        uploadContent.classList.add('hidden');
-        previewContainer.classList.remove('hidden');
 
+        // ── Restore image from IndexedDB or fall back to old Firebase Storage URL ──
+        // New sessions: use sessionKey to load from IndexedDB (client-side only)
+        // Old sessions: try data.image (legacy Storage URL) for backward compatibility
+        // If neither is available: open session with text only — do not fail
+        let restoredImage = null;
+
+        if (data.sessionKey) {
+            restoredImage = await loadImageFromIDB(data.sessionKey);
+        }
+
+        // Backward compat: old records saved a Firebase Storage URL in data.image
+        if (!restoredImage && data.image) {
+            restoredImage = data.image;
+        }
+
+        if (restoredImage) {
+            currentBase64 = restoredImage;
+            imagePreview.src = restoredImage;
+            uploadContent.classList.add('hidden');
+            previewContainer.classList.remove('hidden');
+        } else {
+            // Image not available locally — show upload area with a non-blocking notice
+            currentBase64 = null;
+            imagePreview.src = '';
+            previewContainer.classList.add('hidden');
+            uploadContent.classList.remove('hidden');
+            // Replace upload area content with an "image unavailable" notice temporarily
+            const uploadAreaNotice = document.getElementById('uploadArea');
+            if (uploadAreaNotice) {
+                uploadAreaNotice.style.borderColor = 'rgba(0,245,255,0.2)';
+            }
+            // Small non-blocking info notice inside the upload content area
+            const uploadContentEl = document.getElementById('uploadContent');
+            if (uploadContentEl) {
+                uploadContentEl.innerHTML = `
+                    <div style="text-align:center; padding:20px; color:var(--text-dim);">
+                        <i class="fa-solid fa-image" style="font-size:28px; opacity:0.4;"></i>
+                        <p style="margin-top:10px; font-size:0.85rem; opacity:0.7;">
+                            Image not available locally.<br>The AI answer is shown below.
+                        </p>
+                    </div>`;
+            }
+        }
+
+        // ── Always render the AI answer text ──
         let formattedHTML = data.questionText
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
