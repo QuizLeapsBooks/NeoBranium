@@ -705,6 +705,171 @@ app.post('/api/gemini-solve', async (req, res) => {
     }
 });
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// NeoTutor Quiz Generation API
+// POST /api/tutor/create-quiz
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+app.post('/api/tutor/create-quiz', async (req, res) => {
+    // Reuse the same session-based daily limit as the image solver (15/24h)
+    const SOLVER_DAILY_LIMIT = 15;
+    const WINDOW_MS = 24 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    if (!req.session.solverUsage) {
+        req.session.solverUsage = { count: 0, firstSolve: now };
+    } else if (now - req.session.solverUsage.firstSolve >= WINDOW_MS) {
+        req.session.solverUsage.count = 0;
+        req.session.solverUsage.firstSolve = now;
+    }
+
+    if (req.session.solverUsage.count >= SOLVER_DAILY_LIMIT) {
+        return res.status(429).json({
+            success: false,
+            error: 'Daily limit reached. Please try again after 24 hours.'
+        });
+    }
+
+    try {
+        let { base64, mimeType, aiSolution } = req.body;
+        const geminiApiKey = process.env.GEMINI_API_KEY;
+
+        if (!geminiApiKey) {
+            console.error('❌ GEMINI_API_KEY missing for quiz endpoint');
+            return res.status(500).json({ success: false, error: 'AI service unavailable.' });
+        }
+
+        if (!base64 || !mimeType) {
+            return res.status(400).json({ success: false, error: 'Missing image data.' });
+        }
+
+        // Strip data URI prefix if present
+        if (base64.startsWith('data:')) {
+            base64 = base64.split(',')[1];
+        }
+
+        // Sanitize the aiSolution context to prevent injection
+        const safeContext = typeof aiSolution === 'string'
+            ? aiSolution.slice(0, 3000)
+            : '';
+
+        const quizPrompt = `You are an expert educational quiz creator for Indian school students (CBSE/NCERT standards).
+
+The student has uploaded a question/problem image. The AI already solved it and produced this solution:
+---
+${safeContext || 'No prior solution available.'}
+---
+
+Your task: Generate a short practice quiz based on the SAME CONCEPT shown in the image. The quiz must:
+1. Test UNDERSTANDING of the concept, NOT just repeat the original question.
+2. Use different wording, different numerical values or examples where appropriate.
+3. Match the difficulty and subject level detected from the image.
+4. Contain exactly 5 multiple-choice questions, each with exactly 4 options (A, B, C, D).
+5. Store the correct answer as a 0-based index (0 = first option, 1 = second, etc.).
+6. Include a short, clear explanation for why the correct answer is right.
+7. Avoid ambiguous or trick questions.
+
+Return ONLY a valid JSON object with this exact structure (no markdown fences, no extra text outside the JSON):
+{
+  "title": "<short quiz title, e.g. 'Quiz: Quadratic Equations'>",
+  "topic": "<subject/topic name, e.g. 'Algebra – Class 10'>",
+  "questions": [
+    {
+      "question": "<question text>",
+      "options": ["<option A>", "<option B>", "<option C>", "<option D>"],
+      "correctAnswer": <0-3>,
+      "explanation": "<brief explanation of the correct answer>"
+    }
+  ]
+}`;
+
+        const geminiResponse = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: quizPrompt },
+                            {
+                                inline_data: {
+                                    mime_type: mimeType,
+                                    data: base64
+                                }
+                            }
+                        ]
+                    }],
+                    generationConfig: {
+                        temperature: 0.6,
+                        maxOutputTokens: 4096
+                    }
+                })
+            }
+        );
+
+        if (!geminiResponse.ok) {
+            const errText = await geminiResponse.text();
+            console.error('❌ Gemini Quiz API error:', geminiResponse.status, errText);
+            return res.status(502).json({ success: false, error: 'AI quiz generation failed.' });
+        }
+
+        let geminiData;
+        try {
+            geminiData = await geminiResponse.json();
+        } catch (jsonErr) {
+            console.error('❌ Failed to parse Gemini quiz response:', jsonErr);
+            return res.status(502).json({ success: false, error: 'Unexpected response from AI.' });
+        }
+
+        const rawText = geminiData?.candidates?.[0]?.content?.parts
+            ?.map(p => p.text || '')
+            .join('')
+            .trim();
+
+        if (!rawText) {
+            console.error('❌ Gemini Quiz returned empty text:', geminiData);
+            return res.status(502).json({ success: false, error: 'AI returned an empty quiz.' });
+        }
+
+        // Reuse the existing robust JSON parser (defined below)
+        const parsed = safeParseGeminiJSON(rawText);
+
+        // Validate structure
+        if (!parsed || !Array.isArray(parsed.questions) || parsed.questions.length === 0) {
+            console.error('❌ Quiz JSON invalid structure:', parsed);
+            return res.status(502).json({ success: false, error: 'AI returned an invalid quiz format. Please try again.' });
+        }
+
+        // Sanitize each question before sending to client
+        const sanitizedQuestions = parsed.questions.slice(0, 10).map(q => ({
+            question: String(q.question || '').slice(0, 1000),
+            options: Array.isArray(q.options)
+                ? q.options.slice(0, 4).map(o => String(o).slice(0, 500))
+                : ['—', '—', '—', '—'],
+            correctAnswer: Number.isInteger(q.correctAnswer) && q.correctAnswer >= 0 && q.correctAnswer <= 3
+                ? q.correctAnswer
+                : 0,
+            explanation: String(q.explanation || '').slice(0, 1000)
+        }));
+
+        // Only increment quota on success
+        req.session.solverUsage.count++;
+
+        return res.json({
+            success: true,
+            quiz: {
+                title: String(parsed.title || 'Practice Quiz').slice(0, 200),
+                topic: String(parsed.topic || '').slice(0, 200),
+                questions: sanitizedQuestions
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Quiz Route Error:', error);
+        return res.status(500).json({ success: false, error: 'Internal Server Error. Please try again.' });
+    }
+});
+
 // Safe JSON parser for Gemini responses — handles invalid LaTeX escape sequences
 function safeParseGeminiJSON(rawText) {
     let cleaned = rawText

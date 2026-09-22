@@ -131,8 +131,27 @@
                                 <i class="fa-solid fa-xmark"></i> Unsolved
                             </button>
                         </div>
+                        <!-- Create Quiz button — shown after AI answer is ready -->
+                        <div class="quiz-action-row">
+                            <button id="createQuizBtn" class="create-quiz-btn hidden">
+                                <i class="fa-solid fa-clipboard-question"></i>
+                                <span id="createQuizBtnText">Create Quiz</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quiz Panel — rendered inline, shown after quiz generation -->
+                    <div id="quizPanel" class="quiz-panel hidden">
+                        <div class="quiz-panel-header">
+                            <h4><i class="fa-solid fa-clipboard-question"></i> <span id="quizPanelTitle">Practice Quiz</span></h4>
+                            <button id="closeQuizBtn" class="close-quiz-btn" aria-label="Close quiz"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div id="quizContent" class="quiz-content">
+                            <!-- Questions rendered here by JS -->
+                        </div>
                     </div>
                 </div>
+
             </div>
         </main>
     </div>

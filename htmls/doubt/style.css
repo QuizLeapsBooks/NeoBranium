@@ -1153,3 +1153,342 @@ header {
         display: none;
     }
 }
+
+/* ─────────────────────────────────────────
+   Quiz Feature Styles
+   ───────────────────────────────────────── */
+
+/* Row that holds the Create Quiz button, below Solved/Unsolved */
+.quiz-action-row {
+    margin-top: clamp(10px, 2vw, 14px);
+    display: flex;
+    justify-content: center;
+}
+
+/* Create Quiz button — amber/indigo accent so it reads distinctly */
+.create-quiz-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: clamp(10px, 2.5vw, 12px) clamp(20px, 4vw, 28px);
+    border-radius: 12px;
+    border: 1.5px solid rgba(245, 158, 11, 0.4);
+    background: rgba(245, 158, 11, 0.08);
+    color: #d97706;
+    font-family: var(--font-outfit);
+    font-weight: 700;
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.create-quiz-btn:hover:not(:disabled) {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: #d97706;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2);
+}
+
+.create-quiz-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.create-quiz-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* ── Quiz Panel (mirrors follow-up-section pattern) ── */
+.quiz-panel {
+    margin: 0 clamp(12px, 3vw, 25px) clamp(12px, 3vw, 25px);
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: clamp(8px, 2vw, 12px);
+    overflow: hidden;
+    animation: slideIn 0.3s ease-out;
+}
+
+.quiz-panel-header {
+    padding: clamp(10px, 2vw, 14px) clamp(16px, 3vw, 20px);
+    background: rgba(245, 158, 11, 0.06);
+    border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.quiz-panel-header h4 {
+    font-family: var(--font-outfit);
+    font-size: clamp(0.85rem, 2vw, 0.95rem);
+    color: #d97706;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+}
+
+.close-quiz-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: clamp(14px, 3vw, 16px);
+    transition: color 0.2s;
+    padding: 4px 6px;
+    border-radius: 4px;
+}
+
+.close-quiz-btn:hover {
+    color: var(--error);
+}
+
+/* ── Quiz Content Area ── */
+.quiz-content {
+    padding: clamp(12px, 3vw, 20px);
+    max-height: 560px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(245, 158, 11, 0.4) transparent;
+}
+
+.quiz-topic-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #d97706;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: clamp(12px, 3vw, 18px);
+    letter-spacing: 0.2px;
+}
+
+/* ── Individual Question Card ── */
+.quiz-question {
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    border-radius: clamp(8px, 2vw, 10px);
+    padding: clamp(12px, 3vw, 18px);
+    margin-bottom: clamp(12px, 3vw, 16px);
+    transition: box-shadow 0.2s;
+}
+
+.quiz-question:last-of-type {
+    margin-bottom: 0;
+}
+
+.quiz-question-text {
+    font-size: clamp(0.88rem, 2vw, 0.97rem);
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: clamp(10px, 2vw, 14px);
+    line-height: 1.55;
+}
+
+.quiz-question-num {
+    color: var(--primary);
+    font-family: var(--font-outfit);
+    font-weight: 800;
+    margin-right: 4px;
+}
+
+/* ── Options ── */
+.quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 1.5vw, 8px);
+}
+
+.quiz-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: clamp(8px, 2vw, 10px) clamp(12px, 2vw, 14px);
+    border: 1.5px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    background: var(--bg-light);
+    user-select: none;
+}
+
+.quiz-option:hover {
+    border-color: var(--primary);
+    background: rgba(37, 99, 235, 0.04);
+}
+
+.quiz-option.selected {
+    border-color: var(--primary);
+    background: rgba(37, 99, 235, 0.07);
+}
+
+/* After Check Answers */
+.quiz-option.correct {
+    border-color: var(--success) !important;
+    background: rgba(16, 185, 129, 0.08) !important;
+    color: #065f46;
+}
+
+.quiz-option.wrong {
+    border-color: var(--error) !important;
+    background: rgba(239, 68, 68, 0.07) !important;
+    color: #991b1b;
+}
+
+.quiz-option-letter {
+    width: clamp(22px, 5vw, 26px);
+    height: clamp(22px, 5vw, 26px);
+    border-radius: 50%;
+    background: var(--border-color);
+    color: var(--text-main);
+    font-size: 0.75rem;
+    font-weight: 800;
+    font-family: var(--font-outfit);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.18s, color 0.18s;
+}
+
+.quiz-option.selected .quiz-option-letter {
+    background: var(--primary);
+    color: #fff;
+}
+
+.quiz-option.correct .quiz-option-letter {
+    background: var(--success);
+    color: #fff;
+}
+
+.quiz-option.wrong .quiz-option-letter {
+    background: var(--error);
+    color: #fff;
+}
+
+.quiz-option-text {
+    font-size: clamp(0.83rem, 2vw, 0.92rem);
+    line-height: 1.45;
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
+}
+
+/* ── Explanation Block ── */
+.quiz-explanation {
+    margin-top: 10px;
+    padding: clamp(8px, 2vw, 10px) clamp(10px, 2vw, 14px);
+    background: rgba(37, 99, 235, 0.05);
+    border-left: 3px solid var(--primary);
+    border-radius: 0 6px 6px 0;
+    font-size: clamp(0.8rem, 1.8vw, 0.875rem);
+    color: var(--text-dim);
+    line-height: 1.5;
+    animation: slideIn 0.25s ease-out;
+}
+
+.quiz-explanation i {
+    color: var(--primary);
+    margin-right: 5px;
+}
+
+/* ── Check Answers Button ── */
+.quiz-check-row {
+    display: flex;
+    justify-content: center;
+    padding: clamp(14px, 3vw, 20px) 0 clamp(4px, 1vw, 8px);
+}
+
+.quiz-check-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: clamp(10px, 2.5vw, 13px) clamp(24px, 5vw, 36px);
+    border-radius: 10px;
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    font-family: var(--font-outfit);
+    font-weight: 700;
+    font-size: clamp(0.88rem, 2vw, 0.97rem);
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.quiz-check-btn:hover:not(:disabled) {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+}
+
+.quiz-check-btn:disabled {
+    background: var(--success);
+    cursor: default;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ── Retry Button (shown on error) ── */
+.quiz-retry-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    background: transparent;
+    color: var(--error);
+    font-family: var(--font-outfit);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.quiz-retry-btn:hover {
+    background: rgba(239, 68, 68, 0.08);
+}
+
+/* ── Mobile Overrides ── */
+@media (max-width: 768px) {
+    .quiz-content {
+        max-height: 440px;
+        padding: 14px;
+    }
+
+    .quiz-option {
+        padding: 9px 11px;
+    }
+
+    .create-quiz-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .quiz-panel {
+        margin: 0 0 12px;
+        border-radius: 8px;
+    }
+
+    .quiz-content {
+        max-height: 380px;
+        padding: 12px;
+    }
+
+    .quiz-question {
+        padding: 12px;
+    }
+
+    .quiz-check-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

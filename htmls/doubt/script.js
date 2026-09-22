@@ -40,7 +40,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendFollowUpBtn = document.getElementById('sendFollowUp');
     const closeFollowUpBtn = document.getElementById('closeFollowUp');
 
+    // Quiz elements
+    const createQuizBtn = document.getElementById('createQuizBtn');
+    const createQuizBtnText = document.getElementById('createQuizBtnText');
+    const quizPanel = document.getElementById('quizPanel');
+    const quizPanelTitle = document.getElementById('quizPanelTitle');
+    const quizContent = document.getElementById('quizContent');
+    const closeQuizBtn = document.getElementById('closeQuizBtn');
+
     let isFollowUpLoading = false;
+    let isQuizLoading = false;
 
     let currentFile = null;
     let currentBase64 = null;
@@ -113,13 +122,18 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStatus('Quantum System Online. Waiting for input...', false);
 
     const getApiBaseUrl = () => {
-        // Always use the production Render backend.
-        // (Live Server / localhost development also hits the hosted backend)
+        // Allow an explicit override via a <meta name="backend-url"> tag
         const metaBackend = document.querySelector('meta[name="backend-url"]');
         if (metaBackend && metaBackend.getAttribute('content')) {
             const val = metaBackend.getAttribute('content');
             return val.endsWith('/') ? `${val}api` : `${val}/api`;
         }
+        // In local development (Live Server / localhost) hit the local Express server
+        const host = window.location.hostname;
+        if (host === 'localhost' || host === '127.0.0.1') {
+            return 'http://localhost:3000/api';
+        }
+        // Production: always use the hosted backend
         return 'https://neobranium.onrender.com/api';
     };
 
@@ -230,7 +244,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const feedbackSection = document.getElementById('feedbackSection');
         if (feedbackSection) feedbackSection.style.display = 'block';
+
+        // Reset quiz state on upload reset
+        if (createQuizBtn) createQuizBtn.classList.add('hidden');
+        if (quizPanel) quizPanel.classList.add('hidden');
+        if (quizContent) quizContent.innerHTML = '';
+        isQuizLoading = false;
     }
+
 
     // --- Solving Action ---
     solveBtn.addEventListener('click', async () => {
@@ -321,10 +342,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnSolved.className = 'feedback-btn solved-btn';
             }
 
+            // Show the Create Quiz button now that we have a fresh AI answer
+            if (createQuizBtn) {
+                createQuizBtn.classList.remove('hidden');
+                createQuizBtnText.textContent = 'Create Quiz';
+                createQuizBtn.disabled = false;
+            }
+            // Hide any previously shown quiz panel on a new solve
+            if (quizPanel) quizPanel.classList.add('hidden');
+            if (quizContent) quizContent.innerHTML = '';
+
             outputContainer.classList.remove('hidden');
             followUpSection.classList.remove('hidden');
             outputContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
+
     });
 
     // --- Copy functionality ---
@@ -653,4 +685,195 @@ document.addEventListener('DOMContentLoaded', () => {
         followUpSection.classList.add('hidden');
         followUpContent.innerHTML = '';
     });
+
+    // ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+    // Quiz Feature
+    // ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+
+    // Create Quiz button handler
+    createQuizBtn.addEventListener('click', async () => {
+        // Guards: must have image + solution, and no concurrent request
+        if (!currentBase64 || !lastGeneratedText || isQuizLoading) return;
+
+        isQuizLoading = true;
+        createQuizBtn.disabled = true;
+        createQuizBtnText.textContent = 'Creating your quiz…';
+
+        // Show quiz panel with loading state
+        quizPanel.classList.remove('hidden');
+        quizContent.innerHTML = `
+            <div class="quiz-loading">
+                <div class="ai-typing" style="justify-content:center; padding: 30px 0;">
+                    <div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div>
+                </div>
+                <p style="text-align:center; color:var(--text-dim); font-size:0.9rem;">Generating quiz from your question…</p>
+            </div>`;
+        quizPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        try {
+            // Extract base64 without data URI prefix
+            const base64Data = currentBase64.startsWith('data:')
+                ? currentBase64.split(',')[1]
+                : currentBase64;
+
+            const mimeType = currentFile ? currentFile.type : 'image/jpeg';
+
+            const response = await fetch(`${API_BASE_URL}/tutor/create-quiz`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    base64: base64Data,
+                    mimeType: mimeType,
+                    aiSolution: lastGeneratedText
+                })
+            });
+
+            // Parse error details if possible
+            const contentType = response.headers.get('content-type');
+            if (!response.ok) {
+                let errMsg = `Server error (${response.status})`;
+                if (contentType && contentType.includes('application/json')) {
+                    const errData = await response.json();
+                    errMsg = errData.error || errMsg;
+                }
+                throw new Error(errMsg);
+            }
+
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Unexpected response from server.');
+            }
+
+            const data = await response.json();
+            if (!data.success || !data.quiz) {
+                throw new Error(data.error || 'Quiz generation failed.');
+            }
+
+            renderQuiz(data.quiz);
+
+        } catch (error) {
+            console.error('Quiz Generation Error:', error);
+            quizContent.innerHTML = `
+                <div style="padding:20px; color:var(--error); background:rgba(239,68,68,0.08);
+                     border-radius:10px; border:1px solid rgba(239,68,68,0.25); margin:15px;">
+                    <p><i class="fa-solid fa-triangle-exclamation"></i>
+                       <strong> Quiz Generation Failed</strong></p>
+                    <p style="font-size:0.88rem; margin-top:8px;">${error.message}</p>
+                    <button class="quiz-retry-btn" onclick="document.getElementById('createQuizBtn').click()">
+                        <i class="fa-solid fa-rotate-right"></i> Try Again
+                    </button>
+                </div>`;
+        } finally {
+            isQuizLoading = false;
+            createQuizBtn.disabled = false;
+            createQuizBtnText.textContent = 'Create Quiz';
+        }
+    });
+
+    // Close quiz panel
+    closeQuizBtn.addEventListener('click', () => {
+        quizPanel.classList.add('hidden');
+        quizContent.innerHTML = '';
+    });
+
+    // Render quiz questions
+    function renderQuiz(quiz) {
+        if (!quiz || !Array.isArray(quiz.questions) || quiz.questions.length === 0) {
+            quizContent.innerHTML = `<p style="padding:20px;color:var(--error);">No questions were generated. Please try again.</p>`;
+            return;
+        }
+
+        // Update panel title
+        quizPanelTitle.textContent = quiz.title || 'Practice Quiz';
+
+        const optionLetters = ['A', 'B', 'C', 'D'];
+        let html = '';
+
+        if (quiz.topic) {
+            html += `<p class="quiz-topic-label"><i class="fa-solid fa-tag"></i> ${quiz.topic}</p>`;
+        }
+
+        quiz.questions.forEach((q, qIdx) => {
+            const questionId = `quiz-q${qIdx}`;
+            html += `
+                <div class="quiz-question" data-qidx="${qIdx}" data-correct="${q.correctAnswer}">
+                    <p class="quiz-question-text">
+                        <span class="quiz-question-num">Q${qIdx + 1}.</span> ${q.question}
+                    </p>
+                    <div class="quiz-options" role="radiogroup">`;
+
+            (q.options || []).forEach((opt, oIdx) => {
+                html += `
+                        <label class="quiz-option" data-oidx="${oIdx}">
+                            <input type="radio" name="${questionId}" value="${oIdx}" style="display:none;">
+                            <span class="quiz-option-letter">${optionLetters[oIdx] || oIdx}</span>
+                            <span class="quiz-option-text">${opt}</span>
+                        </label>`;
+            });
+
+            html += `
+                    </div>
+                    <div class="quiz-explanation hidden" id="exp-${qIdx}">
+                        <i class="fa-solid fa-circle-info"></i> ${q.explanation || ''}
+                    </div>
+                </div>`;
+        });
+
+        html += `
+            <div class="quiz-check-row">
+                <button class="quiz-check-btn" id="checkAnswersBtn">
+                    <i class="fa-solid fa-check-double"></i> Check Answers
+                </button>
+            </div>`;
+
+        quizContent.innerHTML = html;
+
+        // Option selection (visual toggle)
+        quizContent.querySelectorAll('.quiz-question').forEach(questionEl => {
+            questionEl.querySelectorAll('.quiz-option').forEach(optLabel => {
+                optLabel.addEventListener('click', () => {
+                    // Deselect siblings
+                    questionEl.querySelectorAll('.quiz-option').forEach(l => l.classList.remove('selected'));
+                    optLabel.classList.add('selected');
+                    const radio = optLabel.querySelector('input[type="radio"]');
+                    if (radio) radio.checked = true;
+                });
+            });
+        });
+
+        // Check Answers button
+        const checkBtn = quizContent.querySelector('#checkAnswersBtn');
+        if (checkBtn) {
+            checkBtn.addEventListener('click', () => {
+                checkBtn.disabled = true;
+                checkBtn.innerHTML = '<i class="fa-solid fa-check"></i> Answers Checked';
+
+                quizContent.querySelectorAll('.quiz-question').forEach(questionEl => {
+                    const correctIdx = parseInt(questionEl.dataset.correct, 10);
+                    const options = questionEl.querySelectorAll('.quiz-option');
+                    let selectedIdx = -1;
+
+                    options.forEach((opt, idx) => {
+                        const radio = opt.querySelector('input[type="radio"]');
+                        if (radio && radio.checked) selectedIdx = idx;
+                    });
+
+                    options.forEach((opt, idx) => {
+                        opt.style.pointerEvents = 'none'; // lock selection
+                        if (idx === correctIdx) {
+                            opt.classList.add('correct');
+                        } else if (idx === selectedIdx && idx !== correctIdx) {
+                            opt.classList.add('wrong');
+                        }
+                    });
+
+                    // Show explanation
+                    const qIdx = questionEl.dataset.qidx;
+                    const expEl = quizContent.querySelector(`#exp-${qIdx}`);
+                    if (expEl) expEl.classList.remove('hidden');
+                });
+            });
+        }
+    }
+
 });
