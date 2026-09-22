@@ -848,8 +848,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 checkBtn.disabled = true;
                 checkBtn.innerHTML = '<i class="fa-solid fa-check"></i> Answers Checked';
 
+                let correctCount = 0;
+                let incorrectIndices = [];
+
                 quizContent.querySelectorAll('.quiz-question').forEach(questionEl => {
                     const correctIdx = parseInt(questionEl.dataset.correct, 10);
+                    const qIdx = parseInt(questionEl.dataset.qidx, 10);
                     const options = questionEl.querySelectorAll('.quiz-option');
                     let selectedIdx = -1;
 
@@ -857,6 +861,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         const radio = opt.querySelector('input[type="radio"]');
                         if (radio && radio.checked) selectedIdx = idx;
                     });
+
+                    if (selectedIdx === correctIdx) {
+                        correctCount++;
+                    } else {
+                        incorrectIndices.push(qIdx);
+                    }
 
                     options.forEach((opt, idx) => {
                         opt.style.pointerEvents = 'none'; // lock selection
@@ -868,9 +878,104 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
 
                     // Show explanation
-                    const qIdx = questionEl.dataset.qidx;
                     const expEl = quizContent.querySelector(`#exp-${qIdx}`);
                     if (expEl) expEl.classList.remove('hidden');
+                });
+
+                // --- Display Result Summary ---
+                const totalQs = quiz.questions.length;
+                const resultSummary = document.createElement('div');
+                resultSummary.className = 'quiz-result-summary';
+                resultSummary.innerHTML = `
+                    <div class="quiz-score-header">
+                        <h3>Score: ${correctCount}/${totalQs}</h3>
+                        <p>Correct: ${correctCount} | Incorrect: ${totalQs - correctCount}</p>
+                    </div>
+                    <div class="quiz-result-actions">
+                        <button class="quiz-action-btn secondary-btn" id="reviewAnswersBtn">
+                            <i class="fa-solid fa-magnifying-glass"></i> Review Answers
+                        </button>
+                        <button class="quiz-action-btn primary-btn" id="practiceSimilarBtn">
+                            <i class="fa-solid fa-bolt"></i> Practice Similar Questions
+                        </button>
+                    </div>
+                `;
+                
+                // Hide check button row, replace with summary
+                const checkRow = checkBtn.closest('.quiz-check-row');
+                if (checkRow) {
+                    checkRow.style.display = 'none';
+                    checkRow.parentNode.insertBefore(resultSummary, checkRow.nextSibling);
+                }
+
+                // Scroll to summary
+                resultSummary.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+                // Review answers btn
+                const reviewBtn = resultSummary.querySelector('#reviewAnswersBtn');
+                reviewBtn.addEventListener('click', () => {
+                    quizContent.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+
+                // Practice Similar btn
+                const practiceBtn = resultSummary.querySelector('#practiceSimilarBtn');
+                practiceBtn.addEventListener('click', async () => {
+                    if (isQuizLoading) return;
+                    isQuizLoading = true;
+                    practiceBtn.disabled = true;
+                    practiceBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing mistakes...';
+
+                    practiceBtn.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+                    try {
+                        const base64Data = currentBase64 && currentBase64.startsWith('data:')
+                            ? currentBase64.split(',')[1]
+                            : currentBase64;
+                        const mimeType = currentFile ? currentFile.type : 'image/jpeg';
+
+                        const response = await fetch(`${getApiBaseUrl()}/tutor/practice-similar`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({
+                                base64: base64Data,
+                                mimeType: mimeType,
+                                aiSolution: lastGeneratedText,
+                                previousQuiz: quiz,
+                                incorrectIndices: incorrectIndices
+                            })
+                        });
+
+                        const contentType = response.headers.get('content-type');
+                        if (!response.ok) {
+                            let errMsg = `Server error (${response.status})`;
+                            if (contentType && contentType.includes('application/json')) {
+                                const errData = await response.json();
+                                errMsg = errData.error || errMsg;
+                            }
+                            throw new Error(errMsg);
+                        }
+
+                        if (!contentType || !contentType.includes('application/json')) {
+                            throw new Error('Unexpected response from server.');
+                        }
+
+                        const data = await response.json();
+                        if (!data.success || !data.quiz) {
+                            throw new Error(data.error || 'Practice quiz generation failed.');
+                        }
+
+                        // Render the NEW quiz in the existing panel
+                        renderQuiz(data.quiz);
+                        
+                    } catch (error) {
+                        console.error('Practice Generation Error:', error);
+                        alert('Failed to generate practice quiz: ' + error.message);
+                        practiceBtn.disabled = false;
+                        practiceBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> Practice Similar Questions';
+                    } finally {
+                        isQuizLoading = false;
+                    }
                 });
             });
         }

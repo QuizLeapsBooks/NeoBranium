@@ -352,7 +352,7 @@ app.post('/api/chat', async (req, res) => {
         saveUserMemory(secureUserId, memory).catch(err => console.error("Memory track error:", err));
 
         // Build system prompt based on task
-        let systemIdentity = `You are NS-x AI Learning Assistant from the NeoBranium platform. NeoBranium is a learning platform focused on science, mathematics, programming, quizzes, and study tools for students. NeoBranium was created by Shubham Singh, a student who enjoys science, mathematics, programming, and building educational tools for students. In all responses, act as a friendly private learning assistant and do not reveal private details (location, school, phone, email, personal life). If asked about who made you, who created you, who owns this AI, who is Shubham Singh, or what is NeoBranium, reply: "This AI assistant is part of the NeoBranium learning platform created by Shubham Singh. He is a student who enjoys science, mathematics, and programming and built this platform to help students learn more effectively."`;
+        let systemIdentity = `You are NS-x AI Learning Assistant from the NeoBranium platform. NeoBranium is a learning platform focused on science, mathematics, programming, quizzes, and study tools for students. NeoBranium was created by Shubham Singh, a student who enjoys science, mathematics, programming, and building educational tools for students. In all responses, act as a friendly private learning assistant and do not reveal private details (location, school, phone, email, personal life). If asked about who made you, who created you, who owns this AI, who is Shubham Singh, or what is NeoBranium, reply: "This AI assistant is part of the NeoBranium learning platform created by Shubham Singh. He is a student who enjoys science, mathematics, and programming and built this platform to help students learn more effectively." IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and standard Unicode math symbols (like √, ×, ÷, ², ³, °, π, fractions like 1/2) so the equations render correctly without a math parser.`;
 
         let queryContext = '';
         if (task === 'paper_generation') {
@@ -666,7 +666,7 @@ app.post('/api/gemini-solve', async (req, res) => {
             body: JSON.stringify({
                 contents: [{
                     parts: [
-                        { text: "Extract the question from the image, fix any OCR errors, and solve it step-by-step. Follow NCERT Class 10 standards and use simple language." },
+                        { text: "Extract the question from the image, fix any OCR errors, and solve it step-by-step. Follow NCERT Class 10 standards and use simple language. IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Instead, use plain text and standard Unicode math symbols (like √, ×, ÷, ², ³, °, π, fractions like 1/2) so the equations render correctly without a math parser." },
                         {
                             inline_data: {
                                 mime_type: mimeType,
@@ -767,6 +767,7 @@ Your task: Generate a short practice quiz based on the SAME CONCEPT shown in the
 5. Store the correct answer as a 0-based index (0 = first option, 1 = second, etc.).
 6. Include a short, clear explanation for why the correct answer is right.
 7. Avoid ambiguous or trick questions.
+8. Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and Unicode math symbols (like √, ², ½, ×).
 
 Return ONLY a valid JSON object with this exact structure (no markdown fences, no extra text outside the JSON):
 {
@@ -870,7 +871,151 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
     }
 });
 
-// Safe JSON parser for Gemini responses — handles invalid LaTeX escape sequences
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// NeoTutor Practice Similar Questions API
+// POST /api/tutor/practice-similar
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+app.post('/api/tutor/practice-similar', async (req, res) => {
+    const SOLVER_DAILY_LIMIT = 15;
+    const WINDOW_MS = 24 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    if (!req.session.solverUsage) {
+        req.session.solverUsage = { count: 0, firstSolve: now };
+    } else if (now - req.session.solverUsage.firstSolve >= WINDOW_MS) {
+        req.session.solverUsage.count = 0;
+        req.session.solverUsage.firstSolve = now;
+    }
+
+    if (req.session.solverUsage.count >= SOLVER_DAILY_LIMIT) {
+        return res.status(429).json({
+            success: false,
+            error: 'Daily limit reached. Please try again after 24 hours.'
+        });
+    }
+
+    try {
+        let { base64, mimeType, aiSolution, previousQuiz, incorrectIndices } = req.body;
+        const geminiApiKey = process.env.GEMINI_API_KEY;
+
+        if (!geminiApiKey) {
+            console.error('❌ GEMINI_API_KEY missing for practice endpoint');
+            return res.status(500).json({ success: false, error: 'AI service unavailable.' });
+        }
+
+        if (base64 && base64.startsWith('data:')) {
+            base64 = base64.split(',')[1];
+        }
+
+        const safeContext = typeof aiSolution === 'string' ? aiSolution.slice(0, 3000) : '';
+        const prevQuizContext = previousQuiz && previousQuiz.questions ? previousQuiz.questions.map((q, i) => ({
+            question: q.question,
+            wasIncorrect: incorrectIndices.includes(i)
+        })) : [];
+
+        const isPerfectScore = incorrectIndices && incorrectIndices.length === 0;
+        
+        let instructions = isPerfectScore
+            ? `The student got ALL questions correct! Generate 5 NEW, slightly MORE CHALLENGING questions on the same concepts to deepen their understanding.`
+            : `The student got ${incorrectIndices.length} questions incorrect. Identify the specific concepts tested in the INCORRECT questions and generate 5 NEW questions targeting those exact concepts to help them practice. Focus on conceptual understanding.`;
+
+        const practicePrompt = `You are an expert educational quiz creator for Indian school students.
+
+The student has just completed a practice quiz based on this original solution:
+---
+${safeContext || 'No prior solution available.'}
+---
+
+Original Quiz Performance:
+${JSON.stringify(prevQuizContext, null, 2)}
+
+Your task:
+${instructions}
+1. Do NOT copy the original questions. Use different wording, situations, and values.
+2. Contain exactly 5 multiple-choice questions, each with exactly 4 options (A, B, C, D).
+3. Provide the correct answer as a 0-based index.
+4. Include a short, clear explanation.
+5. Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and Unicode math symbols (like √, ², ½, ×).
+
+Return ONLY a valid JSON object with this exact structure (no markdown fences, no extra text):
+{
+  "title": "Practice: <topic>",
+  "topic": "<subject/topic name>",
+  "questions": [
+    {
+      "question": "<question text>",
+      "options": ["<option A>", "<option B>", "<option C>", "<option D>"],
+      "correctAnswer": <0-3>,
+      "explanation": "<brief explanation>"
+    }
+  ]
+}`;
+
+        const parts = [{ text: practicePrompt }];
+        if (base64 && mimeType) {
+            parts.push({
+                inline_data: {
+                    mime_type: mimeType,
+                    data: base64
+                }
+            });
+        }
+
+        const geminiResponse = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts }],
+                    generationConfig: { temperature: 0.6, maxOutputTokens: 4096 }
+                })
+            }
+        );
+
+        if (!geminiResponse.ok) {
+            const errText = await geminiResponse.text();
+            console.error('❌ Gemini Practice API error:', geminiResponse.status, errText);
+            return res.status(502).json({ success: false, error: 'AI practice generation failed.' });
+        }
+
+        const geminiData = await geminiResponse.json();
+        const rawText = geminiData?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('').trim();
+
+        if (!rawText) {
+            return res.status(502).json({ success: false, error: 'AI returned an empty quiz.' });
+        }
+
+        const parsed = safeParseGeminiJSON(rawText);
+        if (!parsed || !Array.isArray(parsed.questions) || parsed.questions.length === 0) {
+            return res.status(502).json({ success: false, error: 'AI returned an invalid quiz format.' });
+        }
+
+        const sanitizedQuestions = parsed.questions.slice(0, 10).map(q => ({
+            question: String(q.question || '').slice(0, 1000),
+            options: Array.isArray(q.options) ? q.options.slice(0, 4).map(o => String(o).slice(0, 500)) : ['—', '—', '—', '—'],
+            correctAnswer: Number.isInteger(q.correctAnswer) && q.correctAnswer >= 0 && q.correctAnswer <= 3 ? q.correctAnswer : 0,
+            explanation: String(q.explanation || '').slice(0, 1000)
+        }));
+
+        req.session.solverUsage.count++;
+
+        return res.json({
+            success: true,
+            quiz: {
+                title: String(parsed.title || 'Practice Similar').slice(0, 200),
+                topic: String(parsed.topic || '').slice(0, 200),
+                questions: sanitizedQuestions
+            }
+        });
+
+    } catch (error) {
+        console.error('❌ Practice Route Error:', error);
+        return res.status(500).json({ success: false, error: 'Internal Server Error. Please try again.' });
+    }
+});
+
+
 function safeParseGeminiJSON(rawText) {
     let cleaned = rawText
         .replace(/^```json\s*/i, '')
