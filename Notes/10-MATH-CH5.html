@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class 10 Mathematics Chapter 5: Arithmetic Progressions | Detailed NCERT Notes | NeoBranium</title>
-    <meta name="description" content="Class 10 Mathematics Chapter 5 - Arithmetic Progressions. Detailed NCERT notes.">
+    <meta name="description" content="Class 10 Mathematics Chapter 5 - Arithmetic Progressions. Detailed NCERT notes with nth term, sum of n terms, word problems, and previous year questions.">
+    <meta name="keywords" content="class 10 maths chapter 5, Arithmetic Progressions, NCERT notes, CBSE board exam, nth term, sum of n terms, AP formulas">
     <meta name="author" content="NeoBranium">
     <meta name="robots" content="index, follow">
 
@@ -12,6 +13,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
     <link rel="stylesheet" href="../index_css.css">
     <link rel="stylesheet" href="notes.css">
+    
+    <style>
+        .highlight-box { background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%); border-left: 5px solid #f59e0b; padding: 1.2rem; margin: 1.5rem 0; border-radius: 12px; }
+        .repeated-tag { display: inline-block; background: #dc2626; color: white; font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 30px; margin-left: 0.75rem; vertical-align: middle; }
+        .pyq-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 16px; padding: 1.3rem; margin: 1.8rem 0; }
+        .key-memorize { background: #fef3c7; padding: 1rem 1.3rem; border-radius: 14px; border-left: 4px solid #d97706; margin: 1.3rem 0; }
+        .formula-box-custom { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 12px; font-family: monospace; text-align: center; font-size: 1.1rem; margin: 1.2rem 0; }
+        .interactive-card { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin: 2rem 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .interactive-card h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .warning-note { background: #fef2f2; border-left: 5px solid #ef4444; padding: 1rem; border-radius: 12px; margin: 1.5rem 0; }
+        .info-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .info-table th, .info-table td { border: 1px solid #e2e8f0; padding: 0.6rem; text-align: left; }
+        .info-table th { background: #f1f5f9; font-weight: 600; }
+        .solved-step { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin: 1rem 0; }
+        .solved-step strong { color: #1e40af; }
+        @media (max-width: 768px) { .info-table { font-size: 0.85rem; } }
+    </style>
 </head>
 <body>
     <div id="preloader">
@@ -80,8 +98,12 @@
             <div class="sidebar-content">
                 <h3>📖 Chapter Contents</h3>
                 <ul>
-                    <li><a href="#intro">Introduction</a></li>
-                    <!-- Add more topics here later -->
+                    <li><a href="#intro">1. Introduction to AP</a></li>
+                    <li><a href="#nth-term">2. nth Term of an AP</a></li>
+                    <li><a href="#sum">3. Sum of First n Terms</a></li>
+                    <li><a href="#special">4. Special Sums</a></li>
+                    <li><a href="#word-problems">5. Word Problems</a></li>
+                    <li><a href="#pyqs">6. Previous Year Questions</a></li>
                 </ul>
             </div>
         </aside>
@@ -91,10 +113,248 @@
                 <a href="../index.html">Home</a> / <a href="class10-maths-dir.html">Notes</a> / <a href="class10-maths-dir.html">Class 10 Mathematics</a> / Chapter 5: Arithmetic Progressions
             </nav>
 
+            <!-- SECTION 1: INTRODUCTION -->
             <section id="intro">
-                <h1>Chapter 5: Arithmetic Progressions</h1>
-                <p class="chapter-summary">Detailed notes coming soon...</p>
-                <div style="height: 60vh;"></div> <!-- Space for chapter content -->
+                <h1>Arithmetic Progressions <span class="repeated-tag">High Weightage Chapter</span></h1>
+                <div class="highlight-box">
+                    <i class="fas fa-star" style="color:#f59e0b;"></i> <strong>Why this chapter is important?</strong> Arithmetic Progressions is a scoring chapter that teaches you to identify patterns in sequences, find any term, and calculate sums. It forms the foundation for more advanced topics in higher classes and carries significant weightage in board exams.
+                </div>
+
+                <h3>1.1 What is a Sequence?</h3>
+                <p>A <strong>sequence</strong> is an arrangement of numbers or objects in a definite order. For example: 2, 4, 6, 8, ... or 5, 10, 15, 20, ...</p>
+
+                <h3>1.2 What is an Arithmetic Progression (AP)?</h3>
+                <p>A sequence is called an <strong>Arithmetic Progression</strong> if the difference between any two consecutive terms is constant. This constant difference is called the <strong>common difference (d)</strong> [citation:7].</p>
+
+                <div class="formula-box-custom">
+                    a₂ − a₁ = a₃ − a₂ = a₄ − a₃ = ... = d (constant)
+                </div>
+
+                <p><strong>General form of an AP:</strong> a, a + d, a + 2d, a + 3d, ... where <strong>a</strong> is the first term and <strong>d</strong> is the common difference.</p>
+
+                <h3>1.3 Identifying an AP</h3>
+                <p><strong>Example 1:</strong> 4, 10, 16, 22, ...</p>
+                <p>Here, 10 − 4 = 6, 16 − 10 = 6, 22 − 16 = 6. Since the difference is constant (6), it is an AP with d = 6 [citation:18].</p>
+
+                <p><strong>Example 2:</strong> 1, -1, -3, -5, ...</p>
+                <p>Here, -1 − 1 = -2, -3 − (-1) = -2, -5 − (-3) = -2. Since the difference is constant (-2), it is an AP with d = -2 [citation:18].</p>
+
+                <p><strong>Example 3 (Not an AP):</strong> -2, 2, -2, 2, ...</p>
+                <p>Here, 2 − (-2) = 4, -2 − 2 = -4. The differences alternate, so it is <strong>not</strong> an AP [citation:18].</p>
+
+                <div class="key-memorize">
+                    <strong>🎯 Key Points:</strong>
+                    <ul>
+                        <li>The common difference <strong>d</strong> can be positive, negative, or zero [citation:13].</li>
+                        <li>If d > 0, the AP is increasing. If d < 0, the AP is decreasing. If d = 0, all terms are equal.</li>
+                        <li>An AP is defined by its first term (a) and common difference (d).</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- SECTION 2: NTH TERM -->
+            <section id="nth-term">
+                <h2>2. nth Term of an Arithmetic Progression</h2>
+                <p>The formula to find the <strong>nth term (general term)</strong> of an AP is [citation:2][citation:8]:</p>
+
+                <div class="formula-box-custom">
+                    aₙ = a + (n − 1)d
+                </div>
+
+                <p>Where:</p>
+                <ul>
+                    <li><strong>aₙ</strong> = nth term</li>
+                    <li><strong>a</strong> = first term</li>
+                    <li><strong>n</strong> = term number (position)</li>
+                    <li><strong>d</strong> = common difference</li>
+                </ul>
+
+                <h3>2.1 Solved Examples</h3>
+
+                <div class="solved-step">
+                    <strong>Example 1:</strong> Find the 12th term of the AP 5, 9, 13, 17, ... [citation:13]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Here, a = 5, d = 4, n = 12</p>
+                <p>a₁₂ = a + (12 − 1) × d = 5 + 11 × 4 = 5 + 44 = <strong>49</strong></p>
+                <p>The 12th term is 49.</p>
+
+                <div class="solved-step">
+                    <strong>Example 2:</strong> Find the 10th term of the AP: 2, 7, 12, ... [citation:18]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Here, a = 2, d = 5 (since 7 − 2 = 5), n = 10</p>
+                <p>a₁₀ = 2 + (10 − 1) × 5 = 2 + 9 × 5 = 2 + 45 = <strong>47</strong></p>
+
+                <div class="solved-step">
+                    <strong>Example 3:</strong> Which term of the AP: 3, 8, 13, 18, ... is 78? [citation:16]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Here, a = 3, d = 5, aₙ = 78</p>
+                <p>78 = 3 + (n − 1) × 5</p>
+                <p>75 = (n − 1) × 5</p>
+                <p>n − 1 = 15 → n = <strong>16</strong></p>
+                <p>The 16th term is 78.</p>
+
+                <h3>2.2 Finding Number of Terms in an AP</h3>
+                <p>If the last term (l) is known, the number of terms can be found using [citation:13]:</p>
+                <div class="formula-box-custom">
+                    n = ((l − a) / d) + 1
+                </div>
+
+                <div class="solved-step">
+                    <strong>Example:</strong> How many terms are there in the AP 3, 7, 11, ..., 99? [citation:13]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Here, a = 3, l = 99, d = 4</p>
+                <p>n = ((99 − 3) / 4) + 1 = (96/4) + 1 = 24 + 1 = <strong>25</strong></p>
+                <p>There are 25 terms.</p>
+            </section>
+
+            <!-- SECTION 3: SUM OF N TERMS -->
+            <section id="sum">
+                <h2>3. Sum of First n Terms of an AP</h2>
+                <p>There are two formulas to find the sum of the first n terms of an AP [citation:2][citation:8]:</p>
+
+                <div class="formula-box-custom">
+                    Sₙ = n/2 [2a + (n − 1)d]
+                </div>
+                <p><em>Use this when first term (a), common difference (d), and number of terms (n) are known.</em></p>
+
+                <div class="formula-box-custom">
+                    Sₙ = n/2 (a + l)
+                </div>
+                <p><em>Use this when first term (a), last term (l), and number of terms (n) are known.</em></p>
+
+                <h3>3.1 Solved Examples</h3>
+
+                <div class="solved-step">
+                    <strong>Example 1:</strong> Find the sum of the first 20 terms of the AP 7, 10, 13, 16, ... [citation:13]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Here, a = 7, d = 3, n = 20</p>
+                <p>S₂₀ = 20/2 [2(7) + (20 − 1) × 3] = 10 [14 + 57] = 10 × 71 = <strong>710</strong></p>
+
+                <div class="solved-step">
+                    <strong>Example 2:</strong> Find the sum of the first 20 terms of an AP where a = 10 and d = 5. [citation:19]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>S₂₀ = 20/2 [2(10) + (20 − 1) × 5] = 10 [20 + 95] = 10 × 115 = <strong>1150</strong></p>
+
+                <h3>3.2 Finding n When Sum is Given</h3>
+                <div class="solved-step">
+                    <strong>Example:</strong> How many terms of the AP: 9, 17, 25, ... must be taken to give a sum of 636? [citation:10]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Here, a = 9, d = 8, Sₙ = 636</p>
+                <p>636 = n/2 [2(9) + (n − 1) × 8]</p>
+                <p>636 = n/2 [18 + 8n − 8]</p>
+                <p>636 = n/2 [8n + 10]</p>
+                <p>1272 = n(8n + 10)</p>
+                <p>4n² + 5n − 636 = 0</p>
+                <p>Solving this quadratic: n = <strong>12</strong> (negative root is rejected)</p>
+            </section>
+
+            <!-- SECTION 4: SPECIAL SUMS -->
+            <section id="special">
+                <h2>4. Special Sums (Important for Exams)</h2>
+
+                <h3>4.1 Sum of First n Natural Numbers</h3>
+                <p>The positive integers 1, 2, 3, ... form an AP with a = 1 and d = 1. The sum is [citation:3][citation:9]:</p>
+                <div class="formula-box-custom">
+                    Sₙ = n(n + 1) / 2
+                </div>
+
+                <div class="solved-step">
+                    <strong>Example:</strong> Find the sum of the first 50 natural numbers. [citation:13]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>S₅₀ = 50(50 + 1) / 2 = 50 × 51 / 2 = 25 × 51 = <strong>1275</strong></p>
+
+                <div class="key-memorize">
+                    <strong>🎯 Remember:</strong> This formula is useful for adding natural numbers quickly and is a special case of the AP sum formula with a = 1 and d = 1.
+                </div>
+            </section>
+
+            <!-- SECTION 5: WORD PROBLEMS -->
+            <section id="word-problems">
+                <h2>5. Word Problems (Application-Based)</h2>
+
+                <h3>5.1 Types of Word Problems</h3>
+                <ul>
+                    <li><strong>Counting Problems:</strong> Number of terms in a sequence (e.g., how many three-digit numbers are divisible by 7) [citation:1]</li>
+                    <li><strong>Real-life Applications:</strong> Taxi fare, salary increments, ladder rungs [citation:12][citation:4]</li>
+                    <li><strong>Finding Specific Terms:</strong> Which term of an AP is a given value</li>
+                </ul>
+
+                <div class="solved-step">
+                    <strong>Example 1:</strong> How many three-digit numbers are divisible by 7? [citation:1]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Smallest three-digit multiple of 7 = 105</p>
+                <p>Largest three-digit multiple of 7 = 994</p>
+                <p>AP: 105, 112, 119, ..., 994</p>
+                <p>Here, a = 105, d = 7, aₙ = 994</p>
+                <p>994 = 105 + (n − 1) × 7 → 889 = 7(n − 1) → n − 1 = 127 → n = <strong>128</strong></p>
+
+                <div class="solved-step">
+                    <strong>Example 2:</strong> How many multiples of 4 lie between 10 and 250? [citation:1]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Smallest multiple = 12, Largest multiple = 248</p>
+                <p>AP: 12, 16, 20, ..., 248</p>
+                <p>Here, a = 12, d = 4, aₙ = 248</p>
+                <p>248 = 12 + (n − 1) × 4 → 236 = 4(n − 1) → n − 1 = 59 → n = <strong>60</strong></p>
+
+                <div class="solved-step">
+                    <strong>Example 3:</strong> A ladder has rungs 25 cm apart. The rungs decrease uniformly in length from 45 cm at the bottom to 25 cm at the top. Find the total length of wood required. [citation:4]
+                </div>
+                <p><em>(This is a classic NCERT problem — the rungs form an AP with decreasing lengths.)</em></p>
+            </section>
+
+            <!-- SECTION 6: PYQs -->
+            <section id="pyqs">
+                <h2>6. Most Repeated Previous Year Questions (CBSE)</h2>
+                <div class="pyq-box">
+                    <ol>
+                        <li><strong>(2022)</strong> In an AP, if a = 50, d = -4 and Sₙ = 0, then find the value of n. [1 Mark] [citation:17]</li>
+                        <li><strong>(2022)</strong> Find the sum of the first twelve 2-digit multiples of 7, using an AP. [2 Marks] [citation:17]</li>
+                        <li><strong>(CBSE 2015)</strong> If the sum of the first n terms of an AP is (1/2)[3n² + 7n], then find its nth term. Hence write its 20th term. [3 Marks] [citation:11]</li>
+                        <li><strong>(NCERT)</strong> Which term of the AP: 121, 117, 113, ... is its first negative term? [2 Marks] [citation:4]</li>
+                        <li><strong>(NCERT)</strong> The sum of the third and the seventh terms of an AP is 6 and their product is 8. Find the sum of the first sixteen terms. [3 Marks] [citation:4]</li>
+                        <li><strong>(NCERT)</strong> Find the 31st term of an AP whose 11th term is 38 and 16th term is 73. [2 Marks] [citation:16]</li>
+                        <li><strong>(NCERT)</strong> An AP consists of 50 terms of which 3rd term is 12 and the last term is 106. Find the 29th term. [2 Marks] [citation:16]</li>
+                        <li><strong>(NCERT)</strong> If the 3rd and the 9th term of an AP are 4 and -8 respectively, which term of this AP is zero? [2 Marks] [citation:16]</li>
+                        <li><strong>(NCERT)</strong> The 17th term of an AP exceeds its 10th term by 7. Find the common difference. [1 Mark] [citation:16]</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- QUICK REVISION -->
+            <section id="quick-revision">
+                <h2>Quick Revision - At a Glance</h2>
+                <div class="key-memorize">
+                    <strong>🎯 Key Formulas:</strong>
+                    <ul>
+                        <li><strong>Common Difference:</strong> d = a₂ − a₁ = a₃ − a₂ = ...</li>
+                        <li><strong>nth Term:</strong> aₙ = a + (n − 1)d</li>
+                        <li><strong>Sum of n Terms (when d is known):</strong> Sₙ = n/2 [2a + (n − 1)d]</li>
+                        <li><strong>Sum of n Terms (when last term is known):</strong> Sₙ = n/2 (a + l)</li>
+                        <li><strong>Number of Terms:</strong> n = ((l − a) / d) + 1</li>
+                        <li><strong>Sum of First n Natural Numbers:</strong> Sₙ = n(n + 1) / 2</li>
+                        <li><strong>nth Term from the End:</strong> l − (n − 1)d [citation:7]</li>
+                    </ul>
+                </div>
+
+                <div class="warning-note">
+                    <strong>⚠️ Common Mistakes to Avoid:</strong>
+                    <ul>
+                        <li>Forgetting to subtract 1 from n in the nth term formula [citation:13]</li>
+                        <li>Confusing the first term (a) with the common difference (d) [citation:13]</li>
+                        <li>Not handling negative common differences correctly [citation:13]</li>
+                        <li>Skipping intermediate steps in board exams [citation:13]</li>
+                    </ul>
+                </div>
             </section>
         </div>
     </main>

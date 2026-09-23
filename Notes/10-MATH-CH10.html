@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class 10 Mathematics Chapter 10: Circles | Detailed NCERT Notes | NeoBranium</title>
-    <meta name="description" content="Class 10 Mathematics Chapter 10 - Circles. Detailed NCERT notes.">
+    <meta name="description" content="Class 10 Mathematics Chapter 10 - Circles. Detailed NCERT notes with tangents, theorems, number of tangents, and previous year questions.">
+    <meta name="keywords" content="class 10 maths chapter 10, Circles, NCERT notes, CBSE board exam, tangent, theorems, radius, point of contact">
     <meta name="author" content="NeoBranium">
     <meta name="robots" content="index, follow">
 
@@ -12,6 +13,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
     <link rel="stylesheet" href="../index_css.css">
     <link rel="stylesheet" href="notes.css">
+    
+    <style>
+        .highlight-box { background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%); border-left: 5px solid #f59e0b; padding: 1.2rem; margin: 1.5rem 0; border-radius: 12px; }
+        .repeated-tag { display: inline-block; background: #dc2626; color: white; font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 30px; margin-left: 0.75rem; vertical-align: middle; }
+        .pyq-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 16px; padding: 1.3rem; margin: 1.8rem 0; }
+        .key-memorize { background: #fef3c7; padding: 1rem 1.3rem; border-radius: 14px; border-left: 4px solid #d97706; margin: 1.3rem 0; }
+        .formula-box-custom { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 12px; font-family: monospace; text-align: center; font-size: 1.1rem; margin: 1.2rem 0; }
+        .interactive-card { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin: 2rem 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .interactive-card h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .warning-note { background: #fef2f2; border-left: 5px solid #ef4444; padding: 1rem; border-radius: 12px; margin: 1.5rem 0; }
+        .info-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .info-table th, .info-table td { border: 1px solid #e2e8f0; padding: 0.6rem; text-align: left; }
+        .info-table th { background: #f1f5f9; font-weight: 600; }
+        .solved-step { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin: 1rem 0; }
+        .solved-step strong { color: #1e40af; }
+        .theorem-box { background: #eef2ff; padding: 1rem 1.3rem; border-radius: 14px; border-left: 4px solid #3b82f6; margin: 1.3rem 0; }
+        @media (max-width: 768px) { .info-table { font-size: 0.85rem; } }
+    </style>
 </head>
 <body>
     <div id="preloader">
@@ -80,8 +99,12 @@
             <div class="sidebar-content">
                 <h3>📖 Chapter Contents</h3>
                 <ul>
-                    <li><a href="#intro">Introduction</a></li>
-                    <!-- Add more topics here later -->
+                    <li><a href="#intro">1. Introduction to Circles</a></li>
+                    <li><a href="#terms">2. Key Terms</a></li>
+                    <li><a href="#tangent">3. Tangent to a Circle</a></li>
+                    <li><a href="#theorems">4. Theorems</a></li>
+                    <li><a href="#number">5. Number of Tangents</a></li>
+                    <li><a href="#pyqs">6. Previous Year Questions</a></li>
                 </ul>
             </div>
         </aside>
@@ -91,10 +114,224 @@
                 <a href="../index.html">Home</a> / <a href="class10-maths-dir.html">Notes</a> / <a href="class10-maths-dir.html">Class 10 Mathematics</a> / Chapter 10: Circles
             </nav>
 
+            <!-- SECTION 1: INTRODUCTION -->
             <section id="intro">
-                <h1>Chapter 10: Circles</h1>
-                <p class="chapter-summary">Detailed notes coming soon...</p>
-                <div style="height: 60vh;"></div> <!-- Space for chapter content -->
+                <h1>Circles <span class="repeated-tag">High Weightage Chapter</span></h1>
+                <div class="highlight-box">
+                    <i class="fas fa-star" style="color:#f59e0b;"></i> <strong>Why this chapter is important?</strong> Circles is a fundamental geometry chapter that deals with tangents and their properties. It teaches you to prove important theorems and solve problems involving tangents from external points, which are frequently asked in board exams.
+                </div>
+
+                <h3>1.1 What is a Circle?</h3>
+                <p>A <strong>circle</strong> is a collection of all points in a plane which are at a constant distance from a fixed point [citation:5][citation:9].</p>
+                <ul>
+                    <li>The fixed point is called the <strong>centre</strong> of the circle.</li>
+                    <li>The constant distance from the centre is called the <strong>radius</strong> of the circle.</li>
+                </ul>
+
+                <h3>1.2 Circle and Line in a Plane</h3>
+                <p>When a line and a circle are drawn in a plane, there can be three possibilities [citation:14]:</p>
+                <table class="info-table">
+                    <tr><th>Case</th><th>Common Points</th><th>Name</th></tr>
+                    <tr><td>1</td><td>No common point</td><td>Non-intersecting line</td></tr>
+                    <tr><td>2</td><td>One common point</td><td>Tangent</td></tr>
+                    <tr><td>3</td><td>Two common points</td><td>Secant</td></tr>
+                </table>
+            </section>
+
+            <!-- SECTION 2: KEY TERMS -->
+            <section id="terms">
+                <h2>2. Key Terms Related to Circles</h2>
+
+                <h3>2.1 Radius</h3>
+                <p>The distance from the centre to any point on the circle is called the <strong>radius</strong> [citation:5].</p>
+
+                <h3>2.2 Chord</h3>
+                <p>A line segment joining any two points on a circle is called a <strong>chord</strong> [citation:5][citation:9].</p>
+
+                <h3>2.3 Diameter</h3>
+                <p>A chord passing through the centre of the circle is called the <strong>diameter</strong>. It is the longest chord of the circle [citation:5][citation:9].</p>
+                <p><strong>Note:</strong> Diameter = 2 × Radius.</p>
+
+                <h3>2.4 Secant</h3>
+                <p>A straight line that cuts the circle at two points is called a <strong>secant</strong> [citation:5][citation:10].</p>
+
+                <h3>2.5 Tangent</h3>
+                <p>A line that meets the circle at exactly one point is called a <strong>tangent</strong> [citation:1][citation:5].</p>
+                <ul>
+                    <li>The common point of the tangent and the circle is called the <strong>point of contact</strong> [citation:1].</li>
+                    <li>A tangent is a special case of a secant when the two endpoints of the corresponding chord coincide [citation:1][citation:14].</li>
+                </ul>
+
+                <div class="key-memorize">
+                    <strong>🎯 Key Point:</strong> A tangent touches the circle at exactly one point. This point is called the point of contact.
+                </div>
+            </section>
+
+            <!-- SECTION 3: TANGENT TO A CIRCLE -->
+            <section id="tangent">
+                <h2>3. Tangent to a Circle</h2>
+
+                <h3>3.1 Important Properties</h3>
+                <ul>
+                    <li>There is only one tangent at a point of the circle [citation:10].</li>
+                    <li>The tangent is perpendicular to the radius through the point of contact [citation:1][citation:4].</li>
+                    <li>The line containing the radius through the point of contact is sometimes called the <strong>normal</strong> to the circle at the point [citation:1].</li>
+                </ul>
+
+                <h3>3.2 Real-Life Example</h3>
+                <p>When a bicycle wheel moves along a straight line on the ground, the wheel represents a circle and the ground line is a tangent to the circle. The radius through the point of contact appears to be at right angles to the tangent [citation:1].</p>
+            </section>
+
+            <!-- SECTION 4: THEOREMS -->
+            <section id="theorems">
+                <h2>4. Important Theorems</h2>
+
+                <div class="theorem-box">
+                    <strong>Theorem 10.1:</strong> The tangent at any point of a circle is perpendicular to the radius through the point of contact.
+                </div>
+
+                <h3>4.1 Proof of Theorem 10.1</h3>
+                <p><strong>Given:</strong> A circle with centre O and a tangent XY at point P [citation:1][citation:4].</p>
+                <p><strong>To Prove:</strong> OP ⊥ XY</p>
+                <p><strong>Proof:</strong></p>
+                <ul>
+                    <li>Take a point Q on XY other than P and join OQ.</li>
+                    <li>Point Q must lie outside the circle (if it were inside, XY would become a secant) [citation:1].</li>
+                    <li>Therefore, OQ > OP (since OP is the radius).</li>
+                    <li>This is true for every point on line XY except point P.</li>
+                    <li>So, OP is the shortest distance from O to line XY.</li>
+                    <li>Hence, OP is perpendicular to XY [citation:1][citation:4].</li>
+                </ul>
+
+                <div class="theorem-box">
+                    <strong>Theorem 10.2:</strong> The lengths of tangents drawn from an external point to a circle are equal.
+                </div>
+
+                <h3>4.2 Proof of Theorem 10.2</h3>
+                <p><strong>Given:</strong> A circle with centre O, an external point P, and two tangents PQ and PR from P [citation:4].</p>
+                <p><strong>To Prove:</strong> PQ = PR</p>
+                <p><strong>Proof:</strong></p>
+                <ul>
+                    <li>Join OP, OQ, and OR.</li>
+                    <li>∠OQP = ∠ORP = 90° (radius ⊥ tangent at point of contact) [citation:4].</li>
+                    <li>In right triangles OQP and ORP:</li>
+                    <li>OQ = OR (radii of the same circle)</li>
+                    <li>OP = OP (common side)</li>
+                    <li>Therefore, ΔOQP ≅ ΔORP (RHS congruency rule) [citation:4].</li>
+                    <li>Hence, PQ = PR (CPCT) [citation:4].</li>
+                </ul>
+
+                <h3>4.3 Important Result from Theorem 10.2</h3>
+                <p>If two tangents are drawn to a circle from an external point, then:</p>
+                <ul>
+                    <li>They subtend equal angles at the centre: ∠POQ = ∠POR [citation:9].</li>
+                    <li>They are equally inclined to the segment joining the centre to the external point: ∠OPQ = ∠OPR [citation:9].</li>
+                </ul>
+
+                <h3>4.4 Solved Example (NCERT)</h3>
+                <div class="solved-step">
+                    <strong>Example:</strong> Two tangents TP and TQ are drawn to a circle with centre O from an external point T. Prove that ∠PTQ = 2∠OPQ [citation:4].
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Let ∠PTQ = θ.</p>
+                <p>By Theorem 10.2, TP = TQ, so ΔTPQ is isosceles.</p>
+                <p>Therefore, ∠TPQ = ∠TQP = (1/2)(180° − θ) = 90° − θ/2</p>
+                <p>Also, ∠OPT = 90° (radius ⊥ tangent at point of contact) [citation:4].</p>
+                <p>So, ∠OPQ = ∠OPT − ∠TPQ = 90° − (90° − θ/2) = θ/2</p>
+                <p>Therefore, ∠PTQ = 2∠OPQ. <strong>Hence proved.</strong></p>
+            </section>
+
+            <!-- SECTION 5: NUMBER OF TANGENTS -->
+            <section id="number">
+                <h2>5. Number of Tangents from a Point on a Circle</h2>
+                <p>The number of tangents that can be drawn to a circle from a given point depends on the position of the point [citation:2][citation:10]:</p>
+
+                <table class="info-table">
+                    <tr><th>Position of Point</th><th>Number of Tangents</th><th>Explanation</th></tr>
+                    <tr><td><strong>Inside the circle</strong></td><td>0</td><td>Any line through an interior point is a secant (intersects at two points) [citation:10].</td></tr>
+                    <tr><td><strong>On the circle</strong></td><td>1</td><td>There is exactly one tangent at any point on the circle [citation:10].</td></tr>
+                    <tr><td><strong>Outside the circle</strong></td><td>2</td><td>Exactly two tangents can be drawn from an external point [citation:2][citation:10].</td></tr>
+                </table>
+
+                <h3>5.1 Solved Example: Finding Radius</h3>
+                <div class="solved-step">
+                    <strong>Example:</strong> The length of a tangent from a point 15 cm away from the centre of a circle is 12 cm. Find the radius of the circle [citation:2].
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Let O be the centre, P be the external point (OP = 15 cm), and PT be the tangent (PT = 12 cm).</p>
+                <p>By Theorem 10.1, OT ⊥ PT, so ΔOTP is right-angled at T.</p>
+                <p>Using Pythagoras theorem:</p>
+                <p>OP² = OT² + PT²</p>
+                <p>15² = r² + 12²</p>
+                <p>225 = r² + 144</p>
+                <p>r² = 81 → r = 9 cm</p>
+                <p><strong>Radius of the circle = 9 cm</strong></p>
+
+                <h3>5.2 Solved Example: Finding Tangent Length</h3>
+                <div class="solved-step">
+                    <strong>Example:</strong> Find the length of the tangent from a point 25 cm from the centre of a circle of radius 7 cm [citation:2].
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>OP = 25 cm, r = 7 cm</p>
+                <p>PT = √(OP² − r²) = √(625 − 49) = √576 = 24 cm</p>
+                <p><strong>Tangent length = 24 cm</strong></p>
+
+                <div class="warning-note">
+                    <strong>⚠️ Common Mistakes to Avoid:</strong>
+                    <ul>
+                        <li>Forgetting that the radius is perpendicular to the tangent at the point of contact.</li>
+                        <li>Confusing the point of contact with the external point.</li>
+                        <li>Not using the RHS congruency rule correctly when proving tangent lengths are equal.</li>
+                        <li>Assuming tangents can be drawn from an interior point.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- SECTION 6: PYQs -->
+            <section id="pyqs">
+                <h2>6. Most Repeated Previous Year Questions (CBSE)</h2>
+                <div class="pyq-box">
+                    <ol>
+                        <li><strong>(CBSE 2022)</strong> Prove that the lengths of tangents drawn from an external point to a circle are equal [citation:3]. [3 Marks]</li>
+                        <li><strong>(CBSE 2022)</strong> In the given figure, PQ is a chord of length 8 cm of a circle of radius 5 cm and centre O. The tangents at P and Q intersect at point T. Find the length of TP [citation:3]. [3 Marks]</li>
+                        <li><strong>(CBSE 2022)</strong> In the figure, two tangents TP and TQ are drawn to a circle with centre O from an external point T. Prove that ∠PTQ = 2∠OPQ [citation:3]. [3 Marks]</li>
+                        <li><strong>(CBSE 2022)</strong> Prove that a parallelogram circumscribing a circle is a rhombus [citation:3]. [3 Marks]</li>
+                        <li><strong>(CBSE 2020)</strong> In the given figure, O is the centre of the circle and TP is the tangent to the circle from an external point T. If ∠PBT = 30°, prove that BA : AT = 2 : 1 [citation:12]. [3 Marks]</li>
+                        <li><strong>(CBSE 2014)</strong> Prove that the tangent at any point of a circle is perpendicular to the radius through the point of contact [citation:12]. [2 Marks]</li>
+                        <li><strong>(NCERT)</strong> A tangent PQ at a point P of a circle of radius 5 cm meets a line through the centre O at a point Q so that OQ = 12 cm. Length PQ is: (A) 12 cm (B) 13 cm (C) 8.5 cm (D) √119 cm [citation:1]. [1 Mark]</li>
+                        <li><strong>(NCERT)</strong> If tangents PA and PB from a point P to a circle with centre O are inclined to each other at an angle of 80°, then ∠POA is equal to: (A) 50° (B) 60° (C) 70° (D) 80° [citation:16]. [1 Mark]</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- QUICK REVISION -->
+            <section id="quick-revision">
+                <h2>Quick Revision - At a Glance</h2>
+                <div class="key-memorize">
+                    <strong>🎯 Key Theorems:</strong>
+                    <ul>
+                        <li><strong>Theorem 10.1:</strong> Tangent ⊥ Radius at point of contact.</li>
+                        <li><strong>Theorem 10.2:</strong> Lengths of tangents from an external point are equal.</li>
+                    </ul>
+                </div>
+
+                <div class="key-memorize">
+                    <strong>🎯 Number of Tangents:</strong>
+                    <ul>
+                        <li><strong>Inside point:</strong> 0 tangents</li>
+                        <li><strong>On the circle:</strong> 1 tangent</li>
+                        <li><strong>Outside point:</strong> 2 tangents</li>
+                    </ul>
+                </div>
+
+                <div class="key-memorize">
+                    <strong>🎯 Key Properties:</strong>
+                    <ul>
+                        <li>Tangents from an external point subtend equal angles at the centre.</li>
+                        <li>They are equally inclined to the segment joining the centre to the external point.</li>
+                        <li>Tangent length = √(OP² − r²) where OP is distance from centre to external point.</li>
+                    </ul>
+                </div>
             </section>
         </div>
     </main>

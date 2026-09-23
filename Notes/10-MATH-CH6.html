@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class 10 Mathematics Chapter 6: Triangles | Detailed NCERT Notes | NeoBranium</title>
-    <meta name="description" content="Class 10 Mathematics Chapter 6 - Triangles. Detailed NCERT notes.">
+    <meta name="description" content="Class 10 Mathematics Chapter 6 - Triangles. Detailed NCERT notes with Basic Proportionality Theorem, similarity criteria, areas of similar triangles, and Pythagoras Theorem.">
+    <meta name="keywords" content="class 10 maths chapter 6, Triangles, NCERT notes, CBSE board exam, similarity criteria, Basic Proportionality Theorem, Pythagoras Theorem">
     <meta name="author" content="NeoBranium">
     <meta name="robots" content="index, follow">
 
@@ -12,6 +13,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
     <link rel="stylesheet" href="../index_css.css">
     <link rel="stylesheet" href="notes.css">
+    
+    <style>
+        .highlight-box { background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%); border-left: 5px solid #f59e0b; padding: 1.2rem; margin: 1.5rem 0; border-radius: 12px; }
+        .repeated-tag { display: inline-block; background: #dc2626; color: white; font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 30px; margin-left: 0.75rem; vertical-align: middle; }
+        .pyq-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 16px; padding: 1.3rem; margin: 1.8rem 0; }
+        .key-memorize { background: #fef3c7; padding: 1rem 1.3rem; border-radius: 14px; border-left: 4px solid #d97706; margin: 1.3rem 0; }
+        .formula-box-custom { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 12px; font-family: monospace; text-align: center; font-size: 1.1rem; margin: 1.2rem 0; }
+        .interactive-card { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin: 2rem 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .interactive-card h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .warning-note { background: #fef2f2; border-left: 5px solid #ef4444; padding: 1rem; border-radius: 12px; margin: 1.5rem 0; }
+        .info-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .info-table th, .info-table td { border: 1px solid #e2e8f0; padding: 0.6rem; text-align: left; }
+        .info-table th { background: #f1f5f9; font-weight: 600; }
+        .solved-step { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin: 1rem 0; }
+        .solved-step strong { color: #1e40af; }
+        .theorem-box { background: #eef2ff; padding: 1rem 1.3rem; border-radius: 14px; border-left: 4px solid #3b82f6; margin: 1.3rem 0; }
+        @media (max-width: 768px) { .info-table { font-size: 0.85rem; } }
+    </style>
 </head>
 <body>
     <div id="preloader">
@@ -80,8 +99,12 @@
             <div class="sidebar-content">
                 <h3>📖 Chapter Contents</h3>
                 <ul>
-                    <li><a href="#intro">Introduction</a></li>
-                    <!-- Add more topics here later -->
+                    <li><a href="#intro">1. Similar Figures</a></li>
+                    <li><a href="#bpt">2. Basic Proportionality Theorem</a></li>
+                    <li><a href="#criteria">3. Similarity Criteria</a></li>
+                    <li><a href="#areas">4. Areas of Similar Triangles</a></li>
+                    <li><a href="#pythagoras">5. Pythagoras Theorem</a></li>
+                    <li><a href="#pyqs">6. Previous Year Questions</a></li>
                 </ul>
             </div>
         </aside>
@@ -91,10 +114,274 @@
                 <a href="../index.html">Home</a> / <a href="class10-maths-dir.html">Notes</a> / <a href="class10-maths-dir.html">Class 10 Mathematics</a> / Chapter 6: Triangles
             </nav>
 
+            <!-- SECTION 1: SIMILAR FIGURES -->
             <section id="intro">
-                <h1>Chapter 6: Triangles</h1>
-                <p class="chapter-summary">Detailed notes coming soon...</p>
-                <div style="height: 60vh;"></div> <!-- Space for chapter content -->
+                <h1>Triangles <span class="repeated-tag">High Weightage Chapter</span></h1>
+                <div class="highlight-box">
+                    <i class="fas fa-star" style="color:#f59e0b;"></i> <strong>Why this chapter is important?</strong> Triangles is one of the highest-weightage geometry chapters in Class 10. It covers similarity of triangles, the Basic Proportionality Theorem, area relationships, and the Pythagoras Theorem. Board exams frequently test similarity proofs and multi-step problems combining multiple concepts.
+                </div>
+
+                <h3>1.1 What are Similar Figures?</h3>
+                <p>Two figures having the <strong>same shape</strong> but <strong>not necessarily the same size</strong> are called similar figures [citation:2][citation:10].</p>
+                <ul>
+                    <li><strong>Corresponding angles</strong> of similar figures are equal [citation:2].</li>
+                    <li><strong>Corresponding sides</strong> of similar figures are proportional (in the same ratio) [citation:2].</li>
+                </ul>
+
+                <div class="key-memorize">
+                    <strong>🎯 Key Result:</strong> All congruent figures are similar, but all similar figures are <strong>not</strong> necessarily congruent [citation:2][citation:3].
+                </div>
+
+                <h3>1.2 Similarity vs Congruence</h3>
+                <table class="info-table">
+                    <tr><th>Feature</th><th>Similar Triangles</th><th>Congruent Triangles</th></tr>
+                    <tr><td>Shape</td><td>Same</td><td>Same</td></tr>
+                    <tr><td>Size</td><td>May be different</td><td>Same</td></tr>
+                    <tr><td>Corresponding angles</td><td>Equal</td><td>Equal</td></tr>
+                    <tr><td>Corresponding sides</td><td>Proportional</td><td>Equal</td></tr>
+                    <tr><td>Scale factor</td><td>Any positive value</td><td>Exactly 1</td></tr>
+                </table>
+
+                <h3>1.3 Similar Triangles — Definition</h3>
+                <p>Two triangles are said to be similar if [citation:8][citation:15]:</p>
+                <ol>
+                    <li>Their corresponding angles are equal, <strong>and</strong></li>
+                    <li>Their corresponding sides are in the same ratio (proportional).</li>
+                </ol>
+
+                <div class="formula-box-custom">
+                    If ΔABC ~ ΔPQR, then:<br>
+                    ∠A = ∠P, ∠B = ∠Q, ∠C = ∠R<br>
+                    AB/PQ = BC/QR = AC/PR
+                </div>
+
+                <h3>1.4 Scale Factor</h3>
+                <p>The <strong>scale factor</strong> is the number by which every corresponding length is multiplied to produce the second similar figure [citation:3].</p>
+                <p><strong>Example:</strong> If ΔABC ~ ΔDEF, AB = 6 cm and DE = 9 cm, the scale factor is 9/6 = 3/2 [citation:3].</p>
+            </section>
+
+            <!-- SECTION 2: BASIC PROPORTIONALITY THEOREM -->
+            <section id="bpt">
+                <h2>2. Basic Proportionality Theorem (Thales' Theorem)</h2>
+
+                <div class="theorem-box">
+                    <strong>Theorem 6.1 (BPT):</strong> If a line is drawn parallel to one side of a triangle to intersect the other two sides in distinct points, then the other two sides are divided in the same ratio [citation:2][citation:9][citation:14].
+                </div>
+
+                <p><strong>Statement:</strong> In ΔABC, if DE || BC, where D lies on AB and E lies on AC, then:</p>
+                <div class="formula-box-custom">
+                    AD/DB = AE/EC
+                </div>
+
+                <h3>2.1 Proof of Basic Proportionality Theorem</h3>
+                <p><strong>Given:</strong> ΔABC in which DE || BC, D on AB and E on AC [citation:10].</p>
+                <p><strong>To Prove:</strong> AD/DB = AE/EC</p>
+                <p><strong>Construction:</strong> Join BE and CD. Draw EM ⊥ AB and DN ⊥ AC [citation:10].</p>
+                <p><strong>Proof:</strong></p>
+                <p>Area of ΔADE = (1/2) × AD × EM ...(i) [citation:10]</p>
+                <p>Area of ΔDBE = (1/2) × DB × EM ...(ii) [citation:10]</p>
+                <p>From (i) and (ii):</p>
+                <div class="formula-box-custom">
+                    ar(ΔADE) / ar(ΔDBE) = AD / DB ...(iii)
+                </div>
+                <p>Similarly, ar(ΔADE) / ar(ΔCDE) = AE / EC ...(iv) [citation:10]</p>
+                <p>Since ΔDBE and ΔCDE are on the same base DE and between the same parallels DE and BC:</p>
+                <p><strong>ar(ΔDBE) = ar(ΔCDE)</strong> ...(v) [citation:10]</p>
+                <p>From (iii), (iv) and (v):</p>
+                <div class="formula-box-custom">
+                    AD/DB = AE/EC
+                </div>
+                <p><strong>Hence proved.</strong></p>
+
+                <h3>2.2 Converse of Basic Proportionality Theorem</h3>
+                <div class="theorem-box">
+                    <strong>Theorem 6.2:</strong> If a line divides any two sides of a triangle in the same ratio, then the line is parallel to the third side [citation:2][citation:4].
+                </div>
+                <p><strong>Statement:</strong> If AD/DB = AE/EC, then DE || BC [citation:4].</p>
+                <p>Use this theorem when the ratio is given and you need to prove that lines are parallel [citation:4].</p>
+
+                <h3>2.3 Solved Example</h3>
+                <div class="solved-step">
+                    <strong>Example:</strong> In ΔABC, D lies on AB with AD = 4 cm, DB = 6 cm. E lies on AC and DE || BC. Find AE if EC = 9 cm [citation:17].
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>By BPT: AD/DB = AE/EC</p>
+                <p>4/6 = AE/9</p>
+                <p>AE = (4 × 9) / 6 = 36/6 = <strong>6 cm</strong> [citation:17]</p>
+
+                <h3>2.4 Special Cases of BPT</h3>
+                <ul>
+                    <li>The line drawn from the mid-point of one side of a triangle parallel to another side bisects the third side [citation:2][citation:9].</li>
+                    <li>The line joining the mid-points of two sides of a triangle is parallel to the third side [citation:2].</li>
+                    <li>The diagonals of a trapezium divide each other proportionally [citation:2].</li>
+                    <li>If the diagonals of a quadrilateral divide each other proportionally, then it is a trapezium [citation:2].</li>
+                </ul>
+            </section>
+
+            <!-- SECTION 3: SIMILARITY CRITERIA -->
+            <section id="criteria">
+                <h2>3. Criteria for Similarity of Triangles</h2>
+                <p>There are four criteria to prove two triangles similar without checking all angles and sides [citation:2][citation:7].</p>
+
+                <h3>3.1 AAA Similarity Criterion</h3>
+                <div class="theorem-box">
+                    <strong>Statement:</strong> If in two triangles, corresponding angles are equal, then their corresponding sides are in the same ratio and hence the two triangles are similar [citation:2][citation:8].
+                </div>
+                <p>If ∠A = ∠D, ∠B = ∠E, and ∠C = ∠F, then ΔABC ~ ΔDEF [citation:4].</p>
+
+                <h3>3.2 AA Similarity Criterion</h3>
+                <div class="theorem-box">
+                    <strong>Statement:</strong> If two angles of one triangle are respectively equal to two angles of another triangle, then the two triangles are similar [citation:2][citation:3].
+                </div>
+                <p>If ∠A = ∠D and ∠B = ∠E, then ΔABC ~ ΔDEF [citation:3][citation:4].</p>
+                <p><em>AA is the most tested criterion in board exams [citation:17].</em></p>
+
+                <h3>3.3 SSS Similarity Criterion</h3>
+                <div class="theorem-box">
+                    <strong>Statement:</strong> If in two triangles, corresponding sides are in the same ratio, then their corresponding angles are equal and hence the triangles are similar [citation:2][citation:8].
+                </div>
+                <p>If AB/DE = BC/EF = AC/DF, then ΔABC ~ ΔDEF [citation:4].</p>
+                <p><strong>Critical check:</strong> All three ratios must match [citation:3].</p>
+
+                <h3>3.4 SAS Similarity Criterion</h3>
+                <div class="theorem-box">
+                    <strong>Statement:</strong> If one angle of a triangle is equal to one angle of another triangle and the sides including these angles are in the same ratio, then the two triangles are similar [citation:1][citation:2][citation:8].
+                </div>
+                <p>If AB/DE = AC/DF and ∠A = ∠D, then ΔABC ~ ΔDEF [citation:1][citation:4].</p>
+                <p><strong>Critical check:</strong> The equal angle must be between the proportional sides [citation:3].</p>
+
+                <h3>3.5 Summary of Similarity Criteria</h3>
+                <table class="info-table">
+                    <tr><th>Criterion</th><th>Information Required</th><th>Critical Check</th></tr>
+                    <tr><td>AA</td><td>Two pairs of corresponding angles equal</td><td>Angles must correspond [citation:3]</td></tr>
+                    <tr><td>SSS</td><td>Three pairs of corresponding sides proportional</td><td>All three ratios must match [citation:3]</td></tr>
+                    <tr><td>SAS</td><td>Two pairs of sides proportional + included angles equal</td><td>Angle must lie between the sides [citation:3]</td></tr>
+                </table>
+
+                <div class="warning-note">
+                    <strong>⚠️ Common Mistakes to Avoid:</strong>
+                    <ul>
+                        <li>Do not assume triangles are similar just because they look similar in a diagram. Establish equality using given facts or angle properties [citation:3].</li>
+                        <li>SSS for similarity is NOT the same as SSS for congruence. Check that ratios are equal, not lengths [citation:17].</li>
+                        <li>Do not use SSA (Side-Side-Angle) to prove similarity — it is not valid [citation:7].</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- SECTION 4: AREAS OF SIMILAR TRIANGLES -->
+            <section id="areas">
+                <h2>4. Areas of Similar Triangles</h2>
+
+                <div class="theorem-box">
+                    <strong>Theorem 6.6:</strong> The ratio of the areas of two similar triangles is equal to the square of the ratio of their corresponding sides [citation:4][citation:8][citation:14].
+                </div>
+
+                <p>If ΔABC ~ ΔPQR, then:</p>
+                <div class="formula-box-custom">
+                    ar(ΔABC) / ar(ΔPQR) = (AB/PQ)² = (BC/QR)² = (AC/PR)²
+                </div>
+
+                <p><strong>Important:</strong> The same square relationship holds for corresponding <strong>altitudes</strong>, <strong>medians</strong>, and <strong>angle bisectors</strong> [citation:2][citation:17].</p>
+
+                <h3>4.1 Solved Example</h3>
+                <div class="solved-step">
+                    <strong>Example:</strong> Two similar triangles have areas 25 cm² and 64 cm². If one side of the first triangle is 10 cm, find the corresponding side of the second triangle [citation:17].
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Area ratio = 25/64</p>
+                <p>Side ratio = √(25/64) = 5/8 [citation:17]</p>
+                <p>Let the required side be x.</p>
+                <p>5/8 = 10/x → x = (10 × 8) / 5 = <strong>16 cm</strong> [citation:17]</p>
+
+                <div class="key-memorize">
+                    <strong>🎯 Quick Check:</strong> If sides are in ratio 2:3, areas are in ratio 4:9. Conversely, if areas are in ratio 4:9, sides are in ratio 2:3 (take the square root) [citation:17].
+                </div>
+            </section>
+
+            <!-- SECTION 5: PYTHAGORAS THEOREM -->
+            <section id="pythagoras">
+                <h2>5. Pythagoras Theorem</h2>
+
+                <div class="theorem-box">
+                    <strong>Theorem 6.8 (Pythagoras Theorem):</strong> In a right-angled triangle, the square of the hypotenuse is equal to the sum of the squares of the other two sides [citation:4][citation:8][citation:15].
+                </div>
+
+                <p>For right ΔABC, right-angled at B:</p>
+                <div class="formula-box-custom">
+                    AC² = AB² + BC²
+                </div>
+                <p>Here, AC is the <strong>hypotenuse</strong> (side opposite the right angle), and AB and BC are the other two sides [citation:4].</p>
+
+                <h3>5.1 Proof Idea (Using Similarity)</h3>
+                <p>The NCERT proof uses similar triangles. Drawing an altitude from the right angle to the hypotenuse creates two smaller triangles, each similar to the original and to each other. The theorem follows from the proportional sides [citation:17].</p>
+
+                <h3>5.2 Converse of Pythagoras Theorem</h3>
+                <div class="theorem-box">
+                    <strong>Theorem 6.9:</strong> If the square of one side of a triangle is equal to the sum of the squares of the other two sides, then the angle opposite the first side is a right angle [citation:4][citation:8].
+                </div>
+                <p>If AC² = AB² + BC², then ∠B = 90° [citation:4].</p>
+
+                <h3>5.3 Solved Example</h3>
+                <div class="solved-step">
+                    <strong>Example:</strong> Check whether a triangle with sides 3 cm, 4 cm and 5 cm is right-angled [citation:4].
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>5² = 25</p>
+                <p>3² + 4² = 9 + 16 = 25 [citation:4]</p>
+                <p>Since 5² = 3² + 4², the triangle is <strong>right-angled</strong> [citation:4].</p>
+
+                <div class="key-memorize">
+                    <strong>🎯 Common Pythagorean Triples:</strong>
+                    <ul>
+                        <li>(3, 4, 5)</li>
+                        <li>(5, 12, 13)</li>
+                        <li>(8, 15, 17)</li>
+                        <li>(7, 24, 25) [citation:17]</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- SECTION 6: PYQs -->
+            <section id="pyqs">
+                <h2>6. Most Repeated Previous Year Questions (CBSE)</h2>
+                <div class="pyq-box">
+                    <ol>
+                        <li><strong>(CBSE 2020)</strong> In ΔABC, DE || BC. If AD = 4 cm, DB = 6 cm and AE = 5 cm, find EC. [1 Mark]</li>
+                        <li><strong>(CBSE 2015)</strong> In the given figure, DE || BC. Find EC. [2 Marks] [citation:6]</li>
+                        <li><strong>(CBSE 2025)</strong> ΔABC ~ ΔPQR in which AB = 6 cm, BC = 4 cm, AC = 8 cm and PR = 6 cm. Find the length of (PQ + QR). [2 Marks] [citation:6]</li>
+                        <li><strong>(CBSE 2020)</strong> ABC is an equilateral triangle of side 2a. Find the length of one of its altitudes. [2 Marks] [citation:6]</li>
+                        <li><strong>(CBSE)</strong> In triangles ABC and DEF, ∠B = ∠E, ∠F = ∠C and AB = 3DE. Then the two triangles are: (a) congruent but not similar (b) similar but not congruent (c) neither similar nor congruent (d) congruent as well as similar. [1 Mark] [citation:6]</li>
+                        <li><strong>(NCERT)</strong> Prove that the ratio of the areas of two similar triangles is equal to the square of the ratio of their corresponding medians. [3 Marks] [citation:16]</li>
+                        <li><strong>(NCERT)</strong> Sides of two similar triangles are in the ratio 4:9. Find the ratio of their areas. [1 Mark] [citation:16]</li>
+                        <li><strong>(NCERT)</strong> ABC and BDE are two equilateral triangles such that D is the mid-point of BC. Find the ratio of the areas of triangles ABC and BDE. [2 Marks] [citation:16]</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- QUICK REVISION -->
+            <section id="quick-revision">
+                <h2>Quick Revision - At a Glance</h2>
+                <div class="key-memorize">
+                    <strong>🎯 Key Theorems & Formulas:</strong>
+                    <ul>
+                        <li><strong>BPT:</strong> If DE || BC, then AD/DB = AE/EC [citation:2]</li>
+                        <li><strong>Converse of BPT:</strong> If AD/DB = AE/EC, then DE || BC [citation:4]</li>
+                        <li><strong>Similarity Criteria:</strong> AA, SSS, SAS [citation:2]</li>
+                        <li><strong>Areas of Similar Triangles:</strong> ar(ΔABC)/ar(ΔPQR) = (AB/PQ)² [citation:4]</li>
+                        <li><strong>Pythagoras Theorem:</strong> AC² = AB² + BC² (for right ΔABC at B) [citation:4]</li>
+                        <li><strong>Converse of Pythagoras:</strong> If AC² = AB² + BC², then ∠B = 90° [citation:4]</li>
+                    </ul>
+                </div>
+
+                <div class="warning-note">
+                    <strong>⚠️ Common Mistakes to Avoid:</strong>
+                    <ul>
+                        <li>Forgetting to square the ratio when finding areas [citation:17]</li>
+                        <li>Using SSS similarity when ratios are not equal for all three sides [citation:3]</li>
+                        <li>Assuming triangles are similar without establishing equality of angles or proportionality of sides [citation:3]</li>
+                        <li>Not writing the similarity statement in correct vertex order</li>
+                    </ul>
+                </div>
             </section>
         </div>
     </main>

@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class 10 Mathematics Chapter 12: Surface Areas and Volumes | Detailed NCERT Notes | NeoBranium</title>
-    <meta name="description" content="Class 10 Mathematics Chapter 12 - Surface Areas and Volumes. Detailed NCERT notes.">
+    <meta name="description" content="Class 10 Mathematics Chapter 12 - Surface Areas and Volumes. Detailed NCERT notes with formulas for cube, cuboid, cylinder, cone, sphere, hemisphere, frustum, and previous year questions.">
+    <meta name="keywords" content="class 10 maths chapter 12, Surface Areas and Volumes, NCERT notes, CBSE board exam, combination of solids, frustum, formulas">
     <meta name="author" content="NeoBranium">
     <meta name="robots" content="index, follow">
 
@@ -12,6 +13,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
     <link rel="stylesheet" href="../index_css.css">
     <link rel="stylesheet" href="notes.css">
+    
+    <style>
+        .highlight-box { background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%); border-left: 5px solid #f59e0b; padding: 1.2rem; margin: 1.5rem 0; border-radius: 12px; }
+        .repeated-tag { display: inline-block; background: #dc2626; color: white; font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 30px; margin-left: 0.75rem; vertical-align: middle; }
+        .pyq-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 16px; padding: 1.3rem; margin: 1.8rem 0; }
+        .key-memorize { background: #fef3c7; padding: 1rem 1.3rem; border-radius: 14px; border-left: 4px solid #d97706; margin: 1.3rem 0; }
+        .formula-box-custom { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 12px; font-family: monospace; text-align: center; font-size: 1.1rem; margin: 1.2rem 0; }
+        .interactive-card { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin: 2rem 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .interactive-card h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .warning-note { background: #fef2f2; border-left: 5px solid #ef4444; padding: 1rem; border-radius: 12px; margin: 1.5rem 0; }
+        .info-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .info-table th, .info-table td { border: 1px solid #e2e8f0; padding: 0.6rem; text-align: left; }
+        .info-table th { background: #f1f5f9; font-weight: 600; }
+        .solved-step { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin: 1rem 0; }
+        .solved-step strong { color: #1e40af; }
+        .theorem-box { background: #eef2ff; padding: 1rem 1.3rem; border-radius: 14px; border-left: 4px solid #3b82f6; margin: 1.3rem 0; }
+        .formula-table th { background: #0f172a; color: white; }
+        @media (max-width: 768px) { .info-table { font-size: 0.85rem; } }
+    </style>
 </head>
 <body>
     <div id="preloader">
@@ -80,8 +100,13 @@
             <div class="sidebar-content">
                 <h3>📖 Chapter Contents</h3>
                 <ul>
-                    <li><a href="#intro">Introduction</a></li>
-                    <!-- Add more topics here later -->
+                    <li><a href="#intro">1. Introduction</a></li>
+                    <li><a href="#formulas">2. Basic Solid Formulas</a></li>
+                    <li><a href="#combination">3. Combination of Solids</a></li>
+                    <li><a href="#volume">4. Volume of Combinations</a></li>
+                    <li><a href="#frustum">5. Frustum of a Cone</a></li>
+                    <li><a href="#conversion">6. Conversion of Solids</a></li>
+                    <li><a href="#pyqs">7. Previous Year Questions</a></li>
                 </ul>
             </div>
         </aside>
@@ -91,10 +116,302 @@
                 <a href="../index.html">Home</a> / <a href="class10-maths-dir.html">Notes</a> / <a href="class10-maths-dir.html">Class 10 Mathematics</a> / Chapter 12: Surface Areas and Volumes
             </nav>
 
+            <!-- SECTION 1: INTRODUCTION -->
             <section id="intro">
-                <h1>Chapter 12: Surface Areas and Volumes</h1>
-                <p class="chapter-summary">Detailed notes coming soon...</p>
-                <div style="height: 60vh;"></div> <!-- Space for chapter content -->
+                <h1>Surface Areas and Volumes <span class="repeated-tag">High Weightage Chapter</span></h1>
+                <div class="highlight-box">
+                    <i class="fas fa-star" style="color:#f59e0b;"></i> <strong>Why this chapter is important?</strong> This chapter extends your understanding of 3D shapes from Class 9 to combinations of solids. It teaches you to calculate surface areas and volumes of real-life objects like capsules, toys, buckets, and containers. Board exams consistently test these application-based problems.
+                </div>
+
+                <h3>1.1 Introduction</h3>
+                <p>In our day-to-day life, we come across a number of solids made up of combinations of two or more of the basic solids like cuboid, cone, cylinder, and sphere [citation:15]. For example, a truck with a container fitted on its back is made of a cylinder with two hemispheres at its ends [citation:18]. Similarly, a test tube is a combination of a cylinder and a hemisphere [citation:18].</p>
+
+                <h3>1.2 Key Concepts</h3>
+                <table class="info-table">
+                    <tr><th>Term</th><th>Definition</th></tr>
+                    <tr><td><strong>Surface Area</strong></td><td>The total area of all the surfaces of a 3D object [citation:1]</td></tr>
+                    <tr><td><strong>Volume</strong></td><td>The space occupied by a 3D object [citation:1]</td></tr>
+                    <tr><td><strong>CSA</strong></td><td>Curved Surface Area — area of only the curved part [citation:17]</td></tr>
+                    <tr><td><strong>TSA</strong></td><td>Total Surface Area — area of all outer surfaces including flat faces [citation:17]</td></tr>
+                    <tr><td><strong>Capacity</strong></td><td>Internal space available in a hollow object [citation:13]</td></tr>
+                </table>
+
+                <div class="key-memorize">
+                    <strong>🎯 Important:</strong> Surface area uses square units (cm², m²) while volume uses cubic units (cm³, m³) [citation:13].
+                </div>
+            </section>
+
+            <!-- SECTION 2: BASIC SOLID FORMULAS -->
+            <section id="formulas">
+                <h2>2. Formulas for Basic Solids</h2>
+                <p>Before solving combination problems, you must memorize the formulas for basic solids [citation:1].</p>
+
+                <table class="info-table formula-table">
+                    <tr>
+                        <th>Solid</th>
+                        <th>CSA / LSA</th>
+                        <th>TSA</th>
+                        <th>Volume</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Cube</strong> (edge = a)</td>
+                        <td>4a²</td>
+                        <td>6a²</td>
+                        <td>a³</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cuboid</strong> (l, b, h)</td>
+                        <td>2h(l + b)</td>
+                        <td>2(lb + bh + hl)</td>
+                        <td>lbh</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cylinder</strong> (r, h)</td>
+                        <td>2πrh</td>
+                        <td>2πr(r + h)</td>
+                        <td>πr²h</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cone</strong> (r, h, l)</td>
+                        <td>πrl</td>
+                        <td>πr(r + l)</td>
+                        <td>(1/3)πr²h</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sphere</strong> (r)</td>
+                        <td>4πr²</td>
+                        <td>4πr²</td>
+                        <td>(4/3)πr³</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hemisphere</strong> (r)</td>
+                        <td>2πr²</td>
+                        <td>3πr²</td>
+                        <td>(2/3)πr³</td>
+                    </tr>
+                </table>
+
+                <div class="theorem-box">
+                    <strong>Important Relationship for Cone:</strong><br>
+                    l² = r² + h²<br>
+                    where l = slant height, r = radius, h = perpendicular height [citation:9]
+                </div>
+
+                <h3>2.1 Solved Example — Basic Formulas</h3>
+                <div class="solved-step">
+                    <strong>Example 1:</strong> Find the curved surface area of a cylinder with radius 7 cm and height 10 cm [citation:11].
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>CSA = 2πrh = 2 × (22/7) × 7 × 10 = <strong>440 cm²</strong></p>
+
+                <div class="solved-step">
+                    <strong>Example 2:</strong> Find the volume of a sphere with radius 7 cm [citation:11].
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Volume = (4/3)πr³ = (4/3) × (22/7) × 343 = <strong>1437.33 cm³</strong></p>
+            </section>
+
+            <!-- SECTION 3: COMBINATION OF SOLIDS -->
+            <section id="combination">
+                <h2>3. Surface Area of a Combination of Solids</h2>
+
+                <h3>3.1 Key Principle</h3>
+                <div class="theorem-box">
+                    <strong>Rule for Surface Area:</strong><br>
+                    When solids are combined, the total surface area is the sum of the curved surface areas of each individual part, <strong>excluding</strong> the overlapping (internal) surfaces [citation:1][citation:7].
+                </div>
+
+                <div class="warning-note">
+                    <strong>⚠️ Common Mistake:</strong> Students often add the total surface areas of both solids. You must <strong>subtract the area of contact</strong> (the base of the hemisphere or cone that is hidden inside) [citation:1].
+                </div>
+
+                <h3>3.2 Common Combinations</h3>
+
+                <h4>Combination 1: Cylinder with Two Hemispheres (Capsule Shape)</h4>
+                <p>Used in: Medicine capsules, truck containers</p>
+                <div class="formula-box-custom">
+                    TSA = CSA of cylinder + 2 × CSA of hemisphere<br>
+                    = 2πrh + 2 × (2πr²)<br>
+                    = 2πrh + 4πr² = 2πr(h + 2r)
+                </div>
+
+                <h4>Combination 2: Cone on a Cylinder</h4>
+                <p>Used in: Circus tents, rocket shapes</p>
+                <div class="formula-box-custom">
+                    TSA = CSA of cone + CSA of cylinder + Area of circular base<br>
+                    = πrl + 2πrh + πr²
+                </div>
+
+                <h4>Combination 3: Cone on a Hemisphere (Ice Cream Cone)</h4>
+                <div class="formula-box-custom">
+                    TSA = CSA of cone + CSA of hemisphere<br>
+                    = πrl + 2πr²
+                </div>
+
+                <h4>Combination 4: Cube with Hemisphere on Top</h4>
+                <div class="formula-box-custom">
+                    TSA = TSA of cube − Area of hemisphere base + CSA of hemisphere<br>
+                    = 6a² − πr² + 2πr² = 6a² + πr²
+                </div>
+
+                <h3>3.3 Solved Example — Playing Top (NCERT)</h3>
+                <div class="solved-step">
+                    <strong>Example 3:</strong> Rasheed got a playing top (lattu) shaped like a cone surmounted by a hemisphere. The entire top is 5 cm in height and the diameter is 3.5 cm. Find the area he has to colour. (Use π = 22/7) [citation:7]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Radius r = 3.5/2 = 1.75 cm</p>
+                <p>Height of cone = 5 − 1.75 = 3.25 cm</p>
+                <p>Slant height l = √(r² + h²) = √(1.75² + 3.25²) ≈ 3.7 cm</p>
+                <p>TSA = CSA of hemisphere + CSA of cone</p>
+                <p>= 2πr² + πrl</p>
+                <p>= 2 × (22/7) × (1.75)² + (22/7) × 1.75 × 3.7</p>
+                <p>= 19.25 + 20.35 = <strong>39.6 cm² (approximately)</strong></p>
+
+                <h3>3.4 Solved Example — Decorative Block (NCERT)</h3>
+                <div class="solved-step">
+                    <strong>Example 4:</strong> A decorative block is made of a cube with edge 5 cm and a hemisphere fixed on top with diameter 4.2 cm. Find the TSA [citation:7].
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Radius of hemisphere r = 2.1 cm</p>
+                <p>TSA of cube = 6 × 5² = 150 cm²</p>
+                <p>Area of hemisphere base (hidden) = πr² = (22/7) × 2.1² = 13.86 cm²</p>
+                <p>CSA of hemisphere = 2πr² = 2 × 13.86 = 27.72 cm²</p>
+                <p>Total TSA = 150 − 13.86 + 27.72 = <strong>163.86 cm²</strong></p>
+            </section>
+
+            <!-- SECTION 4: VOLUME OF COMBINATIONS -->
+            <section id="volume">
+                <h2>4. Volume of a Combination of Solids</h2>
+
+                <div class="theorem-box">
+                    <strong>Rule for Volume:</strong><br>
+                    The total volume of a combination is simply the <strong>sum of the volumes</strong> of the individual solids. No subtraction is needed [citation:1].
+                </div>
+
+                <div class="key-memorize">
+                    <strong>🎯 Key Point:</strong> Unlike surface area, volume has no "overlapping" issue because the internal space is still part of the total volume.
+                </div>
+
+                <h3>4.1 Solved Example — Capsule Volume</h3>
+                <div class="solved-step">
+                    <strong>Example 5:</strong> A solid is in the form of a cylinder with hemispherical ends. Total height is 20 cm and diameter is 7 cm. Find the total volume. (Use π = 22/7) [citation:2]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Radius r = 3.5 cm</p>
+                <p>Height of cylinder = 20 − 2(3.5) = 13 cm</p>
+                <p>Volume = Volume of cylinder + 2 × Volume of hemisphere</p>
+                <p>= πr²h + 2 × (2/3)πr³</p>
+                <p>= (22/7) × (3.5)² × 13 + (4/3) × (22/7) × (3.5)³</p>
+                <p>= 500.5 + 179.67 = <strong>680.17 cm³ (approximately)</strong></p>
+            </section>
+
+            <!-- SECTION 5: FRUSTUM -->
+            <section id="frustum">
+                <h2>5. Frustum of a Cone</h2>
+                <p>A <strong>frustum</strong> is the portion of a cone obtained by cutting it with a plane parallel to its base [citation:6]. Buckets and drinking glasses are common examples.</p>
+
+                <h3>5.1 Key Formulas</h3>
+                <p>Let R = larger radius, r = smaller radius, h = height, l = slant height.</p>
+
+                <div class="formula-box-custom">
+                    Slant height: l = √[h² + (R − r)²]<br><br>
+                    Volume = (1/3)πh[R² + r² + Rr]<br><br>
+                    CSA = π(R + r)l<br><br>
+                    TSA = π(R + r)l + πR² + πr²
+                </div>
+
+                <h3>5.2 Solved Example — Bucket</h3>
+                <div class="solved-step">
+                    <strong>Example 6:</strong> A bucket is in the form of a frustum with capacity 12308.8 cm³. The radii of the top and bottom are 20 cm and 12 cm. Find the height. (Use π = 3.14) [citation:2]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Volume = (1/3)πh(R² + r² + Rr)</p>
+                <p>12308.8 = (1/3) × 3.14 × h × (400 + 144 + 240)</p>
+                <p>12308.8 = (1/3) × 3.14 × h × 784</p>
+                <p>h = (12308.8 × 3) / (3.14 × 784) = <strong>15 cm</strong></p>
+            </section>
+
+            <!-- SECTION 6: CONVERSION OF SOLIDS -->
+            <section id="conversion">
+                <h2>6. Conversion of Solids (Melting and Recasting)</h2>
+
+                <div class="theorem-box">
+                    <strong>Key Principle:</strong> When a solid is melted and recast into another shape, the <strong>volume remains the same</strong> [citation:12][citation:14].
+                </div>
+
+                <p>This principle is used to solve problems like:</p>
+                <ul>
+                    <li>Melting a cylinder and casting into spheres</li>
+                    <li>Converting a cone into a wire</li>
+                    <li>Finding the number of small toys made from a large solid</li>
+                </ul>
+
+                <h3>6.1 Solved Example — Melting and Recasting</h3>
+                <div class="solved-step">
+                    <strong>Example 7:</strong> A solid metallic cylinder of diameter 12 cm and height 15 cm is melted and recast into toys each in the shape of a cone of radius 3 cm and height 9 cm. Find the number of toys [citation:2].
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Volume of cylinder = πr²h = π × 6² × 15 = 540π cm³</p>
+                <p>Volume of one toy = (1/3)πr²h = (1/3) × π × 3² × 9 = 27π cm³</p>
+                <p>Number of toys = 540π / 27π = <strong>20 toys</strong></p>
+
+                <h3>6.2 Solved Example — Number of Small Spheres</h3>
+                <div class="solved-step">
+                    <strong>Example 8:</strong> A solid sphere of radius 6 cm is melted into small spheres of radius 2 cm. Find the number of small spheres [citation:11].
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Volume of large sphere = (4/3)π(6)³ = 288π cm³</p>
+                <p>Volume of small sphere = (4/3)π(2)³ = (32/3)π cm³</p>
+                <p>Number = 288π / (32π/3) = 288 × 3 / 32 = <strong>27 spheres</strong></p>
+            </section>
+
+            <!-- SECTION 7: PYQs -->
+            <section id="pyqs">
+                <h2>7. Most Repeated Previous Year Questions (CBSE)</h2>
+                <div class="pyq-box">
+                    <ol>
+                        <li><strong>(CBSE 2024)</strong> The surface area of a sphere is 616 cm². Its diameter is: (a) 7 cm (b) 14 cm (c) 21 cm (d) 28 cm [1 Mark] [citation:14]</li>
+                        <li><strong>(CBSE 2023)</strong> A cone and cylinder have the same radii but the height of the cone is 3 times that of the cylinder. The ratio of their volumes is: (a) 1:1 (b) 1:3 (c) 3:1 (d) 1:9 [1 Mark] [citation:14]</li>
+                        <li><strong>(CBSE 2022)</strong> During the conversion of a solid from one shape to another, the volume of the new shape: (a) increases (b) decreases (c) remains the same (d) doubles [1 Mark] [citation:14]</li>
+                        <li><strong>(CBSE 2019)</strong> A solid is in the form of a cylinder with hemispherical ends. Total height is 20 cm and diameter is 7 cm. Find the total volume [citation:2]</li>
+                        <li><strong>(CBSE 2019)</strong> A bucket open at the top is in the form of a frustum with capacity 12308.8 cm³. Radii are 20 cm and 12 cm. Find the height and the area of the metal sheet used [citation:2]</li>
+                        <li><strong>(CBSE 2018)</strong> The diameters of the lower and upper ends of a bucket in the form of a frustum are 10 cm and 30 cm. If its height is 24 cm, find the area of the metal sheet used [citation:2]</li>
+                        <li><strong>(CBSE 2017)</strong> A solid metallic cylinder of diameter 12 cm and height 15 cm is melted and recast into toys each in the shape of a cone of radius 3 cm and height 9 cm. Find the number of toys [citation:2]</li>
+                        <li><strong>(CBSE 2015)</strong> A solid wooden toy is in the form of a hemisphere surmounted by a cone of same radius. The radius of hemisphere is 3.5 cm and total wood used is 166 5/6 cm³. Find the height of the toy [citation:5]</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- QUICK REVISION -->
+            <section id="quick-revision">
+                <h2>Quick Revision - At a Glance</h2>
+                <div class="key-memorize">
+                    <strong>🎯 Key Principles:</strong>
+                    <ul>
+                        <li><strong>Surface Area of Combination:</strong> Add CSAs of visible parts, subtract hidden contact areas [citation:1].</li>
+                        <li><strong>Volume of Combination:</strong> Simply add volumes of individual solids [citation:1].</li>
+                        <li><strong>Conversion of Solids:</strong> Volume remains constant [citation:12].</li>
+                    </ul>
+                </div>
+
+                <div class="key-memorize">
+                    <strong>🎯 Essential Formulas:</strong>
+                    <ul>
+                        <li><strong>Cone:</strong> l² = r² + h²</li>
+                        <li><strong>Frustum Volume:</strong> (1/3)πh[R² + r² + Rr]</li>
+                        <li><strong>Frustum Slant:</strong> √[h² + (R − r)²]</li>
+                    </ul>
+                </div>
+
+                <div class="warning-note">
+                    <strong>⚠️ Common Mistakes to Avoid:</strong>
+                    <ul>
+                        <li>Forgetting to subtract the overlapping surface area when combining solids [citation:1]</li>
+                        <li>Using TSA of individual solids instead of CSA for combinations [citation:7]</li>
+                        <li>Confusing slant height (l) with perpendicular height (h) in cone problems [citation:13]</li>
+                        <li>Not converting diameter to radius before using formulas [citation:13]</li>
+                    </ul>
+                </div>
             </section>
         </div>
     </main>

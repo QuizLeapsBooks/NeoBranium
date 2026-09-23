@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Class 10 Mathematics Chapter 11: Areas Related to Circles | Detailed NCERT Notes | NeoBranium</title>
-    <meta name="description" content="Class 10 Mathematics Chapter 11 - Areas Related to Circles. Detailed NCERT notes.">
+    <meta name="description" content="Class 10 Mathematics Chapter 11 - Areas Related to Circles. Detailed NCERT notes with circumference, area of circle, sector, segment, and previous year questions.">
+    <meta name="keywords" content="class 10 maths chapter 11, Areas Related to Circles, NCERT notes, CBSE board exam, sector area, segment area, arc length">
     <meta name="author" content="NeoBranium">
     <meta name="robots" content="index, follow">
 
@@ -12,6 +13,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
     <link rel="stylesheet" href="../index_css.css">
     <link rel="stylesheet" href="notes.css">
+    
+    <style>
+        .highlight-box { background: linear-gradient(135deg, #fff9e6 0%, #ffffff 100%); border-left: 5px solid #f59e0b; padding: 1.2rem; margin: 1.5rem 0; border-radius: 12px; }
+        .repeated-tag { display: inline-block; background: #dc2626; color: white; font-size: 0.7rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 30px; margin-left: 0.75rem; vertical-align: middle; }
+        .pyq-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 16px; padding: 1.3rem; margin: 1.8rem 0; }
+        .key-memorize { background: #fef3c7; padding: 1rem 1.3rem; border-radius: 14px; border-left: 4px solid #d97706; margin: 1.3rem 0; }
+        .formula-box-custom { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 12px; font-family: monospace; text-align: center; font-size: 1.1rem; margin: 1.2rem 0; }
+        .interactive-card { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.5rem; margin: 2rem 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .interactive-card h3 { margin-top: 0; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .warning-note { background: #fef2f2; border-left: 5px solid #ef4444; padding: 1rem; border-radius: 12px; margin: 1.5rem 0; }
+        .info-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .info-table th, .info-table td { border: 1px solid #e2e8f0; padding: 0.6rem; text-align: left; }
+        .info-table th { background: #f1f5f9; font-weight: 600; }
+        .solved-step { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; margin: 1rem 0; }
+        .solved-step strong { color: #1e40af; }
+        .theorem-box { background: #eef2ff; padding: 1rem 1.3rem; border-radius: 14px; border-left: 4px solid #3b82f6; margin: 1.3rem 0; }
+        @media (max-width: 768px) { .info-table { font-size: 0.85rem; } }
+    </style>
 </head>
 <body>
     <div id="preloader">
@@ -80,8 +99,12 @@
             <div class="sidebar-content">
                 <h3>📖 Chapter Contents</h3>
                 <ul>
-                    <li><a href="#intro">Introduction</a></li>
-                    <!-- Add more topics here later -->
+                    <li><a href="#intro">1. Introduction to Circles</a></li>
+                    <li><a href="#circumference">2. Circumference and Area</a></li>
+                    <li><a href="#sector">3. Sector of a Circle</a></li>
+                    <li><a href="#segment">4. Segment of a Circle</a></li>
+                    <li><a href="#special">5. Special Cases</a></li>
+                    <li><a href="#pyqs">6. Previous Year Questions</a></li>
                 </ul>
             </div>
         </aside>
@@ -91,10 +114,284 @@
                 <a href="../index.html">Home</a> / <a href="class10-maths-dir.html">Notes</a> / <a href="class10-maths-dir.html">Class 10 Mathematics</a> / Chapter 11: Areas Related to Circles
             </nav>
 
+            <!-- SECTION 1: INTRODUCTION -->
             <section id="intro">
-                <h1>Chapter 11: Areas Related to Circles</h1>
-                <p class="chapter-summary">Detailed notes coming soon...</p>
-                <div style="height: 60vh;"></div> <!-- Space for chapter content -->
+                <h1>Areas Related to Circles <span class="repeated-tag">High Weightage Chapter</span></h1>
+                <div class="highlight-box">
+                    <i class="fas fa-star" style="color:#f59e0b;"></i> <strong>Why this chapter is important?</strong> This chapter extends your understanding of circles from Class 9 to calculate areas of sectors and segments. It combines geometry with algebra and is heavily tested in board exams with real-life application problems.
+                </div>
+
+                <h3>1.1 What is a Circle?</h3>
+                <p>A <strong>circle</strong> is a collection of all points in a plane that are at a constant distance from a fixed point [citation:5].</p>
+                <ul>
+                    <li>The fixed point is called the <strong>centre</strong> (usually denoted by O).</li>
+                    <li>The constant distance is called the <strong>radius</strong> (denoted by r).</li>
+                </ul>
+
+                <h3>1.2 Key Terms</h3>
+                <table class="info-table">
+                    <tr><th>Term</th><th>Definition</th></tr>
+                    <tr><td><strong>Circumference</strong></td><td>The complete boundary or outer length of a circle [citation:15]</td></tr>
+                    <tr><td><strong>Chord</strong></td><td>A line segment joining any two points on a circle</td></tr>
+                    <tr><td><strong>Diameter</strong></td><td>The longest chord, passing through the centre (d = 2r)</td></tr>
+                    <tr><td><strong>Arc</strong></td><td>A part of the circumference between two points [citation:15]</td></tr>
+                    <tr><td><strong>Minor Arc</strong></td><td>The shorter arc between two points</td></tr>
+                    <tr><td><strong>Major Arc</strong></td><td>The longer arc between two points</td></tr>
+                </table>
+            </section>
+
+            <!-- SECTION 2: CIRCUMFERENCE AND AREA -->
+            <section id="circumference">
+                <h2>2. Circumference and Area of a Circle</h2>
+
+                <h3>2.1 The Value of Pi (π)</h3>
+                <p>The value of <strong>π</strong> (pi) is the ratio of a circle's circumference to its diameter [citation:5]:</p>
+                <div class="formula-box-custom">
+                    π = Circumference / Diameter
+                </div>
+                <p><strong>Approximate values:</strong></p>
+                <ul>
+                    <li><strong>π = 22/7</strong> (used when the radius is a multiple of 7) [citation:5]</li>
+                    <li><strong>π = 3.14</strong> (used for general calculations) [citation:6]</li>
+                    <li><strong>π ≈ 3.1416</strong> (more accurate value given by Aryabhatta) [citation:5]</li>
+                </ul>
+
+                <h3>2.2 Circumference of a Circle</h3>
+                <p>The circumference is the perimeter (boundary length) of the circle [citation:5]:</p>
+                <div class="formula-box-custom">
+                    C = 2πr = πd
+                </div>
+                <p>Where <strong>r</strong> = radius and <strong>d</strong> = diameter.</p>
+
+                <h3>2.3 Area of a Circle</h3>
+                <p>The area is the space occupied within the circle's boundary [citation:5]:</p>
+                <div class="formula-box-custom">
+                    A = πr²
+                </div>
+
+                <div class="solved-step">
+                    <strong>Example 1:</strong> Find the circumference and area of a circle with radius 7 cm. (Use π = 22/7)
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Circumference = 2 × (22/7) × 7 = 44 cm</p>
+                <p>Area = (22/7) × 7 × 7 = 154 cm²</p>
+
+                <div class="solved-step">
+                    <strong>Example 2:</strong> The circumference of a circle is 44 cm. Find its area. (Use π = 22/7)
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>2πr = 44 → 2 × (22/7) × r = 44 → r = 7 cm</p>
+                <p>Area = πr² = (22/7) × 49 = 154 cm²</p>
+            </section>
+
+            <!-- SECTION 3: SECTOR -->
+            <section id="sector">
+                <h2>3. Sector of a Circle</h2>
+
+                <h3>3.1 Definition</h3>
+                <p>A <strong>sector</strong> is the portion of a circle enclosed by two radii and the corresponding arc [citation:5][citation:8]. It looks like a slice of pizza [citation:15].</p>
+                <ul>
+                    <li><strong>Minor Sector:</strong> The smaller sector formed by two radii [citation:15]</li>
+                    <li><strong>Major Sector:</strong> The larger remaining sector [citation:15]</li>
+                    <li><strong>Angle of the Sector (θ):</strong> The central angle formed by the two radii [citation:15]</li>
+                </ul>
+
+                <h3>3.2 Area of a Sector</h3>
+                <p>A sector is a fraction of the entire circle. The area is calculated using the unitary method [citation:1][citation:8]:</p>
+                <div class="formula-box-custom">
+                    Area of sector = (θ/360°) × πr²
+                </div>
+                <p>Where <strong>θ</strong> is the central angle in degrees [citation:2][citation:6].</p>
+
+                <h3>3.3 Length of an Arc</h3>
+                <p>Similarly, the arc length is a fraction of the circumference [citation:1][citation:6]:</p>
+                <div class="formula-box-custom">
+                    Length of arc = (θ/360°) × 2πr
+                </div>
+
+                <h3>3.4 Perimeter of a Sector</h3>
+                <p>The perimeter includes the arc length plus the two radii [citation:6][citation:15]:</p>
+                <div class="formula-box-custom">
+                    Perimeter of sector = (θ/360°) × 2πr + 2r
+                </div>
+
+                <div class="warning-note">
+                    <strong>⚠️ Common Mistake:</strong> Students often forget to add the two radii when calculating the perimeter of a sector. The perimeter is NOT just the arc length — it includes the two straight sides [citation:15].
+                </div>
+
+                <div class="solved-step">
+                    <strong>Example 3:</strong> Find the area of a sector of a circle with radius 4 cm and angle 30°. (Use π = 3.14) [citation:1]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Area = (30°/360°) × 3.14 × 4²</p>
+                <p>= (1/12) × 3.14 × 16</p>
+                <p>= <strong>4.19 cm²</strong> (approximately)</p>
+
+                <div class="solved-step">
+                    <strong>Example 4:</strong> Find the length of an arc of a circle with radius 21 cm that subtends an angle of 60° at the centre. (Use π = 22/7) [citation:6]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Arc length = (60°/360°) × 2 × (22/7) × 21</p>
+                <p>= (1/6) × 132</p>
+                <p>= <strong>22 cm</strong></p>
+            </section>
+
+            <!-- SECTION 4: SEGMENT -->
+            <section id="segment">
+                <h2>4. Segment of a Circle</h2>
+
+                <h3>4.1 Definition</h3>
+                <p>A <strong>segment</strong> is the portion of a circle enclosed between a chord and the corresponding arc [citation:5][citation:8].</p>
+                <ul>
+                    <li><strong>Minor Segment:</strong> The smaller region cut off by the chord [citation:15]</li>
+                    <li><strong>Major Segment:</strong> The larger region [citation:15]</li>
+                </ul>
+
+                <h3>4.2 Area of a Segment</h3>
+                <p>A segment is obtained by removing a triangle from a sector [citation:2][citation:6]:</p>
+                <div class="formula-box-custom">
+                    Area of segment = Area of sector − Area of triangle
+                </div>
+                <p>Where the triangle is formed by the two radii and the chord.</p>
+
+                <div class="theorem-box">
+                    <strong>Key Formula:</strong><br>
+                    Area of segment = [(θ/360°) × πr²] − [Area of ΔOAB]
+                </div>
+
+                <h3>4.3 Finding Area of Triangle OAB</h3>
+                <p>To find the area of the triangle formed by the two radii and the chord:</p>
+                <ul>
+                    <li>If θ = 90°: Triangle is right-angled. Area = ½ × r × r = r²/2</li>
+                    <li>If θ = 60°: Triangle is equilateral. Area = (√3/4) × r²</li>
+                    <li>Otherwise: Draw a perpendicular from O to the chord and use trigonometry [citation:8]</li>
+                </ul>
+
+                <div class="solved-step">
+                    <strong>Example 5:</strong> A chord of a circle of radius 10 cm subtends a right angle at the centre. Find the area of the corresponding minor segment. (Use π = 3.14) [citation:11][citation:12]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Area of sector = (90°/360°) × 3.14 × 10² = 78.5 cm²</p>
+                <p>Area of triangle OAB = ½ × 10 × 10 = 50 cm²</p>
+                <p>Area of minor segment = 78.5 − 50 = <strong>28.5 cm²</strong></p>
+
+                <div class="solved-step">
+                    <strong>Example 6:</strong> A chord of a circle of radius 12 cm subtends an angle of 120° at the centre. Find the area of the corresponding segment. (Use π = 3.14 and √3 = 1.73) [citation:17]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Area of sector = (120°/360°) × 3.14 × 12² = (1/3) × 3.14 × 144 = 150.72 cm²</p>
+                <p>Area of triangle OAB = ½ × 12 × 12 × sin 120° = ½ × 144 × (√3/2) = 62.28 cm²</p>
+                <p>Area of segment = 150.72 − 62.28 = <strong>88.44 cm²</strong></p>
+
+                <h3>4.4 Major Segment</h3>
+                <p>To find the major segment:</p>
+                <div class="formula-box-custom">
+                    Area of major segment = Area of circle − Area of minor segment
+                </div>
+                <p>Or equivalently:</p>
+                <div class="formula-box-custom">
+                    Area of major segment = πr² − [Area of minor segment]
+                </div>
+            </section>
+
+            <!-- SECTION 5: SPECIAL CASES -->
+            <section id="special">
+                <h2>5. Special Cases and Applications</h2>
+
+                <h3>5.1 Semicircle</h3>
+                <p>A semicircle is half of a circle (formed by a diameter) [citation:5][citation:15]:</p>
+                <div class="formula-box-custom">
+                    Area of semicircle = πr² / 2<br>
+                    Perimeter of semicircle = πr + 2r
+                </div>
+                <p><strong>Note:</strong> The perimeter includes the curved part and the diameter [citation:15].</p>
+
+                <h3>5.2 Quadrant</h3>
+                <p>A quadrant is one-fourth of a circle (angle = 90°) [citation:5][citation:15]:</p>
+                <div class="formula-box-custom">
+                    Area of quadrant = πr² / 4<br>
+                    Perimeter of quadrant = (πr/2) + 2r
+                </div>
+
+                <h3>5.3 Circular Ring (Annulus)</h3>
+                <p>The area between two concentric circles with radii R and r (R > r) [citation:15]:</p>
+                <div class="formula-box-custom">
+                    Area of ring = πR² − πr² = π(R² − r²)
+                </div>
+
+                <h3>5.4 Clock Problems</h3>
+                <p>The minute hand of a clock sweeps:</p>
+                <ul>
+                    <li><strong>360°</strong> in 60 minutes</li>
+                    <li><strong>6°</strong> per minute [citation:11]</li>
+                </ul>
+                <p>So in <strong>t</strong> minutes, the angle swept = 6t degrees.</p>
+
+                <div class="solved-step">
+                    <strong>Example 7:</strong> Find the area swept by the minute hand of a clock of length 14 cm in 5 minutes. (Use π = 22/7) [citation:11]
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>Angle swept in 5 minutes = 6 × 5 = 30°</p>
+                <p>Area = (30°/360°) × (22/7) × 14²</p>
+                <p>= (1/12) × (22/7) × 196</p>
+                <p>= <strong>154/3 cm² ≈ 51.33 cm²</strong></p>
+
+                <h3>5.5 Cost/Application Problems</h3>
+                <div class="solved-step">
+                    <strong>Example 8:</strong> A circular field has a circumference of 220 m. Find the cost of ploughing it at ₹0.50 per m². (Use π = 22/7)
+                </div>
+                <p><strong>Solution:</strong></p>
+                <p>2πr = 220 → 2 × (22/7) × r = 220 → r = 35 m</p>
+                <p>Area = (22/7) × 35² = 3850 m²</p>
+                <p>Cost = 3850 × 0.50 = <strong>₹1925</strong> [citation:1]</p>
+            </section>
+
+            <!-- SECTION 6: PYQs -->
+            <section id="pyqs">
+                <h2>6. Most Repeated Previous Year Questions (CBSE)</h2>
+                <div class="pyq-box">
+                    <ol>
+                        <li><strong>(CBSE 2024)</strong> The perimeter of a sector of a circle whose central angle is 90° and radius 7 cm is: (a) 35 cm (b) 11 cm (c) 22 cm (d) 25 cm [1 Mark] [citation:16]</li>
+                        <li><strong>(CBSE 2023)</strong> What is the area of a semi-circle of diameter 'd'? (a) 1/16πd² (b) 1/4πd² (c) 1/8πd² (d) 1/2πd² [1 Mark] [citation:16]</li>
+                        <li><strong>(CBSE 2022)</strong> The area swept by a 7 cm long minute hand of a clock in 10 minutes is: (a) 77 cm² (b) 154 cm² (c) 38.5 cm² (d) 25.67 cm² [1 Mark] [citation:16]</li>
+                        <li><strong>(CBSE 2020)</strong> A piece of wire 22 cm long is bent into the form of an arc of a circle subtending an angle of 60° at its centre. Find the radius of the circle. (Use π = 22/7) [2 Marks] [citation:10]</li>
+                        <li><strong>(NCERT)</strong> Find the area of a sector of a circle with radius 6 cm if the angle of the sector is 60°. (Use π = 22/7) [2 Marks] [citation:11]</li>
+                        <li><strong>(NCERT)</strong> A chord of a circle of radius 15 cm subtends an angle of 60° at the centre. Find the areas of the corresponding minor and major segments. (Use π = 3.14 and √3 = 1.73) [3 Marks] [citation:17]</li>
+                        <li><strong>(NCERT)</strong> A brooch is made with silver wire in the form of a circle with diameter 35 mm. The wire is also used in making 5 diameters which divide the circle into 10 equal sectors. Find: (i) the total length of the silver wire required, (ii) the area of each sector of the brooch. [3 Marks] [citation:17]</li>
+                        <li><strong>(NCERT)</strong> A horse is tied to a peg at one corner of a square-shaped grass field of side 15 m by means of a 5 m long rope. Find the area of the part of the field in which the horse can graze. Also find the increase in grazing area if the rope were 10 m long instead of 5 m. (Use π = 3.14) [3 Marks] [citation:17]</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- QUICK REVISION -->
+            <section id="quick-revision">
+                <h2>Quick Revision - At a Glance</h2>
+                <div class="key-memorize">
+                    <strong>🎯 Key Formulas:</strong>
+                    <ul>
+                        <li><strong>Circumference:</strong> C = 2πr = πd</li>
+                        <li><strong>Area of Circle:</strong> A = πr²</li>
+                        <li><strong>Arc Length:</strong> l = (θ/360°) × 2πr</li>
+                        <li><strong>Area of Sector:</strong> (θ/360°) × πr²</li>
+                        <li><strong>Perimeter of Sector:</strong> (θ/360°) × 2πr + 2r</li>
+                        <li><strong>Area of Segment:</strong> Area of sector − Area of triangle</li>
+                        <li><strong>Major Segment:</strong> πr² − Area of minor segment</li>
+                        <li><strong>Semicircle:</strong> Area = πr²/2, Perimeter = πr + 2r</li>
+                        <li><strong>Quadrant:</strong> Area = πr²/4</li>
+                        <li><strong>Circular Ring:</strong> π(R² − r²)</li>
+                    </ul>
+                </div>
+
+                <div class="warning-note">
+                    <strong>⚠️ Common Mistakes to Avoid:</strong>
+                    <ul>
+                        <li>Forgetting to add 2r when calculating the perimeter of a sector [citation:15]</li>
+                        <li>Confusing the segment with the sector — a segment does NOT include the centre [citation:15]</li>
+                        <li>Forgetting to subtract the triangle area when finding a segment [citation:15]</li>
+                        <li>Using the wrong value of π (22/7 vs 3.14)</li>
+                        <li>Not squaring the radius when calculating area</li>
+                    </ul>
+                </div>
             </section>
         </div>
     </main>
