@@ -231,6 +231,33 @@ setInterval(() => {
     }
 }, 10 * 60 * 1000);
 
+// --- Retry Helper ---
+const fetchWithRetry = async (url, options, maxRetries = 3) => {
+    let lastError;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch(url, options);
+
+            // If success or a non-transient error, return immediately
+            if (response.ok || !([429, 500, 502, 503, 504].includes(response.status))) {
+                return response;
+            }
+            
+            lastError = new Error(`HTTP ${response.status} ${response.statusText}`);
+            console.warn(`[AI] Request to ${new URL(url).hostname} failed with ${response.status}. Attempt ${attempt}/${maxRetries}.`);
+        } catch (error) {
+            lastError = error;
+            console.warn(`[AI] Network error to ${new URL(url).hostname}: ${error.message}. Attempt ${attempt}/${maxRetries}.`);
+        }
+        
+        if (attempt < maxRetries) {
+            const delay = Math.pow(2, attempt) * 500 + Math.random() * 500; // Exponential backoff with jitter
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+    throw lastError;
+};
+
 // Helper functions
 const detectQueryType = (text) => {
     const patterns = {
@@ -393,7 +420,7 @@ app.post('/api/chat', async (req, res) => {
 
         let geminiResponse;
         try {
-            geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`, {
+            geminiResponse = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -406,13 +433,13 @@ app.post('/api/chat', async (req, res) => {
                 })
             });
         } catch (fetchError) {
-            console.error('Gemini fetch error:', fetchError);
-            return res.status(502).json({ reply: 'Gemini AI request failed' });
+            console.error('[AI] Gemini fetch error:', fetchError);
+            return res.status(502).json({ reply: 'Gemini AI request failed after retries' });
         }
 
         if (!geminiResponse.ok) {
             const errorText = await geminiResponse.text();
-            console.error('Gemini API error:', geminiResponse.status, errorText);
+            console.error('[AI] Gemini API error:', geminiResponse.status, errorText);
             return res.status(502).json({ reply: 'Gemini AI request failed' });
         }
 
@@ -543,17 +570,24 @@ RULES:
             return res.end();
         }
 
-        const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${groqApiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
-        });
+        let groqResponse;
+        try {
+            groqResponse = await fetchWithRetry('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${groqApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+        } catch (fetchError) {
+            console.error("[AI] Groq Stream Fetch Error:", fetchError);
+            res.write(`data: ${JSON.stringify({ error: 'AI stream failed' })}\n\n`);
+            return res.end();
+        }
 
         if (!groqResponse.ok) {
-            console.error("Groq Stream Error:", await groqResponse.text());
+            console.error("[AI] Groq Stream Error:", await groqResponse.text());
             res.write(`data: ${JSON.stringify({ error: 'AI stream failed' })}\n\n`);
             return res.end();
         }
@@ -658,31 +692,37 @@ app.post('/api/gemini-solve', async (req, res) => {
             base64 = base64.split(',')[1];
         }
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [
-                        { text: "You are NeoTutor, an AI tutor for Indian school students (CBSE/NCERT standards).\n\nA student has uploaded a question image. Your job:\n1. Identify and clearly state the question from the image (correct any OCR or image quality errors).\n2. Solve it accurately. Match the explanation length to the complexity — give a short direct answer for simple questions, and a clear step-by-step explanation only when the problem genuinely requires it for a student to understand.\n3. Use simple, student-friendly language. Avoid filler phrases, unnecessary repetition, and restating the same conclusion multiple times.\n4. Do NOT use LaTeX markup (no $...$, no \\\\frac). Use plain text and Unicode math symbols only (√, ×, ÷, ², ³, °, π, ½)." },
-                        {
-                            inline_data: {
-                                mime_type: mimeType,
-                                data: base64
+        let response;
+        try {
+            response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: "You are NeoTutor, an AI tutor for Indian school students (CBSE/NCERT standards).\n\nA student has uploaded a question image. Your job:\n1. Identify and clearly state the question from the image (correct any OCR or image quality errors).\n2. Solve it accurately. Match the explanation length to the complexity — give a short direct answer for simple questions, and a clear step-by-step explanation only when the problem genuinely requires it for a student to understand.\n3. Use simple, student-friendly language. Avoid filler phrases, unnecessary repetition, and restating the same conclusion multiple times.\n4. Do NOT use LaTeX markup (no $...$, no \\\\frac). Use plain text and Unicode math symbols only (√, ×, ÷, ², ³, °, π, ½)." },
+                            {
+                                inline_data: {
+                                    mime_type: mimeType,
+                                    data: base64
+                                }
                             }
-                        }
-                    ]
-                }]
-            })
-        });
+                        ]
+                    }]
+                })
+            });
+        } catch (fetchError) {
+            console.error('[AI] Gemini API Failure:', fetchError);
+            return res.status(502).json({ success: false, error: 'Gemini API request failed after retries' });
+        }
 
         const data = await response.json();
 
         if (!response.ok) {
-            console.error('❌ Gemini API Failure:', JSON.stringify(data, null, 2));
-            return res.status(500).json({ success: false, error: 'Gemini API request failed' });
+            console.error('[AI] Gemini API Failure (Status):', JSON.stringify(data, null, 2));
+            return res.status(502).json({ success: false, error: 'Gemini API request failed' });
         }
 
         // Increment solver session count ONLY on successful solve
@@ -783,34 +823,40 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
   ]
 }`;
 
-        const geminiResponse = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: quizPrompt },
-                            {
-                                inline_data: {
-                                    mime_type: mimeType,
-                                    data: base64
+        let geminiResponse;
+        try {
+            geminiResponse = await fetchWithRetry(
+                `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: quizPrompt },
+                                {
+                                    inline_data: {
+                                        mime_type: mimeType,
+                                        data: base64
+                                    }
                                 }
-                            }
-                        ]
-                    }],
-                    generationConfig: {
-                        temperature: 0.6,
-                        maxOutputTokens: 4096
-                    }
-                })
-            }
-        );
+                            ]
+                        }],
+                        generationConfig: {
+                            temperature: 0.6,
+                            maxOutputTokens: 4096
+                        }
+                    })
+                }
+            );
+        } catch (fetchError) {
+            console.error('[AI] Gemini Quiz API fetch error:', fetchError);
+            return res.status(502).json({ success: false, error: 'AI quiz generation failed after retries.' });
+        }
 
         if (!geminiResponse.ok) {
             const errText = await geminiResponse.text();
-            console.error('❌ Gemini Quiz API error:', geminiResponse.status, errText);
+            console.error('[AI] Gemini Quiz API error:', geminiResponse.status, errText);
             return res.status(502).json({ success: false, error: 'AI quiz generation failed.' });
         }
 
@@ -961,21 +1007,27 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
             });
         }
 
-        const geminiResponse = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts }],
-                    generationConfig: { temperature: 0.6, maxOutputTokens: 4096 }
-                })
-            }
-        );
+        let geminiResponse;
+        try {
+            geminiResponse = await fetchWithRetry(
+                `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts }],
+                        generationConfig: { temperature: 0.6, maxOutputTokens: 4096 }
+                    })
+                }
+            );
+        } catch (fetchError) {
+            console.error('[AI] Gemini Practice API fetch error:', fetchError);
+            return res.status(502).json({ success: false, error: 'AI practice generation failed after retries.' });
+        }
 
         if (!geminiResponse.ok) {
             const errText = await geminiResponse.text();
-            console.error('❌ Gemini Practice API error:', geminiResponse.status, errText);
+            console.error('[AI] Gemini Practice API error:', geminiResponse.status, errText);
             return res.status(502).json({ success: false, error: 'AI practice generation failed.' });
         }
 
@@ -1031,15 +1083,37 @@ function safeParseGeminiJSON(rawText) {
         }
     );
     try {
-        return JSON.parse(cleaned);
+        const parsed = JSON.parse(cleaned);
+        // If it looks like a quiz, do strict validation
+        if (parsed && Array.isArray(parsed.questions)) {
+            if (parsed.questions.length !== 5) {
+                console.error('[Quiz Validation] Expected exactly 5 questions, got', parsed.questions.length);
+                return null;
+            }
+            for (let i = 0; i < parsed.questions.length; i++) {
+                const q = parsed.questions[i];
+                if (!q.question || typeof q.question !== 'string' || q.question.trim() === '') {
+                    console.error(`[Quiz Validation] Question ${i} is missing text`);
+                    return null;
+                }
+                if (!Array.isArray(q.options) || q.options.length !== 4) {
+                    console.error(`[Quiz Validation] Question ${i} options length is not 4`);
+                    return null;
+                }
+                if (typeof q.correctAnswer !== 'number' || q.correctAnswer < 0 || q.correctAnswer > 3) {
+                    console.error(`[Quiz Validation] Question ${i} invalid correctAnswer:`, q.correctAnswer);
+                    return null;
+                }
+                if (!q.explanation || typeof q.explanation !== 'string' || q.explanation.trim() === '') {
+                    console.error(`[Quiz Validation] Question ${i} is missing explanation`);
+                    return null;
+                }
+            }
+        }
+        return parsed;
     } catch (e) {
         console.error('safeParseGeminiJSON failed:', e.message, '| First 200 chars:', cleaned.slice(0, 200));
-        return {
-            confidence: 80,
-            inputType: 'text',
-            blocks: [{ type: 'text', content: rawText.replace(/```json|```/g, '').trim() }],
-            commands: []
-        };
+        return null;
     }
 }
 
@@ -1170,37 +1244,53 @@ Explanation Guidelines:
 - If inputType is 'unclear', leave blocks and commands empty.`;
         }
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [
-                        { text: prompt },
-                        {
-                            inline_data: {
-                                mime_type: mimeType,
-                                data: base64
+        let response;
+        try {
+            response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            {
+                                inline_data: {
+                                    mime_type: mimeType,
+                                    data: base64
+                                }
                             }
-                        }
-                    ]
-                }]
-            })
-        });
+                        ]
+                    }]
+                })
+            });
+        } catch (fetchError) {
+            console.error('[AI] Analyze Board API fetch error:', fetchError);
+            return res.status(502).json({ success: false, error: 'AI Analysis failed after retries' });
+        }
 
         const data = await response.json();
 
         if (!response.ok) {
-            console.error('❌ Gemini Analysis Failure:', JSON.stringify(data, null, 2));
-            return res.status(500).json({ success: false, error: 'AI Analysis failed' });
+            console.error('[AI] Gemini Analysis Failure:', JSON.stringify(data, null, 2));
+            return res.status(502).json({ success: false, error: 'AI Analysis failed' });
         }
 
         req.session.usage.count++;
 
         const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
         let parsedResult = safeParseGeminiJSON(rawText);
+
+        if (!parsedResult) {
+            console.warn('[AI] analyze-board JSON parse failed, falling back to text block');
+            parsedResult = {
+                confidence: 80,
+                inputType: 'text',
+                blocks: [{ type: 'text', content: rawText.replace(/```json|```/g, '').trim() }],
+                commands: []
+            };
+        }
 
         // Normalize legacy explanation if present
         if (parsedResult.explanation && !parsedResult.blocks) {
@@ -1287,20 +1377,26 @@ ${text}`;
             max_tokens: 1024
         };
 
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${groqApiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
-        });
+        let response;
+        try {
+            response = await fetchWithRetry('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${groqApiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+        } catch (fetchError) {
+            console.error('[AI] Rephrase API fetch error:', fetchError);
+            return res.status(502).json({ success: false, error: 'Rephrase failed after retries' });
+        }
 
         const data = await response.json();
 
         if (!response.ok || !data.choices || data.choices.length === 0) {
-            console.error('❌ Rephrase Error:', data);
-            return res.status(500).json({ success: false, error: 'Rephrase failed' });
+            console.error('[AI] Rephrase Error:', data);
+            return res.status(502).json({ success: false, error: 'Rephrase failed' });
         }
 
         res.json({

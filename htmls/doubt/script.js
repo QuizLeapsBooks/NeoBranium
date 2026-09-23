@@ -196,6 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- File Upload Handling ---
     uploadArea.addEventListener('click', (e) => {
+        if (uploadArea.classList.contains('processing')) return; // Prevent upload while processing
         if (e.target !== removeImageBtn && !removeImageBtn.contains(e.target)) {
             fileInput.click();
         }
@@ -221,6 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
     uploadArea.addEventListener('drop', handleDrop, false);
 
     function handleDrop(e) {
+        if (uploadArea.classList.contains('processing')) return; // Prevent drop while processing
         const dt = e.dataTransfer;
         const files = dt.files;
         if (files.length > 0) {
@@ -270,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     removeImageBtn.addEventListener('click', (e) => {
         e.stopPropagation();
+        if (uploadArea.classList.contains('processing')) return; // Prevent removing image while solving
         resetUpload();
     });
 
@@ -367,8 +370,8 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error("NeoTutor Solve Error:", error);
             updateStatus('System Error detected.', false);
             outputContent.innerHTML = `<div style="color: #ff4d4d; padding: 20px; background: rgba(255, 77, 77, 0.1); border-radius: 12px; border: 1px solid rgba(255, 77, 77, 0.3);">
-                <p><i class="fa-solid fa-triangle-exclamation"></i> <strong>Critical Analysis Failure</strong></p>
-                <p style="font-size: 13px; margin-top: 10px;">${error.message}</p>
+                <p><i class="fa-solid fa-triangle-exclamation"></i> <strong>NeoTutor couldn't complete this request right now. Please try again.</strong></p>
+                <p style="font-size: 13px; margin-top: 10px;">If the issue persists, please try uploading a clearer image.</p>
             </div>`;
         } finally {
             solveBtn.disabled = false;
@@ -426,9 +429,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
+    let isSaving = false;
     async function saveDoubt(status) {
-        if (!currentBase64 || !lastGeneratedText) return;
+        if (!currentBase64 || !lastGeneratedText || isSaving) return;
 
+        isSaving = true;
         btnSolved.disabled = true;
         btnUnsolved.disabled = true;
 
@@ -477,6 +482,8 @@ document.addEventListener('DOMContentLoaded', () => {
             btnUnsolved.disabled = false;
             updateStatus('Archive failure. Session data preserved.', false);
             alert("Could not save session: " + error.message + "\n\nYour AI answer is still available in the current session.");
+        } finally {
+            isSaving = false;
         }
     }
 
@@ -774,7 +781,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Follow-up Error:', error);
-            loadingDiv.innerHTML = '<span style="color:var(--error)">Failed to get response. Please try again.</span>';
+            loadingDiv.innerHTML = '<span style="color:var(--error)">NeoTutor couldn\'t complete this request right now. Please try again.</span>';
         } finally {
             isFollowUpLoading = false;
             sendFollowUpBtn.disabled = false;
@@ -858,8 +865,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="padding:20px; color:var(--error); background:rgba(239,68,68,0.08);
                      border-radius:10px; border:1px solid rgba(239,68,68,0.25); margin:15px;">
                     <p><i class="fa-solid fa-triangle-exclamation"></i>
-                       <strong> Quiz Generation Failed</strong></p>
-                    <p style="font-size:0.88rem; margin-top:8px;">${error.message}</p>
+                       <strong> NeoTutor couldn't complete this request right now. Please try again.</strong></p>
+                    <p style="font-size:0.88rem; margin-top:8px;">Ensure you have a clear image and try generating the quiz again.</p>
                     <button class="quiz-retry-btn" onclick="document.getElementById('createQuizBtn').click()">
                         <i class="fa-solid fa-rotate-right"></i> Try Again
                     </button>
@@ -1071,7 +1078,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                     } catch (error) {
                         console.error('Practice Generation Error:', error);
-                        alert('Failed to generate practice quiz: ' + error.message);
+                        alert('NeoTutor couldn\'t complete this request right now. Please try again.');
                         practiceBtn.disabled = false;
                         practiceBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> Practice Similar Questions';
                     } finally {
