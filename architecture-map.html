@@ -1351,7 +1351,7 @@
       },
       doubt: {
         id: 'doubt',
-        title: 'NeoTutor Doubt Solver',
+        title: 'NeoLens Doubt Solver',
         path: 'htmls/doubt/index.html',
         category: 'ai',
         status: 'Authenticated / Guest (Gated)',
@@ -1359,7 +1359,7 @@
         scripts: ['htmls/doubt/script.js', 'js/auth.js'],
         styles: ['htmls/doubt/style.css'],
         services: ['Express /gemini-solve', 'Firebase Storage', 'Firestore (solvedDoubts)'],
-        evidence: 'Linked from dashboard card [NeoTutor]; uploads image to Storage, calls /gemini-solve.',
+        evidence: 'Linked from dashboard card [NeoLens]; uploads image to Storage, calls /gemini-solve.',
         x: 940, y: 200
       },
       chat: {
@@ -1554,7 +1554,7 @@
       { from: 'dashboard', to: 'bot', kind: 'nav', note: 'Sidebar & card: AI Assistant / Bot Helper' },
       { from: 'dashboard', to: 'paper_gen', kind: 'nav', note: 'Sidebar: AI Exam Paper Generator' },
       { from: 'dashboard', to: 'chat', kind: 'nav', note: 'Sidebar & card: Peer Discussion Chat' },
-      { from: 'dashboard', to: 'doubt', kind: 'nav', note: 'Featured tool card: NeoTutor Multimodal Doubt Solver' },
+      { from: 'dashboard', to: 'doubt', kind: 'nav', note: 'Featured tool card: NeoLens Multimodal Doubt Solver' },
       { from: 'dashboard', to: 'ai_board', kind: 'nav', note: 'Featured tool card: Interactive AI Whiteboard' },
       { from: 'dashboard', to: 'quiz_hub_math', kind: 'nav', note: 'Class modal selection -> Maths subject route' },
       { from: 'dashboard', to: 'quiz_hub_sci', kind: 'nav', note: 'Class modal selection -> Science subject route' },
@@ -1701,7 +1701,7 @@
           { name: 'Live Peer Chat', path: 'htmls/chat/chat_app.html', rule: 'Input locked: "Sign in to chat"', cite: 'chat.js:58: messageInput.disabled = true' },
           { name: 'Bot Helper AI Assistant', path: 'htmls/bot/bot.html', rule: 'Input locked: "Sign in to use AI Assistant"', cite: 'bot/script.js:40: this.chatInput.disabled = true' },
           { name: 'AI Whiteboard & Voice Tutor', path: 'ai-board/ai-board.html', rule: '20-min limit; session queue enforcement (max 5)', cite: 'auth.js:35 verifyBoardAccess() & queueManager.js' },
-          { name: 'NeoTutor Doubt Solver', path: 'htmls/doubt/index.html', rule: 'AI image solving gated by backend rate-limits', cite: 'doubt/script.js:255 calls /gemini-solve with session' },
+          { name: 'NeoLens Doubt Solver', path: 'htmls/doubt/index.html', rule: 'AI image solving gated by backend rate-limits', cite: 'doubt/script.js:255 calls /gemini-solve with session' },
           { name: 'Exam Paper Generator', path: 'htmls/question-paper_generator-ai/ai-generate.html', rule: 'Throttled by client usage counter', cite: 'usage-limits.js canGeneratePaper()' }
         ]
       },
@@ -2487,7 +2487,7 @@
         notes_study: 'Learner accesses Notes Hub from nav, explores class notes, and opens concrete NCERT chapter notes.',
         exam_prep: 'Student reviews expected board exam questions with stepwise answers, formulas, and recurring exam problems.',
         quiz_practice: 'Learner picks subject from modal on dashboard, practices chapter test, and checks spotlight monthly ranking.',
-        ai_tutoring: 'Learner consults NeoTutor doubt solver with photo upload, launches AI whiteboard for voice assistance, and asks Bot Helper.',
+        ai_tutoring: 'Learner consults NeoLens doubt solver with photo upload, launches AI whiteboard for voice assistance, and asks Bot Helper.',
         account_mgmt: 'Authenticated student updates avatar, bio, and notifications, checks rank calculation, or securely logs out.'
       };
 

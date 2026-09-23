@@ -30,7 +30,7 @@ async function saveImageToIDB(key, base64DataUrl) {
             tx.onerror = (e) => reject(e.target.error);
         });
     } catch (err) {
-        console.warn('NeoTutor IDB: Could not save image to IndexedDB:', err);
+        console.warn('NeoLens IDB: Could not save image to IndexedDB:', err);
         return false;
     }
 }
@@ -310,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         solveBtn.disabled = true;
         uploadArea.classList.add('processing');
         btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-        updateStatus('Consulting NeoTutor AI Neural Network...', true);
+        updateStatus('Consulting NeoLens AI Neural Network...', true);
         outputContainer.classList.add('hidden');
 
         try {
@@ -367,10 +367,10 @@ document.addEventListener('DOMContentLoaded', () => {
             revealContent(outputContent, cleanHTML);
 
         } catch (error) {
-            console.error("NeoTutor Solve Error:", error);
+            console.error("NeoLens Solve Error:", error);
             updateStatus('System Error detected.', false);
             outputContent.innerHTML = `<div style="color: #ff4d4d; padding: 20px; background: rgba(255, 77, 77, 0.1); border-radius: 12px; border: 1px solid rgba(255, 77, 77, 0.3);">
-                <p><i class="fa-solid fa-triangle-exclamation"></i> <strong>NeoTutor couldn't complete this request right now. Please try again.</strong></p>
+                <p><i class="fa-solid fa-triangle-exclamation"></i> <strong>NeoLens couldn't complete this request right now. Please try again.</strong></p>
                 <p style="font-size: 13px; margin-top: 10px;">If the issue persists, please try uploading a clearer image.</p>
             </div>`;
         } finally {
@@ -450,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // This never contacts Firebase. If it fails, the text save still proceeds.
             const imageSaved = await saveImageToIDB(sessionKey, currentBase64);
             if (!imageSaved) {
-                console.warn('NeoTutor: Image could not be saved to IndexedDB. Text session will still be archived.');
+                console.warn('NeoLens: Image could not be saved to IndexedDB. Text session will still be archived.');
             }
 
             // ── Step 2: Save only text/structured data to Firestore (no image, no Storage URL) ──
@@ -634,13 +634,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // ── Always render the AI answer text ──
-        let formattedHTML = data.questionText
+        const textSrc = data.questionText || "No response text available for this session.";
+        let formattedHTML = textSrc
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
             .replace(/\n\n/g, '</p><p style="margin-top: 10px;">')
             .replace(/\n/g, '<br>');
-        outputContent.innerHTML = `<p>${formattedHTML}</p>`;
+        
+        revealContent(outputContent, `<p>${formattedHTML}</p>`);
         outputContainer.classList.remove('hidden');
+
+        if (typeof followUpSection !== 'undefined' && followUpSection) {
+            followUpSection.classList.remove('hidden');
+            lastGeneratedText = textSrc; // restore context for followups
+        }
+
+        const createQuizBtn = document.getElementById('createQuizBtn');
+        if (createQuizBtn) {
+            createQuizBtn.classList.remove('hidden');
+        }
 
         solveBtn.disabled = true;
         updateStatus('Historical Record Loaded.', false);
@@ -781,7 +793,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (error) {
             console.error('Follow-up Error:', error);
-            loadingDiv.innerHTML = '<span style="color:var(--error)">NeoTutor couldn\'t complete this request right now. Please try again.</span>';
+            loadingDiv.innerHTML = '<span style="color:var(--error)">NeoLens couldn\'t complete this request right now. Please try again.</span>';
         } finally {
             isFollowUpLoading = false;
             sendFollowUpBtn.disabled = false;
@@ -865,7 +877,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="padding:20px; color:var(--error); background:rgba(239,68,68,0.08);
                      border-radius:10px; border:1px solid rgba(239,68,68,0.25); margin:15px;">
                     <p><i class="fa-solid fa-triangle-exclamation"></i>
-                       <strong> NeoTutor couldn't complete this request right now. Please try again.</strong></p>
+                       <strong> NeoLens couldn't complete this request right now. Please try again.</strong></p>
                     <p style="font-size:0.88rem; margin-top:8px;">Ensure you have a clear image and try generating the quiz again.</p>
                     <button class="quiz-retry-btn" onclick="document.getElementById('createQuizBtn').click()">
                         <i class="fa-solid fa-rotate-right"></i> Try Again
@@ -1078,7 +1090,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                     } catch (error) {
                         console.error('Practice Generation Error:', error);
-                        alert('NeoTutor couldn\'t complete this request right now. Please try again.');
+                        alert('NeoLens couldn\'t complete this request right now. Please try again.');
                         practiceBtn.disabled = false;
                         practiceBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> Practice Similar Questions';
                     } finally {

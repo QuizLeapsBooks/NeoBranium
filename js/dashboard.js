@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFabToggle('sidebarFabBtn', 'sidebarFabMenu');
   setupFabToggle('bottomFabBtn', 'bottomFabMenu');
 
-  // NeoTutor link is now active and redirects to /htmls/doubt/index.html
+  // NeoLens link is now active and redirects to /htmls/doubt/index.html
 
   // Close menus when clicking outside
   document.addEventListener('click', () => {
