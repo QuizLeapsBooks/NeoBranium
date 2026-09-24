@@ -99,6 +99,13 @@
       align-items: center;
       justify-content: center;
       position: relative;
+      overflow: hidden;
+    }
+
+    .blog-img-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .blog-img-box i {
@@ -118,6 +125,7 @@
       font-size: 0.75rem;
       font-weight: 700;
       text-transform: uppercase;
+      z-index: 2;
     }
 
     .blog-body {
@@ -276,17 +284,20 @@
 
     <div class="section-container">
       <div class="blog-filters animate__animated animate__fadeIn">
-        <button class="filter-btn active" onclick="filterBlogs('all')">All Posts</button>
-        <button class="filter-btn" onclick="filterBlogs('science')">Science</button>
-        <button class="filter-btn" onclick="filterBlogs('maths')">Mathematics</button>
-        <button class="filter-btn" onclick="filterBlogs('strategy')">Strategy</button>
+        <button class="filter-btn active" onclick="filterBlogs('all', this)">All Posts</button>
+        <button class="filter-btn" onclick="filterBlogs('science', this)">Science</button>
+        <button class="filter-btn" onclick="filterBlogs('maths', this)">Mathematics</button>
+        <button class="filter-btn" onclick="filterBlogs('strategy', this)">Strategy</button>
+        <button class="filter-btn" onclick="filterBlogs('mindset', this)">Mindset</button>
       </div>
 
       <div class="blog-grid-full" id="blogGrid">
         <!-- 1. Competency Based Questions -->
         <div class="blog-card" id="cbq-2026" data-category="strategy">
-          <img src="https://images.unsplash.com/photo-1454165833767-027ffea9e778?auto=format&fit=crop&w=800&q=80"
-            alt="CBSE Competency Based Questions">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80"
+              alt="Students studying for CBSE Competency Based Questions" loading="lazy">
+          </div>
           <div class="blog-body">
             <div class="blog-badge">CBSE 2026</div>
             <h2>Competency-Based Questions: The 50% Shift in 2026 Boards</h2>
@@ -314,8 +325,10 @@
 
         <!-- 2. Double Board Exams -->
         <div class="blog-card" id="double-board" data-category="strategy">
-          <img src="https://images.unsplash.com/photo-1506784919141-93504332204b?auto=format&fit=crop&w=800&q=80"
-            alt="Double Board Exams CBSE">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1606761568499-6d2451b23c66?auto=format&fit=crop&w=800&q=80"
+              alt="Student preparing for CBSE double board exams" loading="lazy">
+          </div>
           <div class="blog-body">
             <div class="blog-badge">Exam Update</div>
             <h2>Double Board Exams: Understanding the New CBSE Two-Term System</h2>
@@ -343,8 +356,10 @@
 
         <!-- 3. Case Study Questions -->
         <div class="blog-card" id="case-study" data-category="science">
-          <img src="https://images.unsplash.com/photo-1553484771-047a44eee27f?auto=format&fit=crop&w=800&q=80"
-            alt="Case Study Questions Science Maths">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80"
+              alt="Student solving case study questions for Science and Maths" loading="lazy">
+          </div>
           <div class="blog-body">
             <div class="blog-badge">Study Skills</div>
             <h2>Tackling Case Study Questions in Science & Maths</h2>
@@ -371,8 +386,10 @@
 
         <!-- 4. AI & Computational Thinking -->
         <div class="blog-card" id="ai-education" data-category="strategy">
-          <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80"
-            alt="AI in Education">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80"
+              alt="AI in Education - Students learning with AI" loading="lazy">
+          </div>
           <div class="blog-body">
             <div class="blog-badge">Skill Building</div>
             <h2>AI & Computational Thinking: Why They Are Your New Best Friends</h2>
@@ -399,8 +416,10 @@
 
         <!-- 5. Effective Revision -->
         <div class="blog-card" id="active-recall" data-category="strategy">
-          <img src="https://images.unsplash.com/photo-1491841573634-28140fc7ced7?auto=format&fit=crop&w=800&q=80"
-            alt="Effective Revision Strategy">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80"
+              alt="Effective Revision Strategy - Active Recall" loading="lazy">
+          </div>
           <div class="blog-body">
             <div class="blog-badge">Success</div>
             <h2>Effective Revision: Stop Memorizing, Start Applying</h2>
@@ -425,9 +444,11 @@
         </div>
 
         <!-- 6. Resilience Blog -->
-        <div class="blog-card" id="resilience" data-category="strategy">
-          <img src="https://images.unsplash.com/photo-1499244015905-bc73392497a5?auto=format&fit=crop&w=800&q=80"
-            alt="Resilience">
+        <div class="blog-card" id="resilience" data-category="mindset">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1499244015905-bc73392497a5?auto=format&fit=crop&w=800&q=80"
+              alt="Student showing resilience and mental strength" loading="lazy">
+          </div>
           <div class="blog-body">
             <div class="blog-badge">Mindset</div>
             <h2>Beyond the Grades: What to do when you feel like giving up</h2>
@@ -455,9 +476,11 @@
         </div>
 
         <!-- 7. Passion Blog -->
-        <div class="blog-card" id="passion" data-category="strategy">
-          <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80"
-            alt="Passion">
+        <div class="blog-card" id="passion" data-category="mindset">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=800&q=80"
+              alt="Finding passion through curiosity and self-discovery" loading="lazy">
+          </div>
           <div class="blog-body">
             <div class="blog-badge">Self-Discovery</div>
             <h2>The Spark Within: Finding your true passion through curiosity</h2>
@@ -485,9 +508,11 @@
         </div>
 
         <!-- 8. Failure Blog -->
-        <div class="blog-card" id="failure" data-category="strategy">
-          <img src="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=800&q=80"
-            alt="Growth">
+        <div class="blog-card" id="failure" data-category="mindset">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=800&q=80"
+              alt="Growth through failure and learning from mistakes" loading="lazy">
+          </div>
           <div class="blog-body">
             <div class="blog-badge">Success</div>
             <h2>The Beauty of Falling: Why failure is your best teacher</h2>
@@ -514,13 +539,14 @@
           </div>
         </div>
 
-        <!-- ====== NEW BLOGS ADDED (30+ MORE) ====== -->
-
         <!-- 9. Matter in Our Surroundings -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Matter in Our Surroundings" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Matter in Our Surroundings: Simplified</h2>
             <p class="blog-intro">Everything around us is matter. But what is it exactly? Let's break down the physical
               nature and states of matter in the simplest way possible.</p>
@@ -546,9 +572,12 @@
 
         <!-- 10. Linear Equations -->
         <div class="blog-card" data-category="maths">
-          <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80"
-            alt="Mathematics topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80"
+              alt="Mathematics - Linear Equations in Two Variables" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Mathematics</div>
             <h2>Mastering Linear Equations in Two Variables</h2>
             <p class="blog-intro">An equation like ax + by + c = 0 might look scary, but it's just a way to represent a
               straight line on a graph. Let's master it!</p>
@@ -574,9 +603,12 @@
 
         <!-- 11. Laws of Motion -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1518152006812-edab29b069ac?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1518152006812-edab29b069ac?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Newton's Laws of Motion" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Newton's Laws of Motion: Made Easy</h2>
             <p class="blog-intro">Why do we fall forward when a bus stops suddenly? Newton had the answers 300 years
               ago!</p>
@@ -600,9 +632,12 @@
 
         <!-- 12. Scoring 95% -->
         <div class="blog-card" data-category="strategy">
-          <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80"
-            alt="Strategy topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80"
+              alt="Strategy - How to Score 95% in Class 10 Boards" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Strategy</div>
             <h2>How to Score 95% in Class 10 Boards</h2>
             <p class="blog-intro">It's not about studying 15 hours a day. It's about studying smart. Here is a roadmap
               to that 95% mark.</p>
@@ -628,9 +663,12 @@
 
         <!-- 13. Atoms and Molecules -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1532634922-8fe0b757fb13?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1532634922-8fe0b757fb13?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Atoms and Molecules" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Atoms and Molecules: The Building Blocks</h2>
             <p class="blog-intro">If you keep cutting a piece of gold, eventually you'll reach a point where you can't
               cut it anymore. That's an atom.</p>
@@ -654,9 +692,12 @@
 
         <!-- 14. Polynomials -->
         <div class="blog-card" data-category="maths">
-          <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80"
-            alt="Mathematics topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80"
+              alt="Mathematics - Polynomials" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Mathematics</div>
             <h2>Everything You Need to Know About Polynomials</h2>
             <p class="blog-intro">Polynomials are just algebraic expressions with powers. Let's learn about zeroes and
               remainders.</p>
@@ -678,9 +719,12 @@
 
         <!-- 15. Life Processes -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1530026186672-2cd00ffc50fe?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Life Processes" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Life Processes: How Our Body Works</h2>
             <p class="blog-intro">Nutrition, Respiration, Transportation, and Excretion. These are the 4 pillars that
               keep you alive.</p>
@@ -703,9 +747,12 @@
 
         <!-- 16. Trigonometry -->
         <div class="blog-card" data-category="maths">
-          <img src="https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?auto=format&fit=crop&w=800&q=80"
-            alt="Mathematics topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?auto=format&fit=crop&w=800&q=80"
+              alt="Mathematics - Trigonometry" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Mathematics</div>
             <h2>Trigonometry: No More Fear!</h2>
             <p class="blog-intro">Sin, Cos, Tan... they are just ratios of sides of a right-angled triangle. Let's
               simplify the table.</p>
@@ -729,9 +776,12 @@
 
         <!-- 17. Gravitation -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Gravitation" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Gravitation: Why Things Fall Down</h2>
             <p class="blog-intro">Gravity is the invisible force that pulls everything together. Newton saw an apple,
               and the rest is history.</p>
@@ -754,9 +804,12 @@
 
         <!-- 18. Study Timetable -->
         <div class="blog-card" data-category="strategy">
-          <img src="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=800&q=80"
-            alt="Strategy topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=800&q=80"
+              alt="Strategy - The Perfect Study Timetable" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Strategy</div>
             <h2>The Perfect Study Timetable for Students</h2>
             <p class="blog-intro">Tired of making timetables and not following them? Here's a flexible schedule that
               actually works.</p>
@@ -779,9 +832,12 @@
 
         <!-- 19. Chemical Reactions -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1603126727216-b96420cd565a?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1603126727216-b96420cd565a?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Chemical Reactions and Equations" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Chemical Reactions and Equations: Balancing Act</h2>
             <p class="blog-intro">Rusting of iron, curdling of milk, and digestion of food - they are all chemical
               reactions. Let's learn to balance them.</p>
@@ -803,9 +859,12 @@
 
         <!-- 20. Probability -->
         <div class="blog-card" data-category="maths">
-          <img src="https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3?auto=format&fit=crop&w=800&q=80"
-            alt="Mathematics topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3?auto=format&fit=crop&w=800&q=80"
+              alt="Mathematics - Probability" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Mathematics</div>
             <h2>Probability: Predicting the Unpredictable</h2>
             <p class="blog-intro">What are the chances of getting a head on a coin toss? Probability is the math of
               chance.</p>
@@ -827,9 +886,12 @@
 
         <!-- 21. Tissues (Biology) -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Tissues in Plants and Animals" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Tissues: Teamwork in the Body</h2>
             <p class="blog-intro">Cells are the building blocks, but tissues are the teams that get the work done. Let's
               explore Plant and Animal tissues.</p>
@@ -849,9 +911,12 @@
 
         <!-- 22. Work, Energy and Power -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Work, Energy and Power" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Work, Energy and Power: The Trio</h2>
             <p class="blog-intro">In physics, holding a heavy box still is NOT work. Confused? Let's fix that.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -873,9 +938,12 @@
 
         <!-- 23. Common Mistakes -->
         <div class="blog-card" data-category="strategy">
-          <img src="https://images.unsplash.com/photo-1454165833767-027ffea9e778?auto=format&fit=crop&w=800&q=80"
-            alt="Strategy topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1454165833767-027ffea9e778?auto=format&fit=crop&w=800&q=80"
+              alt="Strategy - Common Mistakes Students Make in Exams" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Strategy</div>
             <h2>Common Mistakes Students Make in Exams</h2>
             <p class="blog-intro">Did you lose marks because of silly calculation errors? You're not alone. Let's fix
               these habits.</p>
@@ -897,10 +965,13 @@
 
         <!-- 24. Statistics -->
         <div class="blog-card" data-category="maths">
-          <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80"
-            alt="Mathematics topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80"
+              alt="Mathematics - Statistics Mean Median Mode" loading="lazy">
+          </div>
           <div class="blog-body">
-            <h2>Statistics basics: Mean, Median, Mode</h2>
+            <div class="blog-badge">Mathematics</div>
+            <h2>Statistics Basics: Mean, Median, Mode</h2>
             <p class="blog-intro">A simple guide to understanding the central tendencies of data.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
             </div>
@@ -919,9 +990,12 @@
 
         <!-- 25. Acids, Bases and Salts -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1581093588401-fbb62a02f120?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1581093588401-fbb62a02f120?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Acids Bases and Salts pH Scale" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Acids, Bases and Salts: The pH Balance</h2>
             <p class="blog-intro">Why is lemon sour and soap bitter? It's all about chemistry.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -942,9 +1016,12 @@
 
         <!-- 26. Light - Reflection and Refraction -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1507666405821-4223ca150bb0?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1507666405821-4223ca150bb0?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Light Reflection and Refraction" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Light: Mirrors and Lenses Simplified</h2>
             <p class="blog-intro">Learn how images are formed in mirrors and why a straw looks bent in water.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -965,9 +1042,12 @@
 
         <!-- 27. Quadratic Equations -->
         <div class="blog-card" data-category="maths">
-          <img src="https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3?auto=format&fit=crop&w=800&q=80"
-            alt="Mathematics topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3?auto=format&fit=crop&w=800&q=80"
+              alt="Mathematics - Quadratic Equations" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Mathematics</div>
             <h2>Solving Quadratic Equations Like a Pro</h2>
             <p class="blog-intro">Master the quadratic formula and factorization methods.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -986,9 +1066,12 @@
 
         <!-- 28. Control and Coordination -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Control and Coordination Human Brain" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Control and Coordination: The Human Brain</h2>
             <p class="blog-intro">How do we react to a hot object? Explore the nervous system and hormones.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1008,9 +1091,12 @@
 
         <!-- 29. Arithmetic Progressions -->
         <div class="blog-card" data-category="maths">
-          <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80"
-            alt="Mathematics topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80"
+              alt="Mathematics - Arithmetic Progressions" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Mathematics</div>
             <h2>Arithmetic Progressions: Finding the Pattern</h2>
             <p class="blog-intro">A sequence of numbers where the difference is constant. Let's find the n-th term.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1030,9 +1116,12 @@
 
         <!-- 30. Electricity -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Electricity Circuits and Ohm's Law" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Electricity: Circuits and Ohm's Law</h2>
             <p class="blog-intro">Flow of electrons and how to calculate resistance in your home appliances.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1046,15 +1135,18 @@
               </ul>
               <p><strong>Heating Effect:</strong> H = I^2 Rt (Joules Law). Used in heaters and irons.</p>
             </div>
-            <div class="blog-meta"><span>8 min read</span><span>May 04, 2026</span></div>
+            <div class="blog-meta"><span>8 min read</span><span>April 09, 2026</span></div>
           </div>
         </div>
 
         <!-- 31. Surface Areas and Volumes -->
         <div class="blog-card" data-category="maths">
-          <img src="https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?auto=format&fit=crop&w=800&q=80"
-            alt="Mathematics topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?auto=format&fit=crop&w=800&q=80"
+              alt="Mathematics - Surface Areas and Volumes 3D Geometry" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Mathematics</div>
             <h2>Surface Areas and Volumes: 3D Geometry</h2>
             <p class="blog-intro">Cubes, Cylinders, Cones and Spheres. A cheat sheet for all formulas.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1069,15 +1161,18 @@
               <p><strong>Tip:</strong> Always pay attention to whether the question asks for Curved Surface Area or
                 Total Surface Area.</p>
             </div>
-            <div class="blog-meta"><span>9 min read</span><span>May 03, 2026</span></div>
+            <div class="blog-meta"><span>9 min read</span><span>April 08, 2026</span></div>
           </div>
         </div>
 
         <!-- 32. Magnetic Effects of Electric Current -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1518152006812-edab29b069ac?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1518152006812-edab29b069ac?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Magnetic Effects of Electric Current Motor and Generator" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Magnetic Effects of Current: Motor and Generator</h2>
             <p class="blog-intro">How electricity creates magnetism and vice-versa.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1085,22 +1180,25 @@
             <div class="blog-full-content">
               <p>A current-carrying wire behaves like a magnet. This is the basis of electric motors.</p>
               <ul>
-                <li><strong>Flemings Left Hand Rule:</strong> For electric motors.</li>
-                <li><strong>Flemings Right Hand Rule:</strong> For electric generators.</li>
+                <li><strong>Fleming's Left Hand Rule:</strong> For electric motors.</li>
+                <li><strong>Fleming's Right Hand Rule:</strong> For electric generators.</li>
                 <li><strong>Solenoid:</strong> A coil of wire that acts as a magnet when current flows.</li>
               </ul>
               <p><strong>Note:</strong> Domestic circuits always have appliances in parallel to ensure independent
                 operation.</p>
             </div>
-            <div class="blog-meta"><span>8 min read</span><span>May 02, 2026</span></div>
+            <div class="blog-meta"><span>8 min read</span><span>April 07, 2026</span></div>
           </div>
         </div>
 
         <!-- 33. Heredity and Evolution -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1530026405186-ed1f1396783e?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1530026405186-ed1f1396783e?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Heredity and Evolution Mendel Genetics" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Heredity: Why You Look Like Your Parents</h2>
             <p class="blog-intro">Gregor Mendel and his pea plants - the birth of genetics.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1121,9 +1219,12 @@
 
         <!-- 34. Number Systems -->
         <div class="blog-card" data-category="maths">
-          <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80"
-            alt="Mathematics topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80"
+              alt="Mathematics - Number Systems Rational and Irrational" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Mathematics</div>
             <h2>Number Systems: Rational and Irrational</h2>
             <p class="blog-intro">Explore the world of numbers, from integers to decimals that never end.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1137,15 +1238,18 @@
               </ul>
               <p><strong>Rationalizing:</strong> Learn how to remove roots from the denominator.</p>
             </div>
-            <div class="blog-meta"><span>6 min read</span><span>April 30, 2026</span></div>
+            <div class="blog-meta"><span>6 min read</span><span>April 05, 2026</span></div>
           </div>
         </div>
 
         <!-- 35. Triangles -->
         <div class="blog-card" data-category="maths">
-          <img src="https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?auto=format&fit=crop&w=800&q=80"
-            alt="Mathematics topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?auto=format&fit=crop&w=800&q=80"
+              alt="Mathematics - Triangles Congruence and Similarity" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Mathematics</div>
             <h2>Triangles: Congruence and Similarity</h2>
             <p class="blog-intro">SSS, SAS, ASA, RHS - the rules that define triangle relationships.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1159,15 +1263,18 @@
               </ul>
               <p><strong>Practice:</strong> Prove Pythagoras Theorem using similarity. It's a common board question!</p>
             </div>
-            <div class="blog-meta"><span>9 min read</span><span>April 29, 2026</span></div>
+            <div class="blog-meta"><span>9 min read</span><span>April 04, 2026</span></div>
           </div>
         </div>
 
         <!-- 36. Our Environment -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Our Environment Food Chains and Ozone" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Our Environment: Food Chains and Ozone</h2>
             <p class="blog-intro">Learn about ecosystems and how we can protect our planet.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1182,15 +1289,18 @@
               <p><strong>Note:</strong> Biological Magnification is why toxic chemicals increase in concentration up the
                 food chain.</p>
             </div>
-            <div class="blog-meta"><span>5 min read</span><span>April 28, 2026</span></div>
+            <div class="blog-meta"><span>5 min read</span><span>April 03, 2026</span></div>
           </div>
         </div>
 
         <!-- 37. Coordinate Geometry -->
         <div class="blog-card" data-category="maths">
-          <img src="https://images.unsplash.com/photo-1543286386-713bdd548da4?auto=format&fit=crop&w=800&q=80"
-            alt="Mathematics topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1543286386-713bdd548da4?auto=format&fit=crop&w=800&q=80"
+              alt="Mathematics - Coordinate Geometry Distance and Section" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Mathematics</div>
             <h2>Coordinate Geometry: Distance and Section</h2>
             <p class="blog-intro">Find the distance between two points and locate the midpoint.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1211,9 +1321,12 @@
 
         <!-- 38. How to Study effectively -->
         <div class="blog-card" data-category="strategy">
-          <img src="https://images.unsplash.com/photo-1491841573634-28140fc7ced7?auto=format&fit=crop&w=800&q=80"
-            alt="Strategy topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1491841573634-28140fc7ced7?auto=format&fit=crop&w=800&q=80"
+              alt="Strategy - How to Study Effectively Study Hacks" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Strategy</div>
             <h2>कैसे पढ़ाई करें: Simple Study Hacks</h2>
             <p class="blog-intro">Hindi and English guide on how to stay focused and remember what you read.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1236,9 +1349,12 @@
 
         <!-- 39. Metals and Non-metals -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1536939459926-301728717817?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1536939459926-301728717817?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Metals and Non-metals Properties and Reactions" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Metals and Non-metals: Properties and Reactions</h2>
             <p class="blog-intro">Why do metals conduct electricity and shine? Let's explore chemical and physical
               properties.</p>
@@ -1259,9 +1375,12 @@
 
         <!-- 40. Heron's Formula -->
         <div class="blog-card" data-category="maths">
-          <img src="https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?auto=format&fit=crop&w=800&q=80"
-            alt="Mathematics topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1509228627152-72ae9ae6848d?auto=format&fit=crop&w=800&q=80"
+              alt="Mathematics - Heron's Formula Area of Any Triangle" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Mathematics</div>
             <h2>Heron's Formula: Area of Any Triangle</h2>
             <p class="blog-intro">No height? No problem. Find the area using only the three sides.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1281,9 +1400,12 @@
 
         <!-- 41. Circles -->
         <div class="blog-card" data-category="maths">
-          <img src="https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3?auto=format&fit=crop&w=800&q=80"
-            alt="Mathematics topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3?auto=format&fit=crop&w=800&q=80"
+              alt="Mathematics - Circles Tangents and Chords" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Mathematics</div>
             <h2>Circles: Tangents and Chords</h2>
             <p class="blog-intro">The beautiful geometry of a circle and its properties.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1303,9 +1425,12 @@
 
         <!-- 42. How do Organisms Reproduce? -->
         <div class="blog-card" data-category="science">
-          <img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&w=800&q=80"
-            alt="Science topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&w=800&q=80"
+              alt="Science - Reproduction Continuity of Life" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Science</div>
             <h2>Reproduction: Continuity of Life</h2>
             <p class="blog-intro">Asexual and Sexual reproduction explained with diagrams.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1325,9 +1450,12 @@
 
         <!-- 43. Final Revision Strategy -->
         <div class="blog-card" data-category="strategy">
-          <img src="https://images.unsplash.com/photo-1454165833767-027ffea9e778?auto=format&fit=crop&w=800&q=80"
-            alt="Strategy topic">
+          <div class="blog-img-box">
+            <img src="https://images.unsplash.com/photo-1454165833767-027ffea9e778?auto=format&fit=crop&w=800&q=80"
+              alt="Strategy - Final 30-Day Revision Strategy" loading="lazy">
+          </div>
           <div class="blog-body">
+            <div class="blog-badge">Strategy</div>
             <h2>Final 30-Day Revision Strategy</h2>
             <p class="blog-intro">The clock is ticking. Here is how to use your last month effectively.</p>
             <div class="read-more-btn" onclick="toggleReadMore(this)">Read More <i class="fas fa-chevron-down"></i>
@@ -1551,8 +1679,6 @@
     btns.forEach(b => b.classList.remove('active'));
     if (btn) {
       btn.classList.add('active');
-    } else if (typeof event !== 'undefined' && event && event.target) {
-      event.target.classList.add('active');
     }
 
     cards.forEach(card => {
