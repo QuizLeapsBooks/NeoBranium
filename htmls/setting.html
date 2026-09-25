@@ -82,6 +82,22 @@
               </div>
             </div>
           </section>
+          <section class="account-card" id="neolearnSection">
+            <h2>NeoLearn</h2>
+            <p class="account-muted" style="margin-bottom: 0.85rem; font-size: 0.88rem; line-height: 1.45;">
+              NeoLearn is an optional learning-social profile. Connect with peers, share your thoughts, and showcase your learning progress.
+            </p>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+              <span style="font-size: 0.85rem; font-weight: 600;">Status:</span>
+              <span id="neolearnStatusBadge" class="neolearn-badge neolearn-badge--checking">Checking...</span>
+            </div>
+            <div class="settings-actions">
+              <button id="neolearnToggleBtn" class="settings-save" type="button" disabled>
+                <span id="neolearnBtnText">Checking...</span>
+              </button>
+              <div id="neolearnStatusFeedback" class="status" role="status" aria-live="polite"></div>
+            </div>
+          </section>
           <section class="account-card">
             <h2>Account access</h2>
             <div class="settings-actions"><button id="logoutBtn" type="button"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Logout</button><div id="status" class="status" role="status" aria-live="polite"></div></div>
@@ -90,6 +106,37 @@
       </div>
     </div>
   </main>
+  <!-- NeoLearn Profile Removal Modal -->
+  <div id="neolearnModal" class="nl-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="neolearnModalTitle">
+    <div class="nl-modal-backdrop" id="neolearnModalBackdrop"></div>
+    <div class="nl-modal-dialog">
+      <!-- Step 1 -->
+      <div id="neolearnStep1" class="nl-modal-step">
+        <h3 id="neolearnModalTitle" class="nl-modal-title">Remove NeoLearn Profile</h3>
+        <p class="nl-modal-desc">Are you sure you want to remove your NeoLearn profile?</p>
+        <p class="nl-modal-subdesc">Your main NeoBranium account, quiz scores, and settings will remain completely safe and untouched.</p>
+        <div class="nl-modal-actions">
+          <button type="button" id="neolearnStep1CancelBtn" class="nl-modal-btn nl-modal-btn--secondary">Cancel</button>
+          <button type="button" id="neolearnStep1ProceedBtn" class="nl-modal-btn nl-modal-btn--danger">Yes, Remove</button>
+        </div>
+      </div>
+      <!-- Step 2 -->
+      <div id="neolearnStep2" class="nl-modal-step d-none">
+        <h3 class="nl-modal-title">Confirm Profile Removal</h3>
+        <p class="nl-modal-desc">This action cannot be undone. To proceed, please type exactly:</p>
+        <div class="nl-confirmation-box mb-3"><code>I want to remove my NeoLearn profile</code></div>
+        <div style="margin-top: 0.75rem;">
+          <input type="text" id="neolearnConfirmPhraseInput" class="nl-modal-input" placeholder="Type the text here" autocomplete="off" />
+        </div>
+        <div class="nl-modal-actions">
+          <button type="button" id="neolearnStep2CancelBtn" class="nl-modal-btn nl-modal-btn--secondary">Cancel</button>
+          <button type="button" id="neolearnFinalDeleteBtn" class="nl-modal-btn nl-modal-btn--danger" disabled>
+            <span id="neolearnDeleteBtnText">Remove Profile</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
   <nav class="mobile-account-nav" aria-label="Quick navigation">
     <a href="/htmls/dashboard.html"><i class="bi bi-grid-1x2" aria-hidden="true"></i><span>Dashboard</span></a>
     <a href="/htmls/notes.html"><i class="bi bi-journal" aria-hidden="true"></i><span>Notes</span></a>

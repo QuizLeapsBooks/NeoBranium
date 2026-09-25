@@ -2,6 +2,7 @@ import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebase
 import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 import { getFirestore, getDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
+import { syncProfilePhoto } from "/js/profile-photo-cache.js";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -26,10 +27,12 @@ export async function loadUserData(user) {
     try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         const userData = userDoc.exists() ? userDoc.data() : { username: user.displayName || "User", fname: "", lname: "", bio: "", notificationPref: "all" };
-        return { ...userData, email: user.email, photoURL: user.photoURL };
+        const photo = userData.profilePhotoUrl || userData.photoURL || user.photoURL || "";
+        return { ...userData, email: user.email, photoURL: photo, profilePhotoUrl: photo };
     } catch (error) {
         console.error("Error loading user data:", error);
-        return { username: user.displayName || "User", fname: "", lname: "", bio: "", notificationPref: "all", email: user.email };
+        const fallbackPhoto = user?.photoURL || "";
+        return { username: user?.displayName || "User", fname: "", lname: "", bio: "", notificationPref: "all", email: user?.email, photoURL: fallbackPhoto, profilePhotoUrl: fallbackPhoto };
     }
 }
 
@@ -142,25 +145,58 @@ function injectGuestBanner() {
 export function updateUserDisplay(userData, user) {
     const usernameDisplay = document.getElementById("usernameDisplay");
     const initialAvatar = document.getElementById("initialAvatar");
-    if (usernameDisplay) {
-        usernameDisplay.textContent = `Welcome, ${userData.username || user.displayName || "User"}!`;
-    }
-    if (initialAvatar) {
-        if (userData.photoURL) {
-            initialAvatar.style.backgroundImage = `url(${userData.photoURL})`;
-            initialAvatar.style.backgroundSize = "cover";
-            initialAvatar.textContent = "";
-        } else {
-            initialAvatar.textContent = (userData.username || user.displayName || "User").charAt(0).toUpperCase();
-        }
-    }
     const userInitial = document.getElementById("userInitial");
-    if (userInitial) {
-        userInitial.textContent = (userData.username || user.displayName || "User").charAt(0).toUpperCase();
-    }
+    const userDropdown = document.getElementById("userDropdown");
     const userBioText = document.getElementById("userBioText");
+
+    const username = userData?.username || user?.displayName || "User";
+    const firstLetter = username.charAt(0).toUpperCase();
+
+    if (usernameDisplay) {
+        usernameDisplay.textContent = `Welcome, ${username}!`;
+    }
+
+    const applyAvatar = (displayUrl) => {
+        if (initialAvatar) {
+            if (displayUrl) {
+                initialAvatar.style.backgroundImage = `url("${displayUrl}")`;
+                initialAvatar.style.backgroundSize = "cover";
+                initialAvatar.style.backgroundPosition = "center";
+                initialAvatar.textContent = "";
+            } else {
+                initialAvatar.style.backgroundImage = "";
+                initialAvatar.textContent = firstLetter;
+            }
+        }
+        if (userDropdown && userInitial) {
+            if (displayUrl) {
+                userDropdown.style.backgroundImage = `url("${displayUrl}")`;
+                userDropdown.style.backgroundSize = "cover";
+                userDropdown.style.backgroundPosition = "center";
+                userInitial.style.visibility = "hidden";
+            } else {
+                userDropdown.style.backgroundImage = "";
+                userInitial.style.visibility = "visible";
+                userInitial.textContent = firstLetter;
+            }
+        } else if (userInitial) {
+            userInitial.textContent = firstLetter;
+        }
+    };
+
+    const remoteUrl = userData?.profilePhotoUrl || userData?.photoURL || user?.photoURL || null;
+    const userId = user?.uid;
+
+    if (userId) {
+        syncProfilePhoto(userId, remoteUrl, (displayUrl) => {
+            applyAvatar(displayUrl);
+        });
+    } else {
+        applyAvatar(remoteUrl);
+    }
+
     if (userBioText) {
-        userBioText.textContent = userData.bio || "--Your Bio--";
+        userBioText.textContent = userData?.bio || "--Your Bio--";
     }
 }
 

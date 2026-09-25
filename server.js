@@ -11,7 +11,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { boardRateLimit } from './boardMiddleware.js';
 import queueManager from './queueManager.js';
-import { endSession } from './firebaseAdmin.js';
+import { endSession, verifyAuthToken, db, admin } from './firebaseAdmin.js';
+import { v2 as cloudinary } from 'cloudinary';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -101,7 +102,7 @@ app.use(helmet({
                 "https://identitytoolkit.googleapis.com",
                 "https://securetoken.googleapis.com"
             ],
-            imgSrc: ["'self'", "data:", "blob:", "https://firebasestorage.googleapis.com", "https://www.gstatic.com"],
+            imgSrc: ["'self'", "data:", "blob:", "https://firebasestorage.googleapis.com", "https://www.gstatic.com", "https://res.cloudinary.com"],
             frameSrc: ["'self'", "https://neobranium.firebaseapp.com"]
         }
     }
@@ -166,6 +167,29 @@ const strictOriginCheck = (req, res, next) => {
 app.use(strictOriginCheck);
 
 app.use(express.json({ limit: '10mb' }));
+
+// Cloudinary configuration (credentials loaded strictly from server-side environment variables)
+const isCloudinaryConfigured = () => {
+    return Boolean(
+        process.env.CLOUDINARY_CLOUD_NAME &&
+        process.env.CLOUDINARY_API_KEY &&
+        process.env.CLOUDINARY_API_SECRET &&
+        !process.env.CLOUDINARY_API_KEY.includes('your_') &&
+        !process.env.CLOUDINARY_API_SECRET.includes('your_')
+    );
+};
+
+if (isCloudinaryConfigured()) {
+    cloudinary.config({
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+        secure: true
+    });
+    console.log('✅ Cloudinary initialized successfully');
+} else {
+    console.warn('⚠️ Cloudinary credentials are not fully configured in environment variables.');
+}
 
 // Gemini API integration
 const groqApiKey = process.env.GROQ_API_KEY;
@@ -1643,6 +1667,167 @@ app.get('/api/board-queue-status', async (req, res) => {
     } catch (error) {
         console.error('Error in /api/board-queue-status:', error);
         res.status(500).json({ error: 'Internal Server Error', message: error.message });
+    }
+});
+
+// Profile Photo Upload Endpoint (Cloudinary + Firestore)
+app.post('/api/profile/upload-photo', async (req, res) => {
+    try {
+        let decodedToken;
+        try {
+            decodedToken = await verifyAuthToken(req);
+        } catch (authErr) {
+            return res.status(401).json({ success: false, error: authErr.message || 'Unauthorized' });
+        }
+
+        const userId = decodedToken.uid;
+        if (!userId) {
+            return res.status(401).json({ success: false, error: 'Unauthorized: Invalid user identity' });
+        }
+
+        if (!isCloudinaryConfigured()) {
+            return res.status(503).json({
+                success: false,
+                error: 'Cloudinary storage is not configured on the server. Please configure CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in backend environment variables.'
+            });
+        }
+
+        const { image, mimeType } = req.body || {};
+        if (!image || typeof image !== 'string') {
+            return res.status(400).json({ success: false, error: 'Missing image payload' });
+        }
+
+        const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+        let detectedMime = (mimeType || '').toLowerCase();
+        if (!detectedMime && image.startsWith('data:')) {
+            const match = image.match(/^data:([^;]+);base64,/);
+            if (match) detectedMime = match[1].toLowerCase();
+        }
+
+        if (!detectedMime || !allowedMimeTypes.includes(detectedMime)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid or unsupported image format. Supported formats: JPEG, PNG, WebP, GIF.'
+            });
+        }
+
+        const base64Data = image.includes(';base64,') ? image.split(';base64,')[1] : image;
+        const approximateSizeBytes = (base64Data.length * 3) / 4;
+        const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+        if (approximateSizeBytes > MAX_SIZE_BYTES) {
+            return res.status(400).json({
+                success: false,
+                error: 'Image file size exceeds the 5MB limit.'
+            });
+        }
+
+        const dataUri = image.startsWith('data:') ? image : `data:${detectedMime};base64,${base64Data}`;
+
+        const uploadResult = await cloudinary.uploader.upload(dataUri, {
+            folder: 'neobranium_profiles',
+            public_id: `profile_${userId}`,
+            overwrite: true,
+            invalidate: true,
+            resource_type: 'image',
+            transformation: [
+                { width: 400, height: 400, crop: 'limit', quality: 'auto', fetch_format: 'auto' }
+            ]
+        });
+
+        const secureUrl = uploadResult.secure_url;
+        const publicId = uploadResult.public_id;
+
+        if (db) {
+            try {
+                await db.collection('users').doc(userId).set({
+                    profilePhotoUrl: secureUrl,
+                    profilePhotoPublicId: publicId,
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+
+                const neolearnDocRef = db.collection('neolearn_profiles').doc(userId);
+                const neolearnDoc = await neolearnDocRef.get();
+                if (neolearnDoc.exists) {
+                    await neolearnDocRef.set({
+                        profilePhotoUrl: secureUrl,
+                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                }
+            } catch (dbErr) {
+                console.error('Error saving profile photo to Firestore:', dbErr);
+            }
+        }
+
+        return res.json({
+            success: true,
+            profilePhotoUrl: secureUrl
+        });
+
+    } catch (error) {
+        console.error('Error in /api/profile/upload-photo:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to upload profile photo'
+        });
+    }
+});
+
+// Profile Photo Remove Endpoint
+app.post('/api/profile/remove-photo', async (req, res) => {
+    try {
+        let decodedToken;
+        try {
+            decodedToken = await verifyAuthToken(req);
+        } catch (authErr) {
+            return res.status(401).json({ success: false, error: authErr.message || 'Unauthorized' });
+        }
+
+        const userId = decodedToken.uid;
+        if (!userId) {
+            return res.status(401).json({ success: false, error: 'Unauthorized: Invalid user identity' });
+        }
+
+        if (db) {
+            const userDocRef = db.collection('users').doc(userId);
+            const userDoc = await userDocRef.get();
+            if (userDoc.exists) {
+                const userData = userDoc.data();
+                const publicId = userData.profilePhotoPublicId;
+
+                // Safely delete only the authenticated user's exact profile asset
+                if (publicId && publicId.includes(userId) && isCloudinaryConfigured()) {
+                    try {
+                        await cloudinary.uploader.destroy(publicId);
+                    } catch (cloudErr) {
+                        console.warn('Could not destroy Cloudinary asset:', cloudErr.message);
+                    }
+                }
+
+                await userDocRef.set({
+                    profilePhotoUrl: admin.firestore.FieldValue.delete(),
+                    profilePhotoPublicId: admin.firestore.FieldValue.delete(),
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            }
+
+            const neolearnDocRef = db.collection('neolearn_profiles').doc(userId);
+            const neolearnDoc = await neolearnDocRef.get();
+            if (neolearnDoc.exists) {
+                await neolearnDocRef.set({
+                    profilePhotoUrl: '',
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            }
+        }
+
+        return res.json({ success: true });
+
+    } catch (error) {
+        console.error('Error in /api/profile/remove-photo:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to remove profile photo'
+        });
     }
 });
 

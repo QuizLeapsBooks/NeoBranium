@@ -73,6 +73,7 @@
   <script type="module" src="/js/auth.js"></script>
   <script type="module">
     import { auth, loadUserData, updateUserDisplay, showStatus, checkAccess } from '/js/auth.js';
+    import { syncProfilePhoto } from '/js/profile-photo-cache.js';
 
     // Immediate access check for guest protection
     checkAccess(true);
@@ -96,27 +97,29 @@
       highScore.textContent = userData.highScore ?? 0;
       userRank.textContent = userData.rank ?? '-';
 
-      if (userData.photoURL) {
-        try {
-          const resolved = new URL(userData.photoURL, window.location.origin);
-          if (resolved.protocol === 'http:' || resolved.protocol === 'https:') {
-            profilePicContainer.innerHTML = '';
-            const img = document.createElement('img');
-            img.className = 'w-28 h-28 rounded-full mx-auto shadow-lg border-4 border-white';
-            img.alt = 'Profile Picture';
-            img.src = resolved.href;
-            profilePicContainer.appendChild(img);
-          } else {
-            const firstLetter = (userData.username || user.displayName || 'User').charAt(0).toUpperCase();
-            profilePicContainer.innerHTML = `<div class="avatar">${firstLetter}</div>`;
-          }
-        } catch (e) {
-          const firstLetter = (userData.username || user.displayName || 'User').charAt(0).toUpperCase();
+      const firstLetter = (userData.username || user.displayName || 'User').charAt(0).toUpperCase();
+
+      const renderAvatar = (url) => {
+        if (!profilePicContainer) return;
+        if (url) {
+          profilePicContainer.innerHTML = '';
+          const img = document.createElement('img');
+          img.className = 'w-28 h-28 rounded-full mx-auto shadow-lg border-4 border-white profile-avatar-image';
+          img.alt = 'Profile Picture';
+          img.src = url;
+          profilePicContainer.appendChild(img);
+        } else {
           profilePicContainer.innerHTML = `<div class="avatar">${firstLetter}</div>`;
         }
+      };
+
+      const photoUrl = userData.profilePhotoUrl || userData.photoURL || user.photoURL || null;
+      if (user && user.uid) {
+        syncProfilePhoto(user.uid, photoUrl, (displayUrl) => {
+          renderAvatar(displayUrl);
+        });
       } else {
-        const firstLetter = (userData.username || user.displayName || 'User').charAt(0).toUpperCase();
-        profilePicContainer.innerHTML = `<div class="avatar">${firstLetter}</div>`;
+        renderAvatar(photoUrl);
       }
     });
 

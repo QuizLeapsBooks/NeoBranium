@@ -1,4 +1,5 @@
-import { auth, loadUserData, updateUserProfile, changeUserPassword, showStatus, checkAccess } from "/js/auth.js";
+import { auth, db, loadUserData, updateUserProfile, changeUserPassword, showStatus, checkAccess } from "/js/auth.js";
+import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
 // Immediate access check for guest protection
 await checkAccess(true);
@@ -18,6 +19,203 @@ const newPasswordInput = document.getElementById("newPassword");
 const changePasswordBtn = document.getElementById("changePasswordBtn");
 const themeSwitch = document.getElementById("themeSwitch");
 
+// NeoLearn Elements
+const neolearnToggleBtn = document.getElementById("neolearnToggleBtn");
+const neolearnBtnText = document.getElementById("neolearnBtnText");
+const neolearnStatusBadge = document.getElementById("neolearnStatusBadge");
+const neolearnStatusFeedback = document.getElementById("neolearnStatusFeedback");
+
+const neolearnModal = document.getElementById("neolearnModal");
+const neolearnModalBackdrop = document.getElementById("neolearnModalBackdrop");
+const neolearnStep1 = document.getElementById("neolearnStep1");
+const neolearnStep2 = document.getElementById("neolearnStep2");
+const neolearnStep1CancelBtn = document.getElementById("neolearnStep1CancelBtn");
+const neolearnStep1ProceedBtn = document.getElementById("neolearnStep1ProceedBtn");
+const neolearnStep2CancelBtn = document.getElementById("neolearnStep2CancelBtn");
+const neolearnConfirmPhraseInput = document.getElementById("neolearnConfirmPhraseInput");
+const neolearnFinalDeleteBtn = document.getElementById("neolearnFinalDeleteBtn");
+const neolearnDeleteBtnText = document.getElementById("neolearnDeleteBtnText");
+
+let currentNeoLearnProfile = null;
+let isNeoLearnLoading = false;
+const REQUIRED_REMOVAL_PHRASE = "I want to remove my NeoLearn profile";
+
+function showNeoLearnFeedback(message, isError = false) {
+    if (!neolearnStatusFeedback) return;
+    neolearnStatusFeedback.textContent = message;
+    neolearnStatusFeedback.style.color = isError ? "var(--account-danger, #ef4444)" : "var(--account-success, #16a34a)";
+    setTimeout(() => {
+        if (neolearnStatusFeedback.textContent === message) {
+            neolearnStatusFeedback.textContent = "";
+        }
+    }, 5000);
+}
+
+function updateNeoLearnUI(hasProfile) {
+    if (!neolearnToggleBtn || !neolearnStatusBadge) return;
+    neolearnToggleBtn.disabled = false;
+    if (hasProfile) {
+        neolearnStatusBadge.textContent = "Active";
+        neolearnStatusBadge.className = "neolearn-badge neolearn-badge--active";
+        neolearnBtnText.textContent = "Remove NeoLearn Profile";
+        neolearnToggleBtn.className = "settings-save nl-btn-remove";
+    } else {
+        neolearnStatusBadge.textContent = "Not created yet";
+        neolearnStatusBadge.className = "neolearn-badge neolearn-badge--inactive";
+        neolearnBtnText.textContent = "Create Profile on NeoLearn";
+        neolearnToggleBtn.className = "settings-save";
+    }
+}
+
+async function loadNeoLearnState(user) {
+    if (!user || !user.uid) return;
+    try {
+        const profileSnap = await getDoc(doc(db, "neolearn_profiles", user.uid));
+        if (profileSnap.exists()) {
+            currentNeoLearnProfile = profileSnap.data();
+            updateNeoLearnUI(true);
+        } else {
+            currentNeoLearnProfile = null;
+            updateNeoLearnUI(false);
+        }
+    } catch (err) {
+        console.error("Error loading NeoLearn profile:", err);
+        showNeoLearnFeedback("Could not load NeoLearn profile status: " + err.message, true);
+    }
+}
+
+async function handleCreateNeoLearnProfile() {
+    const user = auth.currentUser;
+    if (!user || isNeoLearnLoading) return;
+    isNeoLearnLoading = true;
+    neolearnToggleBtn.disabled = true;
+    neolearnBtnText.textContent = "Creating...";
+
+    try {
+        const profileRef = doc(db, "neolearn_profiles", user.uid);
+        const existingSnap = await getDoc(profileRef);
+
+        if (!existingSnap.exists()) {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            const userData = userDoc.exists() ? userDoc.data() : {};
+            const displayName = userData.username || user.displayName || "Learner";
+            const photoUrl = userData.profilePhotoUrl || userData.photoURL || user.photoURL || "";
+
+            const profilePayload = {
+                userId: user.uid,
+                name: displayName,
+                profilePhotoUrl: photoUrl,
+                thoughtOfTheDay: "",
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+            };
+
+            await setDoc(profileRef, profilePayload);
+            currentNeoLearnProfile = profilePayload;
+        } else {
+            currentNeoLearnProfile = existingSnap.data();
+        }
+
+        updateNeoLearnUI(true);
+        showNeoLearnFeedback("NeoLearn profile created successfully!");
+    } catch (err) {
+        console.error("Error creating NeoLearn profile:", err);
+        showNeoLearnFeedback("Failed to create NeoLearn profile: " + err.message, true);
+        updateNeoLearnUI(false);
+    } finally {
+        isNeoLearnLoading = false;
+    }
+}
+
+function openNeoLearnModal() {
+    if (!neolearnModal) return;
+    neolearnStep1.classList.remove("d-none");
+    neolearnStep2.classList.add("d-none");
+    neolearnConfirmPhraseInput.value = "";
+    neolearnFinalDeleteBtn.disabled = true;
+    neolearnModal.classList.add("is-open");
+    neolearnModal.setAttribute("aria-hidden", "false");
+}
+
+function closeNeoLearnModal() {
+    if (!neolearnModal) return;
+    neolearnModal.classList.remove("is-open");
+    neolearnModal.setAttribute("aria-hidden", "true");
+    neolearnConfirmPhraseInput.value = "";
+    neolearnFinalDeleteBtn.disabled = true;
+}
+
+if (neolearnToggleBtn) {
+    neolearnToggleBtn.addEventListener("click", () => {
+        if (currentNeoLearnProfile) {
+            openNeoLearnModal();
+        } else {
+            handleCreateNeoLearnProfile();
+        }
+    });
+}
+
+if (neolearnStep1CancelBtn) {
+    neolearnStep1CancelBtn.addEventListener("click", closeNeoLearnModal);
+}
+if (neolearnModalBackdrop) {
+    neolearnModalBackdrop.addEventListener("click", closeNeoLearnModal);
+}
+
+if (neolearnStep1ProceedBtn) {
+    neolearnStep1ProceedBtn.addEventListener("click", () => {
+        neolearnStep1.classList.add("d-none");
+        neolearnStep2.classList.remove("d-none");
+        neolearnConfirmPhraseInput.value = "";
+        neolearnFinalDeleteBtn.disabled = true;
+        neolearnConfirmPhraseInput.focus();
+    });
+}
+
+if (neolearnStep2CancelBtn) {
+    neolearnStep2CancelBtn.addEventListener("click", closeNeoLearnModal);
+}
+
+if (neolearnConfirmPhraseInput) {
+    neolearnConfirmPhraseInput.addEventListener("input", () => {
+        const isExactMatch = neolearnConfirmPhraseInput.value.trim() === REQUIRED_REMOVAL_PHRASE;
+        neolearnFinalDeleteBtn.disabled = !isExactMatch;
+    });
+}
+
+if (neolearnFinalDeleteBtn) {
+    neolearnFinalDeleteBtn.addEventListener("click", async () => {
+        const user = auth.currentUser;
+        if (!user || isNeoLearnLoading) return;
+        if (neolearnConfirmPhraseInput.value.trim() !== REQUIRED_REMOVAL_PHRASE) return;
+
+        isNeoLearnLoading = true;
+        neolearnFinalDeleteBtn.disabled = true;
+        neolearnDeleteBtnText.textContent = "Removing...";
+
+        try {
+            const profileRef = doc(db, "neolearn_profiles", user.uid);
+            await deleteDoc(profileRef);
+            currentNeoLearnProfile = null;
+            closeNeoLearnModal();
+            updateNeoLearnUI(false);
+            showNeoLearnFeedback("Your NeoLearn profile has been removed.");
+        } catch (err) {
+            console.error("Error deleting NeoLearn profile:", err);
+            showNeoLearnFeedback("Failed to remove NeoLearn profile: " + err.message, true);
+        } finally {
+            isNeoLearnLoading = false;
+            neolearnDeleteBtnText.textContent = "Remove Profile";
+        }
+    });
+}
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && neolearnModal && neolearnModal.classList.contains("is-open")) {
+        closeNeoLearnModal();
+    }
+});
+
 document.addEventListener("userLoaded", async (e) => {
     const { user, userData } = e.detail;
     firstNameInput.value = userData.fname || "";
@@ -25,6 +223,7 @@ document.addEventListener("userLoaded", async (e) => {
     usernameInput.value = userData.username || user.displayName || "User";
     bioInput.value = userData.bio || "";
     notificationPref.value = userData.notificationPref || "all";
+    await loadNeoLearnState(user);
 });
 
 themeSwitch.addEventListener("change", () => {

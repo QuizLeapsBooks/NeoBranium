@@ -4,6 +4,7 @@ node_modules/
 # Environment Variables & Secrets
 .env
 .env.*
+!.env.example
 *-firebase-adminsdk-*.json
 
 # Logs & Debug

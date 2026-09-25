@@ -307,3 +307,166 @@ body.nb-account-page .mobile-account-nav { display: none; }
   body.nb-account-page .settings-inline-field { grid-template-columns: minmax(0, 1fr); }
   body.nb-account-page .settings-field .settings-save { justify-self: start; }
 }
+
+/* NeoLearn Profile Settings & Modal */
+.neolearn-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.neolearn-badge--active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+body.nb-account-page:is(.dark, .dark-mode) .neolearn-badge--active {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.3);
+}
+.neolearn-badge--inactive {
+  background: rgba(148, 163, 184, 0.15);
+  color: var(--account-muted);
+  border: 1px solid var(--account-border);
+}
+.neolearn-badge--checking {
+  background: rgba(168, 146, 240, 0.12);
+  color: var(--account-accent);
+  border: 1px solid rgba(168, 146, 240, 0.25);
+}
+
+body.nb-account-page .nl-btn-remove {
+  color: #fff !important;
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+}
+body.nb-account-page .nl-btn-remove:hover {
+  background: #b91c1c !important;
+  border-color: #b91c1c !important;
+}
+
+/* Modal Dialog */
+.nl-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+.nl-modal.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.nl-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(2px);
+}
+.nl-modal-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  background: var(--account-surface);
+  border: 1px solid var(--account-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  color: var(--account-text);
+  z-index: 1;
+}
+.nl-modal-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--account-text);
+}
+.nl-modal-desc {
+  margin: 0 0 0.5rem;
+  color: var(--account-text);
+  font-size: 0.95rem;
+}
+.nl-modal-subdesc {
+  margin: 0 0 1rem;
+  color: var(--account-muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+.nl-confirmation-box {
+  background: var(--account-surface-raised);
+  border: 1px dashed var(--account-accent);
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  user-select: all;
+  font-family: monospace;
+  font-size: 0.88rem;
+  color: var(--account-accent);
+  word-break: break-all;
+}
+.nl-modal-input {
+  width: 100%;
+  min-height: var(--account-control);
+  padding: 0.55rem 0.75rem;
+  background: var(--account-surface-raised);
+  border: 1px solid var(--account-border);
+  border-radius: 8px;
+  color: var(--account-text);
+  font-size: 0.92rem;
+  outline: none;
+}
+.nl-modal-input:focus {
+  border-color: var(--account-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--account-accent) 16%, transparent);
+}
+.nl-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+.nl-modal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--account-control);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.nl-modal-btn--secondary {
+  color: var(--account-secondary);
+  background: var(--account-surface-raised);
+  border-color: var(--account-border);
+}
+.nl-modal-btn--secondary:hover {
+  color: var(--account-text);
+  background: var(--account-bg);
+}
+.nl-modal-btn--danger {
+  color: #fff;
+  background: #dc2626;
+  border-color: #dc2626;
+}
+.nl-modal-btn--danger:hover:not(:disabled) {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+.nl-modal-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.d-none {
+  display: none !important;
+}
+

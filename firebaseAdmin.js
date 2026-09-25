@@ -193,3 +193,27 @@ export async function getSessionStatus(userId) {
     return null;
   }
 }
+
+/**
+ * Verifies the Firebase ID token from the request Authorization header.
+ * Derives authenticated user identity on the server without trusting client parameters.
+ * @param {import('express').Request} req
+ * @returns {Promise<admin.auth.DecodedIdToken>}
+ */
+export async function verifyAuthToken(req) {
+  const authHeader = req.headers?.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw new Error('Unauthorized: Missing or invalid Authorization header');
+  }
+  const token = authHeader.split('Bearer ')[1].trim();
+  if (!token) {
+    throw new Error('Unauthorized: Token is empty');
+  }
+  if (!admin.apps.length) {
+    throw new Error('Service Unavailable: Firebase Admin is not initialized');
+  }
+  return await admin.auth().verifyIdToken(token);
+}
+
+export { admin, db };
+

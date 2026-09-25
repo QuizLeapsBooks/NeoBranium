@@ -81,5 +81,9 @@ service cloud.firestore {
     match /whatsapp_queue/{docId} {
       allow read, write: if false;
     }
+
+    match /neolearn_profiles/{userId} {
+      allow read, write: if isOwner(userId);
+    }
   }
 }
