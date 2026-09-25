@@ -1,246 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Profile | Quiz Leap</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-  <script src="/js/dark_mode.js"></script>
-    <script src="/js/shortcuts.js"></script>
-    
-    <link rel="stylesheet" href="/CSS/enhancements.css">
+  <title>Profile | NeoBranium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/CSS/enhancements.css" />
+  <link rel="stylesheet" href="/CSS/account-pages.css" />
+  <script src="/js/shortcuts.js"></script>
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #6366f1 0%, #a5b4fc 100%);
-      min-height: 100vh;
-    }
-
-    .avatar {
-      @apply w-28 h-28 flex items-center justify-center text-white text-4xl font-bold rounded-full shadow-lg;
-      background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-      border: 4px solid #fff;
-    }
-
-    .glass {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
-    }
-
-    .social-icon {
-      @apply w-10 h-10 flex items-center justify-center rounded-full transition-colors duration-200;
-      background: #f3f4f6;
-    }
-
-    .social-icon:hover {
-      background: #e0e7ff;
-    }
-
-    .credit {
-      position: fixed;
-      right: 2rem;
-      bottom: 2rem;
-      color: white;
-    }
-
-    .credit a {
-      color: inherit;
-    }
-
-    .main-circle {
-      width: 40rem;
-      height: 40rem;
-      border-radius: 100%;
-      background: linear-gradient(40deg, #FF0080, #FF8C00 70%);
-      position: absolute;
-      z-index: 1;
-      left: 50%;
-      transform: translate(-50%, -70%);
-    }
-
-    .phone {
-      position: relative;
-      z-index: 2;
-      width: 18rem;
-      height: 17rem;
-      background-color: inherit;
-      box-shadow: 0 4px 35px rgba(0, 0, 0, .1);
-      border-radius: 40px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .menu {
-      font-size: 80%;
-      opacity: .4;
-      padding: .8rem 1.8rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .icons {
-      display: flex;
-      margin-top: .5rem;
-    }
-
-    .battery {
-      width: .85rem;
-      height: .45rem;
-      background-color: black;
-    }
-
-    .network {
-      width: 0;
-      height: 0;
-      border-style: solid;
-      border-width: 0 6.8px 7.2px 6.8px;
-      border-color: transparent transparent black transparent;
-      transform: rotate(135deg);
-      margin: .12rem .5rem;
-    }
-
-    .content {
-      display: flex;
-      flex-direction: column;
-      margin: auto;
-      text-align: center;
-      width: 70%;
-      transform: translateY(5%);
-    }
-
-    .circle {
-      position: relative;
-      border-radius: 100%;
-      width: 8rem;
-      height: 8rem;
-      background: linear-gradient(40deg, #FF0080, #FF8C00 70%);
-      margin: auto;
-    }
-
-    .crescent {
-      position: absolute;
-      border-radius: 100%;
-      right: 0;
-      width: 6rem;
-      height: 6rem;
-      background: white;
-      transform: scale(0);
-      transform-origin: top right;
-      transition: transform .6s cubic-bezier(0.645, 0.045, 0.355, 1);
-    }
-
-    label, .toggle {
-      height: 2.8rem;
-      border-radius: 100px;
-    }
-
-    label {
-      width: 100%;
-      background-color: rgba(0, 0, 0, .1);
-      border-radius: 100px;
-      position: relative;
-      margin: 1.8rem 0 4rem 0;
-      cursor: pointer;
-    }
-
-    .toggle {
-      position: absolute;
-      width: 50%;
-      background-color: #fff;
-      box-shadow: 0 2px 15px rgba(0, 0, 0, .15);
-      transition: transform .3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-
-    .names {
-      font-size: 90%;
-      font-weight: bolder;
-      color: black;
-      width: 65%;
-      margin-left: 17.5%;
-      margin-top: 6.5%;
-      position: absolute;
-      display: flex;
-      justify-content: space-between;
-      user-select: none;
-    }
-
-    .dark body {
-      background: linear-gradient(135deg, #111827 0%, #6366f1 100%);
-    }
-
-    .dark .glass {
-      background: rgba(75, 85, 99, 0.85);
-    }
-
-    .dark #usernameDisplay, .dark #bioDisplay, .dark #emailDisplay {
-      color: #e5e7eb;
-    }
-
-    .dark .text-gray-500, .dark .text-gray-600 {
-      color: #d1d5db;
-    }
-
-    .dark #userStats .text-indigo-600 {
-      color: #a5b4fc;
-    }
-
-    .dark .bg-gray-200 {
-      background-color: #374151;
-      color: #e5e7eb;
-    }
-
-    .dark .hover:bg-indigo-100 {
-      background-color: #4b5563;
+    body.nb-account-page .profile-avatar-image { width: 100%; height: 100%; object-fit: cover; border: 0; box-shadow: none; }
+    body.nb-account-page .profile-card { max-width: 760px; }
+    body.nb-account-page .account-muted { color: var(--account-muted); }
+    @media (max-width: 767.98px) {
+      body.nb-account-page .account-header-actions .account-header-link { display: none; }
+      body.nb-account-page .account-header { min-height: 56px; }
     }
   </style>
 </head>
-
-<body class="flex items-center justify-center min-h-screen relative">
-  <div class="main-circle"></div>
-
-  <div class="glass rounded-2xl p-8 w-full max-w-md text-center relative z-10">
-    <div class="absolute -top-6 -right-6 w-16 h-16 bg-indigo-200 rounded-full opacity-60 z-0"></div>
-    <div class="absolute -bottom-8 -left-8 w-24 h-24 bg-indigo-100 rounded-full opacity-40 z-0"></div>
-
-    <div id="profilePicContainer" class="mx-auto mb-4 relative z-10"></div>
-
-    <h2 id="usernameDisplay" class="text-2xl font-bold mb-1 text-gray-800 z-10">Loading...</h2>
-    <p id="bioDisplay" class="text-gray-600 mb-1 z-10">Loading bio...</p>
-    <p id="emailDisplay" class="text-gray-500 text-sm mb-4 z-10">Loading email...</p>
-
-    <!-- User Stats -->
-    <div id="userStats" class="flex justify-center gap-6 mb-4 z-10">
-      <div>
-        <div class="text-xl font-bold text-indigo-600" id="userScore">0</div>
-        <div class="text-xs text-gray-500">Score</div>
-      </div>
-      <div>
-        <div class="text-xl font-bold text-indigo-600" id="highScore">0</div>
-        <div class="text-xs text-gray-500">High Score</div>
-      </div>
-      <div>
-        <div class="text-xl font-bold text-indigo-600" id="userRank">-</div>
-        <div class="text-xs text-gray-500">Rank</div>
-      </div>
-    </div>  
-
-    <div class="flex justify-center gap-3 mt-4 mb-4 z-10">
-      <a href="/htmls/setting.html" class="bg-indigo-600 text-white px-5 py-2 rounded-lg font-semibold shadow hover:bg-indigo-700 transition">Edit Profile</a>
-      <button id="logoutBtn" class="bg-gray-600 text-white px-5 py-2 rounded-lg font-semibold shadow hover:bg-gray-700 transition">Logout</button>
+<body class="nb-account-page">
+  <header class="account-header">
+    <a href="/index.html" class="account-brand"><img src="/online-graduation_16847316.png" alt="" />NeoBranium</a>
+    <div class="account-header-actions">
+      <a class="account-header-link" href="/htmls/profile.html" aria-current="page"><i class="bi bi-person me-1"></i>Profile</a>
+      <a class="account-header-link" href="/htmls/setting.html"><i class="bi bi-gear me-1"></i>Settings</a>
+      <button id="themeToggle" class="account-theme-button" type="button" aria-label="Switch theme"><i class="bi bi-moon-stars me-1" aria-hidden="true"></i><span>Switch Theme</span></button>
     </div>
-
-    <div class="flex justify-center mt-2 mb-4 z-10">
-      <button id="themeToggle" class="bg-gray-200 text-gray-700 px-4 py-1 rounded-full text-sm font-semibold hover:bg-indigo-100 transition">Switch Theme</button>
+  </header>
+  <aside class="account-sidebar" aria-label="Main navigation">
+    <div class="account-sidebar-brand"><img src="/online-graduation_16847316.png" alt="" /><span>NeoBranium</span></div>
+    <nav>
+      <a href="/htmls/dashboard.html"><i class="bi bi-grid-1x2" aria-hidden="true"></i>Dashboard</a>
+      <a href="/htmls/notes.html"><i class="bi bi-journal" aria-hidden="true"></i>Notes</a>
+      <a href="/htmls/spotlight.html"><i class="bi bi-star" aria-hidden="true"></i>Spotlight (Monthly)</a>
+      <a href="/htmls/bot/bot.html"><i class="bi bi-robot" aria-hidden="true"></i>Bot Helper</a>
+      <a href="/htmls/question-paper_generator-ai/ai-generate.html"><i class="bi bi-file-earmark-text" aria-hidden="true"></i>Exam Paper Generator</a>
+      <a href="/htmls/chat/chat_app.html"><i class="bi bi-chat-dots" aria-hidden="true"></i>Live Chat</a>
+    </nav>
+  </aside>
+  <main class="account-main">
+    <div class="account-content-wrap">
+      <header class="account-page-heading"><h1>Your profile</h1><p>Your account details and learning stats.</p></header>
+      <section class="account-card profile-card" aria-label="Profile information">
+        <div class="account-identity">
+          <div id="profilePicContainer" aria-label="Profile picture"></div>
+          <div class="account-identity-copy">
+            <h2 id="usernameDisplay">Loading...</h2>
+            <span id="emailDisplay" class="account-muted">Loading email...</span>
+          </div>
+        </div>
+        <p id="bioDisplay" class="profile-bio">Loading bio...</p>
+        <section id="userStats" class="profile-stats" aria-label="User stats">
+          <div class="profile-stat"><span class="profile-stat-value" id="userScore">0</span><span class="profile-stat-label">Score</span></div>
+          <div class="profile-stat"><span class="profile-stat-value" id="highScore">0</span><span class="profile-stat-label">High Score</span></div>
+          <div class="profile-stat"><span class="profile-stat-value" id="userRank">-</span><span class="profile-stat-label">Rank</span></div>
+        </section>
+        <div class="account-actions">
+          <a href="/htmls/setting.html"><i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Edit Profile</a>
+          <button id="logoutBtn" class="account-button-secondary" type="button"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Logout</button>
+        </div>
+        <a href="/htmls/rank-score-info.html" class="account-link"><i class="bi bi-book me-1" aria-hidden="true"></i>How Rank &amp; Score are calculated?</a>
+      </section>
     </div>
-    <a href="/htmls/rank-score-info.html" class="text-indigo-700 hover:underline text-sm font-semibold">
-    📚 How Rank & Score are calculated?
-  </a>
-  </div>
-
+  </main>
+  <nav class="mobile-account-nav" aria-label="Quick navigation">
+    <a href="/htmls/dashboard.html"><i class="bi bi-grid-1x2" aria-hidden="true"></i><span>Dashboard</span></a>
+    <a href="/htmls/notes.html"><i class="bi bi-journal" aria-hidden="true"></i><span>Notes</span></a>
+    <a href="/htmls/spotlight.html"><i class="bi bi-star" aria-hidden="true"></i><span>Spotlight</span></a>
+    <a href="/htmls/profile.html" aria-current="page"><i class="bi bi-person" aria-hidden="true"></i><span>Profile</span></a>
+  </nav>
   <script type="module" src="/js/auth.js"></script>
   <script type="module">
     import { auth, loadUserData, updateUserDisplay, showStatus, checkAccess } from '/js/auth.js';

@@ -227,6 +227,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    import("./activity.js").catch((error) => console.error("Activity integration failed:", error));
+
     // --- Usage Limit System ---
     const checkUsageLimit = async () => {
         const path = window.location.pathname;

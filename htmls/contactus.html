@@ -11,10 +11,12 @@
   <link rel="stylesheet" href="/CSS/dashboard.css">
   <link rel="stylesheet" href="/CSS/feedback_contact.css">
   <script src="/js/shortcuts.js"></script>
-    <link rel="stylesheet" href="/CSS/enhancements.css">
+  <link rel="stylesheet" href="/CSS/enhancements.css">
+  <link rel="stylesheet" href="/CSS/app-pages.css">
+  <link rel="stylesheet" href="/CSS/contact-page.css">
 </head>
 
-<body>
+<body class="nb-page-shell nb-page-contact">
   <header class="navbar navbar-expand-lg fixed-top">
     <div class="container-fluid align-items-center">
       <div class="hero-img">
@@ -55,12 +57,12 @@
   </header>
 
 
-  <div class="sidebar">
+  <div class="sidebar" id="contactSidebar" aria-label="Main navigation">
     <ul>
       <li><a href="/htmls/dashboard.html"><i class="bi bi-question-circle"></i> Dashboard</a></li>
       <li><a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes</a></li>
       <li><a href="/htmls/spotlight.html"><i class="bi bi-star"></i> Spotlight (Monthly)</a></li>
-      <li><a href="/htmls/contactus.html"><i class="bi bi-envelope"></i> Contact Us</a></li>
+      <li class="active"><a href="/htmls/contactus.html" aria-current="page"><i class="bi bi-envelope"></i> Contact Us</a></li>
       <li><a href="/htmls/feedback.html"><i class="bi bi-chat"></i> Feedback/Complaint</a></li>
        <li><a href="/htmls/chat/chat_app.html"><i class="bi bi-chat"></i> Live Chat</a></li>
     </ul>
@@ -69,8 +71,19 @@
     </div>
   </div>
 
-  <div class="container">
-    <h2>Contact Us</h2>
+  <main class="contact-main">
+    <div class="contact-heading">
+      <div>
+        <p class="contact-eyebrow">NEOBRANIUM SUPPORT</p>
+        <h1>Contact Us</h1>
+        <p class="contact-intro">Send us a message and we’ll get back to you.</p>
+      </div>
+      <button type="button" class="contact-sidebar-toggle" id="contactSidebarToggle" aria-controls="contactSidebar" aria-expanded="false">
+        <i class="bi bi-list" aria-hidden="true"></i><span>Menu</span>
+      </button>
+    </div>
+    <section class="contact-card" aria-labelledby="contactFormTitle">
+    <h2 id="contactFormTitle">Send a message</h2>
     <form action="https://formspree.io/f/mvgpgvbg" method="POST">
       <label for="name">Your Name</label>
       <input type="text" id="name" name="name" required />
@@ -86,10 +99,12 @@
 
       <button type="submit">Send Message</button>
     </form>
-  </div>
-  <div id="userBioBox" class="user-bio-box">
-    <p id="userBioText">--Your Bio--</p>
-  </div>
+    </section>
+    <div id="userBioBox" class="user-bio-box">
+      <p id="userBioText">--Your Bio--</p>
+    </div>
+  </main>
+  <button type="button" class="contact-sidebar-backdrop" id="contactSidebarBackdrop" aria-label="Close navigation" hidden></button>
    <div class="bottom-nav d-md-none">
     <a href="/htmls/dashboard.html" class="nav-icon"><i class="bi bi-question-circle"></i></a>
     <a href="/htmls/notes.html" class="nav-icon"><i class="bi bi-journal"></i></a>
@@ -108,9 +123,28 @@
   <script src="/js/card_func.js"></script>
   <script>
 
-    // Toggle sidebar on mobile
-    document.querySelector('.sidebar-toggle').addEventListener('click', function () {
-      document.querySelector('.sidebar').classList.toggle('active');
+    // Toggle the existing sidebar on mobile.
+    const sidebarToggle = document.getElementById('contactSidebarToggle');
+    const sidebar = document.getElementById('contactSidebar');
+    const sidebarBackdrop = document.getElementById('contactSidebarBackdrop');
+    const closeSidebar = () => {
+      sidebar.classList.remove('active');
+      sidebarBackdrop.hidden = true;
+      sidebarToggle.setAttribute('aria-expanded', 'false');
+    };
+    sidebarToggle.addEventListener('click', () => {
+      const isOpen = sidebar.classList.toggle('active');
+      sidebarBackdrop.hidden = !isOpen;
+      sidebarToggle.setAttribute('aria-expanded', String(isOpen));
+      if (isOpen) sidebar.querySelector('a')?.focus();
+    });
+    sidebarBackdrop.addEventListener('click', closeSidebar);
+    sidebar.querySelectorAll('a').forEach(link => link.addEventListener('click', closeSidebar));
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && sidebar.classList.contains('active')) {
+        closeSidebar();
+        sidebarToggle.focus();
+      }
     });
   </script>
   <script src="/js/dark_mode.js"></script>

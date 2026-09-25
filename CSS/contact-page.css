@@ -1,0 +1,177 @@
+/* Contact Us presentation overrides. Form submission and account behavior remain page-owned. */
+body.nb-page-contact { min-height: 100vh; color: var(--app-text); background: var(--app-bg); }
+body.nb-page-contact .sidebar ul { list-style: none; }
+body.nb-page-contact .sidebar ul li a[href="/htmls/contactus.html"] {
+  color: #fff;
+  background: rgba(168,146,240,.14);
+  box-shadow: inset 3px 0 0 #a892f0;
+  font-weight: 650;
+}
+body.nb-page-contact .contact-main {
+  display: block;
+  width: auto;
+  min-width: 0;
+  min-height: calc(100vh - 64px);
+  margin: 64px 0 0 250px;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  color: var(--app-text);
+  background: var(--app-bg);
+}
+body.nb-page-contact .contact-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: min(100%, 760px);
+  margin: 0 auto 1rem;
+}
+body.nb-page-contact .contact-eyebrow {
+  margin: 0 0 .35rem;
+  color: var(--app-accent);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-align: left;
+}
+body.nb-page-contact .contact-heading h1 {
+  margin: 0;
+  color: var(--app-text);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -.035em;
+  text-align: left;
+}
+body.nb-page-contact .contact-intro {
+  margin: .4rem 0 0;
+  color: var(--app-muted);
+  font-size: .95rem;
+  text-align: left;
+}
+body.nb-page-contact .contact-card {
+  width: min(100%, 760px);
+  min-width: 0;
+  margin: 0 auto;
+  padding: clamp(1.1rem, 3vw, 2rem);
+  color: var(--app-text);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 14px;
+  box-shadow: var(--app-shadow);
+  backdrop-filter: none;
+}
+body.nb-page-contact .contact-card h2 {
+  margin: 0 0 1.25rem;
+  color: var(--app-text) !important;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  font-family: inherit;
+  font-size: 1.25rem !important;
+  font-weight: 650 !important;
+  letter-spacing: -.02em;
+  text-align: left;
+}
+body.nb-page-contact .contact-card form { width: 100%; margin: 0; }
+body.nb-page-contact .contact-card label {
+  display: block;
+  margin: .85rem 0 .4rem;
+  color: var(--app-text-secondary);
+  font-family: inherit;
+  font-size: .86rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+body.nb-page-contact .contact-card input,
+body.nb-page-contact .contact-card textarea {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin: 0 0 .8rem;
+  padding: .65rem .8rem;
+  color: var(--app-text);
+  background: var(--app-surface-raised);
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  box-shadow: none;
+  font: inherit;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+body.nb-page-contact .contact-card textarea { min-height: 150px; resize: vertical; }
+body.nb-page-contact .contact-card input:focus,
+body.nb-page-contact .contact-card textarea:focus {
+  border-color: var(--app-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-accent) 18%, transparent);
+  outline: 0;
+  transform: none;
+}
+body.nb-page-contact .contact-card input::placeholder,
+body.nb-page-contact .contact-card textarea::placeholder { color: var(--app-muted); }
+body.nb-page-contact .contact-card button[type="submit"] {
+  width: 100%;
+  min-height: 44px;
+  margin-top: .25rem;
+  padding: .65rem 1rem;
+  color: #fff;
+  background: var(--app-accent);
+  border: 1px solid var(--app-accent);
+  border-radius: 8px;
+  box-shadow: none;
+  font: inherit;
+  font-weight: 650;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+body.nb-page-contact .contact-card button[type="submit"]:hover { background: var(--app-accent-hover); border-color: var(--app-accent-hover); transform: none; box-shadow: none; }
+body.nb-page-contact .contact-card button[type="submit"]:disabled { cursor: not-allowed; opacity: .6; }
+body.nb-page-contact #userBioBox {
+  position: static;
+  width: min(100%, 760px);
+  max-width: none;
+  margin: 1rem auto 0;
+  padding: .75rem 1rem;
+  color: var(--app-text-secondary);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  box-shadow: var(--app-shadow);
+  z-index: auto;
+}
+body.nb-page-contact #userBioBox p { margin: 0; color: inherit; text-align: left; }
+body.nb-page-contact .contact-sidebar-toggle {
+  display: none;
+  align-items: center;
+  gap: .4rem;
+  min-height: 42px;
+  padding: .5rem .75rem;
+  color: var(--app-text-secondary);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: .88rem;
+}
+body.nb-page-contact .contact-sidebar-backdrop { display: none; }
+
+@media (min-width: 768px) and (max-width: 991.98px) {
+  body.nb-page-contact .contact-main { margin-left: 200px; }
+}
+@media (max-width: 767.98px) {
+  body.nb-page-contact .contact-main { margin-left: 0 !important; padding: 1rem .85rem 5.5rem; }
+  body.nb-page-contact .contact-heading { align-items: flex-start; }
+  body.nb-page-contact .contact-sidebar-toggle { display: inline-flex; flex: 0 0 auto; }
+  body.nb-page-contact .sidebar { z-index: 1200; }
+  body.nb-page-contact .contact-sidebar-backdrop:not([hidden]) {
+    display: block;
+    position: fixed;
+    inset: 56px 0 0;
+    width: 100%;
+    height: calc(100dvh - 56px);
+    padding: 0;
+    background: rgba(15,23,42,.42);
+    border: 0;
+    z-index: 1150;
+  }
+  body.nb-page-contact #userBioBox { margin: 1rem 0 0; }
+}
+@media (max-width: 420px) {
+  body.nb-page-contact .contact-heading { flex-direction: column; }
+  body.nb-page-contact .contact-sidebar-toggle { align-self: flex-start; }
+}

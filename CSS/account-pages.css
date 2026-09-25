@@ -1,0 +1,309 @@
+/* Profile and Settings presentation. Page scripts, IDs and stored fields remain local. */
+body.nb-account-page {
+  --account-bg: #f4f6fa;
+  --account-surface: #ffffff;
+  --account-surface-raised: #ffffff;
+  --account-text: #172033;
+  --account-secondary: #475569;
+  --account-muted: #64748b;
+  --account-border: #e2e8f0;
+  --account-accent: #6d4bd1;
+  --account-accent-hover: #5a3cba;
+  --account-accent-soft: #f0edfb;
+  --account-shadow: 0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+  --account-shadow-raised: 0 8px 24px rgba(15,23,42,.08);
+  --account-radius: 12px;
+  --account-control: 42px;
+  --bg-color: var(--account-bg);
+  --text-color: var(--account-text);
+  --card-bg: var(--account-surface);
+  color: var(--account-text);
+  background: var(--account-bg) !important;
+  display: block !important;
+  min-height: 100vh;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body.nb-account-page:is(.dark,.dark-mode) {
+  --account-bg: #101827;
+  --account-surface: #182335;
+  --account-surface-raised: #1d2a3d;
+  --account-text: #e5edf7;
+  --account-secondary: #c0ccdc;
+  --account-muted: #9aa9bd;
+  --account-border: #2c3a4e;
+  --account-accent: #a892f0;
+  --account-accent-hover: #b9a8f5;
+  --account-accent-soft: #292942;
+  --account-shadow: 0 1px 3px rgba(0,0,0,.2);
+  --account-shadow-raised: 0 8px 24px rgba(0,0,0,.24);
+}
+
+body.nb-account-page,
+body.nb-account-page * { box-sizing: border-box; }
+body.nb-account-page :is(h1,h2,h3,h4,h5,p,span,label) { color: var(--account-text); }
+body.nb-account-page :is(h1,h2,h3,h4,h5) { font-family: inherit; font-weight: 650; letter-spacing: -.025em; }
+body.nb-account-page a { color: var(--account-accent); }
+body.nb-account-page :is(button,a,input,select,textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--account-accent) 45%, transparent);
+  outline-offset: 2px;
+}
+
+/* Shared app header and navigation */
+body.nb-account-page .account-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
+  padding: .6rem 1.25rem;
+  color: #fff;
+  background: #1e2440;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  box-shadow: var(--account-shadow);
+}
+body.nb-account-page .account-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .65rem;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+body.nb-account-page .account-brand img { width: 36px; height: 36px; object-fit: contain; border-radius: 9px; }
+body.nb-account-page .account-header-actions { display: inline-flex; align-items: center; gap: .65rem; }
+body.nb-account-page .account-header-link,
+body.nb-account-page .account-theme-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--account-control);
+  padding: .45rem .8rem;
+  color: #e5edf7;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 8px;
+  font: inherit;
+  font-size: .85rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+body.nb-account-page .account-header-link:hover,
+body.nb-account-page .account-theme-button:hover,
+body.nb-account-page .account-header-link[aria-current="page"] { color: #fff; background: rgba(168,146,240,.18); }
+body.nb-account-page .account-header-theme { display: inline-flex; align-items: center; gap: .5rem; color: #e5edf7; font-size: .82rem; }
+body.nb-account-page .account-header-theme span,
+body.nb-account-page .account-sidebar-brand span,
+body.nb-account-page .mobile-account-nav a span { color: inherit; }
+body.nb-account-page .account-header-theme input { width: 18px; height: 18px; accent-color: #a892f0; }
+
+body.nb-account-page .account-sidebar {
+  position: fixed;
+  z-index: 1000;
+  top: 64px;
+  bottom: 0;
+  left: 0;
+  width: 250px;
+  padding: 1rem .75rem;
+  overflow-y: auto;
+  color: #e5edf7;
+  background: #1e2440;
+  border-right: 1px solid rgba(255,255,255,.08);
+}
+body.nb-account-page:is(.dark,.dark-mode) .account-sidebar { background: #121b2b; }
+body.nb-account-page .account-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  margin: .15rem .25rem 1rem;
+  padding: .25rem .25rem .9rem;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  font-weight: 650;
+}
+body.nb-account-page .account-sidebar-brand img { width: 32px; height: 32px; object-fit: contain; }
+body.nb-account-page .account-sidebar nav { display: grid; gap: .2rem; }
+body.nb-account-page .account-sidebar nav a {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  gap: .7rem;
+  padding: .6rem .75rem;
+  color: #c2cada;
+  border-radius: 8px;
+  font-size: .9rem;
+  text-decoration: none;
+}
+body.nb-account-page .account-sidebar nav a i { width: 22px; text-align: center; }
+body.nb-account-page .account-sidebar nav a:hover,
+body.nb-account-page .account-sidebar nav a[aria-current="page"] { color: #fff; background: rgba(168,146,240,.14); }
+body.nb-account-page .account-sidebar nav a[aria-current="page"] { box-shadow: inset 3px 0 0 #a892f0; font-weight: 650; }
+
+body.nb-account-page .account-main {
+  width: auto;
+  min-width: 0;
+  min-height: calc(100vh - 64px);
+  margin: 64px 0 0 250px;
+  padding: clamp(1rem, 2.5vw, 2rem);
+  color: var(--account-text);
+  background: var(--account-bg);
+}
+body.nb-account-page .account-content-wrap { width: min(100%, 1080px); margin: 0 auto; }
+body.nb-account-page .account-page-heading { margin: 0 0 1.25rem; }
+body.nb-account-page .account-page-heading h1 { margin: 0; font-size: clamp(1.55rem, 2.5vw, 2rem); text-align: left; }
+body.nb-account-page .account-page-heading p { margin: .35rem 0 0; color: var(--account-muted); text-align: left; }
+body.nb-account-page .account-card {
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  color: var(--account-text);
+  background: var(--account-surface);
+  border: 1px solid var(--account-border);
+  border-radius: var(--account-radius);
+  box-shadow: var(--account-shadow);
+}
+body.nb-account-page .account-card + .account-card { margin-top: 1rem; }
+body.nb-account-page .account-card h2,
+body.nb-account-page .account-card h3 { margin: 0 0 1rem; font-size: 1.05rem; text-align: left; }
+body.nb-account-page .account-identity { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+body.nb-account-page #profilePicContainer,
+body.nb-account-page #initialAvatar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 84px;
+  margin: 0;
+  color: #fff;
+  background: var(--account-accent);
+  border: 3px solid var(--account-border);
+  border-radius: 50%;
+  font-size: 2rem;
+  font-weight: 700;
+  overflow: hidden;
+}
+body.nb-account-page #profilePicContainer img { width: 100%; height: 100%; margin: 0; object-fit: cover; border: 0; box-shadow: none; }
+body.nb-account-page #profilePicContainer .avatar { display: grid; place-items: center; width: 100%; height: 100%; color: #fff; background: var(--account-accent); border: 0; border-radius: 50%; font-size: 2rem; font-weight: 700; }
+body.nb-account-page .account-identity-copy { min-width: 0; }
+body.nb-account-page .account-identity-copy :is(h2,span) { display: block; margin: 0; text-align: left; overflow-wrap: anywhere; }
+body.nb-account-page .account-identity-copy h2 { font-size: 1.35rem; }
+body.nb-account-page .account-identity-copy .account-muted { margin-top: .25rem; color: var(--account-muted); font-size: .9rem; }
+body.nb-account-page .profile-bio { margin: 1rem 0 0; padding-top: 1rem; color: var(--account-secondary); border-top: 1px solid var(--account-border); text-align: left; overflow-wrap: anywhere; }
+body.nb-account-page .profile-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin: 1rem 0 0; }
+body.nb-account-page .profile-stat { min-width: 0; padding: .85rem; background: var(--account-bg); border: 1px solid var(--account-border); border-radius: 9px; text-align: center; }
+body.nb-account-page .profile-stat-value { display: block; color: var(--account-accent); font-size: 1.3rem; font-weight: 750; overflow-wrap: anywhere; }
+body.nb-account-page .profile-stat-label { display: block; margin-top: .15rem; color: var(--account-muted); font-size: .76rem; }
+body.nb-account-page .account-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1rem; }
+body.nb-account-page .account-actions :is(a,button),
+body.nb-account-page .settings-save,
+body.nb-account-page #logoutBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--account-control);
+  padding: .5rem .9rem;
+  color: #fff;
+  background: var(--account-accent);
+  border: 1px solid var(--account-accent);
+  border-radius: 8px;
+  font: inherit;
+  font-size: .88rem;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+}
+body.nb-account-page .account-actions :is(a,button):hover,
+body.nb-account-page .settings-save:hover,
+body.nb-account-page #logoutBtn:hover { color: #fff; background: var(--account-accent-hover); border-color: var(--account-accent-hover); }
+body.nb-account-page .account-actions .account-button-secondary,
+body.nb-account-page #logoutBtn { color: var(--account-secondary); background: var(--account-surface); border-color: var(--account-border); }
+body.nb-account-page .account-actions .account-button-secondary:hover,
+body.nb-account-page #logoutBtn:hover { color: var(--account-text); background: var(--account-bg); border-color: var(--account-border); }
+body.nb-account-page .account-link { display: inline-block; margin-top: .9rem; font-size: .88rem; font-weight: 600; }
+
+/* Settings form groups */
+body.nb-account-page .settings-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); gap: 1rem; align-items: start; }
+body.nb-account-page .settings-layout .account-card + .account-card { margin-top: 0; }
+body.nb-account-page .settings-section { display: grid; gap: 1rem; }
+body.nb-account-page .settings-profile-fields { margin-top: 1.25rem; }
+body.nb-account-page .settings-field { min-width: 0; }
+body.nb-account-page .settings-field label { display: block; margin-bottom: .4rem; color: var(--account-secondary); font-size: .85rem; font-weight: 600; }
+body.nb-account-page .settings-field :is(input,textarea,select) {
+  width: 100%;
+  min-height: var(--account-control);
+  padding: .55rem .7rem;
+  color: var(--account-text);
+  background: var(--account-surface-raised);
+  border: 1px solid var(--account-border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: .92rem;
+}
+body.nb-account-page .settings-field textarea { min-height: 88px; resize: vertical; }
+body.nb-account-page .settings-field :is(input,textarea,select)::placeholder { color: var(--account-muted); }
+body.nb-account-page .settings-field :is(input,textarea,select):focus { border-color: var(--account-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--account-accent) 16%, transparent); outline: 0; }
+body.nb-account-page .settings-inline-field { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .55rem; align-items: end; }
+body.nb-account-page .settings-field .settings-save { min-width: 74px; }
+body.nb-account-page .settings-field--full .settings-inline-field { grid-template-columns: 1fr; }
+body.nb-account-page .settings-field--full .settings-save { justify-self: start; }
+body.nb-account-page .settings-actions { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: .25rem; }
+body.nb-account-page #status { min-height: 1.4em; margin: 0; color: var(--account-success, #15803d); text-align: right; }
+body.nb-account-page.dark #status,
+body.nb-account-page.dark-mode #status { color: #4ade80; }
+body.nb-account-page .mobile-account-nav { display: none; }
+
+@media (max-width: 991.98px) {
+  body.nb-account-page .account-sidebar { width: 200px; }
+  body.nb-account-page .account-main { margin-left: 200px; }
+  body.nb-account-page .settings-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767.98px) {
+  body.nb-account-page .account-header { min-height: 56px; padding: .4rem .7rem; }
+  body.nb-account-page .account-brand { font-size: .95rem; gap: .45rem; }
+  body.nb-account-page .account-brand img { width: 30px; height: 30px; }
+  body.nb-account-page .account-header-actions { gap: .4rem; }
+  body.nb-account-page .account-header-link,
+  body.nb-account-page .account-theme-button { min-height: 38px; padding: .35rem .55rem; font-size: .78rem; }
+  body.nb-account-page .account-header-theme { gap: .3rem; font-size: .75rem; }
+  body.nb-account-page .account-sidebar { display: none; }
+  body.nb-account-page .account-main { min-height: calc(100vh - 56px); margin: 56px 0 0; padding: 1rem .85rem 5.5rem; }
+  body.nb-account-page .account-identity { align-items: flex-start; }
+  body.nb-account-page #profilePicContainer,
+  body.nb-account-page #initialAvatar { width: 68px; height: 68px; }
+  body.nb-account-page .profile-stats { gap: .45rem; }
+  body.nb-account-page .profile-stat { padding: .65rem .35rem; }
+  body.nb-account-page .profile-stat-value { font-size: 1.1rem; }
+  body.nb-account-page .profile-stat-label { font-size: .68rem; }
+  body.nb-account-page .settings-inline-field { grid-template-columns: minmax(0, 1fr) auto; }
+  body.nb-account-page .mobile-account-nav {
+    position: fixed;
+    z-index: 1050;
+    inset: auto 0 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .25rem;
+    padding: .35rem .4rem calc(.35rem + env(safe-area-inset-bottom));
+    background: #1e2440;
+    border-top: 1px solid rgba(255,255,255,.12);
+  }
+  body.nb-account-page .mobile-account-nav a {
+    display: grid;
+    justify-items: center;
+    gap: .1rem;
+    min-height: 44px;
+    padding: .25rem;
+    color: #d9e1ee;
+    font-size: .68rem;
+    text-decoration: none;
+  }
+  body.nb-account-page .mobile-account-nav a i { font-size: 1.05rem; }
+}
+@media (max-width: 380px) {
+  body.nb-account-page .account-header-link { display: none; }
+  body.nb-account-page .settings-inline-field { grid-template-columns: minmax(0, 1fr); }
+  body.nb-account-page .settings-field .settings-save { justify-self: start; }
+}

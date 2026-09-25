@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="/CSS/enhancements.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/CSS/dashboard-reference.css">
   <meta name="description"
     content="NeoBranium E-Learning Dashboard: Access quizzes, notes, spotlights, and interactive features for Class 9 and 10. Enhance your learning experience with top resources and community feedback.">
   <meta name="keywords"
@@ -30,151 +31,246 @@
   <script type="module" src="/js/auth.js" defer></script>
 </head>
 
-<body>
-  <header class="navbar navbar-expand-lg fixed-top">
-    <div class="container-fluid align-items-center">
-      <div class="hero-img">
-        <a href="/index.html">
-          <img src="/online-graduation_16847316.png" alt="Student Image" class="header-logo anim-float" />
-        </a>
-      </div>
-      <a class="navbar-brand fw-bold" href="/htmls/privacy_policy&terms_conditions.html">NeoBranium</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
+<body class="dashboard-app">
+  <header class="site-header fixed-top">
+    <!-- Left: Brand Zone (green gradient, same width as sidebar) -->
+    <div class="header-brand-zone">
+      <a href="/index.html" class="header-logo-link">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="header-logo anim-float" />
+      </a>
+      <a class="header-brand-name" href="/htmls/privacy_policy&terms_conditions.html">NeoBranium</a>
+    </div>
+
+    <!-- Right: Nav Zone (purple gradient) -->
+    <div class="header-nav-zone">
+      <!-- Mobile sidebar toggle -->
+      <button class="navbar-toggler-custom navbar-toggler d-lg-none" id="mobileSidebarToggle" aria-label="Toggle sidebar">
+        <i class="bi bi-list"></i>
       </button>
-      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-        <span id="usernameDisplay" class="navbar-text text-white me-3 d-none d-lg-block"></span>
-        <ul class="navbar-nav align-items-center">
-          <li class="nav-item">
-            <label class="switch">
-              <input type="checkbox" id="dark-mode-toggle">
-              <span class="slider"></span>
-            </label>
-          </li>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-              <span id="userInitial" class="me-2"></span>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item" href="/htmls/profile.html">Profile</a></li>
-              <li><a class="dropdown-item" href="/htmls/setting.html">Settings</a></li>
-              <li>
-                <hr class="dropdown-divider">
-              </li>
-              <li><a class="dropdown-item" href="#" id="logout">Logout</a></li>
-            </ul>
-          </li>
-        </ul>
+
+      <div class="header-nav-right">
+        <span id="usernameDisplay" class="header-username d-none d-lg-flex"></span>
+        <label class="switch ms-3" title="Toggle dark mode">
+          <input type="checkbox" id="dark-mode-toggle">
+          <span class="slider"></span>
+        </label>
+        <div class="dropdown ms-3">
+          <button class="header-avatar-btn" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <span id="userInitial"></span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li><a class="dropdown-item" href="/htmls/profile.html"><i class="bi bi-person me-2"></i>Profile</a></li>
+            <li><a class="dropdown-item" href="/htmls/setting.html"><i class="bi bi-gear me-2"></i>Settings</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="#" id="logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+          </ul>
+        </div>
       </div>
     </div>
   </header>
 
   <div class="sidebar">
-    <ul>
-      <li><a href="/htmls/dashboard.html"><i class="bi bi-question-circle"></i> Dashboard</a></li>
-      <li><a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes <span class="notification-badge">3</span></a>
-      </li>
+    <div class="sidebar-header">
+      <div class="sidebar-logo-container">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium" />
+      </div>
+      <h3 class="sidebar-title">NeoBranium</h3>
+      <p class="sidebar-subtitle">Learn From Home</p>
+    </div>
+    <ul class="sidebar-nav">
+      <li class="active"><a href="/htmls/dashboard.html"><i class="bi bi-grid-1x2"></i> Dashboard</a></li>
+      <li><a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes <span class="notification-badge">3</span></a></li>
       <li><a href="/htmls/spotlight.html"><i class="bi bi-star"></i> Spotlight (Monthly)</a></li>
-      <li><a href="/htmls/bot/bot.html"><i class="bi bi-envelope"></i> Bot Helper</a></li>
-      <li><a href="/htmls/question-paper_generator-ai/ai-generate.html"><i class="bi bi-chat"></i> Exam Paper
-          Generator</a></li>
-      <li><a href="/htmls/chat/chat_app.html"><i class="bi bi-chat"></i> Live Chat</a></li>
+      <li><a href="/htmls/bot/bot.html"><i class="bi bi-robot"></i> Bot Helper</a></li>
+      <li><a href="/htmls/question-paper_generator-ai/ai-generate.html"><i class="bi bi-file-earmark-text"></i> Exam Paper Generator</a></li>
+      <li><a href="/htmls/chat/chat_app.html"><i class="bi bi-chat-dots"></i> Live Chat</a></li>
     </ul>
-    <div class="plus-btn">
-      <a href="https://forms.gle/ZJzVq7LR8rkdw27g6">
-        <button class="btn btn-primary rounded-circle pulsating" onclick="openUploadModal()"><i
-            class="bi bi-plus-lg"></i></button>
+    <div class="sidebar-footer">
+      <a href="https://forms.gle/ZJzVq7LR8rkdw27g6" style="text-decoration: none;">
+        <button class="btn btn-upgrade pulsating" onclick="openUploadModal()">
+          <span class="d-none d-lg-inline">Upload Notes</span>
+          <i class="bi bi-plus-lg d-inline d-lg-none"></i>
+        </button>
       </a>
     </div>
   </div>
 
   <main>
-    <!-- Animated Welcome Banner -->
-    <section class="mt-3 welcome-banner anim-gradient-shift">
-      <h2 class="slide-in">Welcome to NeoBranium!</h2>
-      <p class="slide-in">Your one-stop platform for learning, quizzes, and more!</p>
+    <!-- Welcome Hero -->
+    <section class="mb-4">
+      <div class="card nb-hero-card border-0">
+        <div class="card-body px-4 py-4">
+          <div class="d-flex align-items-center gap-3">
+            <div class="nb-hero-icon">
+              <i class="bi bi-mortarboard-fill"></i>
+            </div>
+            <div class="text-start">
+              <h2 class="fw-bold nb-hero-title mb-1 slide-in">Welcome to NeoBranium!</h2>
+              <p class="nb-hero-sub mb-0 slide-in">Your one-stop platform for learning, quizzes, and more!</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Quick Actions -->
-    <section class="mt-4 quick-actions">
-      <h3>Quick Actions</h3>
-      <div class="d-flex justify-content-center flex-wrap gap-3">
-        <button class="btn btn-primary animated-btn anim-shimmer" id="shortcutsBtn">View Shortcuts</button>
-        <a href="/htmls/bot/bot.html" class="btn btn-primary animated-btn anim-shimmer">AI Assistant</a>
-        <a href="/htmls/chat/chat_app.html" class="btn btn-primary animated-btn anim-shimmer">Chat With Peers</a>
-        <a href="/htmls/doubt/index.html" class="btn btn-primary animated-btn anim-shimmer" id="neoTutorBtn">NeoLens</a>
-        <a href="/ai-board/ai-board.html" class="btn btn-primary animated-btn anim-shimmer">AI Board</a>
-      </div>
-    </section>
-
-    <!-- Study Tip of the Day Carousel -->
-    <section class="mt-5 study-tip-carousel">
-      <h3>Study Tip of the Day</h3>
-      <div class="carousel slide" id="studyTipCarousel" data-bs-ride="carousel">
-        <div class="carousel-inner">
-          <div class="carousel-item active">
-            <div class="card study-tip-card">
-              <div class="card-body text-center">
-                <p class="card-text">Break your study sessions into 25-minute chunks with 5-minute breaks to stay
-                  focused!</p>
-              </div>
-            </div>
-          </div>
-          <div class="carousel-item">
-            <div class="card study-tip-card">
-              <div class="card-body text-center">
-                <p class="card-text">Use flashcards to memorize key concepts quickly!</p>
-              </div>
-            </div>
-          </div>
-          <div class="carousel-item">
-            <div class="card study-tip-card">
-              <div class="card-body text-center">
-                <p class="card-text">Teach what you learn to someone else to reinforce your knowledge!</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#studyTipCarousel" data-bs-slide="prev">
-          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Previous</span>
+    <section class="mb-4">
+      <p class="nb-section-label mb-3">Quick Actions</p>
+      <div class="nb-action-grid">
+        <button class="nb-action-tile staggered-item" id="shortcutsBtn">
+          <div class="nb-tile-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+          <span class="nb-tile-label">Shortcuts</span>
         </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#studyTipCarousel" data-bs-slide="next">
-          <span class="carousel-control-next-icon" aria-hidden="true"></span>
-          <span class="visually-hidden">Next</span>
-        </button>
+        <a href="/htmls/bot/bot.html" class="nb-action-tile staggered-item text-decoration-none">
+          <div class="nb-tile-icon"><i class="bi bi-robot"></i></div>
+          <span class="nb-tile-label">AI Assistant</span>
+        </a>
+        <a href="/htmls/chat/chat_app.html" class="nb-action-tile staggered-item text-decoration-none">
+          <div class="nb-tile-icon"><i class="bi bi-people-fill"></i></div>
+          <span class="nb-tile-label">Chat Peers</span>
+        </a>
+        <a href="/htmls/doubt/index.html" class="nb-action-tile staggered-item text-decoration-none" id="neoTutorBtn">
+          <div class="nb-tile-icon"><i class="bi bi-camera-fill"></i></div>
+          <span class="nb-tile-label">NeoLens</span>
+        </a>
+        <a href="/ai-board/ai-board.html" class="nb-action-tile staggered-item text-decoration-none">
+          <div class="nb-tile-icon"><i class="bi bi-easel2-fill"></i></div>
+          <span class="nb-tile-label">AI Board</span>
+        </a>
       </div>
     </section>
 
-    <!-- Motivational Quote Section -->
-    <section class="mt-5 motivational-quote">
-      <h3>Motivational Quote</h3>
-      <div class="card quote-card fade-in">
-        <div class="card-body text-center">
-          <p class="card-text">"The only way to learn it is to do it!" – Keep pushing forward!</p>
-        </div>
-      </div>
-    </section>
-
-    <h2>Welcome to the Dashboard</h2>
-    <p>Select your class to continue.</p>
-    <div class="row mt-5">
+    <!-- Study Tip + Motivational Quote -->
+    <div class="row mb-4 g-3">
+      <!-- Study Tip -->
       <div class="col-md-6">
-        <div class="card-select animated-card flip-card" onclick="openSubjectModal('9')">
-          <div class="card-body text-center">
-            <h3>Class 9</h3>
+        <div class="nb-widget nb-widget--tip h-100">
+          <div class="nb-widget-header">
+            <i class="bi bi-lightbulb-fill nb-widget-icon"></i>
+            <span class="nb-widget-title">Study Tip of the Day</span>
+          </div>
+          <div class="nb-widget-body">
+            <div class="carousel slide" id="studyTipCarousel" data-bs-ride="carousel">
+              <div class="carousel-inner">
+                <div class="carousel-item active">
+                  <p class="nb-widget-text">Break your study sessions into 25-minute chunks with 5-minute breaks to stay focused!</p>
+                </div>
+                <div class="carousel-item">
+                  <p class="nb-widget-text">Use flashcards to memorize key concepts quickly!</p>
+                </div>
+                <div class="carousel-item">
+                  <p class="nb-widget-text">Teach what you learn to someone else to reinforce your knowledge!</p>
+                </div>
+              </div>
+              <div class="nb-carousel-nav">
+                <button class="nb-carousel-btn custom-carousel-ctrl" type="button" data-bs-target="#studyTipCarousel" data-bs-slide="prev">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+                <button class="nb-carousel-btn custom-carousel-ctrl" type="button" data-bs-target="#studyTipCarousel" data-bs-slide="next">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <!-- Motivational Quote -->
       <div class="col-md-6">
-        <div class="card-select animated-card flip-card" onclick="openSubjectModal('10')">
-          <div class="card-body text-center">
-            <h3>Class 10</h3>
+        <div class="nb-widget nb-widget--quote h-100 fade-in">
+          <div class="nb-widget-header">
+            <i class="bi bi-quote nb-widget-icon nb-widget-icon--quote"></i>
+            <span class="nb-widget-title">Motivational Quote</span>
+          </div>
+          <div class="nb-widget-body">
+            <p class="nb-widget-text nb-quote-text">"The only way to learn it is to do it!" – Keep pushing forward!</p>
           </div>
         </div>
       </div>
     </div>
+
+    <section class="mb-4" aria-labelledby="activitySectionTitle">
+      <div class="row g-3">
+        <div class="col-lg-7">
+          <div class="nb-activity-card h-100">
+            <div class="nb-activity-header">
+              <div>
+                <p class="nb-section-label mb-1" id="activitySectionTitle">Activity</p>
+                <p class="nb-activity-caption mb-0">Your learning rhythm</p>
+              </div>
+              <div class="nb-calendar-nav" aria-label="Calendar navigation">
+                <button type="button" class="nb-calendar-button" id="activityPreviousMonth" aria-label="Previous month"><i class="bi bi-chevron-left"></i></button>
+                <strong id="activityMonthLabel"></strong>
+                <button type="button" class="nb-calendar-button" id="activityNextMonth" aria-label="Next month"><i class="bi bi-chevron-right"></i></button>
+              </div>
+            </div>
+            <div class="nb-calendar" id="activityCalendar" aria-live="polite"></div>
+            <div class="nb-activity-legend" aria-label="Activity legend">
+              <span><i class="nb-legend-dot nb-legend-dot--quiz"></i>Quiz completed</span>
+              <span><i class="nb-legend-dot nb-legend-dot--visit"></i>Visited</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="nb-task-card h-100">
+            <div class="nb-task-header">
+              <div>
+                <p class="nb-section-label mb-1">Tasks</p>
+                <p class="nb-activity-caption mb-0">Keep your next step visible</p>
+              </div>
+              <button type="button" class="nb-task-add" id="addTaskButton"><i class="bi bi-plus-lg"></i><span>Add Task</span></button>
+            </div>
+            <form id="taskForm" class="nb-task-form d-none">
+              <label class="visually-hidden" for="taskTitle">Task name</label>
+              <div class="input-group input-group-sm">
+                <input type="text" class="form-control" id="taskTitle" maxlength="160" placeholder="Task name" required>
+                <button class="btn btn-primary" type="submit">Add</button>
+              </div>
+            </form>
+            <div id="taskList" class="nb-task-list" aria-live="polite"><p class="nb-task-empty">No active tasks yet.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-4 nb-progress-section" aria-labelledby="learningProgressTitle">
+      <div class="nb-progress-heading">
+        <div>
+          <p class="nb-section-label mb-1" id="learningProgressTitle">Your Learning Progress</p>
+          <p class="nb-activity-caption mb-0">A private view of your quiz practice</p>
+        </div>
+        <a class="nb-progress-action" href="/htmls/quiz_htmls/class9-10maths.html">Practice a quiz <i class="bi bi-arrow-up-right"></i></a>
+      </div>
+      <div id="learningProgress" class="nb-progress-content" aria-live="polite">
+        <div class="nb-progress-loading"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading your progress...</div>
+      </div>
+    </section>
+
+    <!-- Class Selection -->
+    <section class="mb-5">
+      <div class="text-center mb-4">
+        <h3 class="fw-bold nb-section-h3">Welcome to the Dashboard</h3>
+        <p class="text-muted mb-0">Select your class to continue.</p>
+      </div>
+      <div class="row g-4 justify-content-center">
+        <div class="col-sm-6 col-md-5">
+          <div class="nb-class-card animated-card" onclick="openSubjectModal('9')">
+            <div class="nb-class-icon"><i class="bi bi-book-half"></i></div>
+            <div class="nb-class-number">Class 9</div>
+            <div class="nb-class-sub">Tap to explore subjects</div>
+            <div class="nb-class-arrow"><i class="bi bi-arrow-right-circle-fill"></i></div>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-5">
+          <div class="nb-class-card animated-card" onclick="openSubjectModal('10')">
+            <div class="nb-class-icon"><i class="bi bi-journal-bookmark-fill"></i></div>
+            <div class="nb-class-number">Class 10</div>
+            <div class="nb-class-sub">Tap to explore subjects</div>
+            <div class="nb-class-arrow"><i class="bi bi-arrow-right-circle-fill"></i></div>
+          </div>
+        </div>
+      </div>
+    </section>
     <!-- Moved buttons to Quick Actions section -->
 
     <!-- Skeleton Loader for Class Selection -->
@@ -195,178 +291,21 @@
       </div>
     </div>
 
-    <!-- Skeleton Loader for Newly Uploaded Notes -->
-    <section class="mt-5" id="notesSection">
-      <h3>Newly Uploaded Notes</h3>
-      <div class="row skeleton-loader" id="notesSkeleton">
-        <div class="col-md-4">
-          <div class="card notes-card skeleton">
-            <div class="card-body">
-              <h5 class="skeleton-title"></h5>
-              <p class="skeleton-text"></p>
-              <div class="skeleton-button"></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card notes-card skeleton">
-            <div class="card-body">
-              <h5 class="skeleton-title"></h5>
-              <p class="skeleton-text"></p>
-              <div class="skeleton-button"></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card notes-card skeleton">
-            <div class="card-body">
-              <h5 class="skeleton-title"></h5>
-              <p class="skeleton-text"></p>
-              <div class="skeleton-button"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row" id="notesContent" style="display: none;">
-        <div class="col-md-4">
-          <div class="card notes-card animated-card flip-card">
-            <div class="card-body">
-              <h5 class="card-title">Name: Upload Now</h5>
-              <p class="card-text">Topic: Upload Now<br>Class: Upload Now</p>
-              <a href="#" class="btn btn-primary animated-btn anim-shimmer">View Notes</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card notes-card animated-card flip-card">
-            <div class="card-body">
-              <h5 class="card-title">Name: Upload Now</h5>
-              <p class="card-text">Topic: Upload Now<br>Class: Upload Now</p>
-              <a href="#" class="btn btn-primary animated-btn anim-shimmer">View Notes</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card notes-card animated-card flip-card">
-            <div class="card-body">
-              <h5 class="card-title">Name: Upload Now</h5>
-              <p class="card-text">Topic: Upload Now<br>Class: Upload Now</p>
-              <a href="#" class="btn btn-primary animated-btn anim-shimmer">View Notes</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <!-- Sections removed as per design, keeping empty IDs to prevent JS errors -->
+    <div id="notesSection" class="d-none">
+      <div id="notesSkeleton"></div>
+      <div id="notesContent"></div>
+    </div>
 
-    <!-- Skeleton Loader for Features Section -->
-    <section class="mt-5" id="featuresSection">
-      <h3>Features</h3>
-      <div class="row skeleton-loader" id="featuresSkeleton">
-        <div class="col-md-6">
-          <div class="card feature-card skeleton">
-            <div class="card-body">
-              <h5 class="skeleton-title"></h5>
-              <div class="skeleton-list"></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card feature-card skeleton">
-            <div class="card-body">
-              <h5 class="skeleton-title"></h5>
-              <div class="skeleton-list"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row" id="featuresContent" style="display: none;">
-        <div class="col-md-6">
-          <div class="card feature-card animated-card flip-card">
-            <div class="card-body">
-              <h5 class="card-title">New Features</h5>
-              <ul>
-                <li class="staggered-item">Interactive Quizzes</li>
-                <li class="staggered-item">PDF Notes Download</li>
-                <li class="staggered-item">Ranking All Over The Users by comparing uploaded notes and activity on the
-                  website.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card feature-card animated-card flip-card">
-            <div class="card-body">
-              <h5 class="card-title">Coming Soon</h5>
-              <ul>
-                <li class="staggered-item">Progress Tracker</li>
-                <li class="staggered-item"><b>Write in Feedback what should be the next feature.</b></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <div id="featuresSection" class="d-none">
+      <div id="featuresSkeleton"></div>
+      <div id="featuresContent"></div>
+    </div>
 
-    <!-- Skeleton Loader for Spotlight Section -->
-    <section class="mt-5" id="spotlightSection">
-      <h3>Spotlight</h3>
-      <div class="row skeleton-loader" id="spotlightSkeleton">
-        <div class="col-md-6">
-          <div class="card spotlight-card skeleton">
-            <div class="card-body">
-              <h5 class="skeleton-title"></h5>
-              <div class="skeleton-text"></div>
-              <div class="skeleton-list"></div>
-              <div class="skeleton-button"></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card spotlight-card skeleton">
-            <div class="card-body">
-              <h5 class="skeleton-title"></h5>
-              <div class="skeleton-text"></div>
-              <div class="skeleton-list"></div>
-              <div class="skeleton-button"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="row" id="spotlightContent" style="display: none;">
-        <div class="col-md-6">
-          <div class="card spotlight-card animated-card flip-card">
-            <div class="card-body">
-              <h5 class="card-title">Weekly Top Notes</h5>
-              <p class="card-text">These 3 are the top 3 notes by the students!</p>
-              <ul>
-                <li class="staggered-item">Name: Upload Now <br> Topic: Upload Now <br> Class: Upload Now</li>
-                <li class="staggered-item">Name: Upload Now <br> Topic: Upload Now <br> Class: Upload Now</li>
-                <li class="staggered-item">Name: Upload Now <br> Topic: Upload Now <br> Class: Upload Now</li>
-              </ul>
-              <a href="/htmls/spotlight.html" class="btn btn-primary animated-btn anim-shimmer">Explore More</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card spotlight-card animated-card flip-card">
-            <div class="card-body">
-              <h5 class="card-title">Monthly Top Notes</h5>
-              <p class="card-text">Check Out the Best Notes of Previous Months From Spotlight Option.</p>
-              <ul>
-                <li class="staggered-item">Name: Upload Now <br> Topic: Upload Now <br> Class: Upload Now</li>
-                <li class="staggered-item">Name: Upload Now <br> Topic: Upload Now <br> Class: Upload Now</li>
-                <li class="staggered-item">Name: Upload Now <br> Topic: Upload Now <br> Class: Upload Now</li>
-              </ul>
-              <a href="/htmls/spotlight.html" class="btn btn-primary animated-btn anim-shimmer">Explore More</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <h4><strong style="color: rgb(255, 255, 0);">Attention: </strong> Upload Your Own Best Handwritten Notes to get
-        your Name on the Dashboard!</h4>
-      <h4><strong style="color: red;">Warning: </strong> Do not Publish another once notes from this website (i.e.,
-        NeoBranium) or from another platform. <br>Notes must be written by You!</h4>
-    </section>
+    <div id="spotlightSection" class="d-none">
+      <div id="spotlightSkeleton"></div>
+      <div id="spotlightContent"></div>
+    </div>
 
     <!-- Events/Announcements Panel -->
     <!-- <section class="mt-5 events-panel slide-in-right">
@@ -411,6 +350,21 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-primary animated-btn" data-bs-dismiss="modal">Close</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade zoom-in" id="dailyActivityModal" tabindex="-1" aria-labelledby="dailyActivityTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div>
+              <h5 class="modal-title" id="dailyActivityTitle">Daily activity</h5>
+              <p class="nb-daily-subtitle mb-0">Your activity for this day</p>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="dailyActivityBody" aria-live="polite"></div>
         </div>
       </div>
     </div>
@@ -500,6 +454,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script type="module" src="/js/auth.js"></script>
+  <script type="module" src="/js/activity.js"></script>
+  <script type="module" src="/js/learning-progress.js"></script>
   <script type="module" src="/js/dashboard.js"></script>
   <script src="/js/shortcuts.js"></script>
 </body>

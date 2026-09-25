@@ -11,8 +11,10 @@
   <link rel="stylesheet" href="/CSS/feedback_contact.css">
     <script src="/js/shortcuts.js"></script>
   <link rel="stylesheet" href="/CSS/enhancements.css">
+  <link rel="stylesheet" href="/CSS/app-pages.css">
+  <link rel="stylesheet" href="/CSS/feedback-page.css">
 </head>
-<body>
+<body class="nb-page-shell nb-page-feedback">
   <header class="navbar navbar-expand-lg fixed-top">
     <div class="container-fluid align-items-center">
       <div class="hero-img">
@@ -52,13 +54,13 @@
     </div>
   </header>
 
-  <div class="sidebar">
+  <div class="sidebar" id="feedbackSidebar" aria-label="Main navigation">
     <ul>
       <li><a href="/htmls/dashboard.html"><i class="bi bi-question-circle"></i> Dashboard</a></li>
       <li><a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes</a></li>
       <li><a href="/htmls/spotlight.html"><i class="bi bi-star"></i> Spotlight (Monthly)</a></li>
       <li><a href="/htmls/contactus.html"><i class="bi bi-envelope"></i> Contact Us</a></li>
-      <li><a href="/htmls/feedback.html"><i class="bi bi-chat"></i> Feedback/Complaint</a></li>
+      <li class="active"><a href="/htmls/feedback.html" aria-current="page"><i class="bi bi-chat"></i> Feedback/Complaint</a></li>
       <li><a href="/htmls/chat/chat_app.html"><i class="bi bi-chat"></i> Live Chat</a></li>
     </ul>
     <div class="plus-btn">
@@ -66,13 +68,26 @@
     </div>
   </div>
 
-  <div class="container">
-    <div class="toggle-group">
+  <button type="button" class="feedback-sidebar-backdrop" id="feedbackSidebarBackdrop" aria-label="Close navigation" hidden></button>
+
+  <main class="feedback-main">
+    <div class="feedback-page-heading">
+      <div>
+        <p class="feedback-eyebrow">NEOBRANIUM SUPPORT</p>
+        <h1>Feedback &amp; Complaints</h1>
+        <p class="feedback-intro">Share feedback or tell us about an issue. Your message helps us improve.</p>
+      </div>
+      <button type="button" class="feedback-sidebar-toggle" id="feedbackSidebarToggle" aria-controls="feedbackSidebar" aria-expanded="false">
+        <i class="bi bi-list" aria-hidden="true"></i><span>Menu</span>
+      </button>
+    </div>
+    <section class="feedback-card" aria-labelledby="formTitle">
+    <div class="toggle-group" role="group" aria-label="Choose message type">
       <button id="feedbackBtn" class="toggle-btn active" onclick="setType('Feedback')">Feedback</button>
       <button id="complaintBtn" class="toggle-btn" onclick="setType('Complaint')">Complaint</button>
     </div>
     <h2 id="formTitle">Feedback Form</h2>
-    <form action="https://formspree.io/f/your-form-id" method="POST">
+    <form action="https://formspree.io/f/mvgpgvbg" method="POST">
       <input type="hidden" id="type" name="type" value="Feedback" />
 
       <label for="name">Name</label>
@@ -112,7 +127,8 @@
 
       <button type="submit">Submit</button>
     </form>
-  </div>
+    </section>
+  </main>
   <div id="userBioBox" class="user-bio-box">
     <p id="userBioText">--Your Bio--</p>
   </div>
@@ -160,6 +176,31 @@
 
     // Initialize form to Feedback on page load
     window.onload = () => setType('Feedback');
+
+    // Mobile navigation controls for the existing sidebar destinations
+    const feedbackSidebar = document.getElementById('feedbackSidebar');
+    const feedbackSidebarToggle = document.getElementById('feedbackSidebarToggle');
+    const feedbackSidebarBackdrop = document.getElementById('feedbackSidebarBackdrop');
+    const closeFeedbackSidebar = (restoreFocus = false) => {
+      feedbackSidebar.classList.remove('active');
+      feedbackSidebarBackdrop.hidden = true;
+      feedbackSidebarToggle.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('feedback-sidebar-open');
+      if (restoreFocus) feedbackSidebarToggle.focus();
+    };
+    feedbackSidebarToggle.addEventListener('click', () => {
+      const open = !feedbackSidebar.classList.contains('active');
+      feedbackSidebar.classList.toggle('active', open);
+      feedbackSidebarBackdrop.hidden = !open;
+      feedbackSidebarToggle.setAttribute('aria-expanded', String(open));
+      document.body.classList.toggle('feedback-sidebar-open', open);
+      if (open) feedbackSidebar.querySelector('a')?.focus();
+    });
+    feedbackSidebarBackdrop.addEventListener('click', () => closeFeedbackSidebar(true));
+    feedbackSidebar.querySelectorAll('a').forEach(link => link.addEventListener('click', () => closeFeedbackSidebar()));
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && feedbackSidebar.classList.contains('active')) closeFeedbackSidebar(true);
+    });
 
     // Dark mode toggle
     document.getElementById('dark-mode-toggle').addEventListener('change', function () {
