@@ -435,6 +435,22 @@ body.nb-neolearn-page .mobile-account-nav :is(a,button):active { transform: scal
 }
 @media (max-width: 767.98px) {
   body.nb-neolearn-page .account-header { min-height: 56px; }
+  body.nb-neolearn-page .account-header-actions .account-header-link { display: none; }
+  body.nb-neolearn-page:not(.nb-neolearn-profile-page) .account-header-actions .account-header-link[href="/htmls/neolearn/notifications.html"] {
+    display: inline-flex;
+    width: 38px;
+    padding: 0;
+    position: relative;
+  }
+  body.nb-neolearn-page:not(.nb-neolearn-profile-page) .account-header-actions .account-header-link[href="/htmls/neolearn/notifications.html"] .nl-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 18px;
+    height: 18px;
+    margin: 0;
+  }
+  body.nb-neolearn-profile-page .account-header-actions .account-header-link[href="/htmls/neolearn/notifications.html"] { display: none; }
   body.nb-neolearn-page .account-sidebar { display: none; }
   body.nb-neolearn-page .account-main { min-height: calc(100vh - 56px); margin-top: 56px; margin-left: 0; }
   body.nb-neolearn-page .neolearn-context { margin-left: .7rem; font-size: .72rem; }
