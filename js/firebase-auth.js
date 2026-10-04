@@ -142,17 +142,35 @@ document.getElementById("signup-form")?.addEventListener("submit", async (e) => 
       createdAt: Date.now()
     });
     
-    await sendEmailVerification(user, getEmailVerificationSettings());
-    sessionStorage.removeItem("emailSignupInProgress");
-    showToast("Account created! Verify your email to continue.", "success");
-    setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);
+    // Send verification email
+    try {
+      await sendEmailVerification(user, getEmailVerificationSettings());
+      sessionStorage.removeItem("emailSignupInProgress");
+      showToast("Account created! Verify your email to continue.", "success");
+      setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);
+    } catch (verifyError) {
+      // Account created but email failed - still redirect to verify page
+      console.error("Email verification send failed:", verifyError.code, verifyError.message);
+      sessionStorage.removeItem("emailSignupInProgress");
+      
+      if (verifyError.code === "auth/unauthorized-continue-uri") {
+        showToast("⚠️ Domain not authorized in Firebase. Contact admin.", "error");
+      } else if (verifyError.code === "auth/too-many-requests") {
+        showToast("Account created! Too many requests, check spam or resend later.", "success");
+        setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);
+      } else {
+        // Account was created, still go to verify page so user can resend
+        showToast("Account created! If email not received, use 'Resend' on next page.", "success");
+        setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);
+      }
+    }
   } catch (error) {
-    console.error(error);
+    console.error("Signup error:", error.code, error.message);
     const msg = error.code === "auth/email-already-in-use"
       ? "Email address already exists"
       : error.code === "auth/unauthorized-continue-uri"
         ? "This site's domain is not authorized in Firebase Authentication. Add it under Authentication settings."
-        : "Unable to create account. Try again.";
+        : `Unable to create account. (${error.code || "unknown"})`;
     showToast(msg);
   } finally {
     sessionStorage.removeItem("emailSignupInProgress");
