@@ -25,6 +25,13 @@ const rtdb = getDatabase(app);
 
 export { app, auth, db, storage, rtdb, firebaseConfig };
 
+export function getEmailVerificationSettings() {
+    return {
+        url: new URL("/htmls/verify-email.html", window.location.origin).toString(),
+        handleCodeInApp: false
+    };
+}
+
 export async function loadUserData(user) {
     try {
         const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -218,7 +225,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (isEntryPage) {
                 // If they need verification, don't auto-redirect to dashboard yet
                 if (!user.emailVerified && !user.providerData.some(p => p.providerId === 'google.com')) {
-                    if (!path.includes("verify-email.html")) {
+                    // Let the signup handler finish sending the verification email.
+                    const signupInProgress = sessionStorage.getItem("emailSignupInProgress") === "true";
+                    if (!path.includes("verify-email.html") && !signupInProgress) {
                         window.location.replace("/htmls/verify-email.html");
                     }
                     return;

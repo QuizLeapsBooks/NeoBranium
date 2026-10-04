@@ -1,4 +1,4 @@
-import { auth, db } from "./auth.js";
+import { auth, db, getEmailVerificationSettings } from "./auth.js";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -126,6 +126,7 @@ document.getElementById("signup-form")?.addEventListener("submit", async (e) => 
   if (!termsCheckbox) return showToast("Please agree to Terms & Conditions");
 
   setLoading("submitSignUp", true);
+  sessionStorage.setItem("emailSignupInProgress", "true");
 
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -141,16 +142,20 @@ document.getElementById("signup-form")?.addEventListener("submit", async (e) => 
       createdAt: Date.now()
     });
     
-    await sendEmailVerification(user);
+    await sendEmailVerification(user, getEmailVerificationSettings());
+    sessionStorage.removeItem("emailSignupInProgress");
     showToast("Account created! Verify your email to continue.", "success");
     setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);
   } catch (error) {
     console.error(error);
-    const msg = error.code === "auth/email-already-in-use" 
-      ? "Email address already exists" 
-      : "Unable to create account. Try again.";
+    const msg = error.code === "auth/email-already-in-use"
+      ? "Email address already exists"
+      : error.code === "auth/unauthorized-continue-uri"
+        ? "This site's domain is not authorized in Firebase Authentication. Add it under Authentication settings."
+        : "Unable to create account. Try again.";
     showToast(msg);
   } finally {
+    sessionStorage.removeItem("emailSignupInProgress");
     setLoading("submitSignUp", false);
   }
 });

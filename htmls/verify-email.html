@@ -14,9 +14,15 @@
       <span>NeoBranium</span>
     </div>
     <h2>Verify Your Email</h2>
-    <p>Please check your email for a verification link to activate your account.</p>
-    <strong>Click on Sign In and fill in your email and password.</strong>
-    <p>Already verified? <a href="#" onclick="location.replace('/htmls/sign.html')">Sign In</a></p>
+    <p>We sent a verification link to <strong id="verifyEmailAddress">your email address</strong>.</p>
+    <p>Check your spam or promotions folder if it is not in your inbox.</p>
+    <div class="verify-actions">
+      <button id="checkVerificationButton" class="submit-btn" type="button" disabled>I've verified my email</button>
+      <button id="resendVerificationButton" class="google-btn" type="button" disabled>Resend verification email</button>
+    </div>
+    <p id="verifyMessage" class="verify-message" role="status" aria-live="polite"></p>
+    <p>Need another account? <a href="/htmls/sign.html">Sign In</a></p>
   </div>
+  <script type="module" src="/js/verify-email.js"></script>
 </body>
 </html>
