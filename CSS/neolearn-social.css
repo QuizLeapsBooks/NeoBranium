@@ -1,0 +1,1255 @@
+body.nb-neolearn-page .nl-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 1rem;
+  border-block: 1px solid var(--account-border);
+}
+body.nb-neolearn-page .nl-profile-stat,
+body.nb-neolearn-page .nl-social-stat {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-width: 0;
+  min-height: 58px;
+  padding: .55rem;
+  text-align: center;
+}
+body.nb-neolearn-page .nl-profile-stat + .nl-profile-stat { border-left: 1px solid var(--account-border); }
+body.nb-neolearn-page .nl-profile-stat-button { color: inherit; background: transparent; border: 0; font: inherit; cursor: pointer; }
+body.nb-neolearn-page .nl-profile-stat-button:hover { background: color-mix(in srgb, var(--account-accent) 7%, transparent); }
+body.nb-neolearn-page .nl-profile-stat-button:focus-visible { position: relative; z-index: 1; outline: 2px solid var(--account-accent); outline-offset: -2px; }
+body.nb-neolearn-page .nl-profile-stat strong,
+body.nb-neolearn-page .nl-social-stat strong { color: var(--account-accent); font-size: .9rem; overflow-wrap: anywhere; }
+body.nb-neolearn-page .nl-profile-stat span,
+body.nb-neolearn-page .nl-social-stat span { margin-top: .2rem; color: var(--account-muted); font-size: .73rem; }
+body.nb-neolearn-page .nl-posts-section { margin-top: 1.5rem; }
+body.nb-neolearn-page .nl-post-more-wrap { display: flex; justify-content: center; margin-top: .85rem; }
+body.nb-neolearn-page .nl-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: .8rem; }
+body.nb-neolearn-page .nl-section-heading h2 { margin: 0; font-size: 1.15rem; text-align: left; }
+body.nb-neolearn-page .nl-section-heading p { margin: .2rem 0 0; color: var(--account-muted); font-size: .84rem; }
+body.nb-neolearn-page .nl-post-grid,
+body.nb-neolearn-page .nl-peer-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+body.nb-neolearn-page .nl-peer-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); }
+body.nb-neolearn-page .nl-post-card,
+body.nb-neolearn-page .nl-peer-card {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--account-text);
+  background: var(--account-surface);
+  border: 1px solid var(--account-border);
+  border-radius: 9px;
+  box-shadow: var(--account-shadow);
+}
+body.nb-neolearn-page .nl-post-card { scroll-margin-top: 82px; }
+body.nb-neolearn-page .nl-post-card.is-deep-linked {
+  outline: 3px solid color-mix(in srgb, var(--account-cyan) 72%, transparent);
+  outline-offset: 3px;
+  animation: nlPostAnchorPulse 1.8s ease-out;
+}
+@keyframes nlPostAnchorPulse {
+  50% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--account-cyan) 18%, transparent), var(--account-shadow-raised); }
+}
+body.nb-neolearn-page .nl-post-image-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  background: var(--account-bg);
+  border: 0;
+  cursor: zoom-in;
+}
+body.nb-neolearn-page .nl-post-image { display: block; width: 100%; height: auto; max-height: min(72vh, 560px); aspect-ratio: auto; object-fit: contain; background: var(--account-bg); transition: transform .18s ease; }
+body.nb-neolearn-page .nl-post-image-button:hover .nl-post-image { transform: scale(1.025); }
+body.nb-neolearn-page .nl-post-body { min-width: 0; padding: .8rem; }
+body.nb-neolearn-page .nl-post-author { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+body.nb-neolearn-page .nl-post-author strong { min-width: 0; font-size: .82rem; overflow-wrap: anywhere; }
+body.nb-neolearn-page .nl-post-author-link { min-width: 0; color: var(--account-text); font-size: .82rem; font-weight: 650; text-decoration: none; overflow-wrap: anywhere; }
+body.nb-neolearn-page .nl-post-author-link:hover { color: var(--account-accent); text-decoration: underline; }
+body.nb-neolearn-page .nl-post-date { margin-left: auto; color: var(--account-muted); font-size: .7rem; white-space: nowrap; }
+body.nb-neolearn-page .nl-social-avatar { display: grid; place-items: center; width: 52px; height: 52px; flex: 0 0 auto; object-fit: cover; color: #fff; background: var(--account-accent); border: 2px solid var(--account-border); border-radius: 50%; font-size: 1.15rem; font-weight: 700; }
+body.nb-neolearn-page .nl-social-avatar--small { width: 30px; height: 30px; font-size: .8rem; }
+body.nb-neolearn-page .nl-social-avatar-fallback { text-transform: uppercase; }
+body.nb-neolearn-page .nl-post-description { margin: .65rem 0; color: var(--account-secondary); font-size: .86rem; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
+body.nb-neolearn-page .nl-post-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem; padding-top: .5rem; border-top: 1px solid var(--account-border); }
+body.nb-neolearn-page .nl-post-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  min-height: 40px;
+  padding: .35rem .5rem;
+  color: var(--account-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font: inherit;
+  font-size: .78rem;
+  cursor: pointer;
+}
+body.nb-neolearn-page .nl-post-action:hover:not(:disabled) { color: var(--account-accent); background: var(--account-accent-soft); }
+body.nb-neolearn-page .nl-post-action:disabled { opacity: .55; cursor: wait; }
+body.nb-neolearn-page .nl-like-count { color: var(--account-muted); font-size: .72rem; }
+body.nb-neolearn-page .nl-post-action-status,
+body.nb-neolearn-page .nl-social-inline-status { display: block; min-height: 1.25em; color: var(--account-muted); font-size: .72rem; overflow-wrap: anywhere; }
+body.nb-neolearn-page .nl-social-inline-status:empty { display: none; }
+body.nb-neolearn-page .nl-comments { margin-top: .6rem; padding-top: .65rem; border-top: 1px solid var(--account-border); }
+body.nb-neolearn-page .nl-comments[hidden] { display: none; }
+body.nb-neolearn-page .nl-comments:not([hidden]) { animation: nlCommentsIn .18s ease both; }
+body.nb-neolearn-page .nl-comments h3 { margin: 0 0 .4rem; font-size: .82rem; text-align: left; }
+body.nb-neolearn-page .nl-comments-message { min-height: 1.2em; margin: 0 0 .45rem; color: var(--account-muted); font-size: .76rem; }
+body.nb-neolearn-page .nl-comments-list { display: grid; gap: .4rem; max-height: 150px; overflow: auto; }
+body.nb-neolearn-page .nl-comment-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .4rem; }
+body.nb-neolearn-page .nl-comment-input,
+body.nb-neolearn-page .nl-peer-search {
+  min-width: 0;
+  min-height: 42px;
+  padding: .5rem .65rem;
+  color: var(--account-text);
+  background: var(--account-surface-raised);
+  border: 1px solid var(--account-border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: .84rem;
+}
+body.nb-neolearn-page .nl-comment-input::placeholder,
+body.nb-neolearn-page .nl-peer-search::placeholder { color: var(--account-muted); }
+body.nb-neolearn-page .nl-social-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  min-height: 42px;
+  padding: .5rem .8rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+}
+body.nb-neolearn-page .nl-social-button[hidden] { display: none; }
+body.nb-neolearn-page .nl-social-button:disabled { opacity: .55; cursor: not-allowed; }
+body.nb-neolearn-page .nl-social-button--primary { color: #fff; background: var(--account-accent); border-color: var(--account-accent); }
+body.nb-neolearn-page .nl-social-button--primary:hover:not(:disabled) { background: var(--account-accent-hover); border-color: var(--account-accent-hover); }
+body.nb-neolearn-page .nl-social-button--secondary { color: var(--account-secondary); background: var(--account-surface); border-color: var(--account-border); }
+body.nb-neolearn-page .nl-social-button--secondary:hover:not(:disabled) { color: var(--account-text); background: var(--account-bg); }
+body.nb-neolearn-page :is(.nl-social-button,.nl-post-action,.nl-post-image-button,.nl-peer-profile-link,.nl-post-author-link):focus-visible { outline: 3px solid color-mix(in srgb, var(--account-accent) 45%, transparent); outline-offset: 2px; }
+body.nb-neolearn-page .nl-state-message,
+body.nb-neolearn-page .nl-empty-state { padding: 1.4rem; color: var(--account-muted); background: var(--account-surface); border: 1px solid var(--account-border); border-radius: 9px; text-align: center; }
+body.nb-neolearn-page .nl-state-message[hidden],
+body.nb-neolearn-page .nl-empty-state[hidden] { display: none; }
+body.nb-neolearn-page .nl-state-message--error { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: .75rem; color: #b91c1c; }
+body.nb-neolearn-page:is(.dark,.dark-mode) .nl-state-message--error { color: #fca5a5; }
+body.nb-neolearn-page .nl-empty-state i { color: var(--account-accent); font-size: 1.6rem; }
+body.nb-neolearn-page .nl-empty-state h3 { margin: .45rem 0 .2rem; font-size: 1rem; }
+body.nb-neolearn-page .nl-empty-state p { margin: 0 0 .85rem; font-size: .85rem; }
+body.nb-neolearn-page .nl-page-toolbar { display: flex; align-items: end; justify-content: space-between; flex-wrap: wrap; gap: .8rem; margin-bottom: 1rem; }
+body.nb-neolearn-page .nl-peer-search-wrap { position: relative; width: min(100%, 360px); }
+body.nb-neolearn-page .nl-peer-search-wrap i { position: absolute; top: 50%; left: .75rem; color: var(--account-muted); transform: translateY(-50%); }
+body.nb-neolearn-page .nl-peer-search { width: 100%; padding-left: 2.2rem; }
+body.nb-neolearn-page .nl-peer-card { display: grid; align-content: start; gap: .8rem; padding: 1rem; }
+body.nb-neolearn-page .nl-peer-card { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+body.nb-neolearn-page .nl-peer-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--account-accent) 38%, var(--account-border)); box-shadow: var(--account-shadow-raised); }
+body.nb-neolearn-page .nl-peer-profile-link { display: flex; align-items: center; gap: .8rem; color: inherit; text-align: left; text-decoration: none; }
+body.nb-neolearn-page .nl-peer-profile-link .nl-social-avatar { width: 68px; height: 68px; font-size: 1.5rem; }
+body.nb-neolearn-page .nl-peer-identity { min-width: 0; }
+body.nb-neolearn-page .nl-peer-identity h2 { margin: 0; font-size: .98rem; overflow-wrap: anywhere; }
+body.nb-neolearn-page .nl-peer-username { margin: .15rem 0 0; color: var(--account-muted); font-size: .77rem; overflow-wrap: anywhere; }
+body.nb-neolearn-page .nl-peer-bio { display: -webkit-box; min-height: 2.8em; margin: 0; color: var(--account-secondary); font-size: .8rem; line-height: 1.4; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+body.nb-neolearn-page .nl-peer-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-block: 1px solid var(--account-border); }
+body.nb-neolearn-page .nl-peer-metrics .nl-social-stat { min-height: 48px; padding: .3rem .2rem; }
+body.nb-neolearn-page .nl-peer-metrics .nl-social-stat + .nl-social-stat { border-left: 1px solid var(--account-border); }
+body.nb-neolearn-page .nl-peer-metrics .nl-social-stat strong { font-size: .73rem; }
+body.nb-neolearn-page .nl-peer-metrics .nl-social-stat span { font-size: .65rem; }
+body.nb-neolearn-page .nl-peer-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .45rem; }
+body.nb-neolearn-page .nl-peer-actions .nl-social-button { padding-inline: .4rem; font-size: .75rem; }
+body.nb-neolearn-page .nl-profile-header { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1rem; align-items: center; }
+body.nb-neolearn-page .nl-profile-header .nl-social-avatar { width: 92px; height: 92px; font-size: 2rem; }
+body.nb-neolearn-page #neolearnProfile.account-card { padding: clamp(1.15rem, 2.5vw, 2rem); border-radius: 14px; }
+body.nb-neolearn-page .nl-profile-heading { min-width: 0; }
+body.nb-neolearn-page .nl-profile-heading h2 { margin: 0; font-size: 1.5rem; overflow-wrap: anywhere; }
+body.nb-neolearn-page .nl-profile-heading p { margin: .2rem 0 0; color: var(--account-muted); overflow-wrap: anywhere; }
+body.nb-neolearn-page .nl-profile-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+body.nb-neolearn-page .nl-profile-thought {
+  position: relative;
+  display: grid;
+  gap: .9rem;
+  margin-top: 1rem;
+  padding: clamp(1rem, 2vw, 1.4rem);
+  color: var(--account-secondary);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--account-accent) 9%, var(--account-surface)), var(--account-surface) 68%);
+  border: 1px solid color-mix(in srgb, var(--account-accent) 24%, var(--account-border));
+  border-radius: 14px;
+  box-shadow: var(--account-shadow);
+  overflow: hidden;
+}
+body.nb-neolearn-page .nl-profile-thought::before { position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--account-accent); content: ""; }
+body.nb-neolearn-page .nl-profile-thought[hidden] { display: none; }
+body.nb-neolearn-page .nl-thought-heading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+body.nb-neolearn-page .nl-thought-heading strong { display: flex; align-items: center; gap: .5rem; color: var(--account-text); font-size: .95rem; }
+body.nb-neolearn-page .nl-thought-heading strong::before { color: var(--account-accent); font-family: "bootstrap-icons"; font-size: 1rem; content: "\\f6b0"; }
+body.nb-neolearn-page .nl-thought-text { max-width: 70ch; margin: 0; padding: .15rem .2rem .15rem .8rem; color: var(--account-text); font-size: clamp(1rem, 1.7vw, 1.2rem); font-weight: 500; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+body.nb-neolearn-page .nl-thought-text:not([hidden])::before { color: var(--account-accent); content: "“"; font-size: 1.45em; font-weight: 700; line-height: 0; vertical-align: -.22em; margin-right: .12rem; }
+body.nb-neolearn-page .nl-thought-text:not([hidden])::after { color: var(--account-accent); content: "”"; font-size: 1.45em; font-weight: 700; line-height: 0; vertical-align: -.22em; margin-left: .12rem; }
+body.nb-neolearn-page #neoLearnThoughtEditor { display: grid; gap: .6rem; }
+body.nb-neolearn-page #neoLearnThoughtEditor[hidden] { display: none; }
+body.nb-neolearn-page #neoLearnThoughtInput { width: 100%; min-height: 110px; padding: .8rem .9rem; color: var(--account-text); background: var(--account-surface); border: 1px solid var(--account-border); border-radius: 10px; font: inherit; line-height: 1.5; resize: vertical; }
+body.nb-neolearn-page #neoLearnThoughtInput:focus { outline: 0; border-color: var(--account-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--account-accent) 18%, transparent); }
+body.nb-neolearn-page .nl-thought-form-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .65rem; color: var(--account-muted); font-size: .8rem; }
+body.nb-neolearn-page .nl-thought-form-footer > div { display: flex; flex-wrap: wrap; gap: .5rem; }
+body.nb-neolearn-page #neoLearnThoughtStatus { min-height: 1.2em; margin: 0; color: var(--account-muted); font-size: .82rem; }
+body.nb-neolearn-page #neoLearnOwnerStats[hidden] { display: none; }
+body.nb-neolearn-page .nl-detail-dialog {
+  width: min(94vw, 1040px);
+  max-width: none;
+  max-height: 92vh;
+  max-height: 92dvh;
+  margin: auto;
+  padding: 0;
+  color: var(--account-text);
+  background: var(--account-surface);
+  border: 1px solid var(--account-border);
+  border-radius: 10px;
+  box-shadow: var(--account-shadow-raised);
+  overflow: auto;
+}
+body.nb-neolearn-page .nl-detail-dialog::backdrop { background: rgba(15,23,42,.62); }
+body.nb-neolearn-page .nl-post-detail-content { position: relative; min-height: 54px; padding: 1rem; }
+body.nb-neolearn-page .nl-detail-close { position: sticky; top: .5rem; z-index: 1; display: grid; place-items: center; width: 42px; height: 42px; margin: 0 0 .6rem auto; color: var(--account-secondary); background: var(--account-surface); border: 1px solid var(--account-border); border-radius: 8px; cursor: pointer; }
+body.nb-neolearn-page .nl-post-detail-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr); gap: 1rem; align-items: start; }
+body.nb-neolearn-page .nl-post-detail-image { display: block; width: 100%; max-height: 70vh; object-fit: contain; background: #111827; border-radius: 8px; }
+body.nb-neolearn-page .nl-post-detail-copy { display: grid; gap: .7rem; min-width: 0; }
+body.nb-neolearn-page .nl-post-detail-copy .nl-comments { max-height: 38vh; overflow: auto; }
+body.nb-neolearn-page .nl-post-detail-author { margin-bottom: .2rem; }
+body.nb-neolearn-page .nl-connections-dialog { width: min(94vw, 460px); max-height: min(80dvh, 680px); }
+body.nb-neolearn-page .nl-connections-content { padding: .9rem 1rem 1rem; }
+body.nb-neolearn-page .nl-connections-header { display: flex; align-items: center; justify-content: space-between; gap: .75rem; border-bottom: 1px solid var(--account-border); }
+body.nb-neolearn-page .nl-connections-header h2 { margin: 0; font-size: 1rem; }
+body.nb-neolearn-page .nl-connections-header .nl-detail-close { position: static; flex: 0 0 40px; margin: 0 0 .6rem; }
+body.nb-neolearn-page #neoLearnConnectionsStatus { min-height: 1.4em; margin: .8rem 0 .25rem; color: var(--account-muted); font-size: .85rem; }
+body.nb-neolearn-page .nl-connections-list { display: grid; max-height: min(62dvh, 520px); overflow: auto; }
+body.nb-neolearn-page .nl-connection-item { display: flex; align-items: center; gap: .75rem; min-width: 0; padding: .65rem .25rem; color: var(--account-text); text-decoration: none; border-bottom: 1px solid var(--account-border); }
+body.nb-neolearn-page .nl-connection-item:hover .nl-connection-identity strong { color: var(--account-accent); }
+body.nb-neolearn-page .nl-connection-identity { display: grid; min-width: 0; }
+body.nb-neolearn-page .nl-connection-identity strong { overflow-wrap: anywhere; font-size: .88rem; }
+body.nb-neolearn-page .nl-connection-identity > span { color: var(--account-muted); font-size: .78rem; }
+body.nb-neolearn-page .nl-blocked-users-status { min-height: 1.4em; margin: .6rem 0 .25rem; color: var(--account-muted); font-size: .85rem; }
+body.nb-neolearn-page .nl-blocked-users-list { display: grid; }
+body.nb-neolearn-page .nl-blocked-user-row { display: flex; align-items: center; gap: .75rem; min-width: 0; border-bottom: 1px solid var(--account-border); }
+body.nb-neolearn-page .nl-blocked-user-row .nl-connection-item { flex: 1; border-bottom: 0; }
+
+@media (max-width: 991.98px) {
+  body.nb-neolearn-page .nl-post-grid,
+  body.nb-neolearn-page .nl-peer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767.98px) {
+  body.nb-neolearn-page .nl-post-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+  body.nb-neolearn-page .nl-peer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+  body.nb-neolearn-page .nl-post-body { padding: .65rem; }
+  body.nb-neolearn-page .nl-post-date { font-size: .64rem; }
+  body.nb-neolearn-page .nl-peer-card { gap: .65rem; padding: .75rem; }
+  body.nb-neolearn-page .nl-peer-actions { grid-template-columns: minmax(0, 1fr); }
+  body.nb-neolearn-page .nl-profile-header .nl-social-avatar { width: 72px; height: 72px; }
+  body.nb-neolearn-page .nl-detail-dialog { width: calc(100vw - 1rem); max-height: calc(100dvh - 1rem); }
+  body.nb-neolearn-page .nl-post-detail-layout { grid-template-columns: minmax(0, 1fr); }
+  body.nb-neolearn-page .nl-post-detail-image { max-height: 46vh; }
+}
+@media (max-width: 420px) {
+  body.nb-neolearn-page .nl-peer-grid { grid-template-columns: minmax(0, 1fr); }
+  body.nb-neolearn-page .nl-profile-stats { gap: .35rem; }
+  body.nb-neolearn-page .nl-profile-stat { min-height: 58px; padding: .45rem .2rem; }
+  body.nb-neolearn-page .nl-profile-stat strong { font-size: .75rem; }
+  body.nb-neolearn-page .nl-profile-stat span { font-size: .65rem; }
+  body.nb-neolearn-page .nl-profile-header { grid-template-columns: auto minmax(0, 1fr); gap: .65rem; }
+}
+/* ─── NeoLearn Home: Instagram-style 3-col layout ─── */
+body.nb-neolearn-page .nl-home-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 720px) minmax(220px, 270px);
+  gap: clamp(1.1rem, 2.4vw, 2rem);
+  align-items: start;
+  width: min(100%, 1220px);
+  margin: 0 auto;
+}
+body.nb-neolearn-page .nl-feed-column {
+  min-width: 0;
+}
+body.nb-neolearn-page .nl-feed-heading {
+  margin-bottom: 1.25rem;
+}
+body.nb-neolearn-page .nl-feed-heading h1 {
+  font-size: clamp(1.4rem, 2.2vw, 1.8rem);
+  font-weight: 750;
+  letter-spacing: -.03em;
+}
+body.nb-neolearn-page .nl-feed-heading p {
+  margin: .25rem 0 0;
+  color: var(--account-muted);
+  font-size: .88rem;
+}
+
+/* Feed uses a readable single-column learning timeline */
+body.nb-neolearn-page #neolearnFeedGrid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: .9rem;
+}
+body.nb-neolearn-page #neolearnFeedGrid .nl-post-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border-radius: 10px;
+  box-shadow: none;
+  transition: border-color .18s ease;
+}
+body.nb-neolearn-page #neolearnFeedGrid .nl-post-card:hover {
+  border-color: color-mix(in srgb, var(--account-accent) 28%, var(--account-border));
+}
+body.nb-neolearn-page #neolearnFeedGrid .nl-post-card.is-dismissed { opacity: 0; transform: translateY(-6px) scale(.99); }
+body.nb-neolearn-page #neolearnFeedGrid .nl-post-image { max-height: min(72vh, 560px); border-radius: 0; }
+body.nb-neolearn-page #neolearnFeedGrid .nl-post-body { padding: .8rem .9rem; }
+body.nb-neolearn-page #neolearnFeedGrid .nl-post-action[aria-pressed=true] { color: #e11d48; background: color-mix(in srgb, #e11d48 10%, transparent); }
+body.nb-neolearn-page #neolearnFeedGrid .nl-post-action.is-processing { transform: scale(.98); }
+body.nb-neolearn-page .nl-post-action:active { transform: scale(.97); }
+body.nb-neolearn-page #neolearnFeedGrid .nl-post-action[aria-pressed="true"] i { animation: nlLikePop .22s ease-out; }
+@keyframes nlLikePop {
+  50% { transform: scale(1.28); }
+}
+@keyframes nlCommentsIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Right Panel ─── */
+body.nb-neolearn-page .nl-right-panel {
+  position: sticky;
+  top: 80px;
+  min-width: 0;
+}
+body.nb-neolearn-page .nl-right-panel-inner {
+  display: grid;
+  gap: 1rem;
+}
+
+/* Suggestions Card */
+body.nb-neolearn-page .nl-suggestions-card {
+  padding: .85rem 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--account-border);
+  border-radius: 0;
+  box-shadow: none;
+}
+body.nb-neolearn-page .nl-suggestions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: .9rem;
+}
+body.nb-neolearn-page .nl-suggestions-title {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--account-muted);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+}
+body.nb-neolearn-page .nl-see-all-link {
+  font-size: .78rem;
+  font-weight: 650;
+  color: var(--account-accent);
+  text-decoration: none;
+  transition: color .15s ease;
+}
+body.nb-neolearn-page .nl-see-all-link:hover { text-decoration: underline; }
+
+/* Skeleton loading */
+body.nb-neolearn-page .nl-suggestions-loading {
+  display: grid;
+  gap: .75rem;
+  padding: .2rem 0;
+}
+body.nb-neolearn-page .nl-suggestions-skeleton {
+  display: block;
+  height: 58px;
+  background: linear-gradient(90deg, var(--account-border) 25%, color-mix(in srgb, var(--account-border) 50%, var(--account-surface)) 50%, var(--account-border) 75%);
+  background-size: 200% 100%;
+  border-radius: 10px;
+  animation: nlSkeletonShimmer 1.5s infinite;
+}
+body.nb-neolearn-page .nl-suggestions-loading[hidden],
+body.nb-neolearn-page .nl-suggestions-list:empty + .nl-suggestions-empty { display: none; }
+body.nb-neolearn-page .nl-suggestions-empty {
+  display: grid;
+  place-items: center;
+  gap: .5rem;
+  padding: 1.2rem .5rem;
+  text-align: center;
+  color: var(--account-muted);
+  font-size: .82rem;
+}
+body.nb-neolearn-page .nl-suggestions-empty[hidden] { display: none; }
+body.nb-neolearn-page .nl-suggestions-empty i { font-size: 1.6rem; color: var(--account-accent); }
+body.nb-neolearn-page .nl-suggestions-empty p { margin: 0; }
+
+/* Suggestion Items */
+body.nb-neolearn-page .nl-suggestions-list {
+  display: grid;
+  gap: .2rem;
+}
+body.nb-neolearn-page .nl-suggestion-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .65rem;
+  padding: .55rem .4rem;
+  border-radius: 10px;
+  transition: background .15s ease;
+}
+body.nb-neolearn-page .nl-suggestion-item:hover {
+  background: var(--account-accent-soft);
+}
+body.nb-neolearn-page:is(.dark,.dark-mode) .nl-suggestion-item:hover {
+  background: rgba(168, 146, 240, .08);
+}
+body.nb-neolearn-page .nl-suggestion-avatar-link {
+  display: block;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+body.nb-neolearn-page .nl-suggestion-identity {
+  min-width: 0;
+}
+body.nb-neolearn-page .nl-suggestion-name {
+  display: block;
+  font-size: .84rem;
+  font-weight: 650;
+  color: var(--account-text);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.nb-neolearn-page .nl-suggestion-name:hover { color: var(--account-accent); }
+body.nb-neolearn-page .nl-suggestion-sub {
+  display: block;
+  font-size: .72rem;
+  color: var(--account-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.nb-neolearn-page .nl-suggestion-learn-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: .3rem .7rem;
+  border: 1.5px solid transparent;
+  border-radius: 20px;
+  font: inherit;
+  font-size: .73rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s ease;
+  flex-shrink: 0;
+}
+body.nb-neolearn-page .nl-suggestion-learn-btn--primary {
+  color: var(--account-accent);
+  background: var(--account-accent-soft);
+  border-color: color-mix(in srgb, var(--account-accent) 30%, transparent);
+}
+body.nb-neolearn-page .nl-suggestion-learn-btn--primary:hover:not(:disabled) {
+  color: #fff;
+  background: var(--account-accent);
+  border-color: var(--account-accent);
+}
+body.nb-neolearn-page .nl-suggestion-learn-btn--secondary {
+  color: var(--account-muted);
+  background: transparent;
+  border-color: var(--account-border);
+}
+body.nb-neolearn-page .nl-suggestion-learn-btn--secondary:hover:not(:disabled) {
+  color: var(--account-text);
+  background: var(--account-bg);
+}
+body.nb-neolearn-page .nl-suggestion-learn-btn:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+/* Right panel quick links */
+body.nb-neolearn-page .nl-right-panel-links {
+  display: grid;
+  gap: .15rem;
+  padding: .4rem 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+body.nb-neolearn-page .nl-right-panel-links a {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .5rem .5rem;
+  border-radius: 8px;
+  font-size: .84rem;
+  font-weight: 550;
+  color: var(--account-secondary);
+  text-decoration: none;
+  transition: all .15s ease;
+}
+body.nb-neolearn-page .nl-right-panel-links a:hover {
+  color: var(--account-accent);
+  background: var(--account-accent-soft);
+}
+body.nb-neolearn-page .nl-right-panel-links a i {
+  width: 18px;
+  text-align: center;
+  font-size: .9rem;
+}
+
+/* NeoLearn's shared shell favors content and keeps account tools secondary. */
+body.nb-neolearn-page {
+  --nl-ink: #19364a;
+  --nl-green: #177e70;
+  --nl-coral: #e58362;
+  --account-accent: #177e70;
+  --account-accent-hover: #12695e;
+  --account-accent-soft: #e8f4f0;
+  --account-radius: 10px;
+  background-image: radial-gradient(ellipse at 76% 0%, rgba(23,126,112,.055), transparent 31rem);
+}
+body.nb-neolearn-page:is(.dark,.dark-mode) {
+  --account-accent: #70c7b5;
+  --account-accent-hover: #8bd7c7;
+  --account-accent-soft: #1d3a3a;
+}
+body.nb-neolearn-page .account-header {
+  position: sticky;
+  min-height: 68px;
+  padding-inline: max(1rem, calc((100vw - 1360px) / 2));
+  background: color-mix(in srgb, var(--account-surface) 92%, transparent);
+  border-bottom: 1px solid var(--account-border);
+  box-shadow: none;
+  backdrop-filter: blur(16px);
+}
+body.nb-neolearn-page .account-brand { color: var(--account-text); }
+body.nb-neolearn-page .neolearn-context {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  margin-left: .9rem;
+  padding-left: .9rem;
+  color: var(--account-accent);
+  border-left: 1px solid var(--account-border);
+  letter-spacing: .015em;
+  text-transform: none;
+  color: var(--account-text);
+  font-size: .92rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+body.nb-neolearn-page .neolearn-context span { color: var(--account-muted); font-size: .68rem; font-weight: 500; }
+body.nb-neolearn-page .account-header-actions { margin-left: auto; }
+body.nb-neolearn-page :is(.account-header-link,.account-theme-button) {
+  color: var(--account-secondary);
+  background: transparent;
+  border-color: transparent;
+  border-radius: 7px;
+}
+body.nb-neolearn-page :is(.account-header-link,.account-theme-button):hover {
+  color: var(--account-accent);
+  background: var(--account-accent-soft);
+  transform: none;
+}
+body.nb-neolearn-page .account-sidebar {
+  top: 68px;
+  width: 228px;
+  padding: 1.25rem .9rem;
+  color: var(--account-secondary);
+  background: var(--account-surface);
+  border-right: 1px solid var(--account-border);
+}
+body.nb-neolearn-page:is(.dark,.dark-mode) .account-sidebar { background: var(--account-surface); }
+body.nb-neolearn-page .account-sidebar-brand {
+  padding-bottom: 1rem;
+  color: var(--account-text);
+  border-color: var(--account-border);
+}
+body.nb-neolearn-page .neolearn-sidebar-title small { color: var(--account-muted); }
+body.nb-neolearn-page .account-sidebar nav { gap: .35rem; }
+body.nb-neolearn-page .account-sidebar nav :is(a,button) {
+  min-height: 46px;
+  color: var(--account-secondary);
+  border-radius: 8px;
+  font-weight: 550;
+}
+body.nb-neolearn-page .account-sidebar nav :is(a,button) i { color: inherit; }
+body.nb-neolearn-page .account-sidebar nav :is(a,button):hover {
+  color: var(--account-text);
+  background: var(--account-bg);
+  transform: none;
+}
+body.nb-neolearn-page .account-sidebar nav a[aria-current="page"] {
+  color: var(--account-accent);
+  background: var(--account-accent-soft);
+  box-shadow: none;
+  font-weight: 700;
+}
+body.nb-neolearn-page .account-main {
+  min-height: calc(100vh - 68px);
+  margin-top: 0;
+  margin-left: 228px;
+  padding: clamp(1.25rem, 3vw, 2.5rem);
+  animation: none;
+}
+body.nb-neolearn-page .account-content-wrap { width: min(100%, 1080px); }
+body.nb-neolearn-page .account-page-heading { margin-bottom: 1.15rem; }
+body.nb-neolearn-page .account-page-heading h1 { color: var(--nl-ink); font-size: clamp(1.65rem, 2.5vw, 2rem); }
+body.nb-neolearn-page:is(.dark,.dark-mode) .account-page-heading h1 { color: var(--account-text); }
+body.nb-neolearn-page .account-sidebar nav .neolearn-upload-button {
+  color: #fff;
+  background: var(--account-accent);
+  font-weight: 700;
+}
+body.nb-neolearn-page .account-sidebar nav .neolearn-upload-button:hover { color: #fff; background: var(--account-accent-hover); }
+body.nb-neolearn-page .nl-home-layout { width: min(100%, 1080px); }
+body.nb-neolearn-page .nl-feed-heading { padding-bottom: .85rem; border-bottom: 1px solid var(--account-border); }
+body.nb-neolearn-page .nl-feed-heading h1 { color: var(--account-text); font-size: 1.55rem; }
+body.nb-neolearn-page .nl-feed-heading p { font-size: .84rem; }
+body.nb-neolearn-page .nl-peer-card { box-shadow: none; border-radius: 10px; }
+body.nb-neolearn-page .nl-posts-section { margin-top: 1.4rem; }
+body.nb-neolearn-page .nl-notification-card { border-radius: 9px; box-shadow: none; }
+body.nb-neolearn-page .mobile-account-nav { background: var(--account-surface); border-color: var(--account-border); box-shadow: 0 -5px 20px rgba(18,45,57,.06); }
+body.nb-neolearn-page .mobile-account-nav :is(a,button) { color: var(--account-muted); }
+body.nb-neolearn-page .mobile-account-nav :is(a,button)[aria-current="page"] { color: var(--account-accent); background: var(--account-accent-soft); }
+body.nb-neolearn-page .mobile-account-nav .neolearn-upload-button { color: var(--account-accent); }
+body.nb-neolearn-page :is(.nl-social-button--primary,.nl-suggestion-learn-btn--primary) {
+  color: #fff;
+  background: var(--account-accent);
+  border-color: var(--account-accent);
+}
+body.nb-neolearn-page :is(.nl-social-button--primary,.nl-suggestion-learn-btn--primary):hover:not(:disabled) { background: var(--account-accent-hover); }
+body.nb-neolearn-page :is(.nl-post-card,.nl-peer-card,.nl-notification-card,.account-card) { box-shadow: none; }
+body.nb-neolearn-page :is(.nl-post-action,.nl-social-button,.nl-post-menu-btn) { min-height: 42px; }
+body.nb-neolearn-page :is(.nl-post-image,.nl-post-detail-image) { height: auto; }
+body.nb-neolearn-page .nl-peer-search-wrap:focus-within { border-color: var(--account-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--account-accent) 16%, transparent); }
+body.nb-neolearn-page :is(a,button):focus-visible { outline-color: color-mix(in srgb, var(--account-accent) 70%, white); }
+
+@media (max-width: 991.98px) {
+  body.nb-neolearn-page .account-sidebar { width: 200px; }
+  body.nb-neolearn-page .account-main { margin-left: 200px; }
+}
+@media (max-width: 767.98px) {
+  body.nb-neolearn-page .account-header { position: sticky; top: 0; min-height: 56px; padding-inline: .8rem; }
+  body.nb-neolearn-page .account-header-link { display: none; }
+  body.nb-neolearn-page .neolearn-context { margin-left: .65rem; padding-left: .65rem; }
+  body.nb-neolearn-page .account-sidebar { display: none; }
+  body.nb-neolearn-page .account-main { min-height: calc(100vh - 56px); margin: 0; padding: 1rem .8rem 6rem; }
+  body.nb-neolearn-page .nl-home-layout { grid-template-columns: minmax(0,1fr); }
+  body.nb-neolearn-page .nl-right-panel { display: none; }
+  body.nb-neolearn-page .nl-peer-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  body.nb-neolearn-page .mobile-account-nav { grid-template-columns: repeat(5,minmax(0,1fr)); }
+}
+@media (max-width: 480px) {
+  body.nb-neolearn-page .neolearn-context { display: inline; font-size: .7rem; }
+  body.nb-neolearn-page .account-header-actions { gap: .15rem; }
+  body.nb-neolearn-page .account-theme-button { width: 38px; padding: 0; }
+  body.nb-neolearn-page .nl-peer-grid { grid-template-columns: minmax(0,1fr); }
+}
+
+/* Final layout overrides: preserve the timeline at every breakpoint. */
+body.nb-neolearn-page #neolearnFeedGrid { grid-template-columns: minmax(0,1fr); }
+body.nb-neolearn-page #neolearnFeedGrid .nl-post-card,
+body.nb-neolearn-page #neoLearnPeerPostsGrid .nl-post-card { border-radius: 9px; box-shadow: none; }
+body.nb-neolearn-page .nl-peer-card:hover { transform: none; box-shadow: none; }
+body.nb-neolearn-page #neolearnProfile.account-card { padding: clamp(1rem, 2.5vw, 1.7rem); border-radius: 10px; }
+body.nb-neolearn-page .nl-profile-thought { border-radius: 10px; box-shadow: none; }
+body.nb-neolearn-page .nl-notification-card.is-unread { border-left-width: 3px; }
+body.nb-neolearn-page .nl-home-layout { grid-template-columns: minmax(0,720px) minmax(220px,270px); width: min(100%,1080px); }
+body.nb-neolearn-page .nl-post-image-button:hover .nl-post-image { transform: none; }
+body.nb-neolearn-page .account-sidebar nav a[aria-current="page"] { color: var(--account-accent); }
+body.nb-neolearn-page .nl-badge { margin-left: auto; }
+body.nb-neolearn-page .account-header .nl-badge { margin-left: .35rem; }
+@media (max-width: 1100px) {
+  body.nb-neolearn-page .nl-home-layout { grid-template-columns: minmax(0,1fr) 235px; }
+}
+@media (max-width: 880px) {
+  body.nb-neolearn-page .nl-home-layout { grid-template-columns: minmax(0,1fr); }
+  body.nb-neolearn-page .nl-right-panel { display: none; }
+}
+@media (max-width: 767.98px) {
+  body.nb-neolearn-page .account-header { position: sticky; top: 0; margin-top: 0; }
+  body.nb-neolearn-page .account-main { margin-top: 0; margin-left: 0; }
+  body.nb-neolearn-page .nl-profile-header { grid-template-columns: auto minmax(0,1fr); align-items: start; }
+  body.nb-neolearn-page .nl-home-layout { grid-template-columns: minmax(0,1fr); }
+  body.nb-neolearn-page #neolearnFeedGrid { grid-template-columns: minmax(0,1fr); }
+  body.nb-neolearn-page .account-header-link { display: none; }
+  body.nb-neolearn-page .nl-notification-card { grid-template-columns: auto minmax(0,1fr); }
+}
+@media (max-width: 480px) {
+  body.nb-neolearn-page .neolearn-context span { display: none; }
+  body.nb-neolearn-page .nl-peer-grid { grid-template-columns: minmax(0,1fr); }
+}
+
+/* Keep feed cards and their controls within narrow profile/feed columns. */
+body.nb-neolearn-page .nl-post-author { flex-wrap: wrap; }
+body.nb-neolearn-page .nl-post-author-link { flex: 1 1 6rem; }
+body.nb-neolearn-page .nl-post-date { margin-left: 0; }
+body.nb-neolearn-page :is(.nl-post-grid,#neolearnFeedGrid,#neoLearnPeerPostsGrid) { min-width: 0; }
+body.nb-neolearn-page .nl-post-image-button,
+body.nb-neolearn-page .nl-post-image { max-width: 100%; }
+body.nb-neolearn-page .nl-post-actions { column-gap: .25rem; row-gap: .25rem; }
+body.nb-neolearn-page .nl-post-action { min-width: 0; }
+body.nb-neolearn-page .nl-post-description,
+body.nb-neolearn-page .nl-profile-heading,
+body.nb-neolearn-page .nl-profile-thought { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 420px) {
+  body.nb-neolearn-page .nl-post-author { column-gap: .35rem; }
+  body.nb-neolearn-page .nl-post-author-link { font-size: .76rem; }
+  body.nb-neolearn-page .nl-post-date { flex: 1 0 100%; padding-left: 2.1rem; }
+  body.nb-neolearn-page .nl-post-actions .nl-post-action { padding-inline: .38rem; font-size: .74rem; }
+  body.nb-neolearn-page .nl-profile-actions > * { max-width: 100%; }
+}
+
+/* Skeleton loading */
+@keyframes nlSkeletonShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+body.nb-neolearn-page .nl-state-message--skeleton { padding: 0; background: transparent; border: 0; text-align: left; }
+body.nb-neolearn-page .nl-peer-skeleton-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 1rem; }
+body.nb-neolearn-page .nl-peer-skeleton {
+  display: grid;
+  gap: .9rem;
+  min-height: 210px;
+  padding: 1rem;
+  background: linear-gradient(100deg, var(--account-surface) 25%, color-mix(in srgb, var(--account-border) 38%, var(--account-surface)) 45%, var(--account-surface) 65%);
+  background-size: 220% 100%;
+  border: 1px solid var(--account-border);
+  border-radius: 12px;
+  animation: nlSkeletonShimmer 1.35s ease-in-out infinite;
+}
+body.nb-neolearn-page .nl-peer-skeleton-head { display: flex; align-items: center; gap: .75rem; }
+body.nb-neolearn-page .nl-peer-skeleton-avatar { width: 58px; height: 58px; flex: 0 0 auto; background: var(--account-border); border-radius: 50%; }
+body.nb-neolearn-page .nl-peer-skeleton-lines { display: grid; flex: 1; gap: .5rem; }
+body.nb-neolearn-page .nl-peer-skeleton-line { height: 11px; background: var(--account-border); border-radius: 999px; }
+body.nb-neolearn-page .nl-peer-skeleton-line:first-child { width: 68%; height: 14px; }
+body.nb-neolearn-page .nl-peer-skeleton-line:last-child { width: 42%; }
+body.nb-neolearn-page .nl-peer-skeleton-copy { width: 85%; height: 11px; background: var(--account-border); border-radius: 999px; }
+body.nb-neolearn-page .nl-peer-skeleton-actions { align-self: end; width: 100%; height: 36px; background: var(--account-border); border-radius: 8px; }
+body.nb-neolearn-page .nl-peer-skeleton-grid[hidden] { display: none; }
+body.nb-neolearn-page .nl-feed-loading { display: grid; gap: 1rem; }
+body.nb-neolearn-page .nl-feed-loading[hidden] { display: none; }
+body.nb-neolearn-page .nl-feed-skeleton {
+  min-width: 0;
+  overflow: hidden;
+  background: var(--account-surface);
+  border: 1px solid var(--account-border);
+  border-radius: 13px;
+  box-shadow: var(--account-shadow);
+}
+body.nb-neolearn-page .nl-feed-skeleton-header { display: flex; align-items: center; gap: .7rem; padding: .85rem 1rem; }
+body.nb-neolearn-page .nl-feed-skeleton-avatar,
+body.nb-neolearn-page .nl-profile-skeleton-avatar,
+body.nb-neolearn-page .nl-feed-skeleton-lines span,
+body.nb-neolearn-page .nl-feed-skeleton-copy span,
+body.nb-neolearn-page .nl-notification-skeleton > span { background: var(--account-border); }
+body.nb-neolearn-page .nl-feed-skeleton-avatar { width: 40px; height: 40px; flex: 0 0 auto; border-radius: 50%; }
+body.nb-neolearn-page .nl-feed-skeleton-lines { display: grid; flex: 1; gap: .45rem; }
+body.nb-neolearn-page .nl-feed-skeleton-lines span,
+body.nb-neolearn-page .nl-feed-skeleton-copy span { display: block; height: 11px; border-radius: 999px; }
+body.nb-neolearn-page .nl-feed-skeleton-lines span:first-child { width: 36%; height: 14px; }
+body.nb-neolearn-page .nl-feed-skeleton-lines span:last-child { width: 22%; }
+body.nb-neolearn-page .nl-feed-skeleton-image { aspect-ratio: 4 / 3; background: var(--account-border); }
+body.nb-neolearn-page .nl-feed-skeleton-copy { display: grid; gap: .55rem; padding: 1rem; }
+body.nb-neolearn-page .nl-feed-skeleton-copy span:first-child { width: 76%; }
+body.nb-neolearn-page .nl-feed-skeleton-copy span:last-child { width: 43%; }
+body.nb-neolearn-page .nl-feed-skeleton :is(.nl-feed-skeleton-avatar,.nl-feed-skeleton-lines span,.nl-feed-skeleton-image,.nl-feed-skeleton-copy span),
+body.nb-neolearn-page .nl-profile-skeleton :is(.nl-profile-skeleton-avatar,.nl-feed-skeleton-lines span),
+body.nb-neolearn-page .nl-notification-skeleton > span { animation: nlSkeletonPulse 1.35s ease-in-out infinite alternate; }
+body.nb-neolearn-page .nl-profile-skeleton { display: flex; align-items: center; gap: 1rem; min-height: 128px; padding: 1.2rem; background: var(--account-surface); border: 1px solid var(--account-border); border-radius: 13px; }
+body.nb-neolearn-page .nl-profile-skeleton-avatar { width: 82px; height: 82px; flex: 0 0 auto; border-radius: 50%; }
+body.nb-neolearn-page .nl-profile-skeleton .nl-feed-skeleton-lines { gap: .65rem; }
+body.nb-neolearn-page .nl-profile-skeleton .nl-feed-skeleton-lines span:first-child { height: 18px; }
+body.nb-neolearn-page .nl-notifications-skeleton { display: grid; gap: .7rem; }
+body.nb-neolearn-page .nl-notifications-skeleton[hidden] { display: none; }
+body.nb-neolearn-page .nl-notification-skeleton { display: grid; grid-template-columns: 42px minmax(0, 1fr); align-items: center; gap: .8rem; min-height: 84px; padding: .9rem 1rem; background: var(--account-surface); border: 1px solid var(--account-border); border-radius: 10px; }
+body.nb-neolearn-page .nl-notification-skeleton > span:first-child { width: 42px; height: 42px; border-radius: 50%; }
+body.nb-neolearn-page .nl-notification-skeleton > span:last-child { display: grid; gap: .55rem; height: auto; background: transparent; }
+body.nb-neolearn-page .nl-notification-skeleton i { display: block; width: min(72%, 340px); height: 11px; background: var(--account-border); border-radius: 999px; }
+body.nb-neolearn-page .nl-notification-skeleton i:last-child { width: min(38%, 180px); }
+@keyframes nlSkeletonPulse { from { opacity: .52; } to { opacity: 1; } }
+@media (max-width: 767.98px) {
+  body.nb-neolearn-page .nl-feed-skeleton-header { padding: .75rem; }
+  body.nb-neolearn-page .nl-feed-skeleton-copy { padding: .8rem; }
+  body.nb-neolearn-page .nl-profile-skeleton { min-height: 104px; padding: .9rem; }
+  body.nb-neolearn-page .nl-profile-skeleton-avatar { width: 66px; height: 66px; }
+}
+
+body.nb-neolearn-page .nl-comment-author,
+body.nb-neolearn-page .nl-post-author-avatar-link,
+body.nb-neolearn-page .nl-comment-author-avatar-link { color: inherit; text-decoration: none; }
+body.nb-neolearn-page .nl-comment-author { font-weight: 650; }
+body.nb-neolearn-page :is(.nl-comment-author,.nl-post-author-avatar-link,.nl-comment-author-avatar-link):hover { color: var(--account-accent); text-decoration: underline; }
+body.nb-neolearn-page :is(.nl-comment-author,.nl-post-author-avatar-link,.nl-comment-author-avatar-link):focus-visible { outline: 3px solid color-mix(in srgb, var(--account-accent) 45%, transparent); outline-offset: 2px; border-radius: 4px; }
+
+/* ─── NeoLearn Notification Badge ─── */
+body.nb-neolearn-page .nl-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  font-size: .72rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  background: #ef4444;
+  border-radius: 9999px;
+  margin-left: auto;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, .35);
+  transition: transform .15s ease;
+}
+body.nb-neolearn-page .nl-badge[hidden] {
+  display: none !important;
+}
+body.nb-neolearn-page .nl-mobile-nav-icon-wrap {
+  position: relative;
+  display: inline-flex;
+}
+body.nb-neolearn-page .nl-badge--mobile {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  font-size: .65rem;
+  margin: 0;
+}
+
+/* ─── NeoLearn Notifications Page ─── */
+body.nb-neolearn-page .nl-notifications-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+body.nb-neolearn-page .nl-notifications-list {
+  display: grid;
+  gap: .75rem;
+  margin-top: 1rem;
+}
+body.nb-neolearn-page .nl-notification-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: .9rem;
+  padding: .85rem 1rem;
+  background: var(--account-surface);
+  border: 1px solid var(--account-border);
+  border-radius: 10px;
+  box-shadow: var(--account-shadow);
+  cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease, transform .15s ease;
+}
+body.nb-neolearn-page .nl-notification-card:hover {
+  background: var(--account-surface-raised);
+  border-color: var(--account-accent);
+}
+body.nb-neolearn-page .nl-notification-card:focus-visible {
+  outline: 2px solid var(--account-accent);
+  outline-offset: 2px;
+}
+body.nb-neolearn-page .nl-notification-card.is-unread {
+  background: color-mix(in srgb, var(--account-accent) 8%, var(--account-surface));
+  border-left: 4px solid var(--account-accent);
+}
+body.nb-neolearn-page:is(.dark, .dark-mode) .nl-notification-card.is-unread {
+  background: color-mix(in srgb, var(--account-accent) 12%, var(--account-surface));
+  border-left: 4px solid var(--account-accent);
+}
+body.nb-neolearn-page .nl-notification-unread-dot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  background: var(--account-accent);
+  border-radius: 50%;
+}
+body.nb-neolearn-page .nl-notification-avatar-link {
+  display: block;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+body.nb-neolearn-page .nl-notification-content {
+  min-width: 0;
+}
+body.nb-neolearn-page .nl-notification-header {
+  font-size: .88rem;
+  color: var(--account-text);
+  overflow-wrap: anywhere;
+}
+body.nb-neolearn-page .nl-notification-actor-name {
+  font-weight: 700;
+  color: var(--account-text);
+  text-decoration: none;
+}
+body.nb-neolearn-page .nl-notification-actor-name:hover {
+  color: var(--account-accent);
+  text-decoration: underline;
+}
+body.nb-neolearn-page .nl-notification-action-text {
+  color: var(--account-secondary);
+}
+body.nb-neolearn-page .nl-notification-comment-preview {
+  margin: .25rem 0 0;
+  font-size: .82rem;
+  color: var(--account-muted);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.nb-neolearn-page .nl-notification-time {
+  display: block;
+  margin-top: .25rem;
+  font-size: .74rem;
+  color: var(--account-muted);
+}
+body.nb-neolearn-page .nl-notification-post-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  padding: .35rem .65rem;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--account-secondary);
+  background: var(--account-surface-raised);
+  border: 1px solid var(--account-border);
+  border-radius: 6px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all .15s ease;
+}
+body.nb-neolearn-page .nl-notification-post-link:hover {
+  color: var(--account-accent);
+  border-color: var(--account-accent);
+  background: var(--account-surface);
+}
+
+@media (max-width: 600px) {
+  body.nb-neolearn-page .nl-notification-card {
+    grid-template-columns: auto 1fr;
+    gap: .75rem;
+    padding: .75rem;
+  }
+  body.nb-neolearn-page .nl-notification-post-link {
+    grid-column: 2 / -1;
+    justify-self: start;
+    margin-top: .25rem;
+  }
+}
+
+/* ─── NeoLearn Moderation & Post Menu ─── */
+body.nb-neolearn-page .nl-post-header-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  width: 100%;
+}
+body.nb-neolearn-page .nl-post-menu-wrap {
+  position: relative;
+  display: inline-flex;
+  margin-left: auto;
+}
+body.nb-neolearn-page .nl-post-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--account-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+body.nb-neolearn-page .nl-post-menu-btn:hover {
+  color: var(--account-text);
+  background: var(--account-surface-raised);
+  border-color: var(--account-border);
+}
+body.nb-neolearn-page .nl-post-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 50;
+  min-width: 160px;
+  margin-top: .3rem;
+  padding: .35rem 0;
+  background: var(--account-surface);
+  border: 1px solid var(--account-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .15);
+  animation: nlFadeIn .15s ease;
+}
+body.nb-neolearn-page .nl-post-menu-dropdown[hidden] {
+  display: none !important;
+}
+body.nb-neolearn-page .nl-post-menu-item {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  width: 100%;
+  padding: .5rem .85rem;
+  color: var(--account-text);
+  background: transparent;
+  border: 0;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 550;
+  text-align: left;
+  cursor: pointer;
+}
+body.nb-neolearn-page .nl-post-menu-item:hover {
+  background: var(--account-surface-raised);
+}
+body.nb-neolearn-page .nl-post-menu-item--danger {
+  color: #ef4444;
+}
+body.nb-neolearn-page .nl-post-menu-item--danger:hover {
+  background: color-mix(in srgb, #ef4444 12%, transparent);
+}
+body.nb-neolearn-page .nl-social-button--danger {
+  color: #fff;
+  background: #dc2626;
+  border-color: #dc2626;
+}
+body.nb-neolearn-page .nl-social-button--danger:hover:not(:disabled) {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+body.nb-neolearn-page .nl-profile-blocked-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .4rem .75rem;
+  color: #ef4444;
+  background: color-mix(in srgb, #ef4444 12%, transparent);
+  border: 1px solid color-mix(in srgb, #ef4444 30%, transparent);
+  border-radius: 8px;
+  font-size: .82rem;
+  font-weight: 600;
+}
+
+/* ─── NeoLearn Dialogs (Confirmation & Report) ─── */
+body.nb-neolearn-page .nl-modal-dialog {
+  border: 1px solid var(--account-border);
+  border-radius: 12px;
+  background: var(--account-surface);
+  color: var(--account-text);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, .25);
+  max-width: 440px;
+  width: calc(100% - 2rem);
+  padding: 1.5rem;
+}
+body.nb-neolearn-page .nl-edit-post-dialog { max-width: 520px; }
+body.nb-neolearn-page .nl-edit-post-form { display: grid; gap: .5rem; }
+body.nb-neolearn-page .nl-edit-post-form label { color: var(--account-secondary); font-size: .84rem; font-weight: 650; }
+body.nb-neolearn-page .nl-edit-post-input {
+  width: 100%;
+  min-height: 128px;
+  padding: .7rem .8rem;
+  color: var(--account-text);
+  background: var(--account-surface-raised);
+  border: 1px solid var(--account-border);
+  border-radius: 8px;
+  font: inherit;
+  line-height: 1.5;
+  resize: vertical;
+}
+body.nb-neolearn-page .nl-edit-post-input:focus { border-color: var(--account-accent); outline: 0; box-shadow: 0 0 0 3px color-mix(in srgb, var(--account-accent) 18%, transparent); }
+body.nb-neolearn-page .nl-edit-post-count { color: var(--account-muted); font-size: .74rem; text-align: right; }
+body.nb-neolearn-page .nl-modal-dialog::backdrop {
+  background: rgba(0, 0, 0, .5);
+  backdrop-filter: blur(2px);
+}
+body.nb-neolearn-page .nl-modal-wrap {
+  display: grid;
+  gap: 1rem;
+}
+body.nb-neolearn-page .nl-modal-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--account-text);
+}
+body.nb-neolearn-page .nl-modal-message {
+  margin: 0;
+  font-size: .88rem;
+  color: var(--account-secondary);
+  line-height: 1.5;
+}
+body.nb-neolearn-page .nl-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .6rem;
+  margin-top: .5rem;
+}
+body.nb-neolearn-page .nl-report-form {
+  display: grid;
+  gap: .8rem;
+}
+body.nb-neolearn-page .nl-report-fieldset {
+  display: grid;
+  gap: .6rem;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+body.nb-neolearn-page .nl-report-option {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .5rem .75rem;
+  background: var(--account-surface-raised);
+  border: 1px solid var(--account-border);
+  border-radius: 8px;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+body.nb-neolearn-page .nl-report-option:hover {
+  border-color: var(--account-accent);
+}
+body.nb-neolearn-page .nl-report-option input[type="radio"] {
+  accent-color: var(--account-accent);
+  margin: 0;
+  cursor: pointer;
+}
+body.nb-neolearn-page .nl-modal-status {
+  margin: 0;
+  padding: .65rem .85rem;
+  border-radius: 8px;
+  font-size: .84rem;
+}
+body.nb-neolearn-page .nl-modal-status--success {
+  background: color-mix(in srgb, #16a34a 15%, transparent);
+  color: #16a34a;
+  border: 1px solid color-mix(in srgb, #16a34a 30%, transparent);
+}
+body.nb-neolearn-page:is(.dark, .dark-mode) .nl-modal-status--success {
+  color: #4ade80;
+}
+body.nb-neolearn-page .nl-modal-status--error {
+  background: color-mix(in srgb, #dc2626 15%, transparent);
+  color: #dc2626;
+  border: 1px solid color-mix(in srgb, #dc2626 30%, transparent);
+}
+body.nb-neolearn-page:is(.dark, .dark-mode) .nl-modal-status--error {
+  color: #f87171;
+}
+
+@keyframes nlFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ─── NeoLearn UI Polish ─── */
+
+/* Header center label */
+body.nb-neolearn-page .neolearn-context {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #c5b8f7;
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  pointer-events: none;
+  opacity: .9;
+}
+
+/* Sidebar NeoLearn title */
+body.nb-neolearn-page .neolearn-sidebar-title {
+  display: flex;
+  flex-direction: column;
+  font-size: .92rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.25;
+}
+body.nb-neolearn-page .neolearn-sidebar-title small {
+  font-size: .62rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, .5);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+/* Sidebar Upload button — styled like an accent nav link */
+body.nb-neolearn-page .account-sidebar nav .neolearn-upload-button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 42px;
+  gap: .7rem;
+  padding: .6rem .75rem;
+  color: #fff;
+  background: rgba(168, 146, 240, .2);
+  border: 1px solid rgba(168, 146, 240, .35);
+  border-radius: 8px;
+  font: inherit;
+  font-size: .9rem;
+  font-weight: 650;
+  cursor: pointer;
+  text-align: left;
+  transition: background .15s ease, border-color .15s ease;
+}
+body.nb-neolearn-page .account-sidebar nav .neolearn-upload-button:hover {
+  background: rgba(168, 146, 240, .3);
+  border-color: rgba(168, 146, 240, .5);
+}
+body.nb-neolearn-page .account-sidebar nav .neolearn-upload-button i { width: 22px; text-align: center; }
+
+/* Post card: rounded top for image */
+body.nb-neolearn-page .nl-post-card .nl-post-image-button {
+  border-radius: 12px 12px 0 0;
+  overflow: hidden;
+}
+
+/* Better post description line clamp */
+body.nb-neolearn-page .nl-post-description {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Like button heart pulse on liked state */
+@keyframes nlHeartPulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.28); }
+  70%  { transform: scale(0.93); }
+  100% { transform: scale(1); }
+}
+body.nb-neolearn-page .nl-post-action[aria-pressed="true"] .bi-heart-fill {
+  animation: nlHeartPulse .32s ease;
+}

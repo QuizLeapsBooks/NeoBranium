@@ -60,6 +60,7 @@
           </button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
             <li><a class="dropdown-item" href="/htmls/profile.html"><i class="bi bi-person me-2"></i>Profile</a></li>
+            <li><a class="dropdown-item d-none" id="dropdownNeoLearnLink" href="/htmls/neolearn/index.html"><i class="bi bi-person-badge me-2"></i>NeoLearn</a></li>
             <li><a class="dropdown-item" href="/htmls/setting.html"><i class="bi bi-gear me-2"></i>Settings</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item text-danger" href="#" id="logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
@@ -100,13 +101,23 @@
     <section class="mb-4">
       <div class="card nb-hero-card border-0">
         <div class="card-body px-4 py-4">
-          <div class="d-flex align-items-center gap-3">
-            <div class="nb-hero-icon">
-              <i class="bi bi-mortarboard-fill"></i>
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+              <div class="nb-hero-icon">
+                <i class="bi bi-mortarboard-fill"></i>
+              </div>
+              <div class="text-start">
+                <h2 class="fw-bold nb-hero-title mb-1 slide-in">Welcome to NeoBranium!</h2>
+                <p class="nb-hero-sub mb-0 slide-in">Your one-stop platform for learning, quizzes, and more!</p>
+              </div>
             </div>
-            <div class="text-start">
-              <h2 class="fw-bold nb-hero-title mb-1 slide-in">Welcome to NeoBranium!</h2>
-              <p class="nb-hero-sub mb-0 slide-in">Your one-stop platform for learning, quizzes, and more!</p>
+            <!-- Profile Photo & Thought of the Day (Desktop / Large Screen Only) -->
+            <div id="dashboardThoughtSection" class="dashboard-thought-widget d-none d-lg-flex flex-column align-items-center text-center">
+              <div id="dashboardProfileAvatar" class="dashboard-avatar mb-2" aria-label="Profile photo"></div>
+              <div id="dashboardThoughtCard" class="dashboard-thought-box d-none">
+                <span class="dashboard-thought-label"><i class="bi bi-chat-quote-fill me-1"></i>Thought of the Day</span>
+                <p id="dashboardThoughtText" class="dashboard-thought-text mb-0"></p>
+              </div>
             </div>
           </div>
         </div>
@@ -121,6 +132,10 @@
           <div class="nb-tile-icon"><i class="bi bi-lightning-charge-fill"></i></div>
           <span class="nb-tile-label">Shortcuts</span>
         </button>
+        <a href="/htmls/neolearn/index.html" class="nb-action-tile staggered-item text-decoration-none d-none" id="neolearnDashboardAction">
+          <div class="nb-tile-icon"><i class="bi bi-person-badge-fill"></i></div>
+          <span class="nb-tile-label">NeoLearn</span>
+        </a>
         <a href="/htmls/bot/bot.html" class="nb-action-tile staggered-item text-decoration-none">
           <div class="nb-tile-icon"><i class="bi bi-robot"></i></div>
           <span class="nb-tile-label">AI Assistant</span>
@@ -458,6 +473,69 @@
   <script type="module" src="/js/learning-progress.js"></script>
   <script type="module" src="/js/dashboard.js"></script>
   <script src="/js/shortcuts.js"></script>
+
+  <!-- Dashboard: Profile Avatar + Thought of the Day widget (desktop only) -->
+  <script type="module">
+    import { syncProfilePhoto, isThoughtActive } from '/js/profile-photo-cache.js';
+    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+    import { db } from '/js/auth.js';
+
+    const avatarEl  = document.getElementById('dashboardProfileAvatar');
+    const thoughtCard = document.getElementById('dashboardThoughtCard');
+    const thoughtText = document.getElementById('dashboardThoughtText');
+
+    function setAvatar(url, initial) {
+      if (!avatarEl) return;
+      if (url) {
+        avatarEl.style.backgroundImage = `url('${url}')`;
+        avatarEl.textContent = '';
+      } else {
+        avatarEl.style.backgroundImage = '';
+        avatarEl.textContent = initial || '?';
+      }
+    }
+
+    function setThought(userData) {
+      if (!thoughtCard || !thoughtText) return;
+      const thought   = userData.thoughtOfTheDay || '';
+      const expiresAt = userData.thoughtOfTheDayExpiresAt;
+      if (isThoughtActive(thought, expiresAt)) {
+        thoughtText.textContent = thought;
+        thoughtCard.classList.remove('d-none');
+      } else {
+        thoughtCard.classList.add('d-none');
+      }
+    }
+
+    document.addEventListener('userLoaded', (e) => {
+      const { user, userData } = e.detail || {};
+      if (!user || !avatarEl) return;
+
+      const remoteUrl = userData?.profilePhotoUrl || userData?.photoURL || user.photoURL || '';
+      const initial   = (userData?.fname || userData?.username || user.displayName || '?')[0].toUpperCase();
+
+      // Show cached / remote avatar
+      syncProfilePhoto(user.uid, remoteUrl, (displayUrl) => {
+        setAvatar(displayUrl, initial);
+      });
+
+      // Fallback initial while photo loads
+      if (!remoteUrl) setAvatar('', initial);
+
+      // Wire thought
+      setThought(userData || {});
+
+      // Check NeoLearn Profile
+      getDoc(doc(db, "neolearn_profiles", user.uid)).then(neolearnSnap => {
+        if (neolearnSnap.exists()) {
+          const actionLink = document.getElementById('neolearnDashboardAction');
+          if (actionLink) actionLink.classList.remove('d-none');
+          const dropdownLink = document.getElementById('dropdownNeoLearnLink');
+          if (dropdownLink) dropdownLink.classList.remove('d-none');
+        }
+      }).catch(err => console.error("Error checking NeoLearn profile", err));
+    });
+  </script>
 </body>
 
 </html>

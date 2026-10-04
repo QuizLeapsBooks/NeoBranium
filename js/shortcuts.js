@@ -109,10 +109,11 @@ document.addEventListener('keydown', (event) => {
       showToast('Logging out');
       break;
     case 'm':
-      const darkModeToggle = document.getElementById('dark-mode-toggle');
+      const darkModeToggle = document.getElementById('dark-mode-toggle') || document.getElementById('themeToggle');
       if (darkModeToggle) {
         darkModeToggle.click();
-        showToast(darkModeToggle.checked ? 'Dark Mode Enabled' : 'Light Mode Enabled');
+        const isDark = document.documentElement.classList.contains('dark');
+        showToast(isDark ? 'Dark Mode Enabled' : 'Light Mode Enabled');
       }
       break;
     case 'q':

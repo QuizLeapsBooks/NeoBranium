@@ -308,6 +308,154 @@ body.nb-account-page .mobile-account-nav { display: none; }
   body.nb-account-page .settings-field .settings-save { justify-self: start; }
 }
 
+/* NeoLearn shared shell */
+body.nb-neolearn-page {
+  --account-cyan: #1aa6bd;
+  --account-accent: #6548c8;
+  --account-accent-hover: #5237b2;
+  --account-accent-soft: #efedfb;
+}
+body.nb-neolearn-page:is(.dark,.dark-mode) {
+  --account-cyan: #55c9dc;
+  --account-accent: #a892f0;
+  --account-accent-hover: #b9a8f5;
+  --account-accent-soft: #292942;
+}
+body.nb-neolearn-page .account-header {
+  min-height: 62px;
+  padding-inline: clamp(.8rem, 2vw, 1.6rem);
+  background: rgba(24, 31, 57, .97);
+  backdrop-filter: blur(14px);
+}
+body.nb-neolearn-page .neolearn-context {
+  margin-right: auto;
+  margin-left: clamp(1rem, 3vw, 2.4rem);
+  color: #c4d3ed;
+  font-size: .82rem;
+  font-weight: 650;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+body.nb-neolearn-page .account-header-actions { gap: .45rem; }
+body.nb-neolearn-page :is(.account-header-link,.account-theme-button) {
+  min-height: 38px;
+  padding-inline: .7rem;
+  background: rgba(255,255,255,.055);
+  border-color: rgba(255,255,255,.11);
+  transition: background-color .18s ease, border-color .18s ease, transform .18s ease;
+}
+body.nb-neolearn-page :is(.account-header-link,.account-theme-button):hover { transform: translateY(-1px); }
+body.nb-neolearn-page .account-sidebar {
+  top: 62px;
+  width: 238px;
+  padding: 1.15rem .8rem;
+  background: #19213a;
+}
+body.nb-neolearn-page:is(.dark,.dark-mode) .account-sidebar { background: #121b2b; }
+body.nb-neolearn-page .account-sidebar-brand { margin-bottom: 1.1rem; }
+body.nb-neolearn-page .neolearn-sidebar-title { display: grid; gap: .18rem; }
+body.nb-neolearn-page .neolearn-sidebar-title small {
+  color: #92a4c3;
+  font-size: .58rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+}
+body.nb-neolearn-page .account-sidebar nav { gap: .28rem; }
+body.nb-neolearn-page .account-sidebar nav :is(a,button) {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  gap: .7rem;
+  padding: .55rem .7rem;
+  color: #c2cada;
+  background: transparent;
+  border: 0;
+  border-radius: 9px;
+  font: inherit;
+  font-size: .86rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color .18s ease, background-color .18s ease, transform .18s ease;
+}
+body.nb-neolearn-page .account-sidebar nav :is(a,button) i { width: 22px; color: #aebbd2; text-align: center; }
+body.nb-neolearn-page .account-sidebar nav :is(a,button):hover { color: #fff; background: rgba(255,255,255,.075); transform: translateX(2px); }
+body.nb-neolearn-page .account-sidebar nav a[aria-current="page"] {
+  color: #fff;
+  background: linear-gradient(90deg, rgba(101,72,200,.32), rgba(26,166,189,.1));
+  box-shadow: inset 3px 0 0 #55c9dc;
+}
+body.nb-neolearn-page .account-main {
+  min-height: calc(100vh - 62px);
+  margin-top: 62px;
+  margin-left: 238px;
+  padding: clamp(1.15rem, 2.4vw, 2.25rem);
+  animation: nlPageEnter .32s ease both;
+}
+body.nb-neolearn-page .account-content-wrap { width: min(100%, 1220px); }
+body.nb-neolearn-page .account-page-heading { margin-bottom: 1.4rem; }
+body.nb-neolearn-page .account-page-heading h1 { font-size: 1.85rem; }
+body.nb-neolearn-page .account-page-heading p { color: var(--account-muted); font-size: .92rem; }
+body.nb-neolearn-page .account-sidebar nav a:focus-visible,
+body.nb-neolearn-page .account-sidebar nav button:focus-visible {
+  outline: 3px solid rgba(85,201,220,.7);
+  outline-offset: 2px;
+}
+body.nb-neolearn-page .mobile-account-nav { background: #19213a; }
+body.nb-neolearn-page .mobile-account-nav :is(a,button) {
+  display: grid;
+  justify-items: center;
+  gap: .1rem;
+  min-height: 44px;
+  padding: .25rem;
+  color: #b9c5dc;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: .68rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color .18s ease, background-color .18s ease, transform .18s ease;
+}
+body.nb-neolearn-page .mobile-account-nav :is(a,button) i { font-size: 1.05rem; }
+body.nb-neolearn-page .mobile-account-nav :is(a,button)[aria-current="page"] {
+  color: #fff;
+  background: rgba(101,72,200,.28);
+}
+body.nb-neolearn-page .mobile-account-nav :is(a,button):active { transform: scale(.96); }
+@keyframes nlPageEnter {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 991.98px) {
+  body.nb-neolearn-page .account-sidebar { width: 210px; }
+  body.nb-neolearn-page .account-main { margin-left: 210px; }
+}
+@media (max-width: 767.98px) {
+  body.nb-neolearn-page .account-header { min-height: 56px; }
+  body.nb-neolearn-page .account-sidebar { display: none; }
+  body.nb-neolearn-page .account-main { min-height: calc(100vh - 56px); margin-top: 56px; margin-left: 0; }
+  body.nb-neolearn-page .neolearn-context { margin-left: .7rem; font-size: .72rem; }
+  body.nb-neolearn-page .mobile-account-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  body.nb-neolearn-page .mobile-account-nav :is(a,button) { min-width: 0; }
+}
+@media (max-width: 480px) {
+  body.nb-neolearn-page .neolearn-context { display: none; }
+  body.nb-neolearn-page .account-header-actions { gap: .3rem; }
+  body.nb-neolearn-page .account-theme-button span { display: none; }
+  body.nb-neolearn-page .account-theme-button { width: 38px; padding: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.nb-neolearn-page *, body.nb-neolearn-page *::before, body.nb-neolearn-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
 /* NeoLearn Profile Settings & Modal */
 .neolearn-badge {
   display: inline-flex;
@@ -470,3 +618,107 @@ body.nb-account-page .nl-btn-remove:hover {
   display: none !important;
 }
 
+/* Profile Photo Actions & Thought of the Day */
+.account-avatar-wrapper {
+  position: relative;
+  display: inline-block;
+}
+.account-avatar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.account-avatar-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid var(--account-border);
+  background: var(--account-surface-raised);
+  color: var(--account-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.account-avatar-btn:hover:not(:disabled) {
+  background: var(--account-accent);
+  color: #fff;
+  border-color: var(--account-accent);
+}
+.account-avatar-btn--remove {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+.account-avatar-btn--remove:hover:not(:disabled) {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}
+.account-avatar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.status-msg {
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  min-height: 1.2em;
+}
+
+/* Thought of the Day Card & Form */
+.profile-thought-section {
+  padding: 1rem;
+  background: var(--account-surface-raised);
+  border: 1px solid var(--account-border);
+  border-radius: 10px;
+}
+.profile-thought-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--account-text);
+}
+.profile-thought-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+body.nb-account-page:is(.dark, .dark-mode) .profile-thought-badge {
+  color: #4ade80;
+  border-color: rgba(74, 222, 128, 0.3);
+}
+.profile-thought-card {
+  padding: 0.75rem 1rem;
+  background: var(--account-surface);
+  border-left: 3px solid var(--account-accent);
+  border-radius: 6px;
+}
+.profile-thought-quote {
+  font-size: 0.95rem;
+  font-style: italic;
+  color: var(--account-text);
+  line-height: 1.5;
+  word-break: break-word;
+}
+.profile-thought-input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  background: var(--account-surface);
+  border: 1px solid var(--account-border);
+  border-radius: 8px;
+  color: var(--account-text);
+  font-size: 0.92rem;
+  resize: vertical;
+  min-height: 70px;
+  outline: none;
+}
+.profile-thought-input:focus {
+  border-color: var(--account-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--account-accent) 16%, transparent);
+}

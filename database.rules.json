@@ -1,0 +1,92 @@
+{
+  "rules": {
+    "neolearn_realtime": {
+      "post_likes": {
+        "$postId": {
+          ".read": "auth != null",
+          "$userId": {
+            ".write": "auth != null && auth.uid === $userId",
+            ".validate": "newData.val() === true"
+          }
+        }
+      },
+      "post_comments": {
+        "$postId": {
+          ".read": "auth != null",
+          ".indexOn": ["createdAt"],
+          "$commentId": {
+            ".write": "auth != null && ((!data.exists() && newData.child('userId').val() === auth.uid) || (data.child('userId').val() === auth.uid && !newData.exists()))",
+            ".validate": "newData.hasChildren(['userId', 'text', 'createdAt']) && newData.child('userId').val() === auth.uid && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 500 && !newData.child('text').val().matches(/.*<script.*/) && newData.child('createdAt').isNumber()"
+          }
+        }
+      }
+    },
+    "neolearn_notifications": {
+      "$recipientUserId": {
+        ".read": "auth != null && auth.uid === $recipientUserId",
+        ".indexOn": ["createdAt", "read"],
+        "$notificationId": {
+          ".write": "auth != null && auth.uid === $recipientUserId && !newData.exists()",
+          "read": {
+            ".write": "auth != null && auth.uid === $recipientUserId && newData.isBoolean()"
+          }
+        }
+      }
+    },
+    "neolearn_direct_messages": {
+      "$firstUserId": {
+        "$secondUserId": {
+          ".read": "auth != null && $firstUserId < $secondUserId && (auth.uid === $firstUserId || auth.uid === $secondUserId)",
+          "messages": {
+            ".indexOn": ["createdAt"],
+            "$messageId": {
+              "readByRecipient": {
+                ".write": "auth != null && (auth.uid === $firstUserId || auth.uid === $secondUserId) && auth.uid !== data.parent().child('senderId').val() && newData.isBoolean() && newData.val() === true"
+              },
+              ".write": "auth != null && $firstUserId < $secondUserId && (auth.uid === $firstUserId || auth.uid === $secondUserId) && ((!data.exists() && newData.child('senderId').val() === auth.uid) || (data.child('senderId').val() === auth.uid && !newData.exists()))",
+              ".validate": "(newData.hasChildren(['senderId', 'text', 'createdAt']) && newData.child('senderId').isString() && newData.child('senderId').val() === auth.uid && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 2000 && newData.child('createdAt').isNumber()) || (data.exists() && newData.child('senderId').val() === data.child('senderId').val() && newData.child('text').val() === data.child('text').val() && newData.child('createdAt').val() === data.child('createdAt').val() && newData.child('readByRecipient').isBoolean() && newData.child('readByRecipient').val() === true)"
+            }
+          }
+        }
+      }
+    },
+    "messages": {
+      ".read": true,
+      ".indexOn": ["timestamp"],
+      "$messageId": {
+        ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && data.child('uid').val() === auth.uid && (!newData.exists() || (newData.child('deleted').val() === true && newData.child('uid').val() === data.child('uid').val()))) || (data.exists() && newData.child('reported').val() === true && newData.child('uid').val() === data.child('uid').val() && newData.child('text').val() === data.child('text').val()))",
+        ".validate": "newData.hasChildren(['uid', 'username', 'text', 'timestamp']) && newData.child('uid').isString() && newData.child('username').isString() && newData.child('username').val().length > 0 && newData.child('username').val().length <= 100 && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 2000 && newData.child('timestamp').isNumber() && (!newData.hasChild('reported') || newData.child('reported').isBoolean()) && (!newData.hasChild('deleted') || newData.child('deleted').isBoolean())"
+      }
+    },
+    "reactions": {
+      "$messageId": {
+        ".read": true,
+        "$userId": {
+          ".write": "auth != null && auth.uid === $userId",
+          ".validate": "newData.hasChildren(['emoji', 'timestamp']) && newData.child('emoji').isString() && newData.child('emoji').val().length <= 10 && newData.child('timestamp').isNumber()"
+        }
+      }
+    },
+    "reports": {
+      "$messageId": {
+        "$userId": {
+          ".read": "auth != null && auth.uid === $userId",
+          ".write": "auth != null && auth.uid === $userId",
+          ".validate": "newData.hasChildren(['reason', 'timestamp']) && newData.child('reason').isString() && newData.child('reason').val().length > 0 && newData.child('reason').val().length <= 500 && newData.child('timestamp').isNumber()"
+        }
+      }
+    },
+    "notes": {
+      "$noteId": {
+        "comments": {
+          ".read": true,
+          ".indexOn": ["timestamp"],
+          "$commentId": {
+            ".write": "auth != null && (!data.exists() || (data.exists() && (!newData.exists() || newData.child('reported').val() === true || newData.child('deleted').val() === true)))",
+            ".validate": "newData.hasChildren(['username', 'text', 'timestamp']) && newData.child('username').isString() && newData.child('username').val().length > 0 && newData.child('username').val().length <= 100 && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 2000 && !newData.child('text').val().matches(/.*<script.*/) && newData.child('timestamp').isNumber() && (!newData.hasChild('reported') || newData.child('reported').isBoolean()) && (!newData.hasChild('deleted') || newData.child('deleted').isBoolean())"
+          }
+        }
+      }
+    }
+  }
+}

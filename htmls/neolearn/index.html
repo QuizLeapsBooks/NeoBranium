@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeoLearn | Your Learning</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/CSS/enhancements.css" />
+  <link rel="stylesheet" href="/CSS/account-pages.css" />
+  <link rel="stylesheet" href="/CSS/neolearn-social.css" />
+  <link rel="stylesheet" href="/CSS/neolearn-upload.css" />
+  <script src="/js/shortcuts.js"></script>
+  <script src="/js/neolearn-theme.js"></script>
+</head>
+<body class="nb-account-page nb-neolearn-page">
+  <header class="account-header">
+    <a href="/index.html" class="account-brand"><img src="/online-graduation_16847316.png" alt="" />NeoBranium</a>
+    <a class="neolearn-context" href="/htmls/neolearn/index.html">NeoLearn <span>Learn · Discover · Share</span></a>
+    <div class="account-header-actions">
+      <a class="account-header-link" href="/htmls/neolearn/peers.html"><i class="bi bi-search me-1" aria-hidden="true"></i>Explore</a>
+      <a class="account-header-link" href="/htmls/neolearn/notifications.html" aria-label="Notifications"><i class="bi bi-bell" aria-hidden="true"></i><span class="nl-badge" id="neolearnHeaderNotificationBadge" hidden>0</span></a>
+      <a class="account-header-link" href="/htmls/neolearn/profile.html"><i class="bi bi-person-circle me-1" aria-hidden="true"></i>Profile</a>
+      <a class="account-header-link" href="/htmls/setting.html#neolearnSection" aria-label="Settings"><i class="bi bi-gear" aria-hidden="true"></i></a>
+      <button id="themeToggle" class="account-theme-button" type="button" aria-label="Switch theme"><i class="bi bi-moon-stars me-1" aria-hidden="true"></i><span>Switch Theme</span></button>
+    </div>
+  </header>
+  <aside class="account-sidebar" aria-label="NeoLearn navigation">
+    <div class="account-sidebar-brand"><img src="/online-graduation_16847316.png" alt="" /><span class="neolearn-sidebar-title">NeoLearn<small>LEARNING WORKSPACE</small></span></div>
+    <nav>
+      <a href="/htmls/neolearn/index.html" aria-current="page"><i class="bi bi-house-door" aria-hidden="true"></i>Home</a>
+      <a href="/htmls/neolearn/peers.html"><i class="bi bi-compass" aria-hidden="true"></i>Explore learners</a>
+      <a href="/htmls/neolearn/messages.html"><i class="bi bi-chat-dots" aria-hidden="true"></i>Messages</a>
+      <button class="neolearn-upload-button" type="button" data-neolearn-upload><i class="bi bi-plus-lg" aria-hidden="true"></i>Create a post</button>
+      <a href="/htmls/neolearn/profile.html"><i class="bi bi-person-vcard" aria-hidden="true"></i>Profile</a>
+      <a href="/htmls/setting.html#neolearnSection"><i class="bi bi-gear" aria-hidden="true"></i>Settings</a>
+    </nav>
+  </aside>
+  <main class="account-main">
+    <div id="neolearnUploadStatus" class="neolearn-upload-status" role="status" aria-live="polite"></div>
+    <div class="nl-home-layout">
+      <!-- Feed Column -->
+      <div class="nl-feed-column">
+        <header class="account-page-heading nl-feed-heading">
+          <h1>Your learning feed</h1>
+          <p id="neolearnFeedSubtitle">Posts from profiles you are Learning.</p>
+        </header>
+        <div id="neolearnFeedLoading" class="nl-feed-loading" role="status" aria-label="Loading learning feed">
+          <div class="nl-feed-skeleton" aria-hidden="true"><div class="nl-feed-skeleton-header"><span class="nl-feed-skeleton-avatar"></span><span class="nl-feed-skeleton-lines"><span></span><span></span></span></div><div class="nl-feed-skeleton-image"></div><div class="nl-feed-skeleton-copy"><span></span><span></span></div></div>
+          <div class="nl-feed-skeleton" aria-hidden="true"><div class="nl-feed-skeleton-header"><span class="nl-feed-skeleton-avatar"></span><span class="nl-feed-skeleton-lines"><span></span><span></span></span></div><div class="nl-feed-skeleton-image"></div><div class="nl-feed-skeleton-copy"><span></span><span></span></div></div>
+        </div>
+        <div id="neolearnFeedError" class="nl-state-message nl-state-message--error" role="alert" hidden><span id="neolearnFeedErrorText"></span><button id="retryNeoLearnFeed" class="nl-social-button nl-social-button--secondary" type="button">Retry</button></div>
+        <div id="neolearnFeedEmptyLearning" class="nl-empty-state" hidden><i class="bi bi-people" aria-hidden="true"></i><h2>Your Learning feed is empty.</h2><p>Start Learning from peers to see their posts here.</p><a class="nl-social-button nl-social-button--primary" href="/htmls/neolearn/peers.html">Explore Peers</a></div>
+        <div id="neolearnFeedEmptyPosts" class="nl-empty-state" hidden><i class="bi bi-journal-check" aria-hidden="true"></i><h2>No new posts yet.</h2><p>The people you're Learning haven't uploaded anything recently.</p></div>
+        <div id="neolearnFeedGrid" class="nl-post-grid" aria-live="polite"></div>
+      </div>
+
+      <!-- Right Panel: Suggested Learners -->
+      <aside class="nl-right-panel" aria-label="Suggested learners">
+        <div class="nl-right-panel-inner">
+          <div class="nl-suggestions-card">
+            <div class="nl-suggestions-header">
+              <span class="nl-suggestions-title"><i class="bi bi-people-fill" aria-hidden="true"></i> Suggested Learners</span>
+              <a href="/htmls/neolearn/peers.html" class="nl-see-all-link">See all</a>
+            </div>
+            <div id="nlSuggestedLoading" class="nl-suggestions-loading" role="status">
+              <span class="nl-suggestions-skeleton"></span>
+              <span class="nl-suggestions-skeleton"></span>
+              <span class="nl-suggestions-skeleton"></span>
+            </div>
+            <div id="nlSuggestedList" class="nl-suggestions-list" aria-live="polite"></div>
+            <div id="nlSuggestedError" class="nl-state-message nl-state-message--error" role="alert" hidden><span id="nlSuggestedErrorText"></span><button id="retryNlSuggested" class="nl-social-button nl-social-button--secondary" type="button">Retry</button></div>
+            <div id="nlSuggestedEmpty" class="nl-suggestions-empty" hidden>
+              <i class="bi bi-people" aria-hidden="true"></i>
+              <p>No new peers to suggest right now.</p>
+              <a href="/htmls/neolearn/peers.html" class="nl-social-button nl-social-button--primary" style="font-size:.78rem;padding:.4rem .8rem;">Explore Peers</a>
+            </div>
+          </div>
+
+          <div class="nl-right-panel-links">
+            <a href="/htmls/neolearn/peers.html"><i class="bi bi-people" aria-hidden="true"></i>Peers</a>
+            <a href="/htmls/neolearn/profile.html"><i class="bi bi-person-vcard" aria-hidden="true"></i>My Profile</a>
+            <a href="/htmls/setting.html#neolearnSection"><i class="bi bi-gear" aria-hidden="true"></i>Settings</a>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+  <nav class="mobile-account-nav" aria-label="NeoLearn quick navigation">
+    <a href="/htmls/neolearn/index.html" aria-current="page"><i class="bi bi-house-door" aria-hidden="true"></i><span>Home</span></a>
+    <a href="/htmls/neolearn/peers.html"><i class="bi bi-compass" aria-hidden="true"></i><span>Explore</span></a>
+    <a href="/htmls/neolearn/messages.html"><i class="bi bi-chat-dots" aria-hidden="true"></i><span>Messages</span></a>
+    <button class="neolearn-upload-button" type="button" data-neolearn-upload aria-label="Create a post"><i class="bi bi-plus-lg" aria-hidden="true"></i><span>Create</span></button>
+    <a href="/htmls/neolearn/profile.html"><i class="bi bi-person-vcard" aria-hidden="true"></i><span>Profile</span></a>
+  </nav>
+  <dialog class="neolearn-upload-dialog" id="neolearnUploadDialog" aria-labelledby="neolearnUploadTitle">
+    <div class="nl-upload-shell">
+      <header class="nl-upload-header">
+        <div class="nl-upload-heading"><span class="nl-upload-heading-icon"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i></span><div><h2 id="neolearnUploadTitle">Share a learning moment</h2><p>Your image stays on this device until you share.</p></div></div>
+        <button type="button" class="nl-upload-close" id="closeNeoLearnUpload" aria-label="Close upload dialog"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+      </header>
+      <p id="neolearnUploadError" class="nl-upload-error" role="alert" hidden></p>
+      <div class="nl-upload-layout">
+        <section class="nl-upload-editor-panel" aria-label="Image preview and crop editor">
+          <div class="nl-upload-stage" id="neolearnUploadStage">
+            <canvas id="neolearnImageCanvas" width="1200" height="900" aria-label="Edited image preview" hidden></canvas>
+            <div class="nl-upload-empty" id="neolearnUploadEmpty"><i class="bi bi-image" aria-hidden="true"></i><p>Choose one image to preview and edit</p></div>
+          </div>
+          <div class="nl-upload-file-row"><button type="button" class="nl-upload-primary" id="chooseNeoLearnImage"><i class="bi bi-image me-1" aria-hidden="true"></i>Choose image</button><span class="nl-upload-file-name" id="neolearnFileName">JPG, PNG or WebP · up to 5 MiB</span></div>
+          <input type="file" id="neolearnImageInput" accept="image/jpeg,image/png,image/webp" hidden />
+          <p class="nl-upload-help">Drag the image in the frame to adjust the crop. Final share is optimized to WebP.</p>
+        </section>
+        <section class="nl-upload-controls" id="neolearnEditorControls" aria-label="Image editing controls">
+          <div class="nl-upload-control-group"><label class="nl-upload-control-label" for="neolearnCropRatio">Crop frame</label><select id="neolearnCropRatio" disabled><option value="4:3">Landscape · 4:3</option><option value="1:1">Square · 1:1</option><option value="16:9">Wide · 16:9</option></select></div>
+          <div class="nl-upload-control-group"><span class="nl-upload-control-label">Rotate</span><div class="nl-upload-control-row"><button type="button" class="nl-upload-tool-button" id="rotateNeoLearnLeft" disabled><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Left</button><button type="button" class="nl-upload-tool-button" id="rotateNeoLearnRight" disabled><i class="bi bi-arrow-clockwise" aria-hidden="true"></i>Right</button></div></div>
+          <div class="nl-upload-control-group nl-upload-control-group--full"><label class="nl-upload-control-label" for="neolearnZoom"><span>Zoom</span><output id="neolearnZoomValue">1.0×</output></label><input type="range" id="neolearnZoom" min="1" max="3" step="0.05" value="1" disabled /></div>
+          <div class="nl-upload-control-group"><label class="nl-upload-control-label" for="neolearnFilter">Filter</label><select id="neolearnFilter" disabled><option value="none">Original</option><option value="mono">Monochrome</option><option value="warm">Warm</option><option value="soft">Soft color</option></select></div>
+          <div class="nl-upload-control-group"><label class="nl-upload-control-label" for="neolearnBrightness"><span>Brightness</span><output id="neolearnBrightnessValue">100%</output></label><input type="range" id="neolearnBrightness" min="50" max="150" value="100" disabled /></div>
+          <div class="nl-upload-control-group"><label class="nl-upload-control-label" for="neolearnContrast"><span>Contrast</span><output id="neolearnContrastValue">100%</output></label><input type="range" id="neolearnContrast" min="50" max="150" value="100" disabled /></div>
+          <div class="nl-upload-control-group"><label class="nl-upload-control-label" for="neolearnSaturation"><span>Saturation</span><output id="neolearnSaturationValue">100%</output></label><input type="range" id="neolearnSaturation" min="0" max="180" value="100" disabled /></div>
+          <div class="nl-upload-control-group nl-upload-control-group--full"><label class="nl-upload-control-label" for="neolearnDescription">Description <span>Optional</span></label><textarea id="neolearnDescription" maxlength="500" placeholder="Write something about your learning..." disabled></textarea><span class="nl-upload-description-count" id="neolearnDescriptionCount">0/500</span></div>
+        </section>
+      </div>
+      <footer class="nl-upload-footer"><button type="button" class="nl-upload-secondary" id="cancelNeoLearnUpload">Cancel</button><div class="nl-upload-footer-actions"><button type="button" class="nl-upload-secondary" id="resetNeoLearnEditor" disabled>Reset</button><button type="button" class="nl-upload-primary" id="shareNeoLearnImage" disabled><i class="bi bi-send me-1" aria-hidden="true"></i><span>Share</span></button></div></footer>
+    </div>
+  </dialog>
+  <dialog class="nl-detail-dialog" id="neolearnPostDetailDialog" aria-label="Post detail"><div class="nl-post-detail-content" data-post-detail-content><button class="nl-detail-close" type="button" data-post-detail-close aria-label="Close post details"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div></dialog>
+  <script type="module" src="/js/neolearn-badge.js"></script>
+  <script type="module" src="/js/neolearn-upload.js"></script>
+  <script type="module" src="/js/neolearn-home.js"></script>
+</body>
+</html>

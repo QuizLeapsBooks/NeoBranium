@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Messages | NeoLearn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/CSS/enhancements.css" />
+  <link rel="stylesheet" href="/CSS/account-pages.css" />
+  <link rel="stylesheet" href="/CSS/neolearn-social.css" />
+  <link rel="stylesheet" href="/CSS/neolearn-messages.css" />
+  <script src="/js/shortcuts.js"></script>
+  <script src="/js/neolearn-theme.js"></script>
+</head>
+<body class="nb-account-page nb-neolearn-page">
+  <header class="account-header">
+    <a href="/index.html" class="account-brand"><img src="/online-graduation_16847316.png" alt="" />NeoBranium</a>
+    <a class="neolearn-context" href="/htmls/neolearn/index.html">NeoLearn <span>Learn · Discover · Share</span></a>
+    <div class="account-header-actions">
+      <a class="account-header-link" href="/htmls/neolearn/notifications.html" aria-label="Notifications"><i class="bi bi-bell" aria-hidden="true"></i><span class="nl-badge" id="neolearnHeaderNotificationBadge" hidden>0</span></a>
+      <a class="account-header-link" href="/htmls/neolearn/messages.html" aria-label="Messages"><i class="bi bi-chat-dots" aria-hidden="true"></i><span class="nl-badge" id="neolearnHeaderMessageBadge" hidden>0</span></a>
+      <a class="account-header-link" href="/htmls/neolearn/profile.html"><i class="bi bi-person-circle me-1" aria-hidden="true"></i>Profile</a>
+      <a class="account-header-link" href="/htmls/setting.html#neolearnSection" aria-label="Settings"><i class="bi bi-gear" aria-hidden="true"></i></a>
+    </div>
+  </header>
+  <aside class="account-sidebar" aria-label="NeoLearn navigation">
+    <div class="account-sidebar-brand"><img src="/online-graduation_16847316.png" alt="" /><span class="neolearn-sidebar-title">NeoLearn<small>LEARNING WORKSPACE</small></span></div>
+    <nav>
+      <a href="/htmls/neolearn/index.html"><i class="bi bi-house-door" aria-hidden="true"></i>Home</a>
+      <a href="/htmls/neolearn/peers.html"><i class="bi bi-compass" aria-hidden="true"></i>Explore learners</a>
+      <a href="/htmls/neolearn/messages.html" aria-current="page"><i class="bi bi-chat-dots" aria-hidden="true"></i>Messages<span class="nl-badge" id="neolearnSidebarMessageBadge" hidden>0</span></a>
+      <a href="/htmls/neolearn/index.html?openUpload=1"><i class="bi bi-plus-lg" aria-hidden="true"></i>Create a post</a>
+      <a href="/htmls/neolearn/profile.html"><i class="bi bi-person-vcard" aria-hidden="true"></i>Profile</a>
+      <a href="/htmls/setting.html#neolearnSection"><i class="bi bi-gear" aria-hidden="true"></i>Settings</a>
+    </nav>
+  </aside>
+  <main class="account-main nl-messages-main">
+    <div class="account-content-wrap nl-messages-content-wrap">
+      <div id="messagesError" class="nl-state-message nl-state-message--error" role="alert" hidden></div>
+      <section class="nl-messages-shell" aria-label="NeoLearn messages">
+        <aside class="nl-messages-peers">
+          <label class="nl-message-search"><i class="bi bi-search" aria-hidden="true"></i><input id="messagePeerSearch" type="search" placeholder="Find a learner" aria-label="Find a learner" /></label>
+          <div id="messagePeerList" class="nl-message-peer-list" aria-label="Learners"></div>
+          <button id="loadMoreMessagePeers" class="nl-message-peer-load-more" type="button" hidden>Load more learners</button>
+        </aside>
+        <section class="nl-message-thread" aria-label="Conversation">
+          <div id="messageThreadWelcome" class="nl-message-welcome"><i class="bi bi-chat-square-heart" aria-hidden="true"></i><h2>Choose a learner</h2><p>Select someone from the list to start a private conversation.</p></div>
+          <header id="messageThreadHeader" class="nl-message-thread-header" hidden><button id="messageThreadBack" class="nl-message-back" type="button" aria-label="Back to conversations"><i class="bi bi-arrow-left" aria-hidden="true"></i><span>Back</span></button><span id="messageThreadAvatar" class="nl-social-avatar nl-social-avatar-fallback"></span><div><h2 id="messageThreadName"></h2><a id="messageThreadProfile" href="#">View profile</a></div></header>
+          <div id="messageThreadLoading" class="nl-message-thread-state" hidden>Loading conversation…</div>
+          <button id="loadEarlierMessages" class="nl-message-load-earlier" type="button" hidden>Load earlier messages</button>
+          <div id="messageThreadList" class="nl-message-thread-list" aria-live="polite" aria-label="Messages" hidden></div>
+          <form id="messageComposer" class="nl-message-composer" hidden><input id="messageInput" type="text" maxlength="2000" placeholder="Write a message…" aria-label="Write a message" autocomplete="off" /><button type="submit" class="nl-social-button nl-social-button--primary"><i class="bi bi-send-fill" aria-hidden="true"></i><span>Send</span></button></form>
+        </section>
+      </section>
+    </div>
+  </main>
+  <nav class="mobile-account-nav" aria-label="NeoLearn quick navigation">
+    <a href="/htmls/neolearn/index.html"><i class="bi bi-house-door" aria-hidden="true"></i><span>Home</span></a>
+    <a href="/htmls/neolearn/peers.html"><i class="bi bi-compass" aria-hidden="true"></i><span>Explore</span></a>
+    <a href="/htmls/neolearn/messages.html" aria-current="page"><i class="bi bi-chat-dots" aria-hidden="true"></i><span>Messages</span><span class="nl-badge nl-badge--mobile" id="neolearnMobileMessageBadge" hidden>0</span></a>
+    <a href="/htmls/neolearn/profile.html"><i class="bi bi-person-vcard" aria-hidden="true"></i><span>Profile</span></a>
+    <a href="/htmls/neolearn/index.html?openUpload=1"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i><span>Create</span></a>
+  </nav>
+  <script type="module" src="/js/neolearn-badge.js"></script>
+  <script type="module" src="/js/neolearn-messages.js"></script>
+</body>
+</html>

@@ -1691,3 +1691,52 @@ body.dark-mode .text-muted {
     max-width: none;
   }
 }
+
+/* Dashboard Thought of the Day & Avatar Widget (Desktop Only) */
+.dashboard-thought-widget {
+  max-width: 280px;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+.dashboard-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--account-accent, #6366f1);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+  background-size: cover;
+  background-position: center;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+.dashboard-thought-box {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+}
+.dashboard-thought-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent-light, #a5b4fc);
+  margin-bottom: 0.25rem;
+}
+.dashboard-thought-text {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #f8fafc;
+  line-height: 1.4;
+  word-break: break-word;
+}

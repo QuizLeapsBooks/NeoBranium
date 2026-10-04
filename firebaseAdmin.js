@@ -19,6 +19,7 @@ if (!admin.apps.length) {
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
           privateKey: privateKey,
         }),
+        databaseURL: process.env.FIREBASE_DATABASE_URL || 'https://neobranium-default-rtdb.firebaseio.com'
       });
       console.log('✅ Firebase initialized successfully');
     } catch (error) {
@@ -30,6 +31,7 @@ if (!admin.apps.length) {
 }
 
 const db = admin.apps.length ? admin.firestore() : null;
+const rtdb = admin.apps.length ? admin.database() : null;
 
 /**
  * Checks if the user is allowed to use the AI board and tracks usage.
@@ -215,5 +217,5 @@ export async function verifyAuthToken(req) {
   return await admin.auth().verifyIdToken(token);
 }
 
-export { admin, db };
+export { admin, db, rtdb };
 

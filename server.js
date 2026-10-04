@@ -11,8 +11,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { boardRateLimit } from './boardMiddleware.js';
 import queueManager from './queueManager.js';
-import { endSession, verifyAuthToken, db, admin } from './firebaseAdmin.js';
+import { endSession, verifyAuthToken, db, admin, rtdb } from './firebaseAdmin.js';
 import { v2 as cloudinary } from 'cloudinary';
+import { createNeoLearnUploadHandler } from './neolearn-upload-handler.js';
+import { createNeoLearnDirectoryHandlers, loadPublicProfile } from './neolearn-directory-handler.js';
+import { createNeoLearnSocialHandlers } from './neolearn-social-handler.js';
+import { createNeoLearnNotificationHandlers } from './neolearn-notification-handler.js';
+import { createNeoLearnModerationHandlers } from './neolearn-moderation-handler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -100,7 +105,8 @@ app.use(helmet({
                 "https://firebase.googleapis.com",
                 "https://firebasestorage.googleapis.com",
                 "https://identitytoolkit.googleapis.com",
-                "https://securetoken.googleapis.com"
+                "https://securetoken.googleapis.com",
+                "https://neobranium.onrender.com"
             ],
             imgSrc: ["'self'", "data:", "blob:", "https://firebasestorage.googleapis.com", "https://www.gstatic.com", "https://res.cloudinary.com"],
             frameSrc: ["'self'", "https://neobranium.firebaseapp.com"]
@@ -111,7 +117,10 @@ app.use(helmet({
 const allowedOrigins = [
     'https://neobranium.web.app',
     'https://neobranium.firebaseapp.com',
+    'https://neobranium.com',
+    'https://www.neobranium.com',
     'https://neo-branium.vercel.app',
+    'https://neobranium.vercel.app',
     'http://localhost:5500',
     'http://localhost:5501',
     'http://localhost:5502',
@@ -1724,8 +1733,8 @@ app.post('/api/profile/upload-photo', async (req, res) => {
         const dataUri = image.startsWith('data:') ? image : `data:${detectedMime};base64,${base64Data}`;
 
         const uploadResult = await cloudinary.uploader.upload(dataUri, {
-            folder: 'neobranium_profiles',
-            public_id: `profile_${userId}`,
+            folder: `neobranium/users/${userId}/profile`,
+            public_id: 'avatar',
             overwrite: true,
             invalidate: true,
             resource_type: 'image',
@@ -1744,15 +1753,6 @@ app.post('/api/profile/upload-photo', async (req, res) => {
                     profilePhotoPublicId: publicId,
                     updatedAt: admin.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
-
-                const neolearnDocRef = db.collection('neolearn_profiles').doc(userId);
-                const neolearnDoc = await neolearnDocRef.get();
-                if (neolearnDoc.exists) {
-                    await neolearnDocRef.set({
-                        profilePhotoUrl: secureUrl,
-                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-                    }, { merge: true });
-                }
             } catch (dbErr) {
                 console.error('Error saving profile photo to Firestore:', dbErr);
             }
@@ -1771,6 +1771,49 @@ app.post('/api/profile/upload-photo', async (req, res) => {
         });
     }
 });
+
+app.post('/api/neolearn/upload-post', createNeoLearnUploadHandler({
+    verifyAuthToken,
+    isCloudinaryConfigured,
+    cloudinary,
+    db,
+    admin
+}));
+
+const neoLearnDirectoryHandlers = createNeoLearnDirectoryHandlers({ verifyAuthToken, db });
+app.get('/api/neolearn/peers', neoLearnDirectoryHandlers.getPeers);
+app.get('/api/neolearn/profiles/:userId', neoLearnDirectoryHandlers.getProfile);
+
+const neoLearnSocialHandlers = createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadPublicProfile });
+app.get('/api/neolearn/social/summary/:userId', neoLearnSocialHandlers.getSummary);
+app.get('/api/neolearn/social/connections/:userId', neoLearnSocialHandlers.getConnections);
+app.post('/api/neolearn/social/learning', neoLearnSocialHandlers.setLearning);
+app.get('/api/neolearn/feed', neoLearnSocialHandlers.getLearningFeed);
+
+const neoLearnNotificationHandlers = createNeoLearnNotificationHandlers({ verifyAuthToken, db, rtdb, admin });
+app.post('/api/neolearn/notifications/like', neoLearnNotificationHandlers.recordLikeNotification);
+app.post('/api/neolearn/notifications/comment', neoLearnNotificationHandlers.recordCommentNotification);
+app.post('/api/neolearn/notifications/mark-read', neoLearnNotificationHandlers.markNotificationRead);
+
+const neoLearnModerationHandlers = createNeoLearnModerationHandlers({
+    verifyAuthToken,
+    db,
+    rtdb,
+    cloudinary,
+    isCloudinaryConfigured,
+    admin
+});
+app.delete('/api/neolearn/profile', neoLearnModerationHandlers.deleteProfile);
+app.delete('/api/neolearn/posts/:postId', neoLearnModerationHandlers.deletePost);
+app.patch('/api/neolearn/posts/:postId', neoLearnModerationHandlers.updatePost);
+app.post('/api/neolearn/posts/:postId/delete', neoLearnModerationHandlers.deletePost);
+app.post('/api/neolearn/posts/delete', neoLearnModerationHandlers.deletePost);
+app.post('/api/neolearn/reports/post', neoLearnModerationHandlers.reportPost);
+app.post('/api/neolearn/reports/profile', neoLearnModerationHandlers.reportProfile);
+app.post('/api/neolearn/blocks', neoLearnModerationHandlers.blockUser);
+app.get('/api/neolearn/blocks', neoLearnModerationHandlers.getBlockedUsers);
+app.delete('/api/neolearn/blocks/:targetUserId', neoLearnModerationHandlers.unblockUser);
+app.get('/api/neolearn/blocks/:targetUserId', neoLearnModerationHandlers.getBlockStatus);
 
 // Profile Photo Remove Endpoint
 app.post('/api/profile/remove-photo', async (req, res) => {
@@ -1795,7 +1838,8 @@ app.post('/api/profile/remove-photo', async (req, res) => {
                 const publicId = userData.profilePhotoPublicId;
 
                 // Safely delete only the authenticated user's exact profile asset
-                if (publicId && publicId.includes(userId) && isCloudinaryConfigured()) {
+                const expectedPublicId = `neobranium/users/${userId}/profile/avatar`;
+                if (publicId === expectedPublicId && isCloudinaryConfigured()) {
                     try {
                         await cloudinary.uploader.destroy(publicId);
                     } catch (cloudErr) {
@@ -1809,15 +1853,6 @@ app.post('/api/profile/remove-photo', async (req, res) => {
                     updatedAt: admin.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
             }
-
-            const neolearnDocRef = db.collection('neolearn_profiles').doc(userId);
-            const neolearnDoc = await neolearnDocRef.get();
-            if (neolearnDoc.exists) {
-                await neolearnDocRef.set({
-                    profilePhotoUrl: '',
-                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-            }
         }
 
         return res.json({ success: true });
@@ -1828,6 +1863,78 @@ app.post('/api/profile/remove-photo', async (req, res) => {
             success: false,
             error: error.message || 'Failed to remove profile photo'
         });
+    }
+});
+
+// Public Profile Endpoint (for viewing other users' profiles with active Thought of the Day)
+app.get('/api/profile/public/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        if (!userId) {
+            return res.status(400).json({ success: false, error: 'User ID is required' });
+        }
+
+        if (!db) {
+            return res.status(503).json({ success: false, error: 'Database service is currently unavailable' });
+        }
+
+        const userDocRef = db.collection('users').doc(userId);
+        const userDoc = await userDocRef.get();
+        if (!userDoc.exists) {
+            return res.status(404).json({ success: false, error: 'User profile not found' });
+        }
+
+        const d = userDoc.data();
+        let activeThought = null;
+        if (d.thoughtOfTheDay && d.thoughtOfTheDayExpiresAt) {
+            let expireTime = 0;
+            if (typeof d.thoughtOfTheDayExpiresAt.toMillis === 'function') {
+                expireTime = d.thoughtOfTheDayExpiresAt.toMillis();
+            } else if (typeof d.thoughtOfTheDayExpiresAt.toDate === 'function') {
+                expireTime = d.thoughtOfTheDayExpiresAt.toDate().getTime();
+            } else if (d.thoughtOfTheDayExpiresAt.seconds) {
+                expireTime = d.thoughtOfTheDayExpiresAt.seconds * 1000;
+            } else {
+                expireTime = new Date(d.thoughtOfTheDayExpiresAt).getTime();
+            }
+
+            if (Date.now() < expireTime) {
+                let createdTime = null;
+                if (d.thoughtOfTheDayCreatedAt) {
+                    if (typeof d.thoughtOfTheDayCreatedAt.toMillis === 'function') {
+                        createdTime = d.thoughtOfTheDayCreatedAt.toMillis();
+                    } else if (d.thoughtOfTheDayCreatedAt.seconds) {
+                        createdTime = d.thoughtOfTheDayCreatedAt.seconds * 1000;
+                    } else {
+                        createdTime = new Date(d.thoughtOfTheDayCreatedAt).getTime();
+                    }
+                }
+                activeThought = {
+                    text: d.thoughtOfTheDay,
+                    createdAt: createdTime,
+                    expiresAt: expireTime
+                };
+            }
+        }
+
+        return res.json({
+            success: true,
+            user: {
+                userId,
+                username: d.username || d.displayName || 'User',
+                bio: d.bio || '',
+                profilePhotoUrl: d.profilePhotoUrl || d.photoURL || '',
+                score: d.score ?? 0,
+                highScore: d.highScore ?? 0,
+                rank: d.rank ?? '-',
+                thoughtOfTheDay: activeThought ? activeThought.text : null,
+                thoughtOfTheDayCreatedAt: activeThought ? activeThought.createdAt : null,
+                thoughtOfTheDayExpiresAt: activeThought ? activeThought.expiresAt : null
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching public profile:', error);
+        return res.status(500).json({ success: false, error: 'Failed to fetch public profile' });
     }
 });
 

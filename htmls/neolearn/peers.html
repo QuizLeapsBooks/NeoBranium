@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Peers | NeoLearn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/CSS/enhancements.css" />
+  <link rel="stylesheet" href="/CSS/account-pages.css" />
+  <link rel="stylesheet" href="/CSS/neolearn-social.css" />
+  <script src="/js/shortcuts.js"></script>
+  <script src="/js/neolearn-theme.js"></script>
+</head>
+<body class="nb-account-page nb-neolearn-page">
+  <header class="account-header">
+    <a href="/index.html" class="account-brand"><img src="/online-graduation_16847316.png" alt="" />NeoBranium</a>
+    <a class="neolearn-context" href="/htmls/neolearn/index.html">NeoLearn <span>Learn · Discover · Share</span></a>
+    <div class="account-header-actions">
+      <a class="account-header-link" href="/htmls/neolearn/index.html"><i class="bi bi-house-door me-1" aria-hidden="true"></i>Home</a>
+      <a class="account-header-link" href="/htmls/neolearn/notifications.html" aria-label="Notifications"><i class="bi bi-bell" aria-hidden="true"></i><span class="nl-badge" id="neolearnHeaderNotificationBadge" hidden>0</span></a>
+      <a class="account-header-link" href="/htmls/neolearn/profile.html"><i class="bi bi-person-circle me-1" aria-hidden="true"></i>Profile</a>
+      <a class="account-header-link" href="/htmls/setting.html#neolearnSection" aria-label="Settings"><i class="bi bi-gear" aria-hidden="true"></i></a>
+      <button id="themeToggle" class="account-theme-button" type="button" aria-label="Switch theme"><i class="bi bi-moon-stars me-1" aria-hidden="true"></i><span>Switch Theme</span></button>
+    </div>
+  </header>
+  <aside class="account-sidebar" aria-label="NeoLearn navigation">
+    <div class="account-sidebar-brand"><img src="/online-graduation_16847316.png" alt="" /><span class="neolearn-sidebar-title">NeoLearn<small>LEARNING WORKSPACE</small></span></div>
+    <nav>
+      <a href="/htmls/neolearn/index.html"><i class="bi bi-house-door" aria-hidden="true"></i>Home</a>
+      <a href="/htmls/neolearn/peers.html" aria-current="page"><i class="bi bi-compass" aria-hidden="true"></i>Explore learners</a>
+      <a href="/htmls/neolearn/messages.html"><i class="bi bi-chat-dots" aria-hidden="true"></i>Messages</a>
+      <a href="/htmls/neolearn/index.html?openUpload=1"><i class="bi bi-plus-lg" aria-hidden="true"></i>Create a post</a>
+      <a href="/htmls/neolearn/profile.html"><i class="bi bi-person-vcard" aria-hidden="true"></i>Profile</a>
+      <a href="/htmls/setting.html#neolearnSection"><i class="bi bi-gear" aria-hidden="true"></i>Settings</a>
+    </nav>
+  </aside>
+  <main class="account-main">
+    <div class="account-content-wrap">
+      <header class="account-page-heading"><h1>Explore learners</h1><p>Find people to learn alongside. Learn from their shared moments and ideas.</p></header>
+      <div class="nl-page-toolbar">
+        <p id="neoLearnPeerResultCount" class="account-muted" aria-live="polite"></p>
+        <label class="nl-peer-search-wrap">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <input class="nl-peer-search" type="search" id="neoLearnPeerSearch" placeholder="Search peers..." autocomplete="off" aria-label="Search peers by name, username, or profile information" />
+        </label>
+      </div>
+      <div id="neoLearnPeersLoading" class="nl-peer-skeleton-grid" role="status" aria-label="Loading peers">
+        <div class="nl-peer-skeleton" aria-hidden="true"><div class="nl-peer-skeleton-head"><span class="nl-peer-skeleton-avatar"></span><span class="nl-peer-skeleton-lines"><span class="nl-peer-skeleton-line"></span><span class="nl-peer-skeleton-line"></span></span></div><span class="nl-peer-skeleton-copy"></span><span class="nl-peer-skeleton-copy"></span><span class="nl-peer-skeleton-actions"></span></div>
+        <div class="nl-peer-skeleton" aria-hidden="true"><div class="nl-peer-skeleton-head"><span class="nl-peer-skeleton-avatar"></span><span class="nl-peer-skeleton-lines"><span class="nl-peer-skeleton-line"></span><span class="nl-peer-skeleton-line"></span></span></div><span class="nl-peer-skeleton-copy"></span><span class="nl-peer-skeleton-copy"></span><span class="nl-peer-skeleton-actions"></span></div>
+        <div class="nl-peer-skeleton" aria-hidden="true"><div class="nl-peer-skeleton-head"><span class="nl-peer-skeleton-avatar"></span><span class="nl-peer-skeleton-lines"><span class="nl-peer-skeleton-line"></span><span class="nl-peer-skeleton-line"></span></span></div><span class="nl-peer-skeleton-copy"></span><span class="nl-peer-skeleton-copy"></span><span class="nl-peer-skeleton-actions"></span></div>
+      </div>
+      <div id="neoLearnPeersError" class="nl-state-message nl-state-message--error" role="alert" hidden><span id="neoLearnPeersErrorText"></span><button id="retryNeoLearnPeers" class="nl-social-button nl-social-button--secondary" type="button">Retry</button></div>
+      <div id="neoLearnPeersEmpty" class="nl-empty-state" hidden><i class="bi bi-people" aria-hidden="true"></i><h2>No peers yet</h2><p>More learners will appear here when they create a NeoLearn profile.</p></div>
+      <div id="neoLearnPeersNoMatches" class="nl-empty-state" hidden><h2>No matching peers</h2><p>Try another name or profile detail.</p></div>
+      <div id="neoLearnPeersGrid" class="nl-peer-grid" aria-live="polite"></div>
+      <div class="nl-post-more-wrap"><button id="loadMoreNeoLearnPeers" class="nl-social-button nl-social-button--secondary" type="button" hidden>Load more peers</button></div>
+    </div>
+  </main>
+  <nav class="mobile-account-nav" aria-label="NeoLearn quick navigation">
+    <a href="/htmls/neolearn/index.html"><i class="bi bi-house-door" aria-hidden="true"></i><span>Home</span></a>
+    <a href="/htmls/neolearn/peers.html" aria-current="page"><i class="bi bi-compass" aria-hidden="true"></i><span>Explore</span></a>
+    <a href="/htmls/neolearn/messages.html"><i class="bi bi-chat-dots" aria-hidden="true"></i><span>Messages</span></a>
+    <a href="/htmls/neolearn/profile.html"><i class="bi bi-person-vcard" aria-hidden="true"></i><span>Profile</span></a>
+    <a href="/htmls/neolearn/index.html?openUpload=1"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i><span>Upload</span></a>
+  </nav>
+  <script type="module" src="/js/neolearn-badge.js"></script>
+  <script type="module" src="/js/auth.js"></script>
+  <script type="module">
+    import { auth, checkAccess } from '/js/auth.js';
+    import { getNeoLearnPeersPage } from '/js/neolearn-social-service.js';
+    import { renderPeerCard } from '/js/neolearn-social-ui.js';
+
+    checkAccess(true);
+    const loading = document.getElementById('neoLearnPeersLoading');
+    const error = document.getElementById('neoLearnPeersError');
+    const errorText = document.getElementById('neoLearnPeersErrorText');
+    const empty = document.getElementById('neoLearnPeersEmpty');
+    const noMatches = document.getElementById('neoLearnPeersNoMatches');
+    const grid = document.getElementById('neoLearnPeersGrid');
+    const search = document.getElementById('neoLearnPeerSearch');
+    const resultCount = document.getElementById('neoLearnPeerResultCount');
+    const loadMoreButton = document.getElementById('loadMoreNeoLearnPeers');
+    const retryButton = document.getElementById('retryNeoLearnPeers');
+    let peers = [];
+    let loadingPeers = false;
+    let nextCursor = null;
+    let retryCursor = null;
+
+    function filterPeers() {
+      const query = search.value.trim().toLocaleLowerCase();
+      const matches = peers.filter((peer) => [peer.name, peer.username, peer.bio].join(' ').toLocaleLowerCase().includes(query));
+      grid.replaceChildren(...matches.map(renderPeerCard));
+      resultCount.textContent = nextCursor
+        ? `${matches.length} matching ${matches.length === 1 ? 'peer' : 'peers'} among ${peers.length} loaded`
+        : `${matches.length} ${matches.length === 1 ? 'peer' : 'peers'}`;
+      noMatches.hidden = peers.length === 0 || matches.length > 0 || Boolean(nextCursor);
+      loadMoreButton.hidden = !nextCursor;
+    }
+
+    async function loadPeers() {
+      if (loadingPeers) return;
+      loadingPeers = true;
+      loading.hidden = false;
+      error.hidden = true;
+      empty.hidden = true;
+      noMatches.hidden = true;
+      peers = [];
+      nextCursor = null;
+      retryCursor = null;
+      let hasRenderedCache = false;
+      const cacheKey = `neolearnPeersCache_${auth.currentUser?.uid || ''}`;
+      try {
+        const cachedPeers = JSON.parse(sessionStorage.getItem(cacheKey) || 'null');
+        if (Array.isArray(cachedPeers) || Array.isArray(cachedPeers?.peers)) {
+          peers = Array.isArray(cachedPeers) ? cachedPeers : cachedPeers.peers;
+          nextCursor = Array.isArray(cachedPeers) ? null : cachedPeers.nextCursor;
+          empty.hidden = peers.length > 0 || Boolean(nextCursor);
+          filterPeers();
+          loading.hidden = true;
+          hasRenderedCache = true;
+        }
+      } catch {}
+      if (!hasRenderedCache) grid.replaceChildren();
+      try {
+        const page = await getNeoLearnPeersPage(auth.currentUser);
+        peers = page.peers;
+        nextCursor = page.nextCursor;
+        retryCursor = null;
+        sessionStorage.setItem(cacheKey, JSON.stringify({ peers, nextCursor }));
+        empty.hidden = peers.length > 0 || Boolean(nextCursor);
+        filterPeers();
+      } catch (loadError) {
+        errorText.textContent = loadError.message || "Couldn't load peers.";
+        error.hidden = false;
+        if (!hasRenderedCache) resultCount.textContent = '';
+      } finally {
+        loading.hidden = true;
+        loadingPeers = false;
+      }
+    }
+
+    async function loadMorePeers(cursor = nextCursor) {
+      if (loadingPeers || !cursor) return;
+      loadingPeers = true;
+      loadMoreButton.disabled = true;
+      error.hidden = true;
+      const cacheKey = `neolearnPeersCache_${auth.currentUser?.uid || ''}`;
+      try {
+        const page = await getNeoLearnPeersPage(auth.currentUser, cursor);
+        peers = [...peers, ...page.peers];
+        nextCursor = page.nextCursor;
+        retryCursor = null;
+        sessionStorage.setItem(cacheKey, JSON.stringify({ peers, nextCursor }));
+        empty.hidden = peers.length > 0 || Boolean(nextCursor);
+        filterPeers();
+      } catch (loadError) {
+        retryCursor = cursor;
+        errorText.textContent = loadError.message || "Couldn't load more peers.";
+        error.hidden = false;
+      } finally {
+        loadingPeers = false;
+        loadMoreButton.disabled = false;
+      }
+    }
+
+    search.addEventListener('input', filterPeers);
+    retryButton.addEventListener('click', () => retryCursor ? loadMorePeers(retryCursor) : loadPeers());
+    loadMoreButton.addEventListener('click', loadMorePeers);
+    document.addEventListener('userLoaded', loadPeers, { once: true });
+    if (auth.currentUser) loadPeers();
+  </script>
+</body>
+</html>

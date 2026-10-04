@@ -33,7 +33,6 @@ function openPhotoDb() {
     request.onerror = () => reject(request.error);
   });
 }
-
 /**
  * Retrieves a cached profile photo blob and returns an object URL.
  * @param {string} userId
@@ -240,19 +239,29 @@ export async function uploadProfilePhotoToServer(user, imageFileOrDataUri, mimeT
   }
 
   const apiBase = getBackendBaseUrl();
-  const response = await fetch(`${apiBase}/api/profile/upload-photo`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify({
-      image: base64Payload,
-      mimeType: type
-    })
-  });
+  let response;
+  try {
+    response = await fetch(`${apiBase}/api/profile/upload-photo`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        image: base64Payload,
+        mimeType: type
+      })
+    });
+  } catch (error) {
+    throw new Error(`Profile photo backend is unreachable at ${apiBase}. Check that the backend is running and CORS allows this site.`);
+  }
 
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch (error) {
+    throw new Error(`Profile photo backend returned an invalid response (HTTP ${response.status}).`);
+  }
   if (!response.ok || !data.success) {
     throw new Error(data.error || 'Failed to upload profile photo');
   }
@@ -277,15 +286,25 @@ export async function removeProfilePhotoFromServer(user) {
   const token = await user.getIdToken();
 
   const apiBase = getBackendBaseUrl();
-  const response = await fetch(`${apiBase}/api/profile/remove-photo`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    }
-  });
+  let response;
+  try {
+    response = await fetch(`${apiBase}/api/profile/remove-photo`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  } catch (error) {
+    throw new Error(`Profile photo backend is unreachable at ${apiBase}. Check that the backend is running and CORS allows this site.`);
+  }
 
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch (error) {
+    throw new Error(`Profile photo backend returned an invalid response (HTTP ${response.status}).`);
+  }
   if (!response.ok || !data.success) {
     throw new Error(data.error || 'Failed to remove profile photo');
   }
@@ -293,4 +312,34 @@ export async function removeProfilePhotoFromServer(user) {
   // Clear local cache
   await clearCachedProfilePhoto(user.uid);
   return true;
+}
+
+/**
+ * Checks whether a Thought of the Day is currently active and within its 24-hour expiration window.
+ * @param {string|null} thought
+ * @param {any} expiresAt - Timestamp, Date, string, or number
+ * @returns {boolean}
+ */
+export function isThoughtActive(thought, expiresAt) {
+  if (!thought || typeof thought !== 'string' || !thought.trim()) {
+    return false;
+  }
+  if (!expiresAt) {
+    return false;
+  }
+  let expireTime = 0;
+  if (typeof expiresAt.toMillis === 'function') {
+    expireTime = expiresAt.toMillis();
+  } else if (typeof expiresAt.toDate === 'function') {
+    expireTime = expiresAt.toDate().getTime();
+  } else if (expiresAt instanceof Date) {
+    expireTime = expiresAt.getTime();
+  } else if (typeof expiresAt === 'number') {
+    expireTime = expiresAt;
+  } else if (typeof expiresAt === 'string') {
+    expireTime = new Date(expiresAt).getTime();
+  } else if (expiresAt.seconds) {
+    expireTime = expiresAt.seconds * 1000;
+  }
+  return Date.now() < expireTime;
 }

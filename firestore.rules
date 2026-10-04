@@ -5,6 +5,12 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == uid;
     }
 
+    function isNeoLearnPostVisibleToViewer(ownerId) {
+      return request.auth != null
+        && !exists(/databases/$(database)/documents/neolearn_blocks/$(request.auth.uid + '_' + ownerId))
+        && !exists(/databases/$(database)/documents/neolearn_blocks/$(ownerId + '_' + request.auth.uid));
+    }
+
     match /users/{userId} {
       allow read, write: if isOwner(userId);
       match /{document=**} {
@@ -83,7 +89,37 @@ service cloud.firestore {
     }
 
     match /neolearn_profiles/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && request.resource.data.keys().hasAll(['userId', 'name', 'profilePhotoUrl', 'thoughtOfTheDay', 'createdAt', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['userId', 'name', 'profilePhotoUrl', 'thoughtOfTheDay', 'createdAt', 'updatedAt'])
+        && request.resource.data.userId == userId
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.profilePhotoUrl is string
+        && request.resource.data.profilePhotoUrl.size() <= 2048
+        && request.resource.data.thoughtOfTheDay is string
+        && request.resource.data.thoughtOfTheDay.size() <= 280
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.updatedAt is timestamp;
+      allow update, delete: if false;
+    }
+
+    match /neolearn_posts/{postId} {
+      allow read: if resource.data.userId is string && isNeoLearnPostVisibleToViewer(resource.data.userId);
+      allow create, update, delete: if false;
+    }
+
+    match /neolearn_reports/{reportId} {
+      allow read, write: if false;
+    }
+
+    match /neolearn_blocks/{blockId} {
+      allow read, write: if false;
+    }
+
+    match /neolearn_learning/{relationId} {
+      allow read, write: if false;
     }
   }
 }

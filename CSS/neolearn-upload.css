@@ -1,0 +1,132 @@
+body.nb-neolearn-page .neolearn-upload-dialog {
+  width: min(96vw, 960px);
+  max-height: min(92vh, 860px);
+  max-height: min(92dvh, 860px);
+  margin: auto;
+  padding: 0;
+  color: var(--account-text);
+  background: var(--account-surface);
+  border: 1px solid var(--account-border);
+  border-radius: var(--account-radius);
+  box-shadow: var(--account-shadow-raised);
+  overflow-y: auto;
+}
+body.nb-neolearn-page .neolearn-upload-dialog[open] { display: block; }
+body.nb-neolearn-page .neolearn-upload-dialog::backdrop { background: rgba(15,23,42,.58); }
+body.nb-neolearn-page .nl-upload-shell { padding: clamp(.9rem, 2.4vw, 1.5rem); }
+body.nb-neolearn-page .nl-upload-header,
+body.nb-neolearn-page .nl-upload-footer,
+body.nb-neolearn-page .nl-upload-heading { display: flex; align-items: center; }
+body.nb-neolearn-page .nl-upload-header { justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+body.nb-neolearn-page .nl-upload-heading { gap: .7rem; min-width: 0; }
+body.nb-neolearn-page .nl-upload-heading-icon { display: grid; place-items: center; width: 40px; height: 40px; flex: 0 0 auto; color: var(--account-accent); background: var(--account-accent-soft); border-radius: 9px; font-size: 1.1rem; }
+body.nb-neolearn-page .nl-upload-heading h2 { margin: 0; font-size: 1.2rem; }
+body.nb-neolearn-page .nl-upload-heading p { margin: .15rem 0 0; color: var(--account-muted); font-size: .82rem; }
+body.nb-neolearn-page .nl-upload-close {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  color: var(--account-secondary);
+  background: var(--account-surface-raised);
+  border: 1px solid var(--account-border);
+  border-radius: 8px;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+body.nb-neolearn-page .nl-upload-layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr); gap: 1.15rem; align-items: start; }
+body.nb-neolearn-page .nl-upload-editor-panel,
+body.nb-neolearn-page .nl-upload-controls { min-width: 0; }
+body.nb-neolearn-page .nl-upload-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--crop-ratio, 4 / 3);
+  max-height: min(55vh, 560px);
+  overflow: hidden;
+  background: #111827;
+  border: 1px solid var(--account-border);
+  border-radius: 9px;
+  touch-action: none;
+}
+body.nb-neolearn-page .nl-upload-stage canvas { display: block; width: 100%; height: 100%; object-fit: contain; cursor: grab; touch-action: none; }
+body.nb-neolearn-page .nl-upload-stage canvas:active { cursor: grabbing; }
+body.nb-neolearn-page .nl-upload-stage canvas[hidden] { display: none; }
+body.nb-neolearn-page .nl-upload-empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: .45rem; padding: 1rem; color: #d9e1ee; text-align: center; }
+body.nb-neolearn-page .nl-upload-empty i { color: #a892f0; font-size: 2rem; }
+body.nb-neolearn-page .nl-upload-empty p { margin: 0; color: inherit; font-size: .88rem; }
+body.nb-neolearn-page .nl-upload-file-row { display: flex; align-items: center; justify-content: space-between; gap: .7rem; margin-top: .7rem; }
+body.nb-neolearn-page .nl-upload-file-name { min-width: 0; color: var(--account-muted); font-size: .78rem; overflow-wrap: anywhere; }
+body.nb-neolearn-page .nl-upload-help { margin: .55rem 0 0; color: var(--account-muted); font-size: .75rem; }
+body.nb-neolearn-page .nl-upload-controls { display: grid; gap: .8rem; }
+body.nb-neolearn-page .nl-upload-control-group { display: grid; gap: .38rem; }
+body.nb-neolearn-page .nl-upload-control-label { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: var(--account-secondary); font-size: .8rem; font-weight: 650; }
+body.nb-neolearn-page .nl-upload-control-label output { color: var(--account-muted); font-weight: 500; }
+body.nb-neolearn-page .nl-upload-controls :is(select,textarea) {
+  width: 100%;
+  min-height: 40px;
+  padding: .5rem .65rem;
+  color: var(--account-text);
+  background: var(--account-surface-raised);
+  border: 1px solid var(--account-border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: .84rem;
+}
+body.nb-neolearn-page .nl-upload-controls textarea { min-height: 78px; resize: vertical; }
+body.nb-neolearn-page .nl-upload-controls input[type="range"] { width: 100%; min-height: 22px; accent-color: var(--account-accent); }
+body.nb-neolearn-page .nl-upload-control-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+body.nb-neolearn-page .nl-upload-tool-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  min-height: 40px;
+  padding: .4rem .55rem;
+  color: var(--account-secondary);
+  background: var(--account-surface-raised);
+  border: 1px solid var(--account-border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+}
+body.nb-neolearn-page .nl-upload-tool-button:hover:not(:disabled) { color: var(--account-text); border-color: var(--account-accent); }
+body.nb-neolearn-page .nl-upload-controls :is(button,select,input,textarea):disabled { opacity: .55; cursor: not-allowed; }
+body.nb-neolearn-page .nl-upload-description-count { color: var(--account-muted); font-size: .72rem; text-align: right; }
+body.nb-neolearn-page .nl-upload-error { margin: 0 0 1rem; padding: .65rem .8rem; color: #b91c1c; background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25); border-radius: 8px; font-size: .84rem; }
+body.nb-neolearn-page:is(.dark,.dark-mode) .nl-upload-error { color: #fca5a5; }
+body.nb-neolearn-page .nl-upload-footer {
+  position: sticky;
+  bottom: 0;
+  justify-content: space-between;
+  gap: .7rem;
+  margin: 1rem calc(clamp(.9rem, 2.4vw, 1.5rem) * -1) calc(clamp(.9rem, 2.4vw, 1.5rem) * -1);
+  padding: .85rem clamp(.9rem, 2.4vw, 1.5rem);
+  background: var(--account-surface);
+  border-top: 1px solid var(--account-border);
+}
+body.nb-neolearn-page .nl-upload-footer-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .55rem; }
+body.nb-neolearn-page .nl-upload-footer button,
+body.nb-neolearn-page .nl-upload-file-row button {
+  min-height: var(--account-control);
+  padding: .45rem .8rem;
+  border-radius: 8px;
+  font: inherit;
+  font-size: .84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+body.nb-neolearn-page .nl-upload-secondary { color: var(--account-secondary) !important; background: var(--account-surface-raised) !important; border: 1px solid var(--account-border) !important; }
+body.nb-neolearn-page .nl-upload-primary { color: #fff !important; background: var(--account-accent) !important; border: 1px solid var(--account-accent) !important; }
+body.nb-neolearn-page .nl-upload-footer button:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 680px) {
+  body.nb-neolearn-page .neolearn-upload-dialog { width: calc(100vw - 1rem); max-height: calc(100dvh - 1rem); border-radius: 10px; }
+  body.nb-neolearn-page .nl-upload-layout { grid-template-columns: minmax(0, 1fr); gap: .85rem; }
+  body.nb-neolearn-page .nl-upload-stage { max-height: 38vh; }
+  body.nb-neolearn-page .nl-upload-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+  body.nb-neolearn-page .nl-upload-control-group--full { grid-column: 1 / -1; }
+  body.nb-neolearn-page .nl-upload-shell { padding: .9rem; }
+  body.nb-neolearn-page .nl-upload-footer { margin: .9rem -.9rem -.9rem; padding: .75rem .9rem calc(.75rem + env(safe-area-inset-bottom)); }
+  body.nb-neolearn-page .nl-upload-footer-actions { gap: .4rem; }
+}

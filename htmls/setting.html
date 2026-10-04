@@ -37,8 +37,23 @@
       <div class="settings-layout">
         <section class="account-card">
           <div class="account-identity">
-            <div id="initialAvatar" aria-label="User avatar"></div>
-            <div class="account-identity-copy"><h2 id="usernameDisplay">Welcome, User!</h2><span class="account-muted">Account profile</span></div>
+            <div class="account-avatar-wrapper">
+              <div id="initialAvatar" aria-label="User avatar"></div>
+              <input type="file" id="settingsPhotoInput" accept="image/jpeg,image/png,image/webp,image/gif" class="d-none" />
+            </div>
+            <div class="account-identity-copy">
+              <h2 id="usernameDisplay">Welcome, User!</h2>
+              <span class="account-muted">Account profile</span>
+              <div class="account-avatar-actions mt-2">
+                <button type="button" id="settingsChangePhotoBtn" class="account-avatar-btn" title="Change profile photo">
+                  <i class="bi bi-camera me-1"></i><span id="settingsChangePhotoText">Change Photo</span>
+                </button>
+                <button type="button" id="settingsRemovePhotoBtn" class="account-avatar-btn account-avatar-btn--remove d-none" title="Remove profile photo">
+                  <i class="bi bi-trash me-1"></i>Remove
+                </button>
+              </div>
+              <div id="settingsPhotoStatus" class="status-msg" role="status" aria-live="polite"></div>
+            </div>
           </div>
           <div class="settings-section settings-profile-fields">
             <div class="settings-field">
@@ -95,6 +110,7 @@
               <button id="neolearnToggleBtn" class="settings-save" type="button" disabled>
                 <span id="neolearnBtnText">Checking...</span>
               </button>
+              <button id="retryNeoLearnState" class="settings-save" type="button" hidden>Retry status check</button>
               <div id="neolearnStatusFeedback" class="status" role="status" aria-live="polite"></div>
             </div>
           </section>

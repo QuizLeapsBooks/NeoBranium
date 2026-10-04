@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notifications | NeoLearn</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/CSS/enhancements.css" />
+  <link rel="stylesheet" href="/CSS/account-pages.css" />
+  <link rel="stylesheet" href="/CSS/neolearn-social.css" />
+  <script src="/js/shortcuts.js"></script>
+  <script src="/js/neolearn-theme.js"></script>
+</head>
+<body class="nb-account-page nb-neolearn-page">
+  <header class="account-header">
+    <a href="/index.html" class="account-brand"><img src="/online-graduation_16847316.png" alt="" />NeoBranium</a>
+    <a class="neolearn-context" href="/htmls/neolearn/index.html">NeoLearn <span>Learn · Discover · Share</span></a>
+    <div class="account-header-actions">
+      <a class="account-header-link" href="/htmls/neolearn/notifications.html" aria-current="page" aria-label="Notifications"><i class="bi bi-bell" aria-hidden="true"></i><span class="nl-badge" id="neolearnHeaderNotificationBadge" hidden>0</span></a>
+      <a class="account-header-link" href="/htmls/neolearn/index.html"><i class="bi bi-house-door me-1" aria-hidden="true"></i>Home</a>
+      <a class="account-header-link" href="/htmls/neolearn/peers.html"><i class="bi bi-compass me-1" aria-hidden="true"></i>Explore</a>
+      <a class="account-header-link" href="/htmls/neolearn/profile.html"><i class="bi bi-person-circle me-1" aria-hidden="true"></i>Profile</a>
+      <a class="account-header-link" href="/htmls/setting.html#neolearnSection" aria-label="Settings"><i class="bi bi-gear" aria-hidden="true"></i></a>
+      <button id="themeToggle" class="account-theme-button" type="button" aria-label="Switch theme"><i class="bi bi-moon-stars me-1" aria-hidden="true"></i><span>Switch Theme</span></button>
+    </div>
+  </header>
+  <aside class="account-sidebar" aria-label="NeoLearn navigation">
+    <div class="account-sidebar-brand"><img src="/online-graduation_16847316.png" alt="" /><span class="neolearn-sidebar-title">NeoLearn<small>LEARNING WORKSPACE</small></span></div>
+    <nav>
+      <a href="/htmls/neolearn/index.html"><i class="bi bi-house-door" aria-hidden="true"></i>Home</a>
+      <a href="/htmls/neolearn/peers.html"><i class="bi bi-compass" aria-hidden="true"></i>Explore learners</a>
+      <a href="/htmls/neolearn/index.html?openUpload=1"><i class="bi bi-plus-lg" aria-hidden="true"></i>Create a post</a>
+      <a href="/htmls/neolearn/messages.html"><i class="bi bi-chat-dots" aria-hidden="true"></i>Messages</a>
+      <a href="/htmls/neolearn/profile.html"><i class="bi bi-person-vcard" aria-hidden="true"></i>Profile</a>
+      <a href="/htmls/setting.html#neolearnSection"><i class="bi bi-gear" aria-hidden="true"></i>Settings</a>
+    </nav>
+  </aside>
+  <main class="account-main">
+    <div class="account-content-wrap">
+      <header class="account-page-heading nl-notifications-page-header">
+        <div>
+          <h1>Notifications</h1>
+          <p>See when peers like or comment on your learning posts.</p>
+        </div>
+        <div class="nl-notifications-actions" id="notificationsActionWrap" hidden>
+          <button id="markAllReadBtn" class="nl-social-button nl-social-button--secondary" type="button">
+            <i class="bi bi-check2-all me-1" aria-hidden="true"></i>Mark all as read
+          </button>
+        </div>
+      </header>
+      <div id="notificationActionStatus" class="nl-state-message nl-state-message--error" role="status" aria-live="polite" hidden></div>
+      <div id="neolearnNotificationsLoading" class="nl-notifications-skeleton" role="status" aria-label="Loading notifications">
+        <div class="nl-notification-skeleton" aria-hidden="true"><span></span><span><i></i><i></i></span></div>
+        <div class="nl-notification-skeleton" aria-hidden="true"><span></span><span><i></i><i></i></span></div>
+        <div class="nl-notification-skeleton" aria-hidden="true"><span></span><span><i></i><i></i></span></div>
+      </div>
+      <div id="neolearnNotificationsError" class="nl-state-message nl-state-message--error" role="alert" hidden>
+        <span id="neolearnNotificationsErrorText"></span>
+        <button id="retryNeoLearnNotifications" class="nl-social-button nl-social-button--secondary" type="button">Retry</button>
+      </div>
+      <div id="neolearnNotificationsEmpty" class="nl-empty-state" hidden>
+        <i class="bi bi-bell-slash" aria-hidden="true"></i>
+        <h2>No notifications yet.</h2>
+        <p>When someone likes or comments on your posts, you'll see it here.</p>
+      </div>
+      <div id="neolearnNotificationsList" class="nl-notifications-list" aria-live="polite"></div>
+    </div>
+  </main>
+  <nav class="mobile-account-nav" aria-label="NeoLearn quick navigation">
+    <a href="/htmls/neolearn/index.html"><i class="bi bi-house-door" aria-hidden="true"></i><span>Home</span></a>
+    <a href="/htmls/neolearn/peers.html"><i class="bi bi-compass" aria-hidden="true"></i><span>Explore</span></a>
+    <a href="/htmls/neolearn/messages.html"><i class="bi bi-chat-dots" aria-hidden="true"></i><span>Messages</span></a>
+    <a href="/htmls/neolearn/profile.html"><i class="bi bi-person-vcard" aria-hidden="true"></i><span>Profile</span></a>
+    <a href="/htmls/neolearn/index.html?openUpload=1"><i class="bi bi-plus-lg" aria-hidden="true"></i><span>Create</span></a>
+  </nav>
+  <script type="module" src="/js/neolearn-badge.js"></script>
+  <script type="module" src="/js/neolearn-notifications-ui.js"></script>
+</body>
+</html>

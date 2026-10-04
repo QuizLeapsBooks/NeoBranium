@@ -44,20 +44,33 @@
       <header class="account-page-heading"><h1>Your profile</h1><p>Your account details and learning stats.</p></header>
       <section class="account-card profile-card" aria-label="Profile information">
         <div class="account-identity">
-          <div id="profilePicContainer" aria-label="Profile picture"></div>
+          <div class="account-avatar-wrapper">
+            <div id="profilePicContainer" aria-label="Profile picture"></div>
+            <input type="file" id="profilePhotoInput" accept="image/jpeg,image/png,image/webp,image/gif" class="d-none" />
+            <div id="profileAvatarOwnerActions" class="account-avatar-actions justify-content-center mt-2 d-none">
+              <button type="button" id="profileChangePhotoBtn" class="account-avatar-btn" title="Change profile photo">
+                <i class="bi bi-camera me-1"></i><span id="profileChangePhotoText">Change</span>
+              </button>
+              <button type="button" id="profileRemovePhotoBtn" class="account-avatar-btn account-avatar-btn--remove d-none" title="Remove profile photo">
+                <i class="bi bi-trash me-1"></i>Remove
+              </button>
+            </div>
+            <div id="profilePhotoStatus" class="status-msg text-center" role="status" aria-live="polite"></div>
+          </div>
           <div class="account-identity-copy">
             <h2 id="usernameDisplay">Loading...</h2>
             <span id="emailDisplay" class="account-muted">Loading email...</span>
           </div>
         </div>
+
         <p id="bioDisplay" class="profile-bio">Loading bio...</p>
         <section id="userStats" class="profile-stats" aria-label="User stats">
           <div class="profile-stat"><span class="profile-stat-value" id="userScore">0</span><span class="profile-stat-label">Score</span></div>
           <div class="profile-stat"><span class="profile-stat-value" id="highScore">0</span><span class="profile-stat-label">High Score</span></div>
           <div class="profile-stat"><span class="profile-stat-value" id="userRank">-</span><span class="profile-stat-label">Rank</span></div>
         </section>
-        <div class="account-actions">
-          <a href="/htmls/setting.html"><i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Edit Profile</a>
+        <div id="profileAccountActions" class="account-actions">
+          <a href="/htmls/setting.html" id="editProfileBtn"><i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Edit Profile</a>
           <button id="logoutBtn" class="account-button-secondary" type="button"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Logout</button>
         </div>
         <a href="/htmls/rank-score-info.html" class="account-link"><i class="bi bi-book me-1" aria-hidden="true"></i>How Rank &amp; Score are calculated?</a>
@@ -72,8 +85,8 @@
   </nav>
   <script type="module" src="/js/auth.js"></script>
   <script type="module">
-    import { auth, loadUserData, updateUserDisplay, showStatus, checkAccess } from '/js/auth.js';
-    import { syncProfilePhoto } from '/js/profile-photo-cache.js';
+    import { auth, showStatus, checkAccess } from '/js/auth.js';
+    import { syncProfilePhoto, uploadProfilePhotoToServer, removeProfilePhotoFromServer } from '/js/profile-photo-cache.js';
 
     // Immediate access check for guest protection
     checkAccess(true);
@@ -87,40 +100,138 @@
     const userScore = document.getElementById('userScore');
     const userRank = document.getElementById('userRank');
     const themeToggle = document.getElementById('themeToggle');
+    const profileAccountActions = document.getElementById('profileAccountActions');
 
-    document.addEventListener('userLoaded', async (e) => {
+    // Profile photo upload elements
+    const profilePhotoInput = document.getElementById('profilePhotoInput');
+    const profileAvatarOwnerActions = document.getElementById('profileAvatarOwnerActions');
+    const profileChangePhotoBtn = document.getElementById('profileChangePhotoBtn');
+    const profileChangePhotoText = document.getElementById('profileChangePhotoText');
+    const profileRemovePhotoBtn = document.getElementById('profileRemovePhotoBtn');
+    const profilePhotoStatus = document.getElementById('profilePhotoStatus');
+
+    let currentUserData = null;
+
+    function showPhotoFeedback(msg, isError = false) {
+      if (!profilePhotoStatus) return;
+      profilePhotoStatus.textContent = msg;
+      profilePhotoStatus.style.color = isError ? 'var(--account-danger, #ef4444)' : 'var(--account-success, #16a34a)';
+      setTimeout(() => {
+        if (profilePhotoStatus.textContent === msg) profilePhotoStatus.textContent = '';
+      }, 4000);
+    }
+
+    function renderAvatar(url, name) {
+      if (!profilePicContainer) return;
+      const firstLetter = (name || 'User').charAt(0).toUpperCase();
+      if (url) {
+        profilePicContainer.innerHTML = '';
+        const img = document.createElement('img');
+        img.className = 'w-28 h-28 rounded-full mx-auto shadow-lg border-4 border-white profile-avatar-image';
+        img.alt = 'Profile Picture';
+        img.src = url;
+        profilePicContainer.appendChild(img);
+        if (profileRemovePhotoBtn) {
+          profileRemovePhotoBtn.classList.remove('d-none');
+        }
+      } else {
+        profilePicContainer.innerHTML = `<div class="avatar">${firstLetter}</div>`;
+        if (profileRemovePhotoBtn) {
+          profileRemovePhotoBtn.classList.add('d-none');
+        }
+      }
+    }
+
+    // Owner Profile Photo Upload Handlers
+    if (profileChangePhotoBtn && profilePhotoInput) {
+      profileChangePhotoBtn.addEventListener('click', () => {
+        profilePhotoInput.click();
+      });
+
+      profilePhotoInput.addEventListener('change', async () => {
+        const file = profilePhotoInput.files?.[0];
+        if (!file) return;
+
+        const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (!allowed.includes(file.type)) {
+          return showPhotoFeedback("Invalid image format. Supported formats: JPEG, PNG, WebP, GIF.", true);
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          return showPhotoFeedback("Image size must be less than 5MB.", true);
+        }
+
+        const user = auth.currentUser;
+        if (!user) return;
+
+        // Immediate preview
+        const previewUrl = URL.createObjectURL(file);
+        renderAvatar(previewUrl, currentUserData?.username || user.displayName);
+
+        profileChangePhotoBtn.disabled = true;
+        if (profileRemovePhotoBtn) profileRemovePhotoBtn.disabled = true;
+        profileChangePhotoText.textContent = "Uploading...";
+        showPhotoFeedback("Uploading to Cloudinary...");
+
+        try {
+          const secureUrl = await uploadProfilePhotoToServer(user, file);
+          currentUserData = { ...currentUserData, profilePhotoUrl: secureUrl, photoURL: secureUrl };
+          renderAvatar(secureUrl, currentUserData?.username || user.displayName);
+          showPhotoFeedback("Profile photo updated!");
+        } catch (err) {
+          console.error("Profile photo upload failed:", err);
+          showPhotoFeedback(err.message || "Upload failed", true);
+          const active = currentUserData?.profilePhotoUrl || currentUserData?.photoURL;
+          renderAvatar(active, currentUserData?.username || user.displayName);
+        } finally {
+          profileChangePhotoBtn.disabled = false;
+          if (profileRemovePhotoBtn) profileRemovePhotoBtn.disabled = false;
+          profileChangePhotoText.textContent = "Change";
+          profilePhotoInput.value = "";
+        }
+      });
+    }
+
+    if (profileRemovePhotoBtn) {
+      profileRemovePhotoBtn.addEventListener('click', async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        profileRemovePhotoBtn.disabled = true;
+        profileChangePhotoBtn.disabled = true;
+        showPhotoFeedback("Removing photo...");
+
+        try {
+          await removeProfilePhotoFromServer(user);
+          currentUserData = { ...currentUserData, profilePhotoUrl: '', photoURL: '' };
+          renderAvatar(null, currentUserData?.username || user.displayName);
+          showPhotoFeedback("Profile photo removed.");
+        } catch (err) {
+          console.error("Photo removal failed:", err);
+          showPhotoFeedback(err.message || "Failed to remove photo", true);
+        } finally {
+          profileChangePhotoBtn.disabled = false;
+          profileRemovePhotoBtn.disabled = false;
+        }
+      });
+    }
+
+    document.addEventListener('userLoaded', (e) => {
       const { user, userData } = e.detail;
-      emailDisplay.textContent = userData.email || 'No email';
+      currentUserData = userData;
+      emailDisplay.textContent = userData.email || user.email || 'No email';
       usernameDisplay.textContent = userData.username || user.displayName || 'User';
       bioDisplay.textContent = userData.bio || 'No bio added yet';
       userScore.textContent = userData.score ?? 0;
       highScore.textContent = userData.highScore ?? 0;
       userRank.textContent = userData.rank ?? '-';
 
-      const firstLetter = (userData.username || user.displayName || 'User').charAt(0).toUpperCase();
-
-      const renderAvatar = (url) => {
-        if (!profilePicContainer) return;
-        if (url) {
-          profilePicContainer.innerHTML = '';
-          const img = document.createElement('img');
-          img.className = 'w-28 h-28 rounded-full mx-auto shadow-lg border-4 border-white profile-avatar-image';
-          img.alt = 'Profile Picture';
-          img.src = url;
-          profilePicContainer.appendChild(img);
-        } else {
-          profilePicContainer.innerHTML = `<div class="avatar">${firstLetter}</div>`;
-        }
-      };
+      profileAvatarOwnerActions.classList.remove('d-none');
+      profileAccountActions.classList.remove('d-none');
 
       const photoUrl = userData.profilePhotoUrl || userData.photoURL || user.photoURL || null;
-      if (user && user.uid) {
-        syncProfilePhoto(user.uid, photoUrl, (displayUrl) => {
-          renderAvatar(displayUrl);
-        });
-      } else {
-        renderAvatar(photoUrl);
-      }
+      syncProfilePhoto(user.uid, photoUrl, (displayUrl) => {
+        renderAvatar(displayUrl, userData.username || user.displayName);
+      });
     });
 
     logoutBtn.addEventListener("click", async () => {
@@ -142,5 +253,4 @@
     });
   </script>
 </body>
-
 </html>

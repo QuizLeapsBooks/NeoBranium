@@ -1,5 +1,7 @@
 import { auth, db, loadUserData, updateUserProfile, changeUserPassword, showStatus, checkAccess } from "/js/auth.js";
-import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+import { uploadProfilePhotoToServer, removeProfilePhotoFromServer } from "/js/profile-photo-cache.js";
+import { deleteNeoLearnProfile } from "/js/neolearn-social-service.js";
 
 // Immediate access check for guest protection
 await checkAccess(true);
@@ -19,11 +21,53 @@ const newPasswordInput = document.getElementById("newPassword");
 const changePasswordBtn = document.getElementById("changePasswordBtn");
 const themeSwitch = document.getElementById("themeSwitch");
 
+// Profile Photo Management Elements
+const settingsPhotoInput = document.getElementById("settingsPhotoInput");
+const settingsChangePhotoBtn = document.getElementById("settingsChangePhotoBtn");
+const settingsChangePhotoText = document.getElementById("settingsChangePhotoText");
+const settingsRemovePhotoBtn = document.getElementById("settingsRemovePhotoBtn");
+const settingsPhotoStatus = document.getElementById("settingsPhotoStatus");
+const initialAvatar = document.getElementById("initialAvatar");
+
+function showSettingsPhotoFeedback(message, isError = false) {
+    if (!settingsPhotoStatus) return;
+    settingsPhotoStatus.textContent = message;
+    settingsPhotoStatus.style.color = isError ? "var(--account-danger, #ef4444)" : "var(--account-success, #16a34a)";
+    setTimeout(() => {
+        if (settingsPhotoStatus.textContent === message) {
+            settingsPhotoStatus.textContent = "";
+        }
+    }, 4000);
+}
+
+function updateSettingsAvatarUI(photoUrl, username) {
+    const firstLetter = (username || "User").charAt(0).toUpperCase();
+    if (initialAvatar) {
+        if (photoUrl) {
+            initialAvatar.style.backgroundImage = `url("${photoUrl}")`;
+            initialAvatar.style.backgroundSize = "cover";
+            initialAvatar.style.backgroundPosition = "center";
+            initialAvatar.textContent = "";
+        } else {
+            initialAvatar.style.backgroundImage = "";
+            initialAvatar.textContent = firstLetter;
+        }
+    }
+    if (settingsRemovePhotoBtn) {
+        if (photoUrl) {
+            settingsRemovePhotoBtn.classList.remove("d-none");
+        } else {
+            settingsRemovePhotoBtn.classList.add("d-none");
+        }
+    }
+}
+
 // NeoLearn Elements
 const neolearnToggleBtn = document.getElementById("neolearnToggleBtn");
 const neolearnBtnText = document.getElementById("neolearnBtnText");
 const neolearnStatusBadge = document.getElementById("neolearnStatusBadge");
 const neolearnStatusFeedback = document.getElementById("neolearnStatusFeedback");
+const retryNeoLearnStateBtn = document.getElementById("retryNeoLearnState");
 
 const neolearnModal = document.getElementById("neolearnModal");
 const neolearnModalBackdrop = document.getElementById("neolearnModalBackdrop");
@@ -69,8 +113,14 @@ function updateNeoLearnUI(hasProfile) {
 
 async function loadNeoLearnState(user) {
     if (!user || !user.uid) return;
+    neolearnToggleBtn.disabled = true;
+    retryNeoLearnStateBtn.disabled = true;
+    retryNeoLearnStateBtn.hidden = true;
+    neolearnStatusBadge.textContent = "Checking...";
+    neolearnStatusBadge.className = "neolearn-badge neolearn-badge--checking";
     try {
         const profileSnap = await getDoc(doc(db, "neolearn_profiles", user.uid));
+        if (auth.currentUser?.uid !== user.uid) return;
         if (profileSnap.exists()) {
             currentNeoLearnProfile = profileSnap.data();
             updateNeoLearnUI(true);
@@ -80,9 +130,18 @@ async function loadNeoLearnState(user) {
         }
     } catch (err) {
         console.error("Error loading NeoLearn profile:", err);
+        currentNeoLearnProfile = null;
+        neolearnStatusBadge.textContent = "Unavailable";
+        neolearnStatusBadge.className = "neolearn-badge neolearn-badge--inactive";
+        neolearnBtnText.textContent = "Status check required";
+        retryNeoLearnStateBtn.hidden = false;
         showNeoLearnFeedback("Could not load NeoLearn profile status: " + err.message, true);
+    } finally {
+        retryNeoLearnStateBtn.disabled = false;
     }
 }
+
+retryNeoLearnStateBtn.addEventListener("click", () => loadNeoLearnState(auth.currentUser));
 
 async function handleCreateNeoLearnProfile() {
     const user = auth.currentUser;
@@ -194,8 +253,7 @@ if (neolearnFinalDeleteBtn) {
         neolearnDeleteBtnText.textContent = "Removing...";
 
         try {
-            const profileRef = doc(db, "neolearn_profiles", user.uid);
-            await deleteDoc(profileRef);
+            await deleteNeoLearnProfile(user);
             currentNeoLearnProfile = null;
             closeNeoLearnModal();
             updateNeoLearnUI(false);
@@ -216,6 +274,78 @@ document.addEventListener("keydown", (e) => {
     }
 });
 
+if (settingsChangePhotoBtn && settingsPhotoInput) {
+    settingsChangePhotoBtn.addEventListener("click", () => {
+        settingsPhotoInput.click();
+    });
+
+    settingsPhotoInput.addEventListener("change", async () => {
+        const file = settingsPhotoInput.files?.[0];
+        if (!file) return;
+
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+            return showSettingsPhotoFeedback("Invalid image format. Supported formats: JPEG, PNG, WebP, GIF.", true);
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            return showSettingsPhotoFeedback("Image size must be less than 5MB.", true);
+        }
+
+        const user = auth.currentUser;
+        if (!user) return showSettingsPhotoFeedback("You must be logged in to upload a photo.", true);
+
+        // Instant local preview
+        const previewUrl = URL.createObjectURL(file);
+        updateSettingsAvatarUI(previewUrl, user.displayName);
+
+        // Uploading state
+        settingsChangePhotoBtn.disabled = true;
+        if (settingsRemovePhotoBtn) settingsRemovePhotoBtn.disabled = true;
+        settingsChangePhotoText.textContent = "Uploading...";
+        showSettingsPhotoFeedback("Uploading to Cloudinary...");
+
+        try {
+            const secureUrl = await uploadProfilePhotoToServer(user, file);
+            updateSettingsAvatarUI(secureUrl, user.displayName);
+            showSettingsPhotoFeedback("Profile photo updated successfully!");
+        } catch (err) {
+            console.error("Photo upload failed:", err);
+            showSettingsPhotoFeedback(err.message || "Failed to upload photo", true);
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            const existingPhoto = userDoc.exists() ? userDoc.data().profilePhotoUrl : null;
+            updateSettingsAvatarUI(existingPhoto, user.displayName);
+        } finally {
+            settingsChangePhotoBtn.disabled = false;
+            if (settingsRemovePhotoBtn) settingsRemovePhotoBtn.disabled = false;
+            settingsChangePhotoText.textContent = "Change Photo";
+            settingsPhotoInput.value = "";
+        }
+    });
+}
+
+if (settingsRemovePhotoBtn) {
+    settingsRemovePhotoBtn.addEventListener("click", async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        settingsRemovePhotoBtn.disabled = true;
+        settingsChangePhotoBtn.disabled = true;
+        showSettingsPhotoFeedback("Removing profile photo...");
+
+        try {
+            await removeProfilePhotoFromServer(user);
+            updateSettingsAvatarUI(null, user.displayName);
+            showSettingsPhotoFeedback("Profile photo removed.");
+        } catch (err) {
+            console.error("Failed to remove photo:", err);
+            showSettingsPhotoFeedback(err.message || "Failed to remove photo", true);
+        } finally {
+            settingsChangePhotoBtn.disabled = false;
+            settingsRemovePhotoBtn.disabled = false;
+        }
+    });
+}
+
 document.addEventListener("userLoaded", async (e) => {
     const { user, userData } = e.detail;
     firstNameInput.value = userData.fname || "";
@@ -223,6 +353,8 @@ document.addEventListener("userLoaded", async (e) => {
     usernameInput.value = userData.username || user.displayName || "User";
     bioInput.value = userData.bio || "";
     notificationPref.value = userData.notificationPref || "all";
+    const activePhoto = userData.profilePhotoUrl || userData.photoURL;
+    updateSettingsAvatarUI(activePhoto, userData.username || user.displayName);
     await loadNeoLearnState(user);
 });
 
@@ -307,3 +439,22 @@ changePasswordBtn.addEventListener("click", async () => {
         showStatus("Failed to change password: " + err.message, true);
     }
 });
+
+// Check for URL messages (e.g. redirected from protected NeoLearn page)
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('msg') === 'neolearn_missing') {
+    setTimeout(() => {
+        showStatus("NeoLearn profile not created yet. Create your NeoLearn profile in Settings to access NeoLearn.", true);
+        
+        const neolearnSection = document.getElementById("neolearnSection");
+        if (neolearnSection) {
+            neolearnSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            neolearnSection.style.transition = 'box-shadow 0.3s ease';
+            neolearnSection.style.boxShadow = '0 0 0 3px var(--account-danger, #ef4444)';
+            setTimeout(() => {
+                neolearnSection.style.boxShadow = '';
+            }, 2500);
+            showNeoLearnFeedback("NeoLearn profile not created yet. Create your NeoLearn profile here to access NeoLearn.", true);
+        }
+    }, 600); // slight delay to ensure UI is ready
+}
