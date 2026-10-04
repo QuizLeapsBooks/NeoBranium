@@ -17,6 +17,32 @@ import {
 
 const googleProvider = new GoogleAuthProvider();
 
+// Backend server URL
+const API_BASE = "https://neobranium.onrender.com";
+
+// Send verification email via our own Render server (Gmail SMTP)
+async function sendVerificationViaServer(fname) {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No user logged in");
+
+  const idToken = await user.getIdToken();
+
+  const response = await fetch(`${API_BASE}/api/send-verification-email`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${idToken}`
+    },
+    credentials: "include",
+    body: JSON.stringify({ fname })
+  });
+
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Server error");
+  return data;
+}
+
+
 // ==========================================
 // UI State Management & View Toggling
 // ==========================================
@@ -142,25 +168,24 @@ document.getElementById("signup-form")?.addEventListener("submit", async (e) => 
       createdAt: Date.now()
     });
     
-    // Send verification email
+    // Send verification email via Render server (Gmail SMTP - reliable delivery)
     try {
-      await sendEmailVerification(user, getEmailVerificationSettings());
+      await sendVerificationViaServer(fname);
       sessionStorage.removeItem("emailSignupInProgress");
-      showToast("Account created! Verify your email to continue.", "success");
+      showToast("Account created! Check your email inbox to verify.", "success");
       setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);
     } catch (verifyError) {
-      // Account created but email failed - still redirect to verify page
-      console.error("Email verification send failed:", verifyError.code, verifyError.message);
-      sessionStorage.removeItem("emailSignupInProgress");
-      
-      if (verifyError.code === "auth/unauthorized-continue-uri") {
-        showToast("⚠️ Domain not authorized in Firebase. Contact admin.", "error");
-      } else if (verifyError.code === "auth/too-many-requests") {
-        showToast("Account created! Too many requests, check spam or resend later.", "success");
+      // Server failed — fallback to Firebase default
+      console.warn("Server email failed, using Firebase default:", verifyError.message);
+      try {
+        await sendEmailVerification(user, getEmailVerificationSettings());
+        sessionStorage.removeItem("emailSignupInProgress");
+        showToast("Account created! Verify your email to continue.", "success");
         setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);
-      } else {
-        // Account was created, still go to verify page so user can resend
-        showToast("Account created! If email not received, use 'Resend' on next page.", "success");
+      } catch (fallbackError) {
+        console.error("Fallback email also failed:", fallbackError.code, fallbackError.message);
+        sessionStorage.removeItem("emailSignupInProgress");
+        showToast("Account created! Use 'Resend' on the next page if email not received.", "success");
         setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);
       }
     }

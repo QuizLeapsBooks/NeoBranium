@@ -1,6 +1,27 @@
 import { onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 import { auth, getEmailVerificationSettings } from "./auth.js";
 
+const API_BASE = "https://neobranium.onrender.com";
+
+async function sendVerificationViaServer() {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No user logged in");
+  const idToken = await user.getIdToken();
+  const response = await fetch(`${API_BASE}/api/send-verification-email`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${idToken}`
+    },
+    credentials: "include",
+    body: JSON.stringify({})
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || "Server error");
+  return data;
+}
+
+
 function showMessage(message, isError = true) {
   const messageDiv = document.getElementById("verifyMessage");
   if (!messageDiv) return;
@@ -37,14 +58,22 @@ window.resendVerification = async () => {
   const user = auth.currentUser;
   if (user) {
     try {
-      await sendEmailVerification(user, getEmailVerificationSettings());
-      showMessage("Verification email resent. Please check your inbox.", false);
-    } catch (error) {
-      console.error("Verification email resend failed:", error);
-      const message = error.code === "auth/too-many-requests"
-        ? "Too many requests. Wait a while before trying again."
-        : `Could not resend the email (${error.code || "unknown error"}).`;
-      showMessage(message);
+      // Try Render server (Gmail SMTP) first for reliable delivery
+      await sendVerificationViaServer();
+      showMessage("Verification email sent! Please check your inbox.", false);
+    } catch (serverError) {
+      console.warn("Server resend failed, falling back to Firebase:", serverError.message);
+      // Fallback to Firebase default
+      try {
+        await sendEmailVerification(user, getEmailVerificationSettings());
+        showMessage("Verification email resent. Please check your inbox.", false);
+      } catch (error) {
+        console.error("Verification email resend failed:", error);
+        const message = error.code === "auth/too-many-requests"
+          ? "Too many requests. Wait a while before trying again."
+          : `Could not resend the email (${error.code || "unknown error"}).`;
+        showMessage(message);
+      }
     }
   } else {
     showMessage("No signed-in account found. Please sign in again.");
