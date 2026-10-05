@@ -19,6 +19,7 @@ import { createNeoLearnDirectoryHandlers, loadPublicProfile } from './neolearn-d
 import { createNeoLearnSocialHandlers } from './neolearn-social-handler.js';
 import { createNeoLearnNotificationHandlers } from './neolearn-notification-handler.js';
 import { createNeoLearnModerationHandlers } from './neolearn-moderation-handler.js';
+import { createNeoLearnMessageHandlers } from './neolearn-message-handler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -132,6 +133,8 @@ const allowedOrigins = [
     'http://127.0.0.1:5503',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3001',
     ...((process.env.ALLOWED_ORIGINS || '').split(',').map(o => o.trim()).filter(Boolean))
 ];
 
@@ -1795,6 +1798,13 @@ const neoLearnNotificationHandlers = createNeoLearnNotificationHandlers({ verify
 app.post('/api/neolearn/notifications/like', neoLearnNotificationHandlers.recordLikeNotification);
 app.post('/api/neolearn/notifications/comment', neoLearnNotificationHandlers.recordCommentNotification);
 app.post('/api/neolearn/notifications/mark-read', neoLearnNotificationHandlers.markNotificationRead);
+
+const neoLearnMessageHandlers = createNeoLearnMessageHandlers({ verifyAuthToken, db, rtdb });
+app.post('/api/neolearn/messages/send', neoLearnMessageHandlers.sendMessage);
+app.post('/api/neolearn/messages/seen', neoLearnMessageHandlers.markMessageSeen);
+app.post('/api/neolearn/messages/hidden', neoLearnMessageHandlers.getHiddenConversations);
+app.post('/api/neolearn/messages/delete', neoLearnMessageHandlers.deleteConversation);
+app.post('/api/neolearn/messages/restore', neoLearnMessageHandlers.restoreConversation);
 
 const neoLearnModerationHandlers = createNeoLearnModerationHandlers({
     verifyAuthToken,

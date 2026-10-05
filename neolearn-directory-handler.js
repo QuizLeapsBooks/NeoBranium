@@ -52,7 +52,9 @@ export async function loadPublicProfile(db, userId, profileData, viewerId = user
         thoughtOfTheDay: userData.thoughtOfTheDay || profileData.thoughtOfTheDay,
         thoughtOfTheDayExpiresAt: userData.thoughtOfTheDayExpiresAt || profileData.thoughtOfTheDayExpiresAt,
         learnCount: profileData.learnCount,
-        learningCount: profileData.learningCount
+        learningCount: profileData.learningCount,
+        messagePrivacy: profileData.messagePrivacy || userData.messagePrivacy || "everyone",
+        showLastSeen: userData.showLastSeen !== false
     });
     const relationshipSnapshots = viewerId === userId
         ? [{ exists: false }, { exists: false }]

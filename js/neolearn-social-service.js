@@ -41,7 +41,11 @@ async function authenticatedRequest(user, path, { method = 'GET', body } = {}) {
   return result;
 }
 
-export async function getNeoLearnPeersPage(user = auth.currentUser, cursor = null) {
+export async function getNeoLearnPeersPage(user = auth.currentUser, cursor = null, type = null) {
+  if (type === 'learning') {
+    const result = await authenticatedRequest(user, `/api/neolearn/social/connections/${user.uid}?type=learning`);
+    return { peers: result.profiles || [], nextCursor: null };
+  }
   const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
   return authenticatedRequest(user, `/api/neolearn/peers${query}`);
 }

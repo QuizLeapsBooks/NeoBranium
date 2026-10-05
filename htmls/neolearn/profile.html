@@ -310,6 +310,11 @@
           learnButton.type = 'button';
           learnButton.className = `nl-social-button ${profile.isLearning ? 'nl-social-button--secondary' : 'nl-social-button--primary'}`;
           learnButton.textContent = profile.isLearning ? 'Learning' : 'Learn';
+          const messageButton = document.createElement('a');
+          messageButton.className = 'nl-social-button nl-social-button--secondary';
+          messageButton.href = `/htmls/neolearn/messages.html?uid=${encodeURIComponent(profile.userId)}`;
+          messageButton.hidden = !profile.isLearning;
+          messageButton.innerHTML = '<i class="bi bi-chat-dots" aria-hidden="true"></i> Message';
           learnButton.addEventListener('click', async () => {
             const wasLearning = profile.isLearning === true;
             learnButton.disabled = true;
@@ -317,6 +322,7 @@
             try {
               const summary = await toggleLearn(profile.userId, wasLearning);
               profile.isLearning = summary.isLearning;
+              messageButton.hidden = !summary.isLearning;
               learnButton.className = `nl-social-button ${summary.isLearning ? 'nl-social-button--secondary' : 'nl-social-button--primary'}`;
               learnButton.textContent = summary.isLearning ? 'Learning' : 'Learn';
               document.getElementById('neoLearnPeerLearnCount').textContent = String(summary.learnCount);
@@ -413,7 +419,7 @@
               menuBtn.setAttribute('aria-expanded', String(!isHidden));
             });
             menuWrap.append(menuBtn, menuDropdown);
-            actions.append(learnButton, status, menuWrap);
+            actions.append(learnButton, messageButton, status, menuWrap);
           }
         }
 

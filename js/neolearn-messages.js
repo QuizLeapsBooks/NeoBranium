@@ -1,7 +1,8 @@
 import { auth, rtdb, checkAccess } from './auth.js';
+import { getBackendBaseUrl } from './profile-photo-cache.js';
 import { getNeoLearnPeersPage } from './neolearn-social-service.js';
-import { addEarlierMessagePage, mergeConversationMessages, NEOLEARN_MESSAGE_PAGE_SIZE } from './neolearn-message-history.js';
-import { endAt, get, limitToLast, onValue, orderByChild, push, query, ref, serverTimestamp, set } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js';
+import { addEarlierMessagePage, mergeConversationMessages, NEOLEARN_MESSAGE_PAGE_SIZE, sortPeersByLatestMessage } from './neolearn-message-history.js';
+import { endAt, get, limitToLast, onValue, orderByChild, push, query, ref, serverTimestamp, set, onDisconnect } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js';
 
 checkAccess(true);
 const peerList = document.getElementById('messagePeerList');
@@ -20,6 +21,7 @@ const input = document.getElementById('messageInput');
 const errorBox = document.getElementById('messagesError');
 const messagesShell = document.querySelector('.nl-messages-shell');
 const threadBack = document.getElementById('messageThreadBack');
+const deleteChatButton = document.getElementById('deleteMessageChat');
 let peers = [];
 let activePeer = null;
 let stopMessages = null;
@@ -30,6 +32,59 @@ let conversationGeneration = 0;
 let loadingEarlierMessages = false;
 let nextPeersCursor = null;
 let loadingMorePeers = false;
+let hiddenConversations = new Map();
+
+function hiddenConversationsStorageKey(userId) {
+  return `neolearn_hidden_chats_${userId}`;
+}
+
+function loadLocalHiddenConversations(userId) {
+  try {
+    return new Map(Object.entries(JSON.parse(localStorage.getItem(hiddenConversationsStorageKey(userId)) || '{}')));
+  } catch {
+    return new Map();
+  }
+}
+
+function saveLocalHiddenConversations(userId) {
+  if (!userId) return;
+  try {
+    localStorage.setItem(hiddenConversationsStorageKey(userId), JSON.stringify(Object.fromEntries(hiddenConversations)));
+  } catch { /* Local storage may be unavailable in restricted contexts. */ }
+}
+
+function latestHiddenMarker(peerId) {
+  const entries = mergeConversationMessages(
+    olderMessagePages.get(peerId) || {},
+    conversationSnapshots.get(peerId) || {}
+  );
+  const [lastMessageId, lastMessage] = entries.at(-1) || [];
+  return {
+    lastMessageAt: Number.isFinite(lastMessage?.createdAt) ? lastMessage.createdAt : 0,
+    lastMessageId: lastMessageId || null
+  };
+}
+
+async function messageApiRequest(path, body) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Please sign in to manage messages.');
+  const hasBody = body !== undefined;
+  const response = await fetch(`${getBackendBaseUrl()}${path}`, {
+    method: hasBody ? 'POST' : 'GET',
+    headers: {
+      Authorization: 'Bearer ' + await user.getIdToken(),
+      ...(hasBody ? { 'Content-Type': 'application/json' } : {})
+    },
+    ...(hasBody ? { body: JSON.stringify(body) } : {})
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || !result.success) {
+    const error = new Error(result.error || result.reply || `Messages could not be updated (HTTP ${response.status}).`);
+    error.status = response.status;
+    throw error;
+  }
+  return result;
+}
 
 function updateMessageBadges(unreadCount) {
   const count = Number.isSafeInteger(unreadCount) && unreadCount > 0 ? unreadCount : 0;
@@ -51,6 +106,7 @@ function refreshUnreadMessageCount() {
   if (uid) {
     for (const [peerId, messages] of conversationSnapshots) {
       if (peerId === activePeer?.userId) continue;
+      if (hiddenConversations.has(peerId)) continue;
       for (const message of Object.values(messages || {})) {
         if (message?.senderId && message.senderId !== uid && !message.readByRecipient) unread++;
       }
@@ -67,23 +123,27 @@ async function markIncomingMessagesRead(peerId) {
     conversationSnapshots.get(peerId) || {}
   ));
   const unreadEntries = Object.entries(messages).filter(([, message]) => message?.senderId && message.senderId !== uid && !message.readByRecipient);
-  await Promise.all(unreadEntries.map(async ([messageId]) => {
-    try {
-      await set(ref(rtdb, `neolearn_direct_messages/${[uid, peerId].sort().join('/')}/messages/${messageId}/readByRecipient`), true);
-    } catch (error) {
-      console.warn('[NeoLearn Messages] Could not mark message read:', error?.message || error);
-    }
-  }));
+  if (!unreadEntries.length) return;
+  await messageApiRequest('/api/neolearn/messages/seen', { targetUserId: peerId, messageIds: unreadEntries.map(e => e[0]) });
+
 }
 
 function subscribeToPeerUnreadMessages(user, peer) {
   const recentConversation = query(
     conversationRef(user.uid, peer.userId),
     orderByChild('createdAt'),
-    limitToLast(NEOLEARN_MESSAGE_PAGE_SIZE)
+    limitToLast(activePeer?.userId === peer.userId ? NEOLEARN_MESSAGE_PAGE_SIZE : 1)
   );
   const listener = onValue(recentConversation, (snapshot) => {
     conversationSnapshots.set(peer.userId, snapshot.val() || {});
+    const hiddenAt = hiddenConversations.get(peer.userId);
+    const latestEntry = Object.entries(snapshot.val() || {}).sort((first, second) =>
+      (second[1]?.createdAt || 0) - (first[1]?.createdAt || 0) || second[0].localeCompare(first[0])
+    )[0];
+    if (hiddenAt && latestEntry && latestEntry[0] !== hiddenAt.lastMessageId) {
+      hiddenConversations.delete(peer.userId);
+      saveLocalHiddenConversations(user.uid);
+    }
     if (!hasOlderMessages.has(peer.userId)) {
       hasOlderMessages.set(peer.userId, Object.keys(snapshot.val() || {}).length >= NEOLEARN_MESSAGE_PAGE_SIZE);
     }
@@ -132,11 +192,14 @@ function conversationRef(firstId, secondId) {
 function renderPeers() {
   const query = search.value.trim().toLocaleLowerCase();
   peerList.replaceChildren();
-  const visiblePeers = peers.filter((peer) => (peer.name || 'Learner').toLocaleLowerCase().includes(query) || (peer.username || '').toLocaleLowerCase().includes(query));
+  const availablePeers = peers.filter((peer) => !hiddenConversations.has(peer.userId));
+  const visiblePeers = sortPeersByLatestMessage(availablePeers.filter((peer) => (peer.name || 'Learner').toLocaleLowerCase().includes(query) || (peer.username || '').toLocaleLowerCase().includes(query)), conversationSnapshots);
   if (!visiblePeers.length) {
     const empty = document.createElement('p');
     empty.className = 'nl-message-thread-state';
-    empty.textContent = peers.length || nextPeersCursor ? 'No learners match your search.' : 'No learners are available yet.';
+    if (query) empty.textContent = 'No learners match your search.';
+    else if (peers.length && !availablePeers.length) empty.textContent = 'No chats yet. Open a learner profile to start a conversation.';
+    else empty.innerHTML = peers.length || nextPeersCursor ? 'No learners match your search.' : 'You\'re not Learning anyone yet. <a href="/htmls/neolearn/peers.html" style="color: var(--primary-accent); text-decoration: underline;">Find peers</a>';
     peerList.append(empty);
     loadMorePeersButton.hidden = !nextPeersCursor;
     return;
@@ -178,7 +241,7 @@ async function loadMoreMessagePeers() {
   loadMorePeersButton.disabled = true;
   loadMorePeersButton.textContent = 'Loading learners…';
   try {
-    const page = await getNeoLearnPeersPage(user, nextPeersCursor);
+    const page = await getNeoLearnPeersPage(user, nextPeersCursor, 'learning');
     if (auth.currentUser?.uid !== user.uid) return;
     nextPeersCursor = page.nextCursor;
     page.peers.forEach((peer) => {
@@ -219,13 +282,22 @@ function renderMessages(peerId, snapshot, { preserveScroll = false } = {}) {
       const bubble = document.createElement('div');
       bubble.className = `nl-message-bubble${message.senderId === auth.currentUser?.uid ? ' is-own' : ''}`;
       bubble.append(document.createTextNode(message.text));
+
       if (Number.isFinite(message.createdAt)) {
         const time = document.createElement('time');
         time.className = 'nl-message-time';
         time.dateTime = new Date(message.createdAt).toISOString();
         time.textContent = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(message.createdAt);
+        if (message.senderId === auth.currentUser?.uid) {
+            const statusIcon = document.createElement('i');
+            statusIcon.className = message.readByRecipient ? 'bi bi-check2-all' : 'bi bi-check2';
+            statusIcon.style.marginLeft = '4px';
+            statusIcon.style.color = message.readByRecipient ? '#4ade80' : 'inherit';
+            time.appendChild(statusIcon);
+        }
         bubble.append(time);
       }
+
       threadList.append(bubble);
     });
   }
@@ -237,11 +309,63 @@ function renderMessages(peerId, snapshot, { preserveScroll = false } = {}) {
   threadList.hidden = false;
 }
 
+
+let peerPresenceUnsubscribe = null;
+
+function subscribeToPeerPresence(peer) {
+    const peerId = peer.userId;
+    if (peerPresenceUnsubscribe) {
+        peerPresenceUnsubscribe();
+        peerPresenceUnsubscribe = null;
+    }
+    const presenceRef = ref(rtdb, `/neolearn_realtime/presence/` + peerId);
+    peerPresenceUnsubscribe = onValue(presenceRef, (snap) => {
+        const status = snap.val();
+        let statusText = 'Offline';
+        
+        if (!peer.showLastSeen) {
+            statusText = '';
+        } else if (status) {
+            if (status.state === 'online') {
+
+                statusText = 'Online';
+            } else if (status.last_changed) {
+                const date = new Date(status.last_changed);
+                statusText = 'Last seen: ' + new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', month: 'short', day: 'numeric' }).format(date);
+            }
+        }
+        let statusEl = document.getElementById('messageThreadPresence');
+        if (!statusEl) {
+            statusEl = document.createElement('div');
+            statusEl.id = 'messageThreadPresence';
+            statusEl.style.fontSize = '0.75rem';
+            statusEl.style.color = 'var(--account-muted)';
+            const headerDiv = threadHeader.querySelector('div');
+            if (headerDiv) headerDiv.appendChild(statusEl);
+        }
+        statusEl.textContent = statusText;
+    });
+}
+
 async function selectPeer(peer) {
+  if (hiddenConversations.has(peer.userId)) {
+    try {
+      await messageApiRequest('/api/neolearn/messages/restore', { targetUserId: peer.userId });
+    } catch (error) {
+      if (error.status !== 404) {
+        showError(error.message || 'Chat could not be opened.');
+        return;
+      }
+    }
+    hiddenConversations.delete(peer.userId);
+    saveLocalHiddenConversations(auth.currentUser?.uid);
+  }
   const generation = ++conversationGeneration;
   if (stopMessages) stopMessages();
   stopMessages = null;
   activePeer = peer;
+  peer._stopConversationSnapshot?.();
+  subscribeToPeerUnreadMessages(auth.currentUser, peer);
   messagesShell.classList.add('has-active-peer');
   renderPeers();
   errorBox.hidden = true;
@@ -256,6 +380,7 @@ async function selectPeer(peer) {
     threadAvatar.style.backgroundImage = '';
   }
   threadProfile.href = `/htmls/neolearn/profile.html?uid=${encodeURIComponent(peer.userId)}`;
+  subscribeToPeerPresence(peer);
   loadEarlierButton.hidden = !hasOlderMessages.get(peer.userId);
   threadLoading.hidden = false;
   threadList.hidden = true;
@@ -296,10 +421,10 @@ async function loadEarlierMessages() {
   loadEarlierButton.textContent = 'Loading earlier messages…';
   try {
     const earlierQuery = query(
-      conversationRef(userId, peer.userId),
-      orderByChild('createdAt'),
-      endAt(cursorMessage.createdAt, cursorId),
-      limitToLast(NEOLEARN_MESSAGE_PAGE_SIZE + 2)
+        conversationRef(userId, peer.userId),
+        orderByChild('createdAt'),
+        endAt(cursorMessage.createdAt, cursorId),
+        limitToLast(NEOLEARN_MESSAGE_PAGE_SIZE + 2)
     );
     const snapshot = await get(earlierQuery);
     if (activePeer?.userId !== peer.userId || auth.currentUser?.uid !== userId) return;
@@ -322,10 +447,16 @@ async function loadEarlierMessages() {
 }
 
 function returnToPeerList() {
+  const previousPeer = activePeer;
+  if (peerPresenceUnsubscribe) { peerPresenceUnsubscribe(); peerPresenceUnsubscribe = null; }
   conversationGeneration += 1;
   if (stopMessages) stopMessages();
   stopMessages = null;
   activePeer = null;
+  if (previousPeer && auth.currentUser) {
+    previousPeer._stopConversationSnapshot?.();
+    subscribeToPeerUnreadMessages(auth.currentUser, previousPeer);
+  }
   messagesShell.classList.remove('has-active-peer');
   threadWelcome.hidden = false;
   threadHeader.hidden = true;
@@ -340,19 +471,52 @@ threadBack.addEventListener('click', returnToPeerList);
 loadEarlierButton.addEventListener('click', loadEarlierMessages);
 search.addEventListener('input', renderPeers);
 loadMorePeersButton.addEventListener('click', loadMoreMessagePeers);
+deleteChatButton.addEventListener('click', async () => {
+  const peer = activePeer;
+  if (!peer || !window.confirm(`Delete your chat with ${peer.name || 'this learner'}? This will not delete it for them.`)) return;
+  deleteChatButton.disabled = true;
+  try {
+    let hiddenAt = latestHiddenMarker(peer.userId);
+    try {
+      const result = await messageApiRequest('/api/neolearn/messages/delete', { targetUserId: peer.userId });
+      hiddenAt = result.hiddenAt || hiddenAt;
+    } catch (error) {
+      if (error.status !== 404) throw error;
+    }
+    hiddenConversations.set(peer.userId, hiddenAt);
+    saveLocalHiddenConversations(auth.currentUser?.uid);
+    returnToPeerList();
+  } catch (error) {
+    showError(error.message || 'Chat could not be deleted.');
+  } finally {
+    deleteChatButton.disabled = false;
+  }
+});
 composer.addEventListener('submit', async (event) => {
   event.preventDefault();
   const text = input.value.trim();
   const uid = auth.currentUser?.uid;
   if (!text || !uid || !activePeer) return;
+
+  // Check Privacy and Blocks
+  if (activePeer.isBlocked) {
+      return showError('You have blocked this user or they have blocked you.');
+  }
+  if (activePeer.messagePrivacy === 'none') {
+      return showError('This user does not accept messages.');
+  }
+  if (activePeer.messagePrivacy === 'learning_only') {
+      if (!activePeer.isLearning && !activePeer.isLearnedByViewer) {
+          return showError('This user only accepts messages from learning connections.');
+      }
+  }
+
   const sendButton = composer.querySelector('button');
   sendButton.disabled = true;
   try {
-    await push(conversationRef(uid, activePeer.userId), {
-      senderId: uid,
-      text,
-      createdAt: serverTimestamp()
-    });
+    
+    await messageApiRequest('/api/neolearn/messages/send', { targetUserId: activePeer.userId, text });
+
     input.value = '';
     errorBox.hidden = true;
   } catch (err) {
@@ -364,15 +528,26 @@ composer.addEventListener('submit', async (event) => {
 });
 
 async function initialize() {
+  setupPresence(auth.currentUser);
   try {
     const user = auth.currentUser || await new Promise((resolve) => {
       const unsubscribe = auth.onAuthStateChanged((current) => { unsubscribe(); resolve(current); });
     });
     if (!user) return;
-    const page = await getNeoLearnPeersPage(user);
+    const page = await getNeoLearnPeersPage(user, null, 'learning');
     peers = page.peers;
     nextPeersCursor = page.nextCursor;
     if (auth.currentUser?.uid !== user.uid) return;
+    hiddenConversations = loadLocalHiddenConversations(user.uid);
+    try {
+      const hiddenResult = await messageApiRequest('/api/neolearn/messages/hidden', {});
+      Object.entries(hiddenResult.hiddenConversations || {}).forEach(([userId, value]) => {
+        hiddenConversations.set(userId, typeof value === 'number' ? { lastMessageAt: value, lastMessageId: null } : value);
+      });
+      saveLocalHiddenConversations(user.uid);
+    } catch (error) {
+      if (error.status !== 404) console.warn('[NeoLearn Messages] Hidden chat sync unavailable:', error.message);
+    }
     subscribeToUnreadMessages(user);
     renderPeers();
     const targetId = new URLSearchParams(location.search).get('uid');
@@ -386,3 +561,29 @@ async function initialize() {
 initialize();
 
 window.addEventListener('beforeunload', cleanupConversationSnapshots);
+
+
+
+
+let presenceUnsubscribe = null;
+function setupPresence(user) {
+  if (!user) return;
+  const userStatusDatabaseRef = ref(rtdb, `/neolearn_realtime/presence/` + user.uid);
+  const isOfflineForDatabase = {
+      state: 'offline',
+      last_changed: serverTimestamp(),
+  };
+  const isOnlineForDatabase = {
+      state: 'online',
+      last_changed: serverTimestamp(),
+  };
+
+  const connectedRef = ref(rtdb, '.info/connected');
+  onValue(connectedRef, (snap) => {
+      if (snap.val() === true) {
+          onDisconnect(userStatusDatabaseRef).set(isOfflineForDatabase).then(() => {
+              set(userStatusDatabaseRef, isOnlineForDatabase);
+          });
+      }
+  });
+}

@@ -95,6 +95,35 @@ function showNeoLearnFeedback(message, isError = false) {
     }, 5000);
 }
 
+
+const neolearnPrivacySettings = document.getElementById("neolearnPrivacySettings");
+const neolearnMessagePrivacy = document.getElementById("neolearnMessagePrivacy");
+const saveMessagePrivacyBtn = document.getElementById("saveMessagePrivacyBtn");
+
+if (saveMessagePrivacyBtn) {
+    saveMessagePrivacyBtn.addEventListener("click", async () => {
+        const user = auth.currentUser;
+        if (!user || !currentNeoLearnProfile) return;
+        
+        saveMessagePrivacyBtn.disabled = true;
+        saveMessagePrivacyBtn.textContent = "Saving...";
+        
+        try {
+            await updateDoc(doc(db, "neolearn_profiles", user.uid), {
+                messagePrivacy: neolearnMessagePrivacy.value
+            });
+            currentNeoLearnProfile.messagePrivacy = neolearnMessagePrivacy.value;
+            showNeoLearnFeedback("Message privacy updated successfully.");
+        } catch (err) {
+            console.error("Error updating privacy:", err);
+            showNeoLearnFeedback("Failed to update privacy: " + err.message, true);
+        } finally {
+            saveMessagePrivacyBtn.disabled = false;
+            saveMessagePrivacyBtn.textContent = "Save";
+        }
+    });
+}
+
 function updateNeoLearnUI(hasProfile) {
     if (!neolearnToggleBtn || !neolearnStatusBadge) return;
     neolearnToggleBtn.disabled = false;
@@ -102,12 +131,25 @@ function updateNeoLearnUI(hasProfile) {
         neolearnStatusBadge.textContent = "Active";
         neolearnStatusBadge.className = "neolearn-badge neolearn-badge--active";
         neolearnBtnText.textContent = "Remove NeoLearn Profile";
+        
         neolearnToggleBtn.className = "settings-save nl-btn-remove";
+        if (neolearnPrivacySettings) {
+            neolearnPrivacySettings.style.display = "block";
+            if (currentNeoLearnProfile && currentNeoLearnProfile.messagePrivacy) {
+                neolearnMessagePrivacy.value = currentNeoLearnProfile.messagePrivacy;
+            } else {
+                neolearnMessagePrivacy.value = "everyone";
+            }
+        }
+
     } else {
         neolearnStatusBadge.textContent = "Not created yet";
         neolearnStatusBadge.className = "neolearn-badge neolearn-badge--inactive";
         neolearnBtnText.textContent = "Create Profile on NeoLearn";
+        
         neolearnToggleBtn.className = "settings-save";
+        if (neolearnPrivacySettings) neolearnPrivacySettings.style.display = "none";
+
     }
 }
 

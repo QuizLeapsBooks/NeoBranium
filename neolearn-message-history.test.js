@@ -2,8 +2,19 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   addEarlierMessagePage,
-  mergeConversationMessages
+  mergeConversationMessages,
+  sortPeersByLatestMessage
 } from './js/neolearn-message-history.js';
+
+test('peer list sorts conversations by latest message while keeping empty chats last', () => {
+  const peers = [{ userId: 'first' }, { userId: 'empty' }, { userId: 'latest' }];
+  const conversations = new Map([
+    ['first', { message: { createdAt: 10 } }],
+    ['latest', { message: { createdAt: 30 } }]
+  ]);
+
+  assert.deepEqual(sortPeersByLatestMessage(peers, conversations).map((peer) => peer.userId), ['latest', 'first', 'empty']);
+});
 
 test('conversation messages merge older pages with the live window in chronological order', () => {
   const messages = mergeConversationMessages(

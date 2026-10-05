@@ -106,6 +106,18 @@
               <span style="font-size: 0.85rem; font-weight: 600;">Status:</span>
               <span id="neolearnStatusBadge" class="neolearn-badge neolearn-badge--checking">Checking...</span>
             </div>
+            
+            <div class="settings-field" id="neolearnPrivacySettings" style="display: none; margin-top: 1rem; border-top: 1px solid var(--account-border); padding-top: 1rem;">
+              <label for="neolearnMessagePrivacy">Who can message me on NeoLearn?</label>
+              <div class="settings-inline-field">
+                <select id="neolearnMessagePrivacy" class="nl-modal-input" style="width: auto; min-width: 200px;">
+                  <option value="everyone">Everyone</option>
+                  <option value="learning_only">Only people I am Learning with</option>
+                  <option value="none">No one</option>
+                </select>
+                <button id="saveMessagePrivacyBtn" class="settings-save" type="button">Save</button>
+              </div>
+            </div>
             <div class="settings-actions">
               <button id="neolearnToggleBtn" class="settings-save" type="button" disabled>
                 <span id="neolearnBtnText">Checking...</span>
@@ -121,6 +133,31 @@
         </div>
       </div>
     </div>
+  
+    <section class="settings-section">
+      <h3>NeoLearn Privacy</h3>
+      <div class="setting-item">
+        <div class="setting-text">
+          <label for="privacyShowLastSeen">Show my last seen</label>
+          <span class="setting-desc">Let others see when you were last online.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="privacyShowLastSeen">
+          <span class="slider round"></span>
+        </label>
+      </div>
+      <div class="setting-item">
+        <div class="setting-text">
+          <label for="privacyReadReceipts">Read receipts</label>
+          <span class="setting-desc">Let others see when you have read their messages.</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="privacyReadReceipts">
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </section>
+    
   </main>
   <!-- NeoLearn Profile Removal Modal -->
   <div id="neolearnModal" class="nl-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="neolearnModalTitle">
