@@ -2044,9 +2044,9 @@ app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
 
         const transporter = nodemailer.createTransport({
             host: 'smtp.gmail.com',
-            port: 465,
-            secure: true,          // SSL
-            family: 4,             // Force IPv4 — Render free tier fix
+            port: 587,
+            secure: false,         // true for 465, false for other ports (will upgrade to SSL/TLS via STARTTLS)
+            family: 4,             // Force IPv4
             auth: { user: gmailUser, pass: gmailPass }
         });
 
