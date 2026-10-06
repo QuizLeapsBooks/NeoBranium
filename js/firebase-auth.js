@@ -176,20 +176,12 @@ document.getElementById("signup-form")?.addEventListener("submit", async (e) => 
       showToast("Account created! Check your email inbox to verify.", "success");
       setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);
     } catch (verifyError) {
-      // Server failed — fallback to Firebase default
-      console.warn("Server email failed, using Firebase default:", verifyError.message);
-      try {
-        await sendEmailVerification(user, getEmailVerificationSettings());
-        sessionStorage.removeItem("emailSignupInProgress");
-        showToast("Account created! Verify your email to continue.", "success");
-        setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);
-      } catch (fallbackError) {
-        console.error("Fallback email also failed:", fallbackError.code, fallbackError.message);
-        sessionStorage.removeItem("emailSignupInProgress");
-        showToast("Account created! Use 'Resend' on the next page if email not received.", "success");
-        setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);
-      }
+      console.error("Server email failed:", verifyError);
+      sessionStorage.removeItem("emailSignupInProgress");
+      showToast(`Account created! But email failed: ${verifyError.message}`, "error");
+      setTimeout(() => location.replace("/htmls/verify-email.html"), 3000);
     }
+
   } catch (error) {
     console.error("Signup error:", error.code, error.message);
     const msg = error.code === "auth/email-already-in-use"

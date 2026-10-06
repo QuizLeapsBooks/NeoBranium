@@ -63,18 +63,8 @@ window.resendVerification = async () => {
       await sendVerificationViaServer();
       showMessage("Verification email sent! Please check your inbox.", false);
     } catch (serverError) {
-      console.warn("Server resend failed, falling back to Firebase:", serverError.message);
-      // Fallback to Firebase default
-      try {
-        await sendEmailVerification(user, getEmailVerificationSettings());
-        showMessage("Verification email resent. Please check your inbox.", false);
-      } catch (error) {
-        console.error("Verification email resend failed:", error);
-        const message = error.code === "auth/too-many-requests"
-          ? `Firebase is temporarily rate-limiting verification. The email server also failed: ${serverError.message}`
-          : `Could not resend the email. Server: ${serverError.message}; Firebase: ${error.code || "unknown error"}.`;
-        showMessage(message);
-      }
+      console.error("Server resend failed:", serverError);
+      showMessage(`Could not resend the email: ${serverError.message}`);
     }
   } else {
     showMessage("No signed-in account found. Please sign in again.");
