@@ -1,5 +1,9 @@
 import 'dotenv/config';
+import dns from 'dns';
+// Force IPv4 — Render free tier does not support IPv6
+dns.setDefaultResultOrder('ipv4first');
 import nodemailer from 'nodemailer';
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -2039,7 +2043,10 @@ app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
         }
 
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,          // SSL
+            family: 4,             // Force IPv4 — Render free tier fix
             auth: { user: gmailUser, pass: gmailPass }
         });
 
