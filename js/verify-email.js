@@ -14,6 +14,7 @@ async function sendVerificationViaServer() {
       "Authorization": `Bearer ${idToken}`
     },
     credentials: "include",
+    signal: AbortSignal.timeout(10000),
     body: JSON.stringify({})
   });
   const data = await response.json();
@@ -70,8 +71,8 @@ window.resendVerification = async () => {
       } catch (error) {
         console.error("Verification email resend failed:", error);
         const message = error.code === "auth/too-many-requests"
-          ? "Too many requests. Wait a while before trying again."
-          : `Could not resend the email (${error.code || "unknown error"}).`;
+          ? `Firebase is temporarily rate-limiting verification. The email server also failed: ${serverError.message}`
+          : `Could not resend the email. Server: ${serverError.message}; Firebase: ${error.code || "unknown error"}.`;
         showMessage(message);
       }
     }
@@ -95,6 +96,16 @@ onAuthStateChanged(auth, (user) => {
     setTimeout(() => location.replace("/htmls/dashboard.html"), 1500);
   } else if (!user) {
     showMessage("No signed-in account found. Please sign in again.");
+  }
+});
+
+document.getElementById("resendVerificationButton")?.addEventListener("click", async (event) => {
+  const button = event.currentTarget;
+  button.disabled = true;
+  try {
+    await window.resendVerification();
+  } finally {
+    button.disabled = !auth.currentUser || auth.currentUser.emailVerified;
   }
 });
 

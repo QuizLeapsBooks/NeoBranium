@@ -20,6 +20,7 @@ import { createNeoLearnSocialHandlers } from './neolearn-social-handler.js';
 import { createNeoLearnNotificationHandlers } from './neolearn-notification-handler.js';
 import { createNeoLearnModerationHandlers } from './neolearn-moderation-handler.js';
 import { createNeoLearnMessageHandlers } from './neolearn-message-handler.js';
+import { createNeoLearnImpressionHandlers } from './neolearn-impression-handler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1825,6 +1826,11 @@ app.post('/api/neolearn/blocks', neoLearnModerationHandlers.blockUser);
 app.get('/api/neolearn/blocks', neoLearnModerationHandlers.getBlockedUsers);
 app.delete('/api/neolearn/blocks/:targetUserId', neoLearnModerationHandlers.unblockUser);
 app.get('/api/neolearn/blocks/:targetUserId', neoLearnModerationHandlers.getBlockStatus);
+
+// ── Impression tracking routes ────────────────────────────────────────────────
+// POST /api/neolearn/impressions        → record one impression (atomic transaction)
+const neoLearnImpressionHandlers = createNeoLearnImpressionHandlers({ verifyAuthToken, db, admin });
+app.post('/api/neolearn/impressions', neoLearnImpressionHandlers.recordImpression);
 
 // Profile Photo Remove Endpoint
 app.post('/api/profile/remove-photo', async (req, res) => {

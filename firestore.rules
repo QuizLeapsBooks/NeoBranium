@@ -11,6 +11,15 @@ service cloud.firestore {
         && !exists(/databases/$(database)/documents/neolearn_blocks/$(ownerId + '_' + request.auth.uid));
     }
 
+    function isValidImpressionRecord() {
+      return resource.data.keys().hasAll(['count', 'lastShownAt'])
+        && resource.data.count is int
+        && resource.data.count >= 0
+        && resource.data.count <= 3
+        && resource.data.lastShownAt is timestamp
+        && (!resource.data.keys().hasAny(['surfaceIds']) || resource.data.surfaceIds is list);
+    }
+
     match /users/{userId} {
       allow read, write: if isOwner(userId);
       match /{document=**} {
@@ -120,6 +129,23 @@ service cloud.firestore {
 
     match /neolearn_learning/{relationId} {
       allow read, write: if false;
+    }
+
+    // ── Impression tracking ───────────────────────────────────────────────────
+    // neolearn_post_impressions/{viewerUid}/posts/{postId}
+    //
+    // Admin SDK transactions are the only write path; clients cannot forge counts.
+    // Feed requests read at most their bounded candidate IDs through the backend.
+    match /neolearn_post_impressions/{viewerUid} {
+      allow read, write: if false;
+
+      match /posts/{postId} {
+        allow read: if isOwner(viewerUid)
+          && postId.size() > 0
+          && postId.size() <= 256
+          && isValidImpressionRecord();
+        allow write: if false;
+      }
     }
   }
 }

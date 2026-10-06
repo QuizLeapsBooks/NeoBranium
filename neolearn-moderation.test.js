@@ -74,6 +74,18 @@ function createModerationHarness({ viewerId = 'viewer-123', authenticated = true
 
     const db = {
         collection(collectionName) {
+            if (collectionName === 'neolearn_post_impressions') {
+                return {
+                    doc(viewerUid) {
+                        return {
+                            collection(subCollectionName) {
+                                assert.equal(subCollectionName, 'posts');
+                                return { doc(postId) { return { id: postId, viewerUid }; } };
+                            }
+                        };
+                    }
+                };
+            }
             if (collectionName === 'neolearn_posts') {
                 return {
                     async get() { return { docs: [...posts].map(([id, data]) => postSnapshot(id, data)) }; },
@@ -215,6 +227,9 @@ function createModerationHarness({ viewerId = 'viewer-123', authenticated = true
                 };
             }
             throw new Error(`Unexpected collection in harness: ${collectionName}`);
+        },
+        async getAll(...refs) {
+            return refs.map((ref) => snapshot(ref.id, null));
         },
         async runTransaction(callback) {
             const writes = [];

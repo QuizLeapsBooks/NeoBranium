@@ -305,7 +305,6 @@ body.nb-neolearn-page #neolearnFeedGrid .nl-post-card {
 body.nb-neolearn-page #neolearnFeedGrid .nl-post-card:hover {
   border-color: color-mix(in srgb, var(--account-accent) 28%, var(--account-border));
 }
-body.nb-neolearn-page #neolearnFeedGrid .nl-post-card.is-dismissed { opacity: 0; transform: translateY(-6px) scale(.99); }
 body.nb-neolearn-page #neolearnFeedGrid .nl-post-image { max-height: min(72vh, 560px); border-radius: 0; }
 body.nb-neolearn-page #neolearnFeedGrid .nl-post-body { padding: .8rem .9rem; }
 body.nb-neolearn-page #neolearnFeedGrid .nl-post-action[aria-pressed=true] { color: #e11d48; background: color-mix(in srgb, #e11d48 10%, transparent); }

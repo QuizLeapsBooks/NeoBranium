@@ -4,6 +4,10 @@ const MAX_FEED_POSTS_PER_QUERY = 60;
 const MAX_IN_QUERY_UIDS = 30;
 const MAX_DISCOVERY_POST_CANDIDATES = 120;
 const MAX_DISCOVERY_FEED_POSTS = 20;
+const MAX_LEARNING_FEED_CANDIDATES = 120;
+const MAX_LEARNING_FEED_POSTS = 60;
+const MAX_FALLBACK_FEED_POSTS = 10;
+const MAX_IMPRESSION_COUNT = 3;
 
 function timestampMillis(value) {
     if (!value) return null;
@@ -25,15 +29,6 @@ function publicFeedPost(postId, raw) {
 
 function validUserId(userId) {
     return typeof userId === 'string' && userId.length > 0 && userId.length <= 128 && !userId.includes('/');
-}
-
-function shuffle(items) {
-    const shuffled = [...items];
-    for (let index = shuffled.length - 1; index > 0; index--) {
-        const randomIndex = Math.floor(Math.random() * (index + 1));
-        [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
-    }
-    return shuffled;
 }
 
 export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadPublicProfile }) {
@@ -233,7 +228,14 @@ export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadP
                         && authorId !== learnerUserId
                         && !blockedUserIds.has(authorId)
                         && !followedUserIds.includes(authorId));
-                const selectedPosts = shuffle(eligiblePosts).slice(0, MAX_DISCOVERY_FEED_POSTS);
+                const selection = await selectFeedByImpressions(
+                    db,
+                    eligiblePosts.map(({ post }) => post),
+                    learnerUserId,
+                    MAX_DISCOVERY_FEED_POSTS
+                );
+                const selectedPostIds = new Set(selection.feed.map((post) => post.postId));
+                const selectedPosts = eligiblePosts.filter(({ post }) => selectedPostIds.has(post.postId));
                 const discoveryAuthorIds = [...new Set(selectedPosts.map(({ authorId }) => authorId))];
                 const discoveryProfiles = await Promise.all(discoveryAuthorIds.map(async (userId) => {
                     const profileSnapshot = await db.collection('neolearn_profiles').doc(userId).get();
@@ -241,11 +243,19 @@ export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadP
                     return loadPublicProfile(db, userId, profileSnapshot.data(), learnerUserId);
                 }));
                 const authors = new Map(discoveryProfiles.filter(Boolean).map((profile) => [profile.userId, profile]));
-                const feed = selectedPosts.map(({ post, authorId }) => {
+                const feed = selection.feed.map((post) => {
+                    const authorId = post.userId;
                     const author = authors.get(authorId);
                     return author ? { ...post, author } : null;
                 }).filter(Boolean);
-                return res.json({ success: true, feedMode: 'discovery', feed });
+                return res.json({
+                    success: true,
+                    feedMode: 'discovery',
+                    feed,
+                    impressionCounts: selection.impressionCounts,
+                    isFallback: selection.isFallback,
+                    impressionsEnforced: selection.impressionsEnforced
+                });
             }
 
             if (!followedUserIds.length) {
@@ -270,23 +280,32 @@ export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadP
             }
 
             const snapshots = await Promise.all(postQueries);
-            const feed = snapshots.flatMap((snapshot) => snapshot.docs.map((postDoc) => {
+            const candidates = snapshots.flatMap((snapshot) => snapshot.docs.map((postDoc) => {
                 const post = publicFeedPost(postDoc.id, postDoc.data());
                 if (blockedUserIds.has(post.userId)) return null;
                 const author = authors.get(post.userId);
                 return author ? { ...post, author } : null;
             })).filter(Boolean);
-            feed.sort((first, second) => {
+            candidates.sort((first, second) => {
                 const firstDate = first.createdAt ?? Number.NEGATIVE_INFINITY;
                 const secondDate = second.createdAt ?? Number.NEGATIVE_INFINITY;
                 return secondDate - firstDate;
             });
+            const selection = await selectFeedByImpressions(
+                db,
+                candidates.slice(0, MAX_LEARNING_FEED_CANDIDATES),
+                learnerUserId,
+                MAX_LEARNING_FEED_POSTS
+            );
 
             return res.json({
                 success: true,
                 learningCount: authorIds.length,
                 learningProfiles: [...authors.values()],
-                feed: feed.slice(0, 60)
+                feed: selection.feed,
+                impressionCounts: selection.impressionCounts,
+                isFallback: selection.isFallback,
+                impressionsEnforced: selection.impressionsEnforced
             });
         } catch (error) {
             console.error('NeoLearn Learning feed failed:', error.message);
@@ -295,4 +314,69 @@ export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadP
     }
 
     return { getSummary, getConnections, setLearning, getLearningFeed };
+}
+
+async function selectFeedByImpressions(db, posts, viewerUid, feedLimit) {
+    const candidates = posts.slice(0, MAX_LEARNING_FEED_CANDIDATES);
+    if (!candidates.length) {
+        return { feed: [], impressionCounts: {}, isFallback: false, impressionsEnforced: true };
+    }
+
+    let snapshots;
+    try {
+        const impressionCollection = db.collection('neolearn_post_impressions')
+            .doc(viewerUid)
+            .collection('posts');
+        snapshots = await db.getAll(...candidates.map((post) => impressionCollection.doc(post.postId)));
+    } catch (error) {
+        console.error('NeoLearn impression filtering failed:', error.message);
+        return {
+            feed: candidates.slice(0, feedLimit),
+            impressionCounts: {},
+            isFallback: false,
+            impressionsEnforced: false
+        };
+    }
+
+    const impressions = new Map();
+    const impressionCounts = {};
+    snapshots.forEach((snapshot, index) => {
+        if (!snapshot.exists) return;
+        const data = snapshot.data() || {};
+        const count = Number.isSafeInteger(data.count) && data.count > 0
+            ? Math.min(data.count, MAX_IMPRESSION_COUNT)
+            : 0;
+        const lastShownAt = timestampMillis(data.lastShownAt) ?? 0;
+        const postId = candidates[index].postId;
+        impressions.set(postId, { count, lastShownAt });
+        if (count > 0) impressionCounts[postId] = count;
+    });
+
+    const compareNewer = (first, second) => {
+        const firstDate = first.createdAt ?? Number.NEGATIVE_INFINITY;
+        const secondDate = second.createdAt ?? Number.NEGATIVE_INFINITY;
+        return secondDate - firstDate || first.postId.localeCompare(second.postId);
+    };
+    const eligible = candidates.filter((post) => (impressions.get(post.postId)?.count ?? 0) < MAX_IMPRESSION_COUNT);
+    if (eligible.length) {
+        eligible.sort((first, second) =>
+            (impressions.get(first.postId)?.count ?? 0) - (impressions.get(second.postId)?.count ?? 0)
+            || compareNewer(first, second));
+        return {
+            feed: eligible.slice(0, feedLimit),
+            impressionCounts,
+            isFallback: false,
+            impressionsEnforced: true
+        };
+    }
+
+    candidates.sort((first, second) =>
+        (impressions.get(first.postId)?.lastShownAt ?? 0) - (impressions.get(second.postId)?.lastShownAt ?? 0)
+        || compareNewer(first, second));
+    return {
+        feed: candidates.slice(0, Math.min(MAX_FALLBACK_FEED_POSTS, feedLimit)),
+        impressionCounts,
+        isFallback: true,
+        impressionsEnforced: true
+    };
 }

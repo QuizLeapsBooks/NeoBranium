@@ -16,6 +16,7 @@ function createHarness({ authenticated = true } = {}) {
     ]);
     const relationships = new Map();
     const blocks = new Map();
+    const impressions = new Map();
     const posts = [
         { id: 'a-old', data: { userId: 'target-a', imageUrl: 'a-old.webp', createdAt: { toMillis: () => 100 } } },
         { id: 'a-new', data: { userId: 'target-a', imageUrl: 'a-new.webp', createdAt: { toMillis: () => 300 } } },
@@ -33,6 +34,20 @@ function createHarness({ authenticated = true } = {}) {
 
     const db = {
         collection(collectionName) {
+            if (collectionName === 'neolearn_post_impressions') {
+                return {
+                    doc(viewerUid) {
+                        return {
+                            collection(subCollectionName) {
+                                assert.equal(subCollectionName, 'posts');
+                                return {
+                                    doc(postId) { return { id: postId, key: `${viewerUid}::${postId}` }; }
+                                };
+                            }
+                        };
+                    }
+                };
+            }
             if (collectionName === 'neolearn_profiles' || collectionName === 'neolearn_learning' || collectionName === 'neolearn_blocks') {
                 return {
                     doc(id) { return reference(collectionName, id); },
@@ -91,6 +106,9 @@ function createHarness({ authenticated = true } = {}) {
             }
             throw new Error(`Unexpected collection: ${collectionName}`);
         },
+        async getAll(...refs) {
+            return refs.map((ref) => snapshot(ref.id, impressions.get(ref.key)));
+        },
         async runTransaction(callback) {
             const writes = [];
             const transaction = {
@@ -128,7 +146,7 @@ function createHarness({ authenticated = true } = {}) {
         loadPublicProfile: async (_db, userId, profile) => ({ userId, name: profile.name, profilePhotoUrl: '' })
     });
 
-    return { ...handlers, profiles, relationships, blocks };
+    return { ...handlers, profiles, relationships, blocks, impressions };
 }
 
 function response() {
@@ -214,6 +232,37 @@ test('Learning feed includes only learned profiles and orders posts by actual ti
     assert.deepEqual(res.body.feed.map((post) => post.postId), ['a-new', 'b-mid', 'a-old']);
     assert.ok(res.body.feed.every((post) => post.userId === 'target-a' || post.userId === 'target-b'));
     assert.deepEqual(res.body.learningProfiles.map((profile) => profile.userId), ['target-a', 'target-b']);
+});
+
+test('Learning feed excludes exhausted posts and prioritizes lower impression tiers', async () => {
+    const { setLearning, getLearningFeed, impressions } = createHarness();
+    await setLearning({ headers: { authorization: 'Bearer token' }, body: { targetUserId: 'target-a', learning: true } }, response());
+    await setLearning({ headers: { authorization: 'Bearer token' }, body: { targetUserId: 'target-b', learning: true } }, response());
+    impressions.set('viewer-uid::a-new', { count: 3, lastShownAt: { toMillis: () => 3000 } });
+    impressions.set('viewer-uid::a-old', { count: 2, lastShownAt: { toMillis: () => 2000 } });
+    impressions.set('viewer-uid::b-mid', { count: 1, lastShownAt: { toMillis: () => 1000 } });
+    const res = response();
+
+    await getLearningFeed({ headers: { authorization: 'Bearer token' } }, res);
+
+    assert.deepEqual(res.body.feed.map((post) => post.postId), ['b-mid', 'a-old']);
+    assert.equal(res.body.impressionsEnforced, true);
+    assert.equal(res.body.isFallback, false);
+});
+
+test('Learning feed falls back to least recently shown posts when every candidate is exhausted', async () => {
+    const { setLearning, getLearningFeed, impressions } = createHarness();
+    await setLearning({ headers: { authorization: 'Bearer token' }, body: { targetUserId: 'target-a', learning: true } }, response());
+    await setLearning({ headers: { authorization: 'Bearer token' }, body: { targetUserId: 'target-b', learning: true } }, response());
+    impressions.set('viewer-uid::a-new', { count: 3, lastShownAt: { toMillis: () => 3000 } });
+    impressions.set('viewer-uid::a-old', { count: 3, lastShownAt: { toMillis: () => 1000 } });
+    impressions.set('viewer-uid::b-mid', { count: 3, lastShownAt: { toMillis: () => 2000 } });
+    const res = response();
+
+    await getLearningFeed({ headers: { authorization: 'Bearer token' } }, res);
+
+    assert.equal(res.body.isFallback, true);
+    assert.deepEqual(res.body.feed.map((post) => post.postId), ['a-old', 'b-mid', 'a-new']);
 });
 
 test('discovery feed samples posts from profiles that are not followed', async () => {

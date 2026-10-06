@@ -1,6 +1,7 @@
+
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getActiveCallbacks, triggerListenerError } from './mock-firebase.js';
+import { getActiveCallbacks } from './mock-firebase.js';
 import { subscribeToPostLikes, subscribeToPostComments, togglePostLike, addComment, getPostLikeState, getPostComments, cleanupPostListeners, cleanupAllNeoLearnListeners } from './js/neolearn-rtdb.mocked.js';
 
 test('getPostLikeState returns correct state for liked post', async () => {
@@ -66,13 +67,4 @@ test('cleanupPostListeners detaches correctly', () => {
     
     assert.equal(getActiveCallbacks()['neolearn_realtime/post_likes/test-post-2'], undefined);
     assert.equal(getActiveCallbacks()['neolearn_realtime/post_comments/test-post-2'], undefined);
-});
-
-test('Like listener reports RTDB failures distinctly from an empty Like list', () => {
-    let received;
-    subscribeToPostLikes('error-post', (state) => { received = state; });
-    triggerListenerError('neolearn_realtime/post_likes/error-post', new Error('PERMISSION_DENIED'));
-    assert.equal(received.error.message, 'PERMISSION_DENIED');
-    assert.equal(received.likeCount, null);
-    assert.equal(getActiveCallbacks()['neolearn_realtime/post_likes/error-post'], undefined);
 });

@@ -2,7 +2,15 @@ import { auth, checkAccess, db } from './auth.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 import { getNeoLearnDiscoveryFeed, getNeoLearnFeed, getNeoLearnPeers, toggleLearn } from './neolearn-social-service.js';
 import { renderPostCard } from './neolearn-social-ui.js';
-import { filterPostsBelowViewLimit, MAX_POST_VIEWS, recordPostView } from './neolearn-feed-history.js';
+import {
+  filterPostsBelowViewLimit,
+  mergeImpressionCounts,
+  recordPostView,
+  selectFeedPosts
+} from './neolearn-feed-history.js';
+import {
+  recordRemoteImpression
+} from './neolearn-impression-service.js';
 
 const loading = document.getElementById('neolearnFeedLoading');
 const error = document.getElementById('neolearnFeedError');
@@ -16,10 +24,17 @@ let loadingFeed = false;
 let feedGeneration = 0;
 let activeLearningCount = 0;
 let postViewCounts = {};
+// lastShownAt: postId → timestamp (ms) of most recent impression — used for fallback ordering.
+let lastShownAt = {};
 let feedObserver = null;
 let visibleFeedCards = new WeakSet();
+let impressionRecordedCards = new WeakSet();
 const feedViewTimers = new Map();
-const feedDismissTimers = new Map();
+
+function createFeedSurfaceId() {
+  return globalThis.crypto?.randomUUID?.()
+    || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 
 // ── Right Panel: Suggested Learners ────────────────────────────────────────
 const suggestedLoading = document.getElementById('nlSuggestedLoading');
@@ -151,10 +166,9 @@ function clearFeedCards() {
   feedObserver?.disconnect();
   feedObserver = null;
   visibleFeedCards = new WeakSet();
+  impressionRecordedCards = new WeakSet();
   feedViewTimers.forEach((timer) => clearTimeout(timer));
   feedViewTimers.clear();
-  feedDismissTimers.forEach((timer) => clearTimeout(timer));
-  feedDismissTimers.clear();
   Array.from(grid.children).forEach((child) => child.cleanupRtdb?.());
   grid.replaceChildren();
 }
@@ -163,10 +177,11 @@ function savePostViewCounts() {
   if (!currentUser) return;
   try {
     localStorage.setItem(`neolearnPostViews_${currentUser.uid}`, JSON.stringify(postViewCounts));
+    localStorage.setItem(`neolearnLastShownAt_${currentUser.uid}`, JSON.stringify(lastShownAt));
   } catch {}
 }
 
-function displayFeedPosts(posts, feedMode, learningCount) {
+function displayFeedPosts(posts, feedMode, learningCount, isFallback = false) {
   clearFeedCards();
   activeLearningCount = learningCount;
   emptyLearning.hidden = true;
@@ -174,33 +189,59 @@ function displayFeedPosts(posts, feedMode, learningCount) {
   loading.hidden = true;
   error.hidden = true;
   const subtitle = document.getElementById('neolearnFeedSubtitle');
-  subtitle.textContent = feedMode === 'discovery'
-    ? 'You are all caught up. Here are some learning moments from the community.'
-    : 'Posts from profiles you are Learning.';
-  posts.forEach((post) => grid.append(renderPostCard(post, post.author, detailDialog)));
+  if (isFallback) {
+    subtitle.textContent = 'You have seen everything recently. Here are some older learning moments.';
+  } else if (feedMode === 'discovery') {
+    subtitle.textContent = 'You are all caught up. Here are some learning moments from the community.';
+  } else {
+    subtitle.textContent = 'Posts from profiles you are Learning.';
+  }
+  posts.forEach((post) => {
+    const card = renderPostCard(post, post.author, detailDialog);
+    card.dataset.impressionSurfaceId = createFeedSurfaceId();
+    grid.append(card);
+  });
 
-  if (!('IntersectionObserver' in window)) return;
+  if (!('IntersectionObserver' in window)) {
+    Array.from(grid.children).forEach((card) => {
+      const timer = setTimeout(() => {
+        feedViewTimers.delete(card);
+        if (!card.isConnected || impressionRecordedCards.has(card)) return;
+        impressionRecordedCards.add(card);
+        const postId = card.dataset.postId;
+        postViewCounts = recordPostView(postViewCounts, postId);
+        lastShownAt = { ...lastShownAt, [postId]: Date.now() };
+        savePostViewCounts();
+        if (postId) recordRemoteImpression(postId, card.dataset.impressionSurfaceId);
+      }, 1000);
+      feedViewTimers.set(card, timer);
+    });
+    return;
+  }
   feedObserver = new IntersectionObserver((entries) => {
     for (const entry of entries) {
       const card = entry.target;
-      if (entry.intersectionRatio >= 0.55 && !visibleFeedCards.has(card)) {
+      if (entry.intersectionRatio >= 0.55 && !visibleFeedCards.has(card) && !impressionRecordedCards.has(card)) {
         visibleFeedCards.add(card);
         const timer = setTimeout(() => {
           feedViewTimers.delete(card);
-          if (!card.isConnected) return;
-          postViewCounts = recordPostView(postViewCounts, card.dataset.postId);
+          if (!card.isConnected || impressionRecordedCards.has(card)) return;
+          impressionRecordedCards.add(card);
+          const postId = card.dataset.postId;
+          const uid = currentUser?.uid;
+
+          // Record local impression (existing behaviour).
+          postViewCounts = recordPostView(postViewCounts, postId);
+          lastShownAt = { ...lastShownAt, [postId]: Date.now() };
           savePostViewCounts();
-          if (postViewCounts[card.dataset.postId] >= MAX_POST_VIEWS) {
-            feedObserver?.unobserve(card);
-            card.classList.add('is-dismissed');
-            const dismissTimer = setTimeout(() => {
-              feedDismissTimers.delete(card);
-              card.cleanupRtdb?.();
-              card.remove();
-              if (grid.children.length === 0) loadDiscoveryFeed(activeLearningCount);
-            }, 180);
-            feedDismissTimers.set(card, dismissTimer);
+
+          // The surface ID makes duplicate callbacks for this card idempotent.
+          if (uid && postId) {
+            recordRemoteImpression(postId, card.dataset.impressionSurfaceId).catch(() => {
+              // Non-fatal — local count already updated above.
+            });
           }
+
         }, 1000);
         feedViewTimers.set(card, timer);
       } else if (entry.intersectionRatio < 0.15) {
@@ -218,9 +259,9 @@ function renderCachedDiscovery(learningCount) {
   if (!currentUser) return false;
   try {
     const cached = JSON.parse(sessionStorage.getItem(`neolearnDiscoveryCache_${currentUser.uid}`) || 'null');
-    const posts = filterPostsBelowViewLimit(cached?.feed, postViewCounts);
+    const { posts, isFallback } = selectFeedPosts(cached?.feed, postViewCounts, lastShownAt);
     if (!posts.length) return false;
-    displayFeedPosts(posts, 'discovery', learningCount);
+    displayFeedPosts(posts, 'discovery', learningCount, isFallback);
     return true;
   } catch {
     return false;
@@ -232,21 +273,25 @@ async function loadDiscoveryFeed(learningCount) {
   const user = currentUser;
   const requestGeneration = feedGeneration;
   activeLearningCount = learningCount;
-  const hasRenderedCache = renderCachedDiscovery(learningCount);
-  if (!hasRenderedCache) {
-    clearFeedCards();
-    loading.hidden = false;
-    emptyLearning.hidden = true;
-    emptyPosts.hidden = true;
-  }
+  clearFeedCards();
+  loading.hidden = false;
+  emptyLearning.hidden = true;
+  emptyPosts.hidden = true;
 
   try {
     const result = await getNeoLearnDiscoveryFeed(user);
     if (requestGeneration !== feedGeneration || currentUser?.uid !== user.uid) return;
+    if (result.impressionsEnforced === false) {
+      console.warn('[NeoLearn] Feed impression filtering is temporarily unavailable.');
+    }
+    postViewCounts = mergeImpressionCounts(postViewCounts, result.impressionCounts);
+    savePostViewCounts();
     sessionStorage.setItem(`neolearnDiscoveryCache_${user.uid}`, JSON.stringify(result));
-    const posts = filterPostsBelowViewLimit(result.feed, postViewCounts);
+    const localSelection = selectFeedPosts(result.feed, postViewCounts, lastShownAt);
+    const posts = result.isFallback ? result.feed : localSelection.posts;
+    const isFallback = result.isFallback || localSelection.isFallback;
     if (posts.length) {
-      displayFeedPosts(posts, 'discovery', learningCount);
+      displayFeedPosts(posts, 'discovery', learningCount, isFallback);
       return;
     }
     clearFeedCards();
@@ -256,6 +301,7 @@ async function loadDiscoveryFeed(learningCount) {
     document.getElementById('neolearnFeedSubtitle').textContent = 'You are all caught up. Check back for new learning moments.';
   } catch (loadError) {
     if (requestGeneration !== feedGeneration || currentUser?.uid !== user.uid) return;
+    const hasRenderedCache = renderCachedDiscovery(learningCount);
     if (!hasRenderedCache) loading.hidden = true;
     errorText.textContent = loadError.message || "Couldn't load community posts.";
     error.hidden = false;
@@ -272,40 +318,45 @@ async function loadFeed() {
   emptyLearning.hidden = true;
   emptyPosts.hidden = true;
   
-  let hasRenderedCache = false;
   let cachedLearningCount = 0;
   const cachedStr = sessionStorage.getItem('neolearnFeedCache_' + user.uid);
   if (cachedStr) {
     try {
       const result = JSON.parse(cachedStr);
       cachedLearningCount = result.learningCount || 0;
-      const posts = filterPostsBelowViewLimit(result.feed, postViewCounts);
-      if (posts.length) {
-        displayFeedPosts(posts, 'learning', cachedLearningCount);
-        hasRenderedCache = true;
-      }
     } catch(e) {}
   }
-  if (!hasRenderedCache) hasRenderedCache = renderCachedDiscovery(cachedLearningCount);
-  
-  if (!hasRenderedCache) {
-    loading.hidden = false;
-  } else {
-    loading.hidden = true;
-  }
+  loading.hidden = false;
 
   try {
     const result = await getNeoLearnFeed(user);
     if (requestGeneration !== feedGeneration || currentUser?.uid !== user.uid) return;
+    if (result.impressionsEnforced === false) {
+      console.warn('[NeoLearn] Feed impression filtering is temporarily unavailable.');
+    }
+    postViewCounts = mergeImpressionCounts(postViewCounts, result.impressionCounts);
+    savePostViewCounts();
     sessionStorage.setItem('neolearnFeedCache_' + user.uid, JSON.stringify(result));
-    const posts = filterPostsBelowViewLimit(result.feed, postViewCounts);
-    if (posts.length) displayFeedPosts(posts, 'learning', result.learningCount);
+    const localSelection = selectFeedPosts(result.feed, postViewCounts, lastShownAt);
+    const posts = result.isFallback ? result.feed : localSelection.posts;
+    const isFallback = result.isFallback || localSelection.isFallback;
+    if (posts.length) displayFeedPosts(posts, 'learning', result.learningCount, isFallback);
     else await loadDiscoveryFeed(result.learningCount);
   } catch (loadError) {
     if (requestGeneration !== feedGeneration || currentUser?.uid !== user.uid) return;
+    let hasRenderedCache = false;
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(`neolearnFeedCache_${user.uid}`) || 'null');
+      const selection = selectFeedPosts(cached?.feed, postViewCounts, lastShownAt);
+      if (selection.posts.length) {
+        displayFeedPosts(selection.posts, 'learning', cached.learningCount || 0, selection.isFallback);
+        hasRenderedCache = true;
+      }
+    } catch {}
+    if (!hasRenderedCache) hasRenderedCache = renderCachedDiscovery(cachedLearningCount);
     errorText.textContent = loadError.message || "Couldn't load your Learning feed.";
     error.hidden = false;
-    loading.hidden = true;
+    if (!hasRenderedCache) loading.hidden = true;
   } finally {
     if (requestGeneration === feedGeneration) loadingFeed = false;
   }
@@ -316,18 +367,31 @@ async function handleUser(user) {
   feedGeneration += 1;
   loadingFeed = false;
   clearFeedCards();
+
   suggestedList.replaceChildren();
   suggestedLoading.hidden = false;
   suggestedEmpty.hidden = true;
   currentUser = user;
   const requestGeneration = feedGeneration;
+
+  // Load local impression state.
   try {
     const storedViews = JSON.parse(localStorage.getItem(`neolearnPostViews_${user.uid}`) || '{}');
-    postViewCounts = storedViews && typeof storedViews === 'object' && !Array.isArray(storedViews) ? storedViews : {};
+    postViewCounts = storedViews && typeof storedViews === 'object' && !Array.isArray(storedViews)
+      ? storedViews
+      : {};
   } catch {
     postViewCounts = {};
   }
-  
+  try {
+    const storedShown = JSON.parse(localStorage.getItem(`neolearnLastShownAt_${user.uid}`) || '{}');
+    lastShownAt = storedShown && typeof storedShown === 'object' && !Array.isArray(storedShown)
+      ? storedShown
+      : {};
+  } catch {
+    lastShownAt = {};
+  }
+
   const accessPromise = checkAccess(true);
   const profilePromise = getDoc(doc(db, 'neolearn_profiles', user.uid));
 
