@@ -2000,53 +2000,49 @@ const emailRateLimit = rateLimit({
 });
 
 app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
+    // 1. Immediately return success to frontend to optimize UX
+    res.json({ success: true, message: 'Email sending initiated' });
+
+    // 2. Process email in background
     try {
-        // 1. Verify Firebase ID Token from client
         const authHeader = req.headers.authorization || '';
         const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
         if (!idToken) {
-            return res.status(401).json({ error: 'Unauthorized. No token provided.' });
+            console.error('❌ send-verification-email: Unauthorized. No token.');
+            return;
         }
 
-        let decodedToken;
-        try {
-            decodedToken = await admin.auth().verifyIdToken(idToken);
-        } catch (tokenErr) {
-            return res.status(401).json({ error: 'Invalid or expired token.' });
-        }
-
+        const decodedToken = await admin.auth().verifyIdToken(idToken);
         const uid = decodedToken.uid;
         const userRecord = await admin.auth().getUser(uid);
 
-        // Already verified? Skip.
         if (userRecord.emailVerified) {
-            return res.json({ success: true, message: 'Email already verified.' });
+            console.log(`ℹ️ Email already verified for ${userRecord.email}`);
+            return;
         }
 
         const userEmail = userRecord.email;
         const fname = req.body.fname || userRecord.displayName?.split(' ')[0] || 'User';
 
-        // 2. Generate verification link using Firebase Admin
         const verificationLink = await admin.auth().generateEmailVerificationLink(userEmail, {
             url: 'https://neobranium.web.app/htmls/verify-email.html',
             handleCodeInApp: false
         });
 
-        // 3. Send via Gmail SMTP
         const gmailUser = process.env.GMAIL_USER;
         const gmailPass = process.env.GMAIL_APP_PASSWORD;
 
         if (!gmailUser || !gmailPass) {
-            console.error('❌ GMAIL_USER or GMAIL_APP_PASSWORD not set in environment variables.');
-            return res.status(500).json({ error: 'Email service not configured on server.' });
+            console.error('❌ GMAIL_USER or GMAIL_APP_PASSWORD not set in environment.');
+            return;
         }
 
         const transporter = nodemailer.createTransport({
             host: 'smtp.gmail.com',
             port: 587,
-            secure: false,         // true for 465, false for other ports (will upgrade to SSL/TLS via STARTTLS)
-            family: 4,             // Force IPv4
+            secure: false,
+            family: 4,
             auth: { user: gmailUser, pass: gmailPass }
         });
 
@@ -2104,11 +2100,9 @@ app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
         });
 
         console.log(`✅ Verification email sent to ${userEmail}`);
-        return res.json({ success: true });
 
     } catch (err) {
-        console.error('❌ send-verification-email error:', err.message);
-        return res.status(500).json({ error: 'Failed to send verification email.' });
+        console.error('❌ Background email task error:', err.message);
     }
 });
 
