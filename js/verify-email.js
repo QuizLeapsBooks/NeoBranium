@@ -14,7 +14,6 @@ async function sendVerificationViaServer() {
       "Authorization": `Bearer ${idToken}`
     },
     credentials: "include",
-    signal: AbortSignal.timeout(10000),
     body: JSON.stringify({})
   });
   const data = await response.json();
