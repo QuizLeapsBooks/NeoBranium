@@ -1,0 +1,75 @@
+body.nb-neolearn-page .nl-moments-section {
+  margin: 0 0 1.25rem;
+  padding: .85rem 0 .75rem;
+  border-bottom: 1px solid var(--account-border);
+}
+body.nb-neolearn-page .nl-moments-heading { display: flex; align-items: baseline; gap: .65rem; margin-bottom: .65rem; }
+body.nb-neolearn-page .nl-moments-heading h2 { margin: 0; color: var(--account-text); font-size: 1rem; }
+body.nb-neolearn-page .nl-moments-heading > span { color: var(--account-muted); font-size: .72rem; }
+body.nb-neolearn-page .nl-moments-rail { display: flex; align-items: start; gap: .85rem; min-height: 92px; overflow-x: auto; padding: .1rem .1rem .35rem; scrollbar-width: thin; }
+body.nb-neolearn-page .nl-moment-add,
+body.nb-neolearn-page .nl-moment-person { display: grid; justify-items: center; gap: .35rem; width: 68px; flex: 0 0 68px; padding: 0; color: var(--account-secondary); background: transparent; border: 0; font: inherit; font-size: .7rem; cursor: pointer; }
+body.nb-neolearn-page .nl-moment-add > span:last-child,
+body.nb-neolearn-page .nl-moment-person > span:last-child { max-width: 68px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.nb-neolearn-page .nl-moment-avatar { display: grid; place-items: center; width: 60px; height: 60px; flex: 0 0 auto; overflow: hidden; color: #fff; background: #187b78; border: 2px solid var(--account-surface); border-radius: 50%; font-size: 1.15rem; font-weight: 700; }
+body.nb-neolearn-page .nl-moment-avatar img { width: 100%; height: 100%; object-fit: cover; }
+body.nb-neolearn-page .nl-moment-avatar--add { color: #fff; background: #d05836; font-size: 1.35rem; }
+body.nb-neolearn-page .nl-moment-avatar--ring { padding: 3px; background: linear-gradient(135deg, #d05836, #edaa46 54%, #187b78); }
+body.nb-neolearn-page .nl-moment-avatar--ring img { border: 2px solid var(--account-surface); border-radius: 50%; }
+body.nb-neolearn-page .nl-moment-add:hover .nl-moment-avatar,
+body.nb-neolearn-page .nl-moment-person:hover .nl-moment-avatar { transform: scale(1.05); }
+body.nb-neolearn-page .nl-moment-avatar { transition: transform .16s ease; }
+body.nb-neolearn-page .nl-moments-loading,
+body.nb-neolearn-page .nl-moments-status { align-self: center; color: var(--account-muted); font-size: .76rem; }
+body.nb-neolearn-page .nl-moments-status { min-height: 1.1em; margin: .2rem 0 0; }
+body.nb-neolearn-page .nl-moment-create-dialog,
+body.nb-neolearn-page .nl-moment-viewer { padding: 0; color: var(--account-text); background: transparent; border: 0; }
+body.nb-neolearn-page .nl-moment-create-dialog { width: min(100% - 2rem, 440px); max-width: 440px; overflow: visible; }
+body.nb-neolearn-page .nl-moment-create-dialog::backdrop { background: rgb(17 24 39 / 62%); backdrop-filter: blur(4px); }
+body.nb-neolearn-page .nl-moment-create-form { display: grid; gap: .85rem; padding: 1.25rem; background: var(--account-surface); border: 1px solid var(--account-border); border-radius: 10px; box-shadow: var(--account-shadow-raised); }
+body.nb-neolearn-page .nl-moment-dialog-header { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
+body.nb-neolearn-page .nl-moment-dialog-header > div > span { color: #187b78; font-size: .64rem; font-weight: 750; }
+body.nb-neolearn-page .nl-moment-dialog-header h2 { margin: .12rem 0 0; font-size: 1.2rem; }
+body.nb-neolearn-page .nl-moment-icon-button { display: grid; place-items: center; width: 38px; height: 38px; flex: 0 0 38px; color: inherit; background: transparent; border: 1px solid var(--account-border); border-radius: 50%; cursor: pointer; }
+body.nb-neolearn-page .nl-moment-image-picker { position: relative; display: grid; place-items: center; gap: .4rem; min-height: 190px; overflow: hidden; color: var(--account-muted); background: color-mix(in srgb, var(--account-accent) 5%, var(--account-bg)); border: 1px dashed var(--account-border); border-radius: 8px; cursor: pointer; }
+body.nb-neolearn-page .nl-moment-image-picker > i { font-size: 1.7rem; }
+body.nb-neolearn-page .nl-moment-image-picker img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #101718; }
+body.nb-neolearn-page .nl-moment-field { display: grid; gap: .4rem; color: var(--account-secondary); font-size: .8rem; font-weight: 650; }
+body.nb-neolearn-page .nl-moment-field > span { display: inline; color: var(--account-muted); font-size: .72rem; font-weight: 400; }
+body.nb-neolearn-page .nl-moment-field textarea,
+body.nb-neolearn-page .nl-moment-audience { width: 100%; min-height: 42px; padding: .55rem .65rem; color: var(--account-text); background: var(--account-surface-raised); border: 1px solid var(--account-border); border-radius: 7px; font: inherit; font-size: .84rem; }
+body.nb-neolearn-page .nl-moment-field textarea { resize: vertical; }
+body.nb-neolearn-page .nl-moment-error { margin: 0; color: #b42318; font-size: .78rem; }
+body.nb-neolearn-page .nl-moment-error[hidden] { display: none; }
+body.nb-neolearn-page .nl-moment-share-button { display: flex; align-items: center; justify-content: center; gap: .45rem; min-height: 44px; color: #fff; background: #187b78; border: 0; border-radius: 7px; font: inherit; font-size: .84rem; font-weight: 700; cursor: pointer; }
+body.nb-neolearn-page .nl-moment-share-button:disabled { opacity: .5; cursor: not-allowed; }
+body.nb-neolearn-page .nl-moment-viewer { width: min(100vw, 440px); height: min(100dvh, 780px); max-width: none; max-height: none; overflow: visible; }
+body.nb-neolearn-page .nl-moment-viewer::backdrop { background: rgb(8 14 16 / 88%); }
+body.nb-neolearn-page .nl-moment-viewer-frame { position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; overflow: hidden; color: #fff; background: #101718; border-radius: 10px; box-shadow: 0 24px 80px rgb(0 0 0 / 35%); }
+body.nb-neolearn-page .nl-moment-progress { position: absolute; z-index: 2; top: 10px; right: 12px; left: 12px; height: 3px; overflow: hidden; background: rgb(255 255 255 / 35%); border-radius: 3px; }
+body.nb-neolearn-page .nl-moment-progress::after { display: block; width: 100%; height: 100%; background: #fff; content: ''; transform: scaleX(0); transform-origin: left; }
+body.nb-neolearn-page .nl-moment-progress.is-running::after { animation: nlMomentProgress var(--moment-duration) linear forwards; }
+@keyframes nlMomentProgress { to { transform: scaleX(1); } }
+body.nb-neolearn-page .nl-moment-viewer-header { position: absolute; z-index: 2; top: 22px; right: 12px; left: 12px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+body.nb-neolearn-page .nl-moment-viewer-author { display: flex; align-items: center; gap: .5rem; min-width: 0; text-shadow: 0 1px 5px #000; }
+body.nb-neolearn-page .nl-moment-viewer-author strong { max-width: 210px; overflow: hidden; font-size: .8rem; text-overflow: ellipsis; white-space: nowrap; }
+body.nb-neolearn-page .nl-moment-viewer-author > span:last-child { color: rgb(255 255 255 / 78%); font-size: .68rem; }
+body.nb-neolearn-page .nl-moment-avatar--tiny { width: 34px; height: 34px; border-color: rgb(255 255 255 / 90%); font-size: .8rem; }
+body.nb-neolearn-page .nl-moment-viewer-header .nl-moment-icon-button { color: #fff; background: rgb(0 0 0 / 35%); border-color: rgb(255 255 255 / 35%); }
+body.nb-neolearn-page .nl-moment-viewer-image { width: 100%; height: 100%; object-fit: contain; }
+body.nb-neolearn-page .nl-moment-viewer-caption { position: absolute; right: 16px; bottom: 68px; left: 16px; margin: 0; padding: .65rem .75rem; color: #fff; background: rgb(0 0 0 / 38%); border-radius: 6px; font-size: .86rem; line-height: 1.45; overflow-wrap: anywhere; white-space: pre-wrap; }
+body.nb-neolearn-page .nl-moment-viewer-caption[hidden] { display: none; }
+body.nb-neolearn-page .nl-moment-viewer-nav { position: absolute; top: 50%; display: grid; place-items: center; width: 38px; height: 46px; color: #fff; background: rgb(0 0 0 / 30%); border: 0; border-radius: 6px; cursor: pointer; transform: translateY(-50%); }
+body.nb-neolearn-page .nl-moment-viewer-nav--previous { left: 8px; }
+body.nb-neolearn-page .nl-moment-viewer-nav--next { right: 8px; }
+body.nb-neolearn-page .nl-moment-viewer-nav:disabled { opacity: .35; cursor: default; }
+body.nb-neolearn-page .nl-moment-viewer-footer { position: absolute; right: 12px; bottom: 12px; left: 12px; display: flex; align-items: center; justify-content: space-between; color: rgb(255 255 255 / 75%); font-size: .7rem; }
+body.nb-neolearn-page .nl-moment-like { display: inline-flex; align-items: center; gap: .4rem; min-height: 40px; padding: .45rem .75rem; color: #fff; background: rgb(0 0 0 / 35%); border: 1px solid rgb(255 255 255 / 45%); border-radius: 20px; font: inherit; font-size: .78rem; cursor: pointer; }
+body.nb-neolearn-page .nl-moment-like.is-liked { color: #ff8390; }
+body.nb-neolearn-page .nl-moment-like:disabled { opacity: .6; }
+body.nb-neolearn-page :is(.nl-moment-add,.nl-moment-person,.nl-moment-icon-button,.nl-moment-share-button,.nl-moment-viewer-nav,.nl-moment-like):focus-visible { outline: 3px solid #efaa55; outline-offset: 2px; }
+@media (max-width: 520px) {
+  body.nb-neolearn-page .nl-moment-viewer { width: 100vw; height: 100dvh; }
+  body.nb-neolearn-page .nl-moment-viewer-frame { border-radius: 0; }
+  body.nb-neolearn-page .nl-moments-rail { gap: .65rem; }
+}

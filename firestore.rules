@@ -5,19 +5,54 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == uid;
     }
 
-    function isNeoLearnPostVisibleToViewer(ownerId) {
-      return request.auth != null
-        && !exists(/databases/$(database)/documents/neolearn_blocks/$(request.auth.uid + '_' + ownerId))
-        && !exists(/databases/$(database)/documents/neolearn_blocks/$(ownerId + '_' + request.auth.uid));
+    function isValidNeoLearnReportReason(reason) {
+      return reason in ['Spam', 'Inappropriate content', 'Harassment', 'Other'];
     }
 
-    function isValidImpressionRecord() {
-      return resource.data.keys().hasAll(['count', 'lastShownAt'])
-        && resource.data.count is int
-        && resource.data.count >= 0
-        && resource.data.count <= 3
-        && resource.data.lastShownAt is timestamp
-        && (!resource.data.keys().hasAny(['surfaceIds']) || resource.data.surfaceIds is list);
+    function isValidNeoLearnPostReport(reportId) {
+      return request.auth != null
+        && request.resource.data.keys().hasAll(['type', 'reporterId', 'postId', 'reportedUserId', 'reason', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['type', 'reporterId', 'postId', 'reportedUserId', 'reason', 'createdAt'])
+        && request.resource.data.type == 'post'
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.postId is string
+        && request.resource.data.postId.size() > 0
+        && request.resource.data.postId.size() <= 256
+        && !request.resource.data.postId.matches('.*[/].*')
+        && (request.resource.data.reportedUserId == null || request.resource.data.reportedUserId is string)
+        && isValidNeoLearnReportReason(request.resource.data.reason)
+        && request.resource.data.createdAt is timestamp
+        && reportId == 'post_' + request.auth.uid + '_' + request.resource.data.postId;
+    }
+
+    function isValidNeoLearnProfileReport(reportId) {
+      return request.auth != null
+        && request.resource.data.keys().hasAll(['type', 'reporterId', 'reportedUserId', 'reason', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['type', 'reporterId', 'reportedUserId', 'reason', 'createdAt'])
+        && request.resource.data.type == 'profile'
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.reportedUserId is string
+        && request.resource.data.reportedUserId.size() > 0
+        && request.resource.data.reportedUserId.size() <= 128
+        && !request.resource.data.reportedUserId.matches('.*[/].*')
+        && request.resource.data.reportedUserId != request.auth.uid
+        && isValidNeoLearnReportReason(request.resource.data.reason)
+        && request.resource.data.createdAt is timestamp
+        && reportId == 'profile_' + request.auth.uid + '_' + request.resource.data.reportedUserId;
+    }
+
+    function isValidNeoLearnBlock(blockId) {
+      return request.auth != null
+        && request.resource.data.keys().hasAll(['blockerId', 'blockedUserId', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['blockerId', 'blockedUserId', 'createdAt'])
+        && request.resource.data.blockerId == request.auth.uid
+        && request.resource.data.blockedUserId is string
+        && request.resource.data.blockedUserId.size() > 0
+        && request.resource.data.blockedUserId.size() <= 128
+        && !request.resource.data.blockedUserId.matches('.*[/].*')
+        && request.resource.data.blockedUserId != request.auth.uid
+        && request.resource.data.createdAt is timestamp
+        && blockId == request.auth.uid + '_' + request.resource.data.blockedUserId;
     }
 
     match /users/{userId} {
@@ -48,57 +83,41 @@ service cloud.firestore {
 
     match /mentor_goals/{userId} {
       allow read, write: if isOwner(userId);
-      match /items/{goalId} {
-        allow read, write: if isOwner(userId);
-      }
-    }
-
-    match /mentor_chat/{userId} {
-      allow read, write: if isOwner(userId);
-      match /{document=**} {
-        allow read, write: if isOwner(userId);
-      }
-    }
-
-    match /mentor_notifications/{userId} {
       allow read, write: if isOwner(userId);
       match /items/{notificationId} {
         allow read, write: if isOwner(userId);
-      }
-    }
-
-    match /mentor_reflections/{userId} {
-      allow read, write: if isOwner(userId);
-      match /items/{reflectionId} {
+      allow read: if request.auth != null;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create, update: if false;
         allow read, write: if isOwner(userId);
       }
     }
-
+      allow create: if isValidNeoLearnPostReport(reportId) || isValidNeoLearnProfileReport(reportId);
+      allow read, update, delete: if false;
     match /mentor_calendar/{userId} {
       allow read, write: if isOwner(userId);
       match /days/{dayId} {
-        allow read, write: if isOwner(userId);
+      allow read: if request.auth != null && resource.data.blockerId == request.auth.uid;
+      allow create: if isValidNeoLearnBlock(blockId);
+      allow delete: if request.auth != null && resource.data.blockerId == request.auth.uid;
+      allow update: if false;
       }
     }
 
-    match /mentor_analytics/{userId} {
+      allow read: if request.auth != null;
+      allow write: if false;
       allow read, write: if isOwner(userId);
-    }
 
-    match /reactions/{noteId} {
-      allow read, write: if request.auth != null;
-    }
-
-    match /aiboard_sessions/{sessionId} {
+      allow read, write: if false;   // top-level: no direct client access
       allow read, write: if false;
     }
-
-    match /whatsapp_queue/{docId} {
-      allow read, write: if false;
-    }
-
+        allow read:  if request.auth != null && request.auth.uid == viewerUid;
+        allow write: if false;   // all writes via Admin SDK (bypasses rules)
     match /neolearn_profiles/{userId} {
       allow read: if isOwner(userId);
+    match /neolearn_moments/{momentId} {
+      allow read, write: if false;
+    }
       allow create: if isOwner(userId)
         && request.resource.data.keys().hasAll(['userId', 'name', 'profilePhotoUrl', 'thoughtOfTheDay', 'createdAt', 'updatedAt'])
         && request.resource.data.keys().hasOnly(['userId', 'name', 'profilePhotoUrl', 'thoughtOfTheDay', 'createdAt', 'updatedAt'])
@@ -117,6 +136,10 @@ service cloud.firestore {
     match /neolearn_posts/{postId} {
       allow read: if resource.data.userId is string && isNeoLearnPostVisibleToViewer(resource.data.userId);
       allow create, update, delete: if false;
+    }
+
+    match /neolearn_moments/{momentId} {
+      allow read, write: if false;
     }
 
     match /neolearn_reports/{reportId} {

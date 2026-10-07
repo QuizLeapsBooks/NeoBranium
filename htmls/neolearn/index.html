@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/CSS/account-pages.css" />
   <link rel="stylesheet" href="/CSS/neolearn-social.css" />
   <link rel="stylesheet" href="/CSS/neolearn-upload.css" />
+  <link rel="stylesheet" href="/CSS/neolearn-moments.css" />
   <script src="/js/shortcuts.js"></script>
   <script src="/js/neolearn-theme.js"></script>
 </head>
@@ -41,6 +42,17 @@
     <div class="nl-home-layout">
       <!-- Feed Column -->
       <div class="nl-feed-column">
+        <section class="nl-moments-section" aria-labelledby="nlMomentsTitle">
+          <div class="nl-moments-heading"><h2 id="nlMomentsTitle">Moments</h2><span>Disappears after 24 hours</span></div>
+          <div class="nl-moments-rail" id="nlMomentsRail" aria-label="NeoLearn Moments" aria-live="polite">
+            <button class="nl-moment-add" id="addNeoLearnMoment" type="button" aria-label="Add a Moment">
+              <span class="nl-moment-avatar nl-moment-avatar--add"><i class="bi bi-plus-lg" aria-hidden="true"></i></span>
+              <span>Your Moment</span>
+            </button>
+            <span class="nl-moments-loading" id="nlMomentsLoading">Loading Moments…</span>
+          </div>
+          <p class="nl-moments-status" id="nlMomentsStatus" role="status" aria-live="polite"></p>
+        </section>
         <header class="account-page-heading nl-feed-heading">
           <h1>Your learning feed</h1>
           <p id="neolearnFeedSubtitle">Posts from profiles you are Learning.</p>
@@ -125,8 +137,24 @@
     </div>
   </dialog>
   <dialog class="nl-detail-dialog" id="neolearnPostDetailDialog" aria-label="Post detail"><div class="nl-post-detail-content" data-post-detail-content><button class="nl-detail-close" type="button" data-post-detail-close aria-label="Close post details"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div></dialog>
+  <dialog class="nl-moment-create-dialog" id="nlMomentCreateDialog" aria-labelledby="nlMomentCreateTitle">
+    <form class="nl-moment-create-form" id="nlMomentCreateForm">
+      <header class="nl-moment-dialog-header"><div><span>NEOLEARN MOMENTS</span><h2 id="nlMomentCreateTitle">Share a Moment</h2></div><button class="nl-moment-icon-button" id="closeMomentCreate" type="button" aria-label="Close"><i class="bi bi-x-lg" aria-hidden="true"></i></button></header>
+      <label class="nl-moment-image-picker" for="nlMomentImageInput"><i class="bi bi-image" aria-hidden="true"></i><span id="nlMomentImageLabel">Choose a photo</span><img id="nlMomentPreview" alt="Moment preview" hidden /></label>
+      <input id="nlMomentImageInput" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+      <label class="nl-moment-field" for="nlMomentCaption">Caption <span>Optional</span><textarea id="nlMomentCaption" maxlength="240" placeholder="What are you learning today?" rows="2"></textarea></label>
+      <label class="nl-moment-field" for="nlMomentAudience">Who can see this?</label>
+      <select class="nl-moment-audience" id="nlMomentAudience"><option value="everyone">Everyone on NeoLearn</option><option value="learning">People I’m Learning</option></select>
+      <p class="nl-moment-error" id="nlMomentCreateError" role="alert" hidden></p>
+      <button class="nl-moment-share-button" id="shareNeoLearnMoment" type="submit" disabled><i class="bi bi-send" aria-hidden="true"></i><span>Share Moment</span></button>
+    </form>
+  </dialog>
+  <dialog class="nl-moment-viewer" id="nlMomentViewer" aria-label="Moment viewer">
+    <div class="nl-moment-viewer-frame"><div class="nl-moment-progress" id="nlMomentProgress"></div><header class="nl-moment-viewer-header"><div class="nl-moment-viewer-author" id="nlMomentViewerAuthor"></div><button class="nl-moment-icon-button" id="closeMomentViewer" type="button" aria-label="Close Moment"><i class="bi bi-x-lg" aria-hidden="true"></i></button></header><img class="nl-moment-viewer-image" id="nlMomentViewerImage" alt="" /><p class="nl-moment-viewer-caption" id="nlMomentViewerCaption"></p><button class="nl-moment-viewer-nav nl-moment-viewer-nav--previous" id="previousNeoLearnMoment" type="button" aria-label="Previous Moment"><i class="bi bi-chevron-left" aria-hidden="true"></i></button><button class="nl-moment-viewer-nav nl-moment-viewer-nav--next" id="nextNeoLearnMoment" type="button" aria-label="Next Moment"><i class="bi bi-chevron-right" aria-hidden="true"></i></button><footer class="nl-moment-viewer-footer"><button class="nl-moment-like" id="likeNeoLearnMoment" type="button"><i class="bi bi-heart" aria-hidden="true"></i><span>Like</span><span class="nl-moment-like-count">0</span></button><span id="nlMomentExpiresLabel">24 hours</span></footer></div>
+  </dialog>
   <script type="module" src="/js/neolearn-badge.js"></script>
   <script type="module" src="/js/neolearn-upload.js"></script>
+  <script type="module" src="/js/neolearn-moments.js"></script>
   <script type="module" src="/js/neolearn-home.js"></script>
 </body>
 </html>

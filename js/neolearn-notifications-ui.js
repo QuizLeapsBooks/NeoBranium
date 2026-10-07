@@ -107,6 +107,8 @@ function renderNotificationCard(notification) {
   const actionText = element('span', 'nl-notification-action-text');
   if (notification.type === 'like') {
     actionText.textContent = ' liked your post';
+  } else if (notification.type === 'moment-like') {
+    actionText.textContent = ' liked your Moment';
   } else if (notification.type === 'comment') {
     actionText.textContent = ' commented on your post';
   } else {
@@ -132,8 +134,11 @@ function renderNotificationCard(notification) {
   card.append(content);
 
   // Post reference link / button (Section 5, 16)
-  const postTargetUrl = `/htmls/neolearn/profile.html?uid=${encodeURIComponent(notification.postOwnerUserId || currentUser?.uid || '')}#post-${encodeURIComponent(notification.postId)}`;
-  const postLink = element('a', 'nl-notification-post-link', 'View post');
+  const isMomentNotification = notification.type === 'moment-like' && notification.momentId;
+  const postTargetUrl = isMomentNotification
+    ? `/htmls/neolearn/index.html#moment-${encodeURIComponent(notification.momentId)}`
+    : `/htmls/neolearn/profile.html?uid=${encodeURIComponent(notification.postOwnerUserId || currentUser?.uid || '')}#post-${encodeURIComponent(notification.postId)}`;
+  const postLink = element('a', 'nl-notification-post-link', isMomentNotification ? 'View Moment' : 'View post');
   postLink.href = postTargetUrl;
   const postIcon = element('i', 'bi bi-chevron-right ms-1');
   postIcon.setAttribute('aria-hidden', 'true');

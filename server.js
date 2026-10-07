@@ -19,6 +19,7 @@ import queueManager from './queueManager.js';
 import { endSession, verifyAuthToken, db, admin, rtdb } from './firebaseAdmin.js';
 import { v2 as cloudinary } from 'cloudinary';
 import { createNeoLearnUploadHandler } from './neolearn-upload-handler.js';
+import { createNeoLearnMomentHandlers } from './neolearn-moment-handler.js';
 import { createNeoLearnDirectoryHandlers, loadPublicProfile } from './neolearn-directory-handler.js';
 import { createNeoLearnSocialHandlers } from './neolearn-social-handler.js';
 import { createNeoLearnNotificationHandlers } from './neolearn-notification-handler.js';
@@ -1788,6 +1789,18 @@ app.post('/api/neolearn/upload-post', createNeoLearnUploadHandler({
     db,
     admin
 }));
+
+const neoLearnMomentHandlers = createNeoLearnMomentHandlers({
+    verifyAuthToken,
+    db,
+    rtdb,
+    admin,
+    cloudinary,
+    isCloudinaryConfigured
+});
+app.get('/api/neolearn/moments', neoLearnMomentHandlers.getMoments);
+app.post('/api/neolearn/moments', neoLearnMomentHandlers.createMoment);
+app.post('/api/neolearn/moments/like', neoLearnMomentHandlers.toggleMomentLike);
 
 const neoLearnDirectoryHandlers = createNeoLearnDirectoryHandlers({ verifyAuthToken, db });
 app.get('/api/neolearn/peers', neoLearnDirectoryHandlers.getPeers);

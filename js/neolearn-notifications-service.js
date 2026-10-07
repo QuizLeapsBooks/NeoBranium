@@ -127,12 +127,13 @@ export function subscribeToUserNotifications(userId, onUpdate, onError) {
       type: data.type || 'like',
       actorUserId: typeof data.actorUserId === 'string' ? data.actorUserId : '',
       postId: typeof data.postId === 'string' ? data.postId : '',
+      momentId: typeof data.momentId === 'string' ? data.momentId : '',
       postOwnerUserId: typeof data.postOwnerUserId === 'string' ? data.postOwnerUserId : userId,
       commentId: typeof data.commentId === 'string' ? data.commentId : null,
       commentPreview: typeof data.commentPreview === 'string' ? data.commentPreview : '',
       createdAt: typeof data.createdAt === 'number' ? data.createdAt : 0,
       read: Boolean(data.read)
-    })).filter((item) => item.actorUserId && item.postId);
+    })).filter((item) => item.actorUserId && (item.postId || item.momentId));
 
     // Sort newest first by actual server timestamp (Section 12)
     items.sort((a, b) => b.createdAt - a.createdAt);
