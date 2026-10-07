@@ -116,7 +116,6 @@ export function createNeoLearnMomentHandlers({ verifyAuthToken, db, rtdb, admin,
                 db.collection('neolearn_moments')
                     .where('expiresAt', '>', admin.firestore.Timestamp.fromMillis(Date.now()))
                     .orderBy('expiresAt', 'asc')
-                    .orderBy('createdAt', 'desc')
                     .limit(MAX_MOMENTS)
                     .get(),
                 db.collection('neolearn_learning').where('learnerUserId', '==', viewerId).get(),
@@ -128,7 +127,8 @@ export function createNeoLearnMomentHandlers({ verifyAuthToken, db, rtdb, admin,
                     && validId(moment.userId)
                     && !blockedUserIds.has(moment.userId)
                     && (moment.userId === viewerId || moment.audience === 'everyone'
-                        || (moment.audience === 'learning' && learningIds.has(moment.userId))));
+                        || (moment.audience === 'learning' && learningIds.has(moment.userId))))
+                .sort((first, second) => timestampMillis(second.createdAt) - timestampMillis(first.createdAt));
             const moments = await Promise.all(eligible.map(async (moment) => {
                 const [profileSnapshot, likeSnapshot] = await Promise.all([
                     db.collection('neolearn_profiles').doc(moment.userId).get(),

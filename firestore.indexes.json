@@ -13,20 +13,6 @@
           "order": "DESCENDING"
         }
       ]
-    },
-    {
-      "collectionGroup": "neolearn_moments",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "expiresAt",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
-      ]
     }
   ],
   "fieldOverrides": []
