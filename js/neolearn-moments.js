@@ -19,6 +19,11 @@ const viewerAuthor = document.getElementById('nlMomentViewerAuthor');
 const viewerCaption = document.getElementById('nlMomentViewerCaption');
 const viewerProgress = document.getElementById('nlMomentProgress');
 const likeButton = document.getElementById('likeNeoLearnMoment');
+const viewersButton = document.getElementById('openMomentViewers');
+const viewersDialog = document.getElementById('nlMomentViewersDialog');
+const viewersList = document.getElementById('nlMomentViewersList');
+const viewersStatus = document.getElementById('nlMomentViewersStatus');
+const viewersCount = document.getElementById('nlMomentViewersCount');
 let moments = [];
 let momentGroups = [];
 let activeGroupIndex = -1;
@@ -116,6 +121,10 @@ function openMoment(groupIndex, momentIndex) {
   activeMomentIndex = momentIndex;
   renderMoment();
   if (!viewer.open) viewer.showModal();
+  if (group.userId !== auth.currentUser?.uid) {
+    request('/api/neolearn/moments/view', { method: 'POST', body: { momentId: group.stories[momentIndex].momentId } })
+      .catch((error) => console.warn('[NeoLearn Moments] View tracking failed:', error.message));
+  }
 }
 
 function activeMoment() {
@@ -149,16 +158,22 @@ function renderMoment() {
   viewerCaption.textContent = moment.caption || '';
   viewerCaption.hidden = !moment.caption;
   viewerAuthor.replaceChildren(makeAvatar(moment, 'nl-moment-avatar--tiny'));
+  const authorProfile = document.createElement('a');
+  authorProfile.className = 'nl-moment-author-profile';
+  authorProfile.href = `/htmls/neolearn/profile.html?uid=${encodeURIComponent(moment.userId)}`;
   const authorName = document.createElement('strong');
   authorName.textContent = moment.author?.name || 'NeoLearn learner';
+  authorProfile.append(authorName);
   const time = document.createElement('span');
   time.textContent = '24h Moment';
-  viewerAuthor.append(authorName, time);
+  viewerAuthor.append(authorProfile, time);
   const likeIcon = likeButton.querySelector('i');
   likeIcon.className = moment.isLiked ? 'bi bi-heart-fill' : 'bi bi-heart';
   likeButton.classList.toggle('is-liked', moment.isLiked);
   likeButton.querySelector('span').textContent = moment.isLiked ? 'Liked' : 'Like';
   likeButton.querySelector('.nl-moment-like-count').textContent = String(moment.likeCount || 0);
+  viewersButton.hidden = moment.userId !== auth.currentUser?.uid;
+  viewersButton.querySelector('span').textContent = `Seen by ${moment.viewCount || 0}`;
   document.getElementById('previousNeoLearnMoment').disabled = activeGroupIndex === 0 && activeMomentIndex === 0;
   const lastGroupIndex = momentGroups.length - 1;
   const lastMomentIndex = momentGroups[lastGroupIndex]?.stories.length - 1;
@@ -278,9 +293,51 @@ likeButton.addEventListener('click', async () => {
   }
 });
 
+viewersButton.addEventListener('click', async () => {
+  const moment = activeMoment();
+  if (!moment || moment.userId !== auth.currentUser?.uid) return;
+  viewersList.replaceChildren();
+  viewersStatus.textContent = 'Loading viewers…';
+  viewersStatus.hidden = false;
+  viewersCount.textContent = `${moment.viewCount || 0} viewers`;
+  viewersDialog.showModal();
+  try {
+    const result = await request(`/api/neolearn/moments/${encodeURIComponent(moment.momentId)}/views`);
+    moment.viewCount = result.viewCount;
+    viewersCount.textContent = `${result.viewCount} viewer${result.viewCount === 1 ? '' : 's'}`;
+    viewersStatus.hidden = result.viewers.length > 0;
+    viewersStatus.textContent = result.viewers.length ? '' : 'No views yet';
+    viewersList.replaceChildren(...result.viewers.map((person) => {
+      const item = document.createElement('li');
+      const link = document.createElement('a');
+      link.href = `/htmls/neolearn/profile.html?uid=${encodeURIComponent(person.userId)}`;
+      link.className = 'nl-moment-viewer-profile';
+      const avatar = document.createElement('span');
+      avatar.className = 'nl-moment-viewer-avatar';
+      if (person.profilePhotoUrl) {
+        const image = document.createElement('img');
+        image.src = person.profilePhotoUrl;
+        image.alt = '';
+        image.loading = 'lazy';
+        avatar.append(image);
+      } else avatar.textContent = person.name.trim().charAt(0).toUpperCase();
+      const name = document.createElement('strong');
+      name.textContent = person.name;
+      link.append(avatar, name);
+      item.append(link);
+      return item;
+    }));
+    viewersButton.querySelector('span').textContent = `Seen by ${result.viewCount}`;
+  } catch (error) {
+    viewersStatus.textContent = error.message || 'Viewers could not be loaded.';
+    viewersStatus.hidden = false;
+  }
+});
+
 document.getElementById('addNeoLearnMoment').addEventListener('click', openCreateDialog);
 document.getElementById('closeMomentCreate').addEventListener('click', () => createDialog.close());
 document.getElementById('closeMomentViewer').addEventListener('click', closeViewer);
+document.getElementById('closeMomentViewers').addEventListener('click', () => viewersDialog.close());
 document.getElementById('previousNeoLearnMoment').addEventListener('click', () => moveMoment(-1));
 document.getElementById('nextNeoLearnMoment').addEventListener('click', () => moveMoment(1));
 createDialog.addEventListener('close', resetCreateDialog);

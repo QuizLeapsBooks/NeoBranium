@@ -133,12 +133,14 @@ export function createNeoLearnMomentHandlers({ verifyAuthToken, db, rtdb, admin,
                             || (moment.audience === 'learning' && followerIds.has(moment.userId))))))
                 .sort((first, second) => timestampMillis(second.createdAt) - timestampMillis(first.createdAt));
             const moments = await Promise.all(eligible.map(async (moment) => {
-                const [profileSnapshot, likeSnapshot] = await Promise.all([
+                const [profileSnapshot, likeSnapshot, viewSnapshot] = await Promise.all([
                     db.collection('neolearn_profiles').doc(moment.userId).get(),
-                    rtdb.ref(`neolearn_realtime/moment_likes/${moment.momentId}`).get()
+                    rtdb.ref(`neolearn_realtime/moment_likes/${moment.momentId}`).get(),
+                    rtdb.ref(`neolearn_realtime/moment_views/${moment.momentId}`).get()
                 ]);
                 const profile = profileSnapshot.exists ? profileSnapshot.data() : {};
                 const likes = likeSnapshot.val() || {};
+                const views = viewSnapshot.val() || {};
                 return {
                     momentId: moment.momentId,
                     userId: moment.userId,
@@ -149,7 +151,8 @@ export function createNeoLearnMomentHandlers({ verifyAuthToken, db, rtdb, admin,
                     audience: moment.audience,
                     author: { userId: moment.userId, name: profile.name || 'NeoLearn learner', profilePhotoUrl: profile.profilePhotoUrl || '' },
                     likeCount: Object.values(likes).filter((value) => value === true).length,
-                    isLiked: likes[viewerId] === true
+                    isLiked: likes[viewerId] === true,
+                    viewCount: moment.userId === viewerId ? Object.keys(views).length : null
                 };
             }));
             return res.json({ success: true, moments });
@@ -212,5 +215,81 @@ export function createNeoLearnMomentHandlers({ verifyAuthToken, db, rtdb, admin,
         }
     }
 
-    return { createMoment, getMoments, toggleMomentLike };
+    async function recordMomentView(req, res) {
+        const viewerId = await authenticate(req, res);
+        if (!viewerId) return;
+        if (!db || !rtdb) return res.status(503).json({ success: false, error: 'Moment storage is unavailable.' });
+        const { momentId } = req.body || {};
+        if (!validId(momentId)) return res.status(400).json({ success: false, error: 'A valid Moment is required.' });
+
+        try {
+            const momentSnapshot = await db.collection('neolearn_moments').doc(momentId).get();
+            if (!momentSnapshot.exists) return res.status(404).json({ success: false, error: 'Moment not found.' });
+            const moment = momentSnapshot.data();
+            if (timestampMillis(moment.expiresAt) <= Date.now()) return res.status(410).json({ success: false, error: 'This Moment has expired.' });
+            if (viewerId !== moment.userId) {
+                const blocked = await getNeoLearnBlockedUserIds(db, viewerId);
+                if (blocked.has(moment.userId)) return res.status(404).json({ success: false, error: 'Moment not found.' });
+                const [viewerFollowsAuthor, authorFollowsViewer] = await Promise.all([
+                    db.collection('neolearn_learning').doc(learningRelationshipId(viewerId, moment.userId)).get(),
+                    moment.audience === 'learning'
+                        ? db.collection('neolearn_learning').doc(learningRelationshipId(moment.userId, viewerId)).get()
+                        : Promise.resolve({ exists: true })
+                ]);
+                if (!viewerFollowsAuthor.exists || !authorFollowsViewer.exists) {
+                    return res.status(403).json({ success: false, error: 'This Moment is not shared with your profile.' });
+                }
+                await rtdb.ref(`neolearn_realtime/moment_views/${momentId}/${viewerId}`)
+                    .set(admin.database.ServerValue.TIMESTAMP || Date.now());
+            }
+            const views = (await rtdb.ref(`neolearn_realtime/moment_views/${momentId}`).get()).val() || {};
+            return res.json({ success: true, viewCount: Object.keys(views).length });
+        } catch (error) {
+            console.error('[NeoLearn Moments] View record failed:', error.message);
+            return res.status(503).json({ success: false, error: 'The Moment view could not be saved.' });
+        }
+    }
+
+    async function getMomentViewers(req, res) {
+        const ownerId = await authenticate(req, res);
+        if (!ownerId) return;
+        if (!db || !rtdb) return res.status(503).json({ success: false, error: 'Moment storage is unavailable.' });
+        const momentId = req.params?.momentId;
+        if (!validId(momentId)) return res.status(400).json({ success: false, error: 'A valid Moment is required.' });
+
+        try {
+            const momentSnapshot = await db.collection('neolearn_moments').doc(momentId).get();
+            if (!momentSnapshot.exists || momentSnapshot.data().userId !== ownerId) {
+                return res.status(404).json({ success: false, error: 'Moment not found.' });
+            }
+            const moment = momentSnapshot.data();
+            if (timestampMillis(moment.expiresAt) <= Date.now()) return res.status(410).json({ success: false, error: 'This Moment has expired.' });
+            const [viewSnapshot, blockedUserIds] = await Promise.all([
+                rtdb.ref(`neolearn_realtime/moment_views/${momentId}`).get(),
+                getNeoLearnBlockedUserIds(db, ownerId)
+            ]);
+            const views = viewSnapshot.val() || {};
+            const viewers = await Promise.all(Object.entries(views)
+                .filter(([userId]) => validId(userId) && !blockedUserIds.has(userId))
+                .map(async ([userId, viewedAt]) => {
+                    const profileSnapshot = await db.collection('neolearn_profiles').doc(userId).get();
+                    if (!profileSnapshot.exists) return null;
+                    const profile = profileSnapshot.data();
+                    return {
+                        userId,
+                        name: profile.name || 'NeoLearn learner',
+                        profilePhotoUrl: profile.profilePhotoUrl || '',
+                        viewedAt: typeof viewedAt === 'number' ? viewedAt : null
+                    };
+                }));
+            viewers.sort((first, second) => (second?.viewedAt || 0) - (first?.viewedAt || 0));
+            const visibleViewers = viewers.filter(Boolean);
+            return res.json({ success: true, viewers: visibleViewers, viewCount: visibleViewers.length });
+        } catch (error) {
+            console.error('[NeoLearn Moments] Viewers load failed:', error.message);
+            return res.status(503).json({ success: false, error: 'Moment viewers could not be loaded.' });
+        }
+    }
+
+    return { createMoment, getMoments, toggleMomentLike, recordMomentView, getMomentViewers };
 }

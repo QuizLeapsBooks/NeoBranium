@@ -54,6 +54,8 @@ body.nb-neolearn-page .nl-moment-viewer-header { position: absolute; z-index: 2;
 body.nb-neolearn-page .nl-moment-viewer-author { display: flex; align-items: center; gap: .5rem; min-width: 0; text-shadow: 0 1px 5px #000; }
 body.nb-neolearn-page .nl-moment-viewer-author strong { max-width: 210px; overflow: hidden; font-size: .8rem; text-overflow: ellipsis; white-space: nowrap; }
 body.nb-neolearn-page .nl-moment-viewer-author > span:last-child { color: rgb(255 255 255 / 78%); font-size: .68rem; }
+body.nb-neolearn-page .nl-moment-author-profile { min-width: 0; color: #fff; text-decoration: none; }
+body.nb-neolearn-page .nl-moment-author-profile:hover { text-decoration: underline; }
 body.nb-neolearn-page .nl-moment-avatar--tiny { width: 34px; height: 34px; border-color: rgb(255 255 255 / 90%); font-size: .8rem; }
 body.nb-neolearn-page .nl-moment-viewer-header .nl-moment-icon-button { color: #fff; background: rgb(0 0 0 / 35%); border-color: rgb(255 255 255 / 35%); }
 body.nb-neolearn-page .nl-moment-viewer-image { width: 100%; height: 100%; object-fit: contain; }
@@ -67,7 +69,24 @@ body.nb-neolearn-page .nl-moment-viewer-footer { position: absolute; right: 12px
 body.nb-neolearn-page .nl-moment-like { display: inline-flex; align-items: center; gap: .4rem; min-height: 40px; padding: .45rem .75rem; color: #fff; background: rgb(0 0 0 / 35%); border: 1px solid rgb(255 255 255 / 45%); border-radius: 20px; font: inherit; font-size: .78rem; cursor: pointer; }
 body.nb-neolearn-page .nl-moment-like.is-liked { color: #ff8390; }
 body.nb-neolearn-page .nl-moment-like:disabled { opacity: .6; }
-body.nb-neolearn-page :is(.nl-moment-add,.nl-moment-person,.nl-moment-icon-button,.nl-moment-share-button,.nl-moment-viewer-nav,.nl-moment-like):focus-visible { outline: 3px solid #efaa55; outline-offset: 2px; }
+body.nb-neolearn-page .nl-moment-view-count { display: inline-flex; align-items: center; gap: .35rem; min-height: 40px; padding: .45rem .65rem; color: #fff; background: transparent; border: 0; border-radius: 6px; font: inherit; font-size: .76rem; cursor: pointer; }
+body.nb-neolearn-page .nl-moment-view-count:hover { background: rgb(255 255 255 / 12%); }
+body.nb-neolearn-page .nl-moment-view-count[hidden] { display: none; }
+body.nb-neolearn-page .nl-moment-viewers-dialog { width: min(100% - 2rem, 380px); max-width: 380px; max-height: min(70dvh, 540px); padding: 0; overflow: visible; color: var(--account-text); background: transparent; border: 0; }
+body.nb-neolearn-page .nl-moment-viewers-dialog::backdrop { background: rgb(8 14 16 / 64%); backdrop-filter: blur(3px); }
+body.nb-neolearn-page .nl-moment-viewers-panel { padding: 1rem; background: var(--account-surface); border: 1px solid var(--account-border); border-radius: 9px; box-shadow: var(--account-shadow-raised); }
+body.nb-neolearn-page .nl-moment-viewers-panel > header { display: flex; align-items: center; justify-content: space-between; gap: .8rem; padding-bottom: .75rem; border-bottom: 1px solid var(--account-border); }
+body.nb-neolearn-page .nl-moment-viewers-panel h2 { margin: 0; font-size: 1rem; }
+body.nb-neolearn-page .nl-moment-viewers-panel header span { color: var(--account-muted); font-size: .75rem; }
+body.nb-neolearn-page .nl-moment-viewers-panel > p { margin: .8rem 0; color: var(--account-muted); font-size: .82rem; }
+body.nb-neolearn-page .nl-moment-viewers-panel ul { display: grid; gap: .25rem; max-height: min(52dvh, 400px); margin: .5rem 0 0; padding: 0; overflow: auto; list-style: none; }
+body.nb-neolearn-page .nl-moment-viewers-panel li { min-width: 0; }
+body.nb-neolearn-page .nl-moment-viewer-profile { display: flex; align-items: center; gap: .65rem; min-height: 48px; padding: .35rem; color: var(--account-text); border-radius: 6px; text-decoration: none; }
+body.nb-neolearn-page .nl-moment-viewer-profile:hover { background: var(--account-bg); }
+body.nb-neolearn-page .nl-moment-viewer-profile strong { overflow: hidden; font-size: .82rem; text-overflow: ellipsis; white-space: nowrap; }
+body.nb-neolearn-page .nl-moment-viewer-avatar { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 34px; overflow: hidden; color: #fff; background: #187b78; border-radius: 50%; font-size: .78rem; font-weight: 700; }
+body.nb-neolearn-page .nl-moment-viewer-avatar img { width: 100%; height: 100%; object-fit: cover; }
+body.nb-neolearn-page :is(.nl-moment-add,.nl-moment-person,.nl-moment-icon-button,.nl-moment-share-button,.nl-moment-viewer-nav,.nl-moment-like,.nl-moment-view-count,.nl-moment-author-profile,.nl-moment-viewer-profile):focus-visible { outline: 3px solid #efaa55; outline-offset: 2px; }
 @media (max-width: 520px) {
   body.nb-neolearn-page .nl-moment-viewer { width: 100vw; height: 100dvh; }
   body.nb-neolearn-page .nl-moment-viewer-frame { border-radius: 0; }

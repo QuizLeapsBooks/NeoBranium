@@ -1799,8 +1799,10 @@ const neoLearnMomentHandlers = createNeoLearnMomentHandlers({
     isCloudinaryConfigured
 });
 app.get('/api/neolearn/moments', neoLearnMomentHandlers.getMoments);
+app.get('/api/neolearn/moments/:momentId/views', neoLearnMomentHandlers.getMomentViewers);
 app.post('/api/neolearn/moments', neoLearnMomentHandlers.createMoment);
 app.post('/api/neolearn/moments/like', neoLearnMomentHandlers.toggleMomentLike);
+app.post('/api/neolearn/moments/view', neoLearnMomentHandlers.recordMomentView);
 
 const neoLearnDirectoryHandlers = createNeoLearnDirectoryHandlers({ verifyAuthToken, db });
 app.get('/api/neolearn/peers', neoLearnDirectoryHandlers.getPeers);

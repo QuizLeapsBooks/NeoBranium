@@ -14,13 +14,18 @@ function createResponse() {
 function createHarness({ learnedUserIds = ['owner'], followerUserIds = [] } = {}) {
     const moments = new Map();
     const likes = new Map();
+    const views = new Map();
     const notifications = new Map();
     const cloudinaryUploads = [];
+    const profiles = new Map([
+        ['owner', { name: 'Owner', profilePhotoUrl: '' }],
+        ['viewer', { name: 'Viewer', profilePhotoUrl: 'https://images.example/viewer.jpg' }]
+    ]);
     const db = {
         collection(name) {
             if (name === 'neolearn_moments' || name === 'neolearn_profiles') return {
                 doc(id) {
-                    const store = name === 'neolearn_moments' ? moments : new Map([['owner', { name: 'Owner', profilePhotoUrl: '' }]]);
+                    const store = name === 'neolearn_moments' ? moments : profiles;
                     return {
                         id,
                         async get() { const value = store.get(id); return { exists: Boolean(value), data: () => value }; },
@@ -67,7 +72,15 @@ function createHarness({ learnedUserIds = ['owner'], followerUserIds = [] } = {}
     const rtdb = {
         ref(path) {
             return {
-                async get() { return { val: () => path.includes('moment_likes') ? Object.fromEntries(likes) : undefined }; },
+                async get() {
+                    const parts = path.split('/');
+                    const momentId = parts[2];
+                    const store = parts[1] === 'moment_likes' ? likes : views;
+                    const entries = [...store.entries()].filter(([key]) => key.startsWith(`${momentId}/`));
+                    return { val: () => entries.length
+                        ? Object.fromEntries(entries.map(([key, value]) => [key.slice(momentId.length + 1), value]))
+                        : null };
+                },
                 async transaction(update) {
                     const [, momentId, userId] = path.split('/').slice(-3);
                     const key = `${momentId}/${userId}`;
@@ -75,13 +88,17 @@ function createHarness({ learnedUserIds = ['owner'], followerUserIds = [] } = {}
                     if (value === null) likes.delete(key); else likes.set(key, value);
                     return { snapshot: { val: () => value } };
                 },
-                async set(value) { notifications.set(path, value); },
+                async set(value) {
+                    const parts = path.split('/');
+                    if (parts[1] === 'moment_views') views.set(`${parts[2]}/${parts[3]}`, value);
+                    else notifications.set(path, value);
+                },
                 async remove() { notifications.delete(path); }
             };
         }
     };
     const handlers = createNeoLearnMomentHandlers({
-        verifyAuthToken: async () => ({ uid: 'viewer' }),
+        verifyAuthToken: async (req) => ({ uid: req.userId || 'viewer' }),
         db,
         rtdb,
         admin: {
@@ -91,7 +108,7 @@ function createHarness({ learnedUserIds = ['owner'], followerUserIds = [] } = {}
         cloudinary: { uploader: { async upload(_data, options) { cloudinaryUploads.push(options); return { secure_url: 'https://images.example/moment.webp', public_id: 'moment-id' }; } } },
         isCloudinaryConfigured: () => true
     });
-    return { handlers, moments, likes, notifications, cloudinaryUploads };
+    return { handlers, moments, likes, views, notifications, cloudinaryUploads };
 }
 
 test('creates a 24-hour Moment with validated audience and image', async () => {
@@ -142,6 +159,33 @@ test('a viewer cannot like a Moment from a profile they do not learn', async () 
     await handlers.toggleMomentLike({ body: { momentId: 'unfollowed-moment' } }, response);
     assert.equal(response.statusCode, 403);
     assert.equal(likes.size, 0);
+});
+
+test('records one view per user and only the Moment owner can see viewer profiles', async () => {
+    const { handlers, moments, views } = createHarness();
+    moments.set('moment-views', {
+        userId: 'owner',
+        audience: 'everyone',
+        expiresAt: { toMillis: () => Date.now() + 60_000 }
+    });
+
+    const firstView = createResponse();
+    await handlers.recordMomentView({ body: { momentId: 'moment-views' } }, firstView);
+    const repeatView = createResponse();
+    await handlers.recordMomentView({ body: { momentId: 'moment-views' } }, repeatView);
+    assert.equal(firstView.body.viewCount, 1);
+    assert.equal(repeatView.body.viewCount, 1);
+    assert.equal(views.size, 1);
+
+    const forbidden = createResponse();
+    await handlers.getMomentViewers({ params: { momentId: 'moment-views' } }, forbidden);
+    assert.equal(forbidden.statusCode, 404);
+
+    const ownerResponse = createResponse();
+    await handlers.getMomentViewers({ params: { momentId: 'moment-views' }, userId: 'owner' }, ownerResponse);
+    assert.equal(ownerResponse.body.viewCount, 1);
+    assert.equal(ownerResponse.body.viewers[0].userId, 'viewer');
+    assert.equal(ownerResponse.body.viewers[0].name, 'Viewer');
 });
 
 test('likes create and remove a Moment notification', async () => {
