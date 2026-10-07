@@ -3,7 +3,7 @@ import { auth, getEmailVerificationSettings } from "./auth.js";
 
 const API_BASE = "https://neobranium.onrender.com";
 
-async function sendVerificationViaServer() {
+async function sendVerificationViaServer(fname = "") {
   const user = auth.currentUser;
   if (!user) throw new Error("No user logged in");
   const idToken = await user.getIdToken();
@@ -14,7 +14,7 @@ async function sendVerificationViaServer() {
       "Authorization": `Bearer ${idToken}`
     },
     credentials: "include",
-    body: JSON.stringify({})
+    body: JSON.stringify(fname ? { fname } : {})
   });
   const data = await response.json();
   if (!response.ok) throw new Error(data.error || "Server error");
@@ -71,7 +71,7 @@ window.resendVerification = async () => {
 };
 
 // Check user status on page load
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   const emailAddress = document.getElementById("verifyEmailAddress");
   const checkButton = document.getElementById("checkVerificationButton");
   const resendButton = document.getElementById("resendVerificationButton");
@@ -85,8 +85,23 @@ onAuthStateChanged(auth, (user) => {
     setTimeout(() => location.replace("/htmls/dashboard.html"), 1500);
   } else if (!user) {
     showMessage("No signed-in account found. Please sign in again.");
+  } else {
+    // ✅ Agar abhi abhi signup hua hai, auto-email bhejo
+    const justSignedUp = sessionStorage.getItem("justSignedUp");
+    if (justSignedUp) {
+      sessionStorage.removeItem("justSignedUp");
+      showMessage("Sending verification email to your inbox...", false);
+      try {
+        await sendVerificationViaServer(justSignedUp);
+        showMessage("Verification email sent! Please check your inbox (and spam folder).", false);
+      } catch (err) {
+        console.error("Auto email failed:", err);
+        showMessage("Could not send email automatically. Please click 'Resend' button.");
+      }
+    }
   }
 });
+
 
 document.getElementById("resendVerificationButton")?.addEventListener("click", async (event) => {
   const button = event.currentTarget;

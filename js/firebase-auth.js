@@ -168,18 +168,13 @@ document.getElementById("signup-form")?.addEventListener("submit", async (e) => 
       createdAt: Date.now()
     });
     
-    // Send verification email via Render server (Gmail SMTP - reliable delivery)
-    try {
-      await sendVerificationViaServer(fname);
-      sessionStorage.removeItem("emailSignupInProgress");
-      showToast("Account created! Check your email inbox to verify.", "success");
-      setTimeout(() => location.replace("/htmls/verify-email.html"), 2000);
-    } catch (verifyError) {
-      console.error("Server email failed:", verifyError);
-      sessionStorage.removeItem("emailSignupInProgress");
-      showToast(`Account created! But email failed: ${verifyError.message}`, "error");
-      setTimeout(() => location.replace("/htmls/verify-email.html"), 3000);
-    }
+    // ✅ Account bana, ab verify-email page par redirect karo
+    // Email wahan se automatically jayega (same path as Resend which works perfectly)
+    sessionStorage.setItem("justSignedUp", fname);     // verify-email.js will read this
+    sessionStorage.removeItem("emailSignupInProgress");
+    showToast("Account created! Sending verification email...", "success");
+    setTimeout(() => location.replace("/htmls/verify-email.html"), 1200);
+
 
   } catch (error) {
     console.error("Signup error:", error.code, error.message);

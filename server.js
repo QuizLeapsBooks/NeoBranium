@@ -2024,11 +2024,34 @@ app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
 
         const userEmail = userRecord.email;
         const fname = req.body.fname || userRecord.displayName?.split(' ')[0] || 'User';
+        const isNewSignup = !!req.body.fname; // fname is only sent during signup, not resend
 
-        const verificationLink = await admin.auth().generateEmailVerificationLink(userEmail, {
-            url: 'https://neobranium.web.app/htmls/verify-email.html',
-            handleCodeInApp: false
-        });
+        // ⏳ If this is a fresh signup, wait 4 seconds before generating the link.
+        // Firebase internally rate-limits generateEmailVerificationLink right after
+        // account creation. A short delay lets this window pass.
+        if (isNewSignup) {
+            await new Promise(resolve => setTimeout(resolve, 4000));
+        }
+
+        // Generate verification link with retry (up to 3 attempts)
+        let verificationLink = null;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                verificationLink = await admin.auth().generateEmailVerificationLink(userEmail, {
+                    url: 'https://neobranium.web.app/htmls/verify-email.html',
+                    handleCodeInApp: false
+                });
+                break; // success — exit retry loop
+            } catch (linkErr) {
+                console.warn(`⚠️ generateEmailVerificationLink attempt ${attempt} failed: ${linkErr.message}`);
+                if (attempt < 3) {
+                    await new Promise(resolve => setTimeout(resolve, attempt * 3000)); // 3s, 6s
+                } else {
+                    console.error('❌ All attempts to generate verification link failed.');
+                    return;
+                }
+            }
+        }
 
         const gmailUser = process.env.GMAIL_USER;
         const gmailPass = process.env.GMAIL_APP_PASSWORD;
