@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="/CSS/account-pages.css" />
   <link rel="stylesheet" href="/CSS/neolearn-social.css" />
   <link rel="stylesheet" href="/CSS/neolearn-upload.css" />
-  <link rel="stylesheet" href="/CSS/neolearn-moments.css" />
+  <link rel="stylesheet" href="/CSS/neolearn-moments.css?v=2" />
   <script src="/js/shortcuts.js"></script>
   <script src="/js/neolearn-theme.js"></script>
 </head>
@@ -144,7 +144,7 @@
       <input id="nlMomentImageInput" type="file" accept="image/jpeg,image/png,image/webp" hidden />
       <label class="nl-moment-field" for="nlMomentCaption">Caption <span>Optional</span><textarea id="nlMomentCaption" maxlength="240" placeholder="What are you learning today?" rows="2"></textarea></label>
       <label class="nl-moment-field" for="nlMomentAudience">Who can see this?</label>
-      <select class="nl-moment-audience" id="nlMomentAudience"><option value="everyone">Everyone on NeoLearn</option><option value="learning">People I’m Learning</option></select>
+      <select class="nl-moment-audience" id="nlMomentAudience"><option value="everyone">People who Learn you</option><option value="learning">Mutual learners</option></select>
       <p class="nl-moment-error" id="nlMomentCreateError" role="alert" hidden></p>
       <button class="nl-moment-share-button" id="shareNeoLearnMoment" type="submit" disabled><i class="bi bi-send" aria-hidden="true"></i><span>Share Moment</span></button>
     </form>
@@ -154,7 +154,7 @@
   </dialog>
   <script type="module" src="/js/neolearn-badge.js"></script>
   <script type="module" src="/js/neolearn-upload.js"></script>
-  <script type="module" src="/js/neolearn-moments.js"></script>
+  <script type="module" src="/js/neolearn-moments.js?v=2"></script>
   <script type="module" src="/js/neolearn-home.js"></script>
 </body>
 </html>

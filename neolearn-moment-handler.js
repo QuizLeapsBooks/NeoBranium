@@ -2,7 +2,7 @@ import { getNeoLearnBlockedUserIds, learningRelationshipId } from './neolearn-so
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
-const MAX_MOMENTS = 60;
+const MAX_MOMENTS = 300;
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 function validId(value) {
@@ -112,22 +112,25 @@ export function createNeoLearnMomentHandlers({ verifyAuthToken, db, rtdb, admin,
         if (!db || !rtdb) return res.status(503).json({ success: false, error: 'Moment storage is unavailable.' });
 
         try {
-            const [snapshot, learningSnapshot, blockedUserIds] = await Promise.all([
+            const [snapshot, learningSnapshot, followerSnapshot, blockedUserIds] = await Promise.all([
                 db.collection('neolearn_moments')
                     .where('expiresAt', '>', admin.firestore.Timestamp.fromMillis(Date.now()))
                     .orderBy('expiresAt', 'asc')
                     .limit(MAX_MOMENTS)
                     .get(),
                 db.collection('neolearn_learning').where('learnerUserId', '==', viewerId).get(),
+                db.collection('neolearn_learning').where('targetUserId', '==', viewerId).get(),
                 getNeoLearnBlockedUserIds(db, viewerId)
             ]);
             const learningIds = new Set(learningSnapshot.docs.map((doc) => doc.data().targetUserId));
+            const followerIds = new Set(followerSnapshot.docs.map((doc) => doc.data().learnerUserId));
             const eligible = snapshot.docs.map((doc) => ({ momentId: doc.id, ...doc.data() }))
                 .filter((moment) => timestampMillis(moment.expiresAt) > Date.now()
                     && validId(moment.userId)
                     && !blockedUserIds.has(moment.userId)
-                    && (moment.userId === viewerId || moment.audience === 'everyone'
-                        || (moment.audience === 'learning' && learningIds.has(moment.userId))))
+                    && (moment.userId === viewerId || (learningIds.has(moment.userId)
+                        && (moment.audience === 'everyone'
+                            || (moment.audience === 'learning' && followerIds.has(moment.userId))))))
                 .sort((first, second) => timestampMillis(second.createdAt) - timestampMillis(first.createdAt));
             const moments = await Promise.all(eligible.map(async (moment) => {
                 const [profileSnapshot, likeSnapshot] = await Promise.all([
@@ -171,9 +174,16 @@ export function createNeoLearnMomentHandlers({ verifyAuthToken, db, rtdb, admin,
             if (timestampMillis(moment.expiresAt) <= Date.now()) return res.status(410).json({ success: false, error: 'This Moment has expired.' });
             const blocked = await getNeoLearnBlockedUserIds(db, actorUserId);
             if (blocked.has(moment.userId)) return res.status(404).json({ success: false, error: 'Moment not found.' });
-            if (moment.audience === 'learning' && actorUserId !== moment.userId) {
-                const relationship = await db.collection('neolearn_learning').doc(learningRelationshipId(actorUserId, moment.userId)).get();
-                if (!relationship.exists) return res.status(403).json({ success: false, error: 'This Moment is shared with learners only.' });
+            if (actorUserId !== moment.userId) {
+                const [viewerFollowsAuthor, authorFollowsViewer] = await Promise.all([
+                    db.collection('neolearn_learning').doc(learningRelationshipId(actorUserId, moment.userId)).get(),
+                    moment.audience === 'learning'
+                        ? db.collection('neolearn_learning').doc(learningRelationshipId(moment.userId, actorUserId)).get()
+                        : Promise.resolve({ exists: true })
+                ]);
+                if (!viewerFollowsAuthor.exists || !authorFollowsViewer.exists) {
+                    return res.status(403).json({ success: false, error: 'This Moment is not shared with your profile.' });
+                }
             }
 
             const likeRef = rtdb.ref(`neolearn_realtime/moment_likes/${momentId}/${actorUserId}`);

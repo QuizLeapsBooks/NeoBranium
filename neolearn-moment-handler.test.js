@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createNeoLearnMomentHandlers } from './neolearn-moment-handler.js';
+import { learningRelationshipId } from './neolearn-social-data.js';
 
 const uploadId = '123e4567-e89b-42d3-a456-426614174000';
 const imageBytes = Buffer.from('RIFF0000WEBPVP8 ', 'ascii');
@@ -10,7 +11,7 @@ function createResponse() {
     return { statusCode: 200, body: null, status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; } };
 }
 
-function createHarness() {
+function createHarness({ learnedUserIds = ['owner'], followerUserIds = [] } = {}) {
     const moments = new Map();
     const likes = new Map();
     const notifications = new Map();
@@ -43,8 +44,21 @@ function createHarness() {
                 }
             };
             if (name === 'neolearn_learning') return {
-                where(_field, _operator, value) { return { async get() { return { docs: value === 'viewer' ? [] : [] }; } }; },
-                doc() { return { async get() { return { exists: true, data: () => ({}) }; } }; }
+                where(field, _operator, value) {
+                    const docs = field === 'learnerUserId' && value === 'viewer'
+                        ? learnedUserIds.map((targetUserId) => ({ data: () => ({ targetUserId }) }))
+                        : field === 'targetUserId' && value === 'viewer'
+                            ? followerUserIds.map((learnerUserId) => ({ data: () => ({ learnerUserId }) }))
+                            : [];
+                    return { async get() { return { docs }; } };
+                },
+                doc(id) {
+                    const allowedRelationships = new Set([
+                        ...learnedUserIds.map((targetUserId) => learningRelationshipId('viewer', targetUserId)),
+                        ...followerUserIds.map((learnerUserId) => learningRelationshipId(learnerUserId, 'viewer'))
+                    ]);
+                    return { async get() { return { exists: allowedRelationships.has(id), data: () => ({}) }; } };
+                }
             };
             if (name === 'neolearn_blocks') return { where() { return { async get() { return { docs: [] }; } }; } };
             throw new Error(`Unexpected collection ${name}`);
@@ -99,16 +113,35 @@ test('rejects invalid sharing settings before uploading', async () => {
     assert.equal(cloudinaryUploads.length, 0);
 });
 
-test('lists only unexpired Moments allowed by the selected audience', async () => {
+test('lists only unexpired Moments from profiles the viewer learns', async () => {
     const { handlers, moments } = createHarness();
     const expiresAt = Date.now() + 60_000;
     const timestamp = (value) => ({ toMillis: () => value });
     moments.set('public-moment', { userId: 'owner', audience: 'everyone', createdAt: timestamp(Date.now()), expiresAt: timestamp(expiresAt), imageUrl: 'https://images.example/public.webp' });
     moments.set('learning-moment', { userId: 'owner', audience: 'learning', createdAt: timestamp(Date.now()), expiresAt: timestamp(expiresAt), imageUrl: 'https://images.example/learning.webp' });
+    moments.set('unfollowed-moment', { userId: 'unfollowed', audience: 'everyone', createdAt: timestamp(Date.now()), expiresAt: timestamp(expiresAt), imageUrl: 'https://images.example/unfollowed.webp' });
     moments.set('expired-moment', { userId: 'owner', audience: 'everyone', createdAt: timestamp(Date.now() - 90_000), expiresAt: timestamp(Date.now() - 1), imageUrl: 'https://images.example/expired.webp' });
     const response = createResponse();
     await handlers.getMoments({}, response);
     assert.deepEqual(response.body.moments.map((moment) => moment.momentId), ['public-moment']);
+});
+
+test('mutual-learner Moments require the author to learn the viewer too', async () => {
+    const { handlers, moments } = createHarness({ followerUserIds: ['owner'] });
+    const timestamp = { toMillis: () => Date.now() + 60_000 };
+    moments.set('mutual-moment', { userId: 'owner', audience: 'learning', createdAt: timestamp, expiresAt: timestamp, imageUrl: 'https://images.example/mutual.webp' });
+    const response = createResponse();
+    await handlers.getMoments({}, response);
+    assert.deepEqual(response.body.moments.map((moment) => moment.momentId), ['mutual-moment']);
+});
+
+test('a viewer cannot like a Moment from a profile they do not learn', async () => {
+    const { handlers, moments, likes } = createHarness({ learnedUserIds: [] });
+    moments.set('unfollowed-moment', { userId: 'owner', audience: 'everyone', expiresAt: { toMillis: () => Date.now() + 60_000 } });
+    const response = createResponse();
+    await handlers.toggleMomentLike({ body: { momentId: 'unfollowed-moment' } }, response);
+    assert.equal(response.statusCode, 403);
+    assert.equal(likes.size, 0);
 });
 
 test('likes create and remove a Moment notification', async () => {

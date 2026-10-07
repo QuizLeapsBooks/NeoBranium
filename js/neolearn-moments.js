@@ -20,7 +20,9 @@ const viewerCaption = document.getElementById('nlMomentViewerCaption');
 const viewerProgress = document.getElementById('nlMomentProgress');
 const likeButton = document.getElementById('likeNeoLearnMoment');
 let moments = [];
-let activeIndex = -1;
+let momentGroups = [];
+let activeGroupIndex = -1;
+let activeMomentIndex = -1;
 let viewerTimer = null;
 let selectedFile = null;
 let busy = false;
@@ -63,19 +65,28 @@ function renderRail() {
     group.push(moment);
     grouped.set(moment.userId, group);
   }
-  for (const group of grouped.values()) {
-    const moment = group[0];
+  momentGroups = [...grouped.entries()].map(([userId, stories]) => ({
+    userId,
+    stories: stories.sort((first, second) => first.createdAt - second.createdAt)
+  }));
+  momentGroups.sort((first, second) => {
+    if (first.userId === auth.currentUser?.uid) return -1;
+    if (second.userId === auth.currentUser?.uid) return 1;
+    return second.stories.at(-1).createdAt - first.stories.at(-1).createdAt;
+  });
+  momentGroups.forEach((group, groupIndex) => {
+    const moment = group.stories.at(-1);
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'nl-moment-person';
     button.setAttribute('aria-label', `View ${moment.author?.name || 'learner'}’s Moment`);
     const avatar = makeAvatar(moment, 'nl-moment-avatar--ring');
     const name = document.createElement('span');
-    name.textContent = moment.userId === auth.currentUser?.uid ? 'You' : moment.author?.name || 'Learner';
+    name.textContent = group.userId === auth.currentUser?.uid ? 'You' : moment.author?.name || 'Learner';
     button.append(avatar, name);
-    button.addEventListener('click', () => openMoment(moments.indexOf(moment)));
+    button.addEventListener('click', () => openMoment(groupIndex, 0));
     rail.append(button);
-  }
+  });
 }
 
 async function loadMoments() {
@@ -88,8 +99,9 @@ async function loadMoments() {
     loading.hidden = true;
     if (window.location.hash.startsWith('#moment-')) {
       const targetId = decodeURIComponent(window.location.hash.slice('#moment-'.length));
-      const index = moments.findIndex((moment) => moment.momentId === targetId);
-      if (index >= 0) openMoment(index);
+      const groupIndex = momentGroups.findIndex((group) => group.stories.some((moment) => moment.momentId === targetId));
+      const momentIndex = momentGroups[groupIndex]?.stories.findIndex((moment) => moment.momentId === targetId) ?? -1;
+      if (groupIndex >= 0 && momentIndex >= 0) openMoment(groupIndex, momentIndex);
     }
   } catch (error) {
     loading.hidden = true;
@@ -97,15 +109,39 @@ async function loadMoments() {
   }
 }
 
-function openMoment(index) {
-  if (index < 0 || index >= moments.length) return;
-  activeIndex = index;
+function openMoment(groupIndex, momentIndex) {
+  const group = momentGroups[groupIndex];
+  if (!group || momentIndex < 0 || momentIndex >= group.stories.length) return;
+  activeGroupIndex = groupIndex;
+  activeMomentIndex = momentIndex;
   renderMoment();
   if (!viewer.open) viewer.showModal();
 }
 
+function activeMoment() {
+  return momentGroups[activeGroupIndex]?.stories[activeMomentIndex] || null;
+}
+
+function moveMoment(direction) {
+  let nextGroupIndex = activeGroupIndex;
+  let nextMomentIndex = activeMomentIndex + direction;
+  const group = momentGroups[nextGroupIndex];
+  if (nextMomentIndex < 0) {
+    nextGroupIndex -= 1;
+    nextMomentIndex = momentGroups[nextGroupIndex]?.stories.length - 1;
+  } else if (nextMomentIndex >= group.stories.length) {
+    nextGroupIndex += 1;
+    nextMomentIndex = 0;
+  }
+  if (nextGroupIndex < 0 || nextGroupIndex >= momentGroups.length) {
+    if (direction > 0) closeViewer();
+    return;
+  }
+  openMoment(nextGroupIndex, nextMomentIndex);
+}
+
 function renderMoment() {
-  const moment = moments[activeIndex];
+  const moment = activeMoment();
   if (!moment) return closeViewer();
   window.clearTimeout(viewerTimer);
   viewerImage.src = moment.imageUrl;
@@ -123,17 +159,16 @@ function renderMoment() {
   likeButton.classList.toggle('is-liked', moment.isLiked);
   likeButton.querySelector('span').textContent = moment.isLiked ? 'Liked' : 'Like';
   likeButton.querySelector('.nl-moment-like-count').textContent = String(moment.likeCount || 0);
-  document.getElementById('previousNeoLearnMoment').disabled = activeIndex === 0;
-  document.getElementById('nextNeoLearnMoment').disabled = activeIndex === moments.length - 1;
+  document.getElementById('previousNeoLearnMoment').disabled = activeGroupIndex === 0 && activeMomentIndex === 0;
+  const lastGroupIndex = momentGroups.length - 1;
+  const lastMomentIndex = momentGroups[lastGroupIndex]?.stories.length - 1;
+  document.getElementById('nextNeoLearnMoment').disabled = activeGroupIndex === lastGroupIndex && activeMomentIndex === lastMomentIndex;
   viewerProgress.style.setProperty('--moment-duration', '6500ms');
   viewerProgress.classList.remove('is-running');
   void viewerProgress.offsetWidth;
   viewerProgress.classList.add('is-running');
   viewerTimer = window.setTimeout(() => {
-    if (activeIndex < moments.length - 1) {
-      activeIndex += 1;
-      renderMoment();
-    } else closeViewer();
+    moveMoment(1);
   }, 6500);
 }
 
@@ -215,8 +250,9 @@ createForm.addEventListener('submit', async (event) => {
     resetCreateDialog();
     status.textContent = 'Your Moment is live for 24 hours.';
     await loadMoments();
-    const createdIndex = moments.findIndex((moment) => moment.momentId === result.momentId);
-    if (createdIndex >= 0) openMoment(createdIndex);
+    const createdGroupIndex = momentGroups.findIndex((group) => group.stories.some((moment) => moment.momentId === result.momentId));
+    const createdMomentIndex = momentGroups[createdGroupIndex]?.stories.findIndex((moment) => moment.momentId === result.momentId) ?? -1;
+    if (createdGroupIndex >= 0 && createdMomentIndex >= 0) openMoment(createdGroupIndex, createdMomentIndex);
   } catch (error) {
     createError.textContent = error.message || 'Your Moment could not be shared.';
     createError.hidden = false;
@@ -227,7 +263,7 @@ createForm.addEventListener('submit', async (event) => {
 });
 
 likeButton.addEventListener('click', async () => {
-  const moment = moments[activeIndex];
+  const moment = activeMoment();
   if (!moment) return;
   likeButton.disabled = true;
   try {
@@ -245,15 +281,15 @@ likeButton.addEventListener('click', async () => {
 document.getElementById('addNeoLearnMoment').addEventListener('click', openCreateDialog);
 document.getElementById('closeMomentCreate').addEventListener('click', () => createDialog.close());
 document.getElementById('closeMomentViewer').addEventListener('click', closeViewer);
-document.getElementById('previousNeoLearnMoment').addEventListener('click', () => openMoment(activeIndex - 1));
-document.getElementById('nextNeoLearnMoment').addEventListener('click', () => openMoment(activeIndex + 1));
+document.getElementById('previousNeoLearnMoment').addEventListener('click', () => moveMoment(-1));
+document.getElementById('nextNeoLearnMoment').addEventListener('click', () => moveMoment(1));
 createDialog.addEventListener('close', resetCreateDialog);
 viewer.addEventListener('close', () => window.clearTimeout(viewerTimer));
 viewer.addEventListener('click', (event) => { if (event.target === viewer) closeViewer(); });
 document.addEventListener('keydown', (event) => {
   if (!viewer.open) return;
-  if (event.key === 'ArrowRight' && activeIndex < moments.length - 1) openMoment(activeIndex + 1);
-  if (event.key === 'ArrowLeft' && activeIndex > 0) openMoment(activeIndex - 1);
+  if (event.key === 'ArrowRight') moveMoment(1);
+  if (event.key === 'ArrowLeft') moveMoment(-1);
 });
 
 const authObserver = await import('https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js');
@@ -261,6 +297,7 @@ authObserver.onAuthStateChanged(auth, (user) => {
   if (user) loadMoments();
   else {
     moments = [];
+    momentGroups = [];
     renderRail();
     loading.hidden = true;
   }
