@@ -93,3 +93,83 @@ export function downsampleBuffer(buffer, inputSampleRate, outputSampleRate) {
   }
   return result;
 }
+
+/**
+ * Web Audio Synthesized Sound Effects (No external audio files needed)
+ */
+let sharedAudioCtx = null;
+let sfxEnabled = true;
+
+export function setSfxEnabled(enabled) {
+  sfxEnabled = Boolean(enabled);
+}
+
+export function isSfxEnabled() {
+  return sfxEnabled;
+}
+
+export function playFuturisticChime(type = 'send') {
+  if (!sfxEnabled) return;
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    if (!sharedAudioCtx || sharedAudioCtx.state === 'closed') {
+      sharedAudioCtx = new AudioCtx();
+    }
+    if (sharedAudioCtx.state === 'suspended') {
+      sharedAudioCtx.resume().catch(() => {});
+    }
+
+    const ctx = sharedAudioCtx;
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    if (type === 'start') {
+      // Ascending futuristic chime
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.18);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.12, now + 0.04);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+      osc.start(now);
+      osc.stop(now + 0.36);
+    } else if (type === 'stop') {
+      // Soft descending power-down chime
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.exponentialRampToValueAtTime(220, now + 0.22);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.1, now + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+      osc.start(now);
+      osc.stop(now + 0.31);
+    } else if (type === 'send') {
+      // Crisp UI dispatch beep
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(700, now);
+      osc.frequency.exponentialRampToValueAtTime(1050, now + 0.09);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.1, now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+      osc.start(now);
+      osc.stop(now + 0.17);
+    } else if (type === 'receive') {
+      // Soft notification ping
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, now); // D5
+      osc.frequency.setValueAtTime(880, now + 0.08); // A5
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.09, now + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+      osc.start(now);
+      osc.stop(now + 0.29);
+    }
+  } catch (err) {
+    // Ignore audio permission or context error
+  }
+}

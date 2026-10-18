@@ -18,6 +18,8 @@ export class CameraManager {
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d');
     this.isRunning = false;
+    this.isVideoEnabled = true;
+    this.isScreenSharing = false;
 
     this.onFrameCaptured = options.onFrameCaptured || (() => {});
     this.onError = options.onError || (() => {});
@@ -122,6 +124,74 @@ export class CameraManager {
       await this.start();
     }
     return this.facingMode;
+  }
+
+  /**
+   * Sets video track enabled or disabled (camera pause)
+   */
+  setVideoEnabled(enabled) {
+    this.isVideoEnabled = Boolean(enabled);
+    if (this.stream) {
+      this.stream.getVideoTracks().forEach((track) => {
+        track.enabled = this.isVideoEnabled;
+      });
+    }
+    return this.isVideoEnabled;
+  }
+
+  toggleVideo() {
+    return this.setVideoEnabled(!this.isVideoEnabled);
+  }
+
+  /**
+   * Starts or stops screen sharing
+   */
+  async toggleScreenShare() {
+    if (this.isScreenSharing) {
+      this.isScreenSharing = false;
+      this.stop();
+      await this.start();
+      return false;
+    }
+
+    try {
+      if (!navigator.mediaDevices?.getDisplayMedia) {
+        throw new Error('Screen sharing is not supported by your browser.');
+      }
+
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { cursor: 'always' },
+        audio: false
+      });
+
+      if (this.stream) {
+        this.stream.getTracks().forEach((t) => t.stop());
+      }
+
+      this.stream = screenStream;
+      this.isScreenSharing = true;
+      this.isVideoEnabled = true;
+
+      if (this.videoElement) {
+        this.videoElement.srcObject = screenStream;
+        await this.videoElement.play().catch(() => {});
+      }
+
+      const track = screenStream.getVideoTracks()[0];
+      if (track) {
+        track.addEventListener('ended', async () => {
+          if (this.isScreenSharing && this.isRunning) {
+            this.isScreenSharing = false;
+            await this.start();
+          }
+        });
+      }
+
+      return true;
+    } catch (err) {
+      console.warn('[CameraManager] Screen share failed or was cancelled:', err.message);
+      return false;
+    }
   }
 
   /**

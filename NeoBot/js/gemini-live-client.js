@@ -18,6 +18,8 @@ export class GeminiLiveClient {
     this.isSetupComplete = false;
     this._initialResolve = null;   // stored so setup-complete can resolve the connect() Promise
     this._resumptionHandle = null; // tracks latest session resumption handle
+    this.voiceOverride = options.voice || null;
+    this.instructionOverride = options.systemInstruction || null;
 
     // Callbacks
     this.onReady = options.onReady || (() => {});
@@ -143,8 +145,8 @@ export class GeminiLiveClient {
     const model = (rawModel && rawModel.includes('live') && rawModel !== 'gemini-2.5-flash')
       ? rawModel
       : 'gemini-3.8-live';
-    const voice = sessionData.voice || 'Puck';
-    const systemInstruction = sessionData.systemInstruction || 'You are NeoBranium AI by Aevorin, an intelligent learning assistant.';
+    const voice = this.voiceOverride || sessionData.voice || 'Puck';
+    const systemInstruction = this.instructionOverride || sessionData.systemInstruction || 'You are NeoBranium AI by Aevorin, an intelligent learning assistant.';
 
     const setupPayload = {
       setup: {
@@ -298,6 +300,39 @@ export class GeminiLiveClient {
       this.ws.send(JSON.stringify(payload));
     } catch (err) {
       console.warn('[GeminiLiveClient] Error sending activityEnd:', err);
+    }
+  }
+
+  /**
+   * Sends user-typed text message turn to Gemini Live
+   */
+  sendTextMessage(text) {
+    if (!this.isConnected || !this.isSetupComplete || !this.ws) {
+      console.warn('[GeminiLiveClient] Cannot send text: WebSocket not ready.');
+      return false;
+    }
+    const cleanText = (text || '').trim();
+    if (!cleanText) return false;
+
+    console.log('[GeminiLiveClient] Sending user text turn:', cleanText);
+    const payload = {
+      clientContent: {
+        turns: [
+          {
+            role: 'user',
+            parts: [{ text: cleanText }]
+          }
+        ],
+        turnComplete: true
+      }
+    };
+
+    try {
+      this.ws.send(JSON.stringify(payload));
+      return true;
+    } catch (err) {
+      console.warn('[GeminiLiveClient] Error sending text message:', err);
+      return false;
     }
   }
 

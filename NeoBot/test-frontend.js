@@ -83,6 +83,12 @@ async function runFrontendTests() {
   assert(htmlContent.includes('class="eye left-eye"'), 'index.html contains robot eyes');
   assert(htmlContent.includes('id="camera-video"'), 'index.html contains camera-video element');
   assert(htmlContent.includes('<script type="module" src="js/main.js">'), 'index.html loads main.js as ES module');
+  assert(htmlContent.includes('id="chat-messages"'), 'index.html contains chat-messages element');
+  assert(htmlContent.includes('id="chat-text-input"'), 'index.html contains chat-text-input element');
+  assert(htmlContent.includes('id="chat-send-btn"'), 'index.html contains chat-send-btn element');
+  assert(htmlContent.includes('id="stage-column"'), 'index.html contains stage-column dual-zone element');
+  assert(htmlContent.includes('id="chat-column"'), 'index.html contains chat-column dual-zone element');
+  assert(htmlContent.includes('id="mic-toggle-btn"'), 'index.html contains mic-toggle-btn element');
 
   // Group 4: GeminiLiveClient Protocol & Barge-In Verification
   console.log('\n--- Test Group 4: GeminiLiveClient Protocol & Barge-In ---');
@@ -178,6 +184,13 @@ async function runFrontendTests() {
   assert(
     sentPayload?.clientContent?.turns?.[0]?.parts?.[0]?.text?.length > 0 && sentPayload?.clientContent?.turnComplete === true,
     'sendInitialGreeting sends opening greeting turn with turnComplete: true'
+  );
+
+  // Test sendTextMessage
+  client.sendTextMessage('Hello from user chat input');
+  assert(
+    sentPayload?.clientContent?.turns?.[0]?.parts?.[0]?.text === 'Hello from user chat input' && sentPayload?.clientContent?.turnComplete === true,
+    'sendTextMessage sends user text turn with turnComplete: true'
   );
 
   // Test outputTranscription callback

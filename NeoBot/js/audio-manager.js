@@ -78,8 +78,14 @@ export class AudioManager {
     const bufferSize = 2048;
     this.processorNode = this.audioContext.createScriptProcessor(bufferSize, 1, 1);
 
+    this.isMuted = false;
+
     this.processorNode.onaudioprocess = (event) => {
       if (!this.isRecording) return;
+      if (this.isMuted) {
+        this.onVolumeChange(0, 0);
+        return;
+      }
 
       const inputData = event.inputBuffer.getChannelData(0);
 
@@ -144,7 +150,31 @@ export class AudioManager {
       this.mediaStream = null;
     }
 
+    this.isMuted = false;
     this.onVolumeChange(0);
+  }
+
+  /**
+   * Sets mute state for the microphone capture
+   */
+  setMuted(muted) {
+    this.isMuted = Boolean(muted);
+    if (this.mediaStream) {
+      this.mediaStream.getAudioTracks().forEach((track) => {
+        track.enabled = !this.isMuted;
+      });
+    }
+    if (this.isMuted) {
+      this.onVolumeChange(0, 0);
+    }
+    return this.isMuted;
+  }
+
+  /**
+   * Toggles microphone mute state
+   */
+  toggleMute() {
+    return this.setMuted(!this.isMuted);
   }
 
   /**
