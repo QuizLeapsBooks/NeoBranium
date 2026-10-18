@@ -30,8 +30,15 @@ if (!admin.apps.length) {
   }
 }
 
-const db = admin.apps.length ? admin.firestore() : null;
-const rtdb = admin.apps.length ? admin.database() : null;
+let db = admin.apps.length ? admin.firestore() : null;
+let rtdb = admin.apps.length ? admin.database() : null;
+
+/**
+ * Allows tests to supply a mock/in-memory Firestore instance.
+ */
+export function setDb(customDb) {
+  db = customDb;
+}
 
 /**
  * Checks if the user is allowed to use the AI board and tracks usage.
@@ -133,6 +140,48 @@ export async function checkAndTrackUsage(userId) {
 }
 
 /**
+ * Checks and tracks daily AI quota by verified Firebase UID.
+ * Cross-device safe, bypass-proof via Firestore transactions.
+ * @param {string} uid - Verified Firebase UID
+ * @param {string} category - AI category (e.g. 'chat', 'solver', 'board', 'tts', 'live_session')
+ * @param {number} dailyLimit - Daily quota limit
+ * @returns {Promise<{allowed: boolean, count: number, limit: number, remaining: number, resetAt: string}>}
+ */
+export async function checkAndTrackUsageByUID(uid, category = 'chat', dailyLimit = 50) {
+  const today = new Date().toISOString().slice(0, 10);
+  const resetAt = `${today}T23:59:59Z`;
+
+  if (!db) {
+    console.warn(`[Quota] Firebase DB not initialized for checkAndTrackUsageByUID(uid=${uid}). Failing open.`);
+    return { allowed: true, count: 0, limit: dailyLimit, remaining: dailyLimit, resetAt };
+  }
+
+  const docRef = db.collection('ai_quotas').doc(uid);
+
+  return await db.runTransaction(async (txn) => {
+    const snap = await txn.get(docRef);
+    const data = snap.exists ? snap.data() : {};
+
+    const categoryData = data[category] || {};
+    const storedDate = categoryData.date || '';
+    const count = storedDate === today ? (categoryData.count || 0) : 0;
+
+    if (count >= dailyLimit) {
+      return { allowed: false, count, limit: dailyLimit, remaining: 0, resetAt };
+    }
+
+    const update = {
+      [`${category}.date`]: today,
+      [`${category}.count`]: count + 1,
+      [`${category}.lastUsed`]: admin.firestore.FieldValue.serverTimestamp()
+    };
+    txn.set(docRef, update, { merge: true });
+
+    return { allowed: true, count: count + 1, limit: dailyLimit, remaining: dailyLimit - (count + 1), resetAt };
+  });
+}
+
+/**
  * Ends the user's session and updates usage.
  * @param {string} userId - The session ID of the user (req.session.id).
  * @returns {Promise<number>} Updated minutes used.
@@ -215,6 +264,38 @@ export async function verifyAuthToken(req) {
     throw new Error('Service Unavailable: Firebase Admin is not initialized');
   }
   return await admin.auth().verifyIdToken(token);
+}
+
+/**
+ * Logs a structured security event.
+ * Records to console and, when Firestore is available, to the security_events collection.
+ * Writes go through Admin SDK only — no client can write to this collection.
+ *
+ * @param {string} eventType - e.g. 'auth_failure', 'quota_exhausted', 'rate_limited'
+ * @param {object} details   - Sanitized details (never include full tokens or passwords)
+ */
+export async function logSecurityEvent(eventType, details = {}) {
+  const entry = {
+    eventType,
+    timestamp: new Date().toISOString(),
+    ...details
+  };
+
+  // Always log to console for Render log drain
+  console.warn(`[SECURITY] ${eventType}`, JSON.stringify(entry));
+
+  // Persist to Firestore when available (best-effort — don't throw)
+  if (db) {
+    try {
+      await db.collection('security_events').add({
+        ...entry,
+        serverTimestamp: admin.firestore.FieldValue.serverTimestamp()
+      });
+    } catch (err) {
+      // Don't let logging failure crash the application
+      console.error('[SECURITY] Failed to persist security event:', err.message);
+    }
+  }
 }
 
 export { admin, db, rtdb };

@@ -20,6 +20,8 @@ import { fileURLToPath } from 'url';
 import { boardRateLimit } from './boardMiddleware.js';
 import queueManager from './queueManager.js';
 import { endSession, verifyAuthToken, db, admin, rtdb } from './firebaseAdmin.js';
+import { requireAuth } from './middleware/requireAuth.js';
+import { chatQuota, solverQuota, boardQuota, ttsQuota, liveSessionQuota } from './middleware/quotaByUID.js';
 import { v2 as cloudinary } from 'cloudinary';
 import { createNeoLearnUploadHandler } from './neolearn-upload-handler.js';
 import { createNeoLearnMomentHandlers } from './neolearn-moment-handler.js';
@@ -362,14 +364,10 @@ function sanitizeAIInput(message) {
     return { safe: true };
 }
 
-// Main chat endpoint
-app.post('/api/chat', async (req, res) => {
+// Main chat endpoint — requires Firebase auth and per-UID daily quota
+app.post('/api/chat', requireAuth, chatQuota, async (req, res) => {
     const isProd = process.env.NODE_ENV === 'production';
-
-    // The server uses its own Gemini API key from environment variables.
-    if (req.headers.authorization) {
-        console.warn(`⚠️ Client sent Authorization header to /api/chat. Ignoring it. IP: ${req.ip}`);
-    }
+    // req.uid is set by requireAuth (verified server-side); body uid is ignored
 
     try {
         const { message, history = [], task = 'general_chat' } = req.body;
@@ -530,7 +528,7 @@ app.post('/api/chat', async (req, res) => {
 });
 
 // Streaming Chat Endpoint for Live Tutor
-app.post('/api/chat-stream', boardRateLimit, async (req, res) => {
+app.post('/api/chat-stream', requireAuth, boardQuota, boardRateLimit, async (req, res) => {
     // Set headers for SSE
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -703,29 +701,8 @@ RULES:
 });
 
 
-// Gemini Image Solving API with Session-based Rate Limiting
-app.post('/api/gemini-solve', async (req, res) => {
-    // 1. Enforce Server-Side Daily Limit (15 per 24h)
-    const SOLVER_DAILY_LIMIT = 15;
-    const WINDOW_MS = 24 * 60 * 60 * 1000;
-    const now = Date.now();
-
-    // Initialize or Reset solver-specific usage window in session
-    if (!req.session.solverUsage) {
-        req.session.solverUsage = { count: 0, firstSolve: now };
-    } else if (now - req.session.solverUsage.firstSolve >= WINDOW_MS) {
-        req.session.solverUsage.count = 0;
-        req.session.solverUsage.firstSolve = now;
-    }
-
-    // Reject if limit exceeded
-    if (req.session.solverUsage.count >= SOLVER_DAILY_LIMIT) {
-        return res.status(429).json({
-            success: false,
-            error: "Daily solver limit reached. Please try again after 24 hours."
-        });
-    }
-
+// Gemini Image Solving API — requires Firebase auth + UID-keyed daily quota
+app.post('/api/gemini-solve', requireAuth, solverQuota, async (req, res) => {
     try {
         let { base64, mimeType } = req.body;
         const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -777,10 +754,8 @@ app.post('/api/gemini-solve', async (req, res) => {
             return res.status(502).json({ success: false, error: 'Gemini API request failed' });
         }
 
-        // Increment solver session count ONLY on successful solve
-        req.session.solverUsage.count++;
-
-        // Robust extraction of AI generated text with fallback handling
+        // Increment quota tracked by UID-based middleware (req.quotaInfo is set by solverQuota)
+        // Session-based counter removed — UID quota is cross-device and bypass-proof.
         const candidates = data?.candidates || [];
         const firstCandidate = candidates[0];
         const contentParts = firstCandidate?.content?.parts || [];
@@ -798,29 +773,10 @@ app.post('/api/gemini-solve', async (req, res) => {
 });
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// NeoLens Quiz Generation API
+// NeoLens Quiz Generation API — requires auth + UID-keyed daily quota
 // POST /api/tutor/create-quiz
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-app.post('/api/tutor/create-quiz', async (req, res) => {
-    // Reuse the same session-based daily limit as the image solver (15/24h)
-    const SOLVER_DAILY_LIMIT = 15;
-    const WINDOW_MS = 24 * 60 * 60 * 1000;
-    const now = Date.now();
-
-    if (!req.session.solverUsage) {
-        req.session.solverUsage = { count: 0, firstSolve: now };
-    } else if (now - req.session.solverUsage.firstSolve >= WINDOW_MS) {
-        req.session.solverUsage.count = 0;
-        req.session.solverUsage.firstSolve = now;
-    }
-
-    if (req.session.solverUsage.count >= SOLVER_DAILY_LIMIT) {
-        return res.status(429).json({
-            success: false,
-            error: 'Daily limit reached. Please try again after 24 hours.'
-        });
-    }
-
+app.post('/api/tutor/create-quiz', requireAuth, solverQuota, async (req, res) => {
     try {
         let { base64, mimeType, aiSolution } = req.body;
         const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -951,8 +907,8 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
             explanation: String(q.explanation || '').slice(0, 1000)
         }));
 
-        // Only increment quota on success
-        req.session.solverUsage.count++;
+        // Only increment quota on success — handled by UID middleware (req.quotaInfo)
+        // Session-based counter removed — UID quota is cross-device and bypass-proof.
 
         return res.json({
             success: true,
@@ -973,25 +929,7 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
 // NeoLens Practice Similar Questions API
 // POST /api/tutor/practice-similar
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-app.post('/api/tutor/practice-similar', async (req, res) => {
-    const SOLVER_DAILY_LIMIT = 15;
-    const WINDOW_MS = 24 * 60 * 60 * 1000;
-    const now = Date.now();
-
-    if (!req.session.solverUsage) {
-        req.session.solverUsage = { count: 0, firstSolve: now };
-    } else if (now - req.session.solverUsage.firstSolve >= WINDOW_MS) {
-        req.session.solverUsage.count = 0;
-        req.session.solverUsage.firstSolve = now;
-    }
-
-    if (req.session.solverUsage.count >= SOLVER_DAILY_LIMIT) {
-        return res.status(429).json({
-            success: false,
-            error: 'Daily limit reached. Please try again after 24 hours.'
-        });
-    }
-
+app.post('/api/tutor/practice-similar', requireAuth, solverQuota, async (req, res) => {
     try {
         let { base64, mimeType, aiSolution, previousQuiz, incorrectIndices } = req.body;
         const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -1102,7 +1040,8 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
             explanation: String(q.explanation || '').slice(0, 1000)
         }));
 
-        req.session.solverUsage.count++;
+        // Only increment quota on success — handled by UID middleware (req.quotaInfo)
+        // Session-based counter removed — UID quota is cross-device and bypass-proof.
 
         return res.json({
             success: true,
@@ -1170,26 +1109,7 @@ function safeParseGeminiJSON(rawText) {
 }
 
 // AI Board Analysis API
-app.post('/api/analyze-board', boardRateLimit, async (req, res) => {
-    // 🛡️ Reuse session-based rate limiting
-    const DAILY_LIMIT = 5;
-    const WINDOW_MS = 24 * 60 * 60 * 1000;
-    const now = Date.now();
-
-    if (!req.session.usage) {
-        req.session.usage = { count: 0, firstSolve: now };
-    } else if (now - req.session.usage.firstSolve >= WINDOW_MS) {
-        req.session.usage.count = 0;
-        req.session.usage.firstSolve = now;
-    }
-
-    if (req.session.usage.count >= DAILY_LIMIT) {
-        return res.status(429).json({
-            success: false,
-            error: "Daily limit reached. Please try again later."
-        });
-    }
-
+app.post('/api/analyze-board', requireAuth, boardQuota, boardRateLimit, async (req, res) => {
     try {
         let { base64, mimeType, mode = 'hinglish', isAutoScan = false } = req.body;
         const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -1329,7 +1249,8 @@ Explanation Guidelines:
             return res.status(502).json({ success: false, error: 'AI Analysis failed' });
         }
 
-        req.session.usage.count++;
+        // Quota tracked by UID-based boardQuota middleware (req.quotaInfo)
+        // Session-based counter removed — UID quota is cross-device and bypass-proof.
 
         const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
         let parsedResult = safeParseGeminiJSON(rawText);
@@ -1381,7 +1302,7 @@ Explanation Guidelines:
 });
 
 // Rephrase API for AI Board Modes
-app.post('/api/rephrase-board', boardRateLimit, async (req, res) => {
+app.post('/api/rephrase-board', requireAuth, boardQuota, boardRateLimit, async (req, res) => {
     try {
         const { text, mode } = req.body;
         const groqApiKey = process.env.GROQ_API_KEY;
@@ -1516,7 +1437,7 @@ const applyHinglishPronunciationFixes = (text) => {
         .trim();
 };
 
-app.post('/api/tts', boardRateLimit, async (req, res) => {
+app.post('/api/tts', requireAuth, ttsQuota, boardRateLimit, async (req, res) => {
     try {
         const { text, mode = 'hinglish' } = req.body;
 

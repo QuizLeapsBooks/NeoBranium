@@ -1,66 +1,78 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ── Helper functions ──────────────────────────────────────────────────────
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
     function isOwner(uid) {
-      return request.auth != null && request.auth.uid == uid;
+      return isSignedIn() && request.auth.uid == uid;
     }
 
-    function isValidNeoLearnReportReason(reason) {
-      return reason in ['Spam', 'Inappropriate content', 'Harassment', 'Other'];
+    // ── Security events (write-only via Admin SDK) ────────────────────────────
+    // Clients can never read or write security_events — Admin SDK only.
+    match /security_events/{docId} {
+      allow read, write: if false;
     }
 
-    function isValidNeoLearnPostReport(reportId) {
-      return request.auth != null
-        && request.resource.data.keys().hasAll(['type', 'reporterId', 'postId', 'reportedUserId', 'reason', 'createdAt'])
-        && request.resource.data.keys().hasOnly(['type', 'reporterId', 'postId', 'reportedUserId', 'reason', 'createdAt'])
-        && request.resource.data.type == 'post'
-        && request.resource.data.reporterId == request.auth.uid
-        && request.resource.data.postId is string
-        && request.resource.data.postId.size() > 0
-        && request.resource.data.postId.size() <= 256
-        && !request.resource.data.postId.matches('.*[/].*')
-        && (request.resource.data.reportedUserId == null || request.resource.data.reportedUserId is string)
-        && isValidNeoLearnReportReason(request.resource.data.reason)
-        && request.resource.data.createdAt is timestamp
-        && reportId == 'post_' + request.auth.uid + '_' + request.resource.data.postId;
+    // ── AI quota tracking (write-only via Admin SDK) ──────────────────────────
+    // Per-UID daily quotas written atomically by the backend. No client access.
+    match /ai_quotas/{uid} {
+      allow read, write: if false;
     }
 
-    function isValidNeoLearnProfileReport(reportId) {
-      return request.auth != null
-        && request.resource.data.keys().hasAll(['type', 'reporterId', 'reportedUserId', 'reason', 'createdAt'])
-        && request.resource.data.keys().hasOnly(['type', 'reporterId', 'reportedUserId', 'reason', 'createdAt'])
-        && request.resource.data.type == 'profile'
-        && request.resource.data.reporterId == request.auth.uid
-        && request.resource.data.reportedUserId is string
-        && request.resource.data.reportedUserId.size() > 0
-        && request.resource.data.reportedUserId.size() <= 128
-        && !request.resource.data.reportedUserId.matches('.*[/].*')
-        && request.resource.data.reportedUserId != request.auth.uid
-        && isValidNeoLearnReportReason(request.resource.data.reason)
-        && request.resource.data.createdAt is timestamp
-        && reportId == 'profile_' + request.auth.uid + '_' + request.resource.data.reportedUserId;
+    // ── AI Board sessions (written by Admin SDK, not by clients) ─────────────
+    match /aiboard_sessions/{sessionId} {
+      allow read, write: if false;
     }
 
-    function isValidNeoLearnBlock(blockId) {
-      return request.auth != null
-        && request.resource.data.keys().hasAll(['blockerId', 'blockedUserId', 'createdAt'])
-        && request.resource.data.keys().hasOnly(['blockerId', 'blockedUserId', 'createdAt'])
-        && request.resource.data.blockerId == request.auth.uid
-        && request.resource.data.blockedUserId is string
-        && request.resource.data.blockedUserId.size() > 0
-        && request.resource.data.blockedUserId.size() <= 128
-        && !request.resource.data.blockedUserId.matches('.*[/].*')
-        && request.resource.data.blockedUserId != request.auth.uid
-        && request.resource.data.createdAt is timestamp
-        && blockId == request.auth.uid + '_' + request.resource.data.blockedUserId;
+    // ── WhatsApp Queue (Admin SDK only) ──────────────────────────────────────
+    match /whatsapp_queue/{docId} {
+      allow read, write: if false;
     }
 
+    // ── User profiles (NeoBranium & NeoMentor) ─────────────────────────────────
+    // Users may read/write their own document EXCEPT privileged server-managed fields.
+    // Sensitive fields (role, subscription, score, highScore, rank, isAdmin, isBanned)
+    // must only be written by the server (Admin SDK bypasses these rules).
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      // Allow read of own document
+      allow read: if isOwner(userId);
+
+      // Allow create of own document — but block privileged fields
+      allow create: if isOwner(userId)
+        && !('role' in request.resource.data)
+        && !('isAdmin' in request.resource.data)
+        && !('isBanned' in request.resource.data)
+        && !('subscription' in request.resource.data)
+        && !('score' in request.resource.data)
+        && !('highScore' in request.resource.data)
+        && !('rank' in request.resource.data);
+
+      // Allow update of own document — but block privileged fields from being changed
+      allow update: if isOwner(userId)
+        && !('role' in request.resource.data)
+        && !('isAdmin' in request.resource.data)
+        && !('isBanned' in request.resource.data)
+        && !('subscription' in request.resource.data)
+        && !('score' in request.resource.data)
+        && !('highScore' in request.resource.data)
+        && !('rank' in request.resource.data);
+
+      // No direct client deletes of root profile
+      allow delete: if false;
+
+      // Conserve user sub-collections for NeoMentor and NeoBranium features
       match /{document=**} {
         allow read, write: if isOwner(userId);
       }
     }
+
+    // ── NeoMentor collections (Conserved for integrated 2nd project) ───────────
+    // All mentor collections are scoped to the authenticated owner (userId).
 
     match /mentor_profiles/{userId} {
       allow read, write: if isOwner(userId);
@@ -83,41 +95,103 @@ service cloud.firestore {
 
     match /mentor_goals/{userId} {
       allow read, write: if isOwner(userId);
+      match /items/{goalId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    match /mentor_chat/{userId} {
+      allow read, write: if isOwner(userId);
+      match /{document=**} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    match /mentor_notifications/{userId} {
       allow read, write: if isOwner(userId);
       match /items/{notificationId} {
         allow read, write: if isOwner(userId);
-      allow read: if request.auth != null;
-      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create, update: if false;
+      }
+    }
+
+    match /mentor_reflections/{userId} {
+      allow read, write: if isOwner(userId);
+      match /items/{reflectionId} {
         allow read, write: if isOwner(userId);
       }
     }
-      allow create: if isValidNeoLearnPostReport(reportId) || isValidNeoLearnProfileReport(reportId);
-      allow read, update, delete: if false;
+
     match /mentor_calendar/{userId} {
       allow read, write: if isOwner(userId);
       match /days/{dayId} {
-      allow read: if request.auth != null && resource.data.blockerId == request.auth.uid;
-      allow create: if isValidNeoLearnBlock(blockId);
-      allow delete: if request.auth != null && resource.data.blockerId == request.auth.uid;
-      allow update: if false;
+        allow read, write: if isOwner(userId);
       }
     }
 
-      allow read: if request.auth != null;
-      allow write: if false;
+    match /mentor_analytics/{userId} {
       allow read, write: if isOwner(userId);
+    }
 
-      allow read, write: if false;   // top-level: no direct client access
-      allow read, write: if false;
+    match /reactions/{noteId} {
+      allow read, write: if isSignedIn();
     }
-        allow read:  if request.auth != null && request.auth.uid == viewerUid;
-        allow write: if false;   // all writes via Admin SDK (bypasses rules)
+
+    // ── NeoLearn: Report validation helpers ───────────────────────────────────
+
+    function isValidNeoLearnReportReason(reason) {
+      return reason in ['Spam', 'Inappropriate content', 'Harassment', 'Other'];
+    }
+
+    function isValidNeoLearnPostReport(reportId) {
+      return isSignedIn()
+        && request.resource.data.keys().hasAll(['type', 'reporterId', 'postId', 'reportedUserId', 'reason', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['type', 'reporterId', 'postId', 'reportedUserId', 'reason', 'createdAt'])
+        && request.resource.data.type == 'post'
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.postId is string
+        && request.resource.data.postId.size() > 0
+        && request.resource.data.postId.size() <= 256
+        && !request.resource.data.postId.matches('.*[/].*')
+        && (request.resource.data.reportedUserId == null || request.resource.data.reportedUserId is string)
+        && isValidNeoLearnReportReason(request.resource.data.reason)
+        && request.resource.data.createdAt is timestamp
+        && reportId == 'post_' + request.auth.uid + '_' + request.resource.data.postId;
+    }
+
+    function isValidNeoLearnProfileReport(reportId) {
+      return isSignedIn()
+        && request.resource.data.keys().hasAll(['type', 'reporterId', 'reportedUserId', 'reason', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['type', 'reporterId', 'reportedUserId', 'reason', 'createdAt'])
+        && request.resource.data.type == 'profile'
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.reportedUserId is string
+        && request.resource.data.reportedUserId.size() > 0
+        && request.resource.data.reportedUserId.size() <= 128
+        && !request.resource.data.reportedUserId.matches('.*[/].*')
+        && request.resource.data.reportedUserId != request.auth.uid
+        && isValidNeoLearnReportReason(request.resource.data.reason)
+        && request.resource.data.createdAt is timestamp
+        && reportId == 'profile_' + request.auth.uid + '_' + request.resource.data.reportedUserId;
+    }
+
+    function isValidNeoLearnBlock(blockId) {
+      return isSignedIn()
+        && request.resource.data.keys().hasAll(['blockerId', 'blockedUserId', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['blockerId', 'blockedUserId', 'createdAt'])
+        && request.resource.data.blockerId == request.auth.uid
+        && request.resource.data.blockedUserId is string
+        && request.resource.data.blockedUserId.size() > 0
+        && request.resource.data.blockedUserId.size() <= 128
+        && !request.resource.data.blockedUserId.matches('.*[/].*')
+        && request.resource.data.blockedUserId != request.auth.uid
+        && request.resource.data.createdAt is timestamp
+        && blockId == request.auth.uid + '_' + request.resource.data.blockedUserId;
+    }
+
+    // ── NeoLearn profiles ─────────────────────────────────────────────────────
+    // Clients can read any profile (public feed). Create is validated; updates/deletes via Admin SDK.
     match /neolearn_profiles/{userId} {
-      allow read: if isOwner(userId);
-    match /neolearn_moments/{momentId} {
-      allow read, write: if false;
-    }
+      allow read: if isSignedIn();
       allow create: if isOwner(userId)
         && request.resource.data.keys().hasAll(['userId', 'name', 'profilePhotoUrl', 'thoughtOfTheDay', 'createdAt', 'updatedAt'])
         && request.resource.data.keys().hasOnly(['userId', 'name', 'profilePhotoUrl', 'thoughtOfTheDay', 'createdAt', 'updatedAt'])
@@ -130,45 +204,58 @@ service cloud.firestore {
         && request.resource.data.thoughtOfTheDay.size() <= 280
         && request.resource.data.createdAt is timestamp
         && request.resource.data.updatedAt is timestamp;
-      allow update, delete: if false;
+      allow update, delete: if false;  // Admin SDK only
     }
 
+    // ── NeoLearn posts ────────────────────────────────────────────────────────
+    // Authenticated users can read. Owner can delete own post. Creates/updates via Admin SDK.
     match /neolearn_posts/{postId} {
-      allow read: if resource.data.userId is string && isNeoLearnPostVisibleToViewer(resource.data.userId);
-      allow create, update, delete: if false;
+      allow read: if isSignedIn();
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create, update: if false;
     }
 
+    // ── NeoLearn moments ─────────────────────────────────────────────────────
     match /neolearn_moments/{momentId} {
-      allow read, write: if false;
+      allow read, write: if false;  // Admin SDK only
     }
 
+    // ── NeoLearn reports ─────────────────────────────────────────────────────
+    // Users can submit a report for a post or profile; no reads or updates.
     match /neolearn_reports/{reportId} {
-      allow read, write: if false;
+      allow create: if isValidNeoLearnPostReport(reportId) || isValidNeoLearnProfileReport(reportId);
+      allow read, update, delete: if false;
     }
 
+    // ── NeoLearn blocks ───────────────────────────────────────────────────────
+    // Users can block/unblock through the validated Admin SDK route or client read/delete.
     match /neolearn_blocks/{blockId} {
-      allow read, write: if false;
+      allow read: if isSignedIn() && resource.data.blockerId == request.auth.uid;
+      allow create: if isValidNeoLearnBlock(blockId);
+      allow delete: if isSignedIn() && resource.data.blockerId == request.auth.uid;
+      allow update: if false;
     }
 
+    // ── NeoLearn learning connections ─────────────────────────────────────────
     match /neolearn_learning/{relationId} {
-      allow read, write: if false;
+      allow read: if isSignedIn();
+      allow write: if false;  // Admin SDK only
     }
 
     // ── Impression tracking ───────────────────────────────────────────────────
-    // neolearn_post_impressions/{viewerUid}/posts/{postId}
-    //
     // Admin SDK transactions are the only write path; clients cannot forge counts.
-    // Feed requests read at most their bounded candidate IDs through the backend.
     match /neolearn_post_impressions/{viewerUid} {
-      allow read, write: if false;
+      allow read, write: if false;   // top-level: no direct client access
 
       match /posts/{postId} {
-        allow read: if isOwner(viewerUid)
-          && postId.size() > 0
-          && postId.size() <= 256
-          && isValidImpressionRecord();
-        allow write: if false;
+        allow read: if isSignedIn() && request.auth.uid == viewerUid;
+        allow write: if false;   // all writes via Admin SDK (bypasses rules)
       }
+    }
+
+    // ── Default: deny all unmatched paths ────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

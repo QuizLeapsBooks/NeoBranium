@@ -1,15 +1,17 @@
 import { Router } from 'express';
 import { getRobotPersonality } from '../config/robot-personality.js';
+import { requireAuth } from '../../../middleware/requireAuth.js';
+import { liveSessionQuota } from '../../../middleware/quotaByUID.js';
 
 export const sessionRouter = Router();
 
 /**
  * POST /api/session-token
- * Provisions a secure, short-lived session for the frontend.
- * Attempts to mint a Google Gemini Ephemeral Token first.
- * If ephemeral tokens are unsupported by the key/tier, gracefully indicates proxy mode.
+ * Provisions a secure, short-lived session for authenticated users only.
+ * Requires a valid Firebase ID token in Authorization: Bearer <token>.
+ * Applies a per-UID daily quota to prevent abuse of Gemini Live API.
  */
-sessionRouter.post('/session-token', async (req, res) => {
+sessionRouter.post('/session-token', requireAuth, liveSessionQuota, async (req, res) => {
   // Read API key from environment (must be set in .env or Render env vars)
   const apiKey = process.env.GEMINI_API_KEY;
 

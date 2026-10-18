@@ -7,6 +7,10 @@
   <meta name="description" content="NeoBranium Live AI by Aevorin - Interactive multimodal voice, vision, and text learning assistant powered by Google Gemini Multimodal Live API.">
   <meta name="theme-color" content="#0b0f19">
 
+  <!-- Firebase Auth SDK (required for NeoBranium Live API authentication) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
   <!-- Preconnect and Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -444,6 +448,71 @@
 
   <!-- Toast Notification Container -->
   <div id="toast-container" class="toast-container" aria-live="assertive"></div>
+
+  <!-- Auth Gate Overlay: shown to unauthenticated users -->
+  <div id="auth-gate" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(11,15,25,0.97);backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;">
+    <div style="text-align:center;">
+      <div style="font-size:32px;font-weight:800;color:#a5b4fc;">Neo<span style="color:#6366f1;">Branium</span> <span style="color:#818cf8;">Live AI</span></div>
+      <p style="color:#94a3b8;margin-top:8px;font-size:14px;">Sign in to your NeoBranium account to continue</p>
+    </div>
+    <div id="auth-gate-error" style="display:none;color:#f87171;font-size:13px;"></div>
+    <button id="auth-gate-signin-btn" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;padding:14px 36px;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;">
+      Sign In to NeoBranium
+    </button>
+    <p style="color:#64748b;font-size:12px;text-align:center;max-width:300px;">
+      You need a NeoBranium account to use the Live AI feature.
+      <a href="../index.html" style="color:#a5b4fc;">Create one here</a>.
+    </p>
+  </div>
+
+  <!-- Firebase init + Auth gate logic -->
+  <script>
+    // Firebase project config (public — same as used in main site)
+    const _nbFirebaseConfig = {
+      apiKey: "AIzaSyA1iWJdGtmrox9RAHgWBxaK4p8KGf7ji_Y",
+      authDomain: "neobranium.firebaseapp.com",
+      projectId: "neobranium",
+      storageBucket: "neobranium.appspot.com",
+      messagingSenderId: "59188872045",
+      appId: "1:59188872045:web:450a70b28e4be5db335064",
+      databaseURL: "https://neobranium-default-rtdb.firebaseio.com"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(_nbFirebaseConfig);
+    const _nbAuth = firebase.auth();
+
+    // Expose a getter so ES modules can retrieve the current ID token
+    window._getNBIdToken = async () => {
+      const user = _nbAuth.currentUser;
+      if (!user) throw new Error('Not signed in');
+      return user.getIdToken();
+    };
+
+    const authGate = document.getElementById('auth-gate');
+    const authGateError = document.getElementById('auth-gate-error');
+    const authGateSigninBtn = document.getElementById('auth-gate-signin-btn');
+
+    // Initially hide body content until auth is resolved
+    document.body.style.visibility = 'hidden';
+
+    _nbAuth.onAuthStateChanged((user) => {
+      if (user) {
+        // Authenticated — hide gate and reveal content
+        authGate.style.display = 'none';
+        document.body.style.visibility = 'visible';
+      } else {
+        // Not authenticated — show gate
+        authGate.style.display = 'flex';
+        document.body.style.visibility = 'visible';
+      }
+    });
+
+    authGateSigninBtn.addEventListener('click', async () => {
+      authGateSigninBtn.disabled = true;
+      authGateSigninBtn.textContent = 'Redirecting...';
+      // Redirect to main NeoBranium site login page
+      window.location.href = '../index.html#login';
+    });
+  </script>
 
   <!-- Main JavaScript Controller (ES Module) -->
   <script type="module" src="js/main.js"></script>

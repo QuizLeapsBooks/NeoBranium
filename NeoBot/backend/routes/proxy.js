@@ -1,25 +1,66 @@
 import { WebSocketServer, WebSocket } from 'ws';
+import admin from 'firebase-admin';
+import { logSecurityEvent } from '../../../firebaseAdmin.js';
+
+/**
+ * Verifies a Firebase ID token passed as a query parameter on WebSocket upgrade.
+ * WebSocket upgrades happen before Express middleware, so we handle auth here.
+ *
+ * @param {string} token Firebase ID token
+ * @returns {Promise<admin.auth.DecodedIdToken>}
+ */
+async function verifyWsToken(token) {
+  if (!token || typeof token !== 'string' || token.trim() === '') {
+    throw new Error('Missing WebSocket auth token');
+  }
+  if (!admin.apps.length) {
+    throw new Error('Firebase Admin not initialized');
+  }
+  return admin.auth().verifyIdToken(token.trim());
+}
 
 /**
  * Attaches the WebSocket Proxy Relay to the Node.js HTTP server.
+ * Requires a valid Firebase ID token via ?token=<idToken> query parameter.
  * Enables fallback real-time streaming if ephemeral tokens are restricted or unsupported.
  */
 export function setupWebSocketProxy(server) {
   const wss = new WebSocketServer({ noServer: true });
 
-  server.on('upgrade', (request, socket, head) => {
-    const { pathname } = new URL(request.url, `http://${request.headers.host}`);
+  server.on('upgrade', async (request, socket, head) => {
+    const { pathname, searchParams } = new URL(request.url, `http://${request.headers.host}`);
 
-    if (pathname === '/ws/live') {
-      wss.handleUpgrade(request, socket, head, (clientWs) => {
-        wss.emit('connection', clientWs, request);
-      });
-    } else {
+    if (pathname !== '/ws/live') {
       socket.destroy();
+      return;
     }
+
+    // ── Authenticate the WebSocket connection before upgrading ──────────────
+    const token = searchParams.get('token');
+    let decoded;
+    try {
+      decoded = await verifyWsToken(token);
+    } catch (authErr) {
+      logSecurityEvent('ws_auth_failure', {
+        path: pathname,
+        ip: request.socket?.remoteAddress || 'unknown',
+        reason: authErr.message.slice(0, 120)
+      });
+      // Respond with HTTP 401 before the upgrade
+      socket.write('HTTP/1.1 401 Unauthorized\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nUnauthorized: valid Firebase token required');
+      socket.destroy();
+      return;
+    }
+
+    // Token verified — proceed with WebSocket upgrade
+    wss.handleUpgrade(request, socket, head, (clientWs) => {
+      clientWs._uid = decoded.uid;  // Attach verified UID for logging
+      wss.emit('connection', clientWs, request);
+    });
   });
 
   wss.on('connection', (clientWs, request) => {
+    const uid = clientWs._uid || 'unknown';
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
@@ -32,7 +73,7 @@ export function setupWebSocketProxy(server) {
     const model = (rawModel && rawModel.includes('live') && rawModel !== 'your_model_here') ? rawModel : 'gemini-3.8-live';
     const geminiWsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${apiKey}`;
 
-    console.log(`[WS Proxy] Client connected. Bridging to Gemini Live (model: ${model})...`);
+    console.log(`[WS Proxy] Authenticated user uid=${uid} connected. Bridging to Gemini Live (model: ${model})...`);
     const geminiWs = new WebSocket(geminiWsUrl);
 
     // Queue messages sent by client before Gemini connection is open
@@ -85,12 +126,12 @@ export function setupWebSocketProxy(server) {
     };
 
     clientWs.on('close', (code, reason) => {
-      console.log(`[WS Proxy] Client disconnected (${code}: ${reason.toString() || 'no reason'})`);
+      console.log(`[WS Proxy] uid=${uid} disconnected (${code}: ${reason.toString() || 'no reason'})`);
       cleanup();
     });
 
     clientWs.on('error', (err) => {
-      console.error('[WS Proxy] Client error:', err.message);
+      console.error(`[WS Proxy] Client error (uid=${uid}):`, err.message);
       cleanup();
     });
 

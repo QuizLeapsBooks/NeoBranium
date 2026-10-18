@@ -32,17 +32,34 @@ export class GeminiLiveClient {
   }
 
   /**
-   * Fetches session credentials from backend and establishes WebSocket connection
+   * Fetches session credentials from backend and establishes WebSocket connection.
+   * Requires a valid Firebase ID token via window._getNBIdToken (set by NeoBot auth gate).
    */
   async connect() {
     const backendUrl = CONFIG.getBackendUrl();
+
+    // 0. Obtain Firebase ID token (set by NeoBot auth gate script in index.html)
+    let idToken = null;
+    try {
+      if (typeof window._getNBIdToken === 'function') {
+        idToken = await window._getNBIdToken();
+      }
+    } catch (tokenErr) {
+      throw new Error('Authentication required: Please sign in to use NeoBranium Live AI.');
+    }
+    if (!idToken) {
+      throw new Error('Authentication required: No Firebase session found. Please sign in.');
+    }
 
     // 1. Request session from backend
     let sessionData;
     try {
       const response = await fetch(`${backendUrl}/api/session-token`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        }
       });
 
       const rawText = await response.text();
@@ -69,11 +86,12 @@ export class GeminiLiveClient {
       wsUrl = `${endpoint}?access_token=${encodeURIComponent(sessionData.token)}`;
     } else {
       console.log('[GeminiLiveClient] Connecting via Backend WebSocket Relay Proxy...');
-      // Convert HTTP(S) URL to WS(S) URL
+      // Convert HTTP(S) URL to WS(S) URL and append Firebase ID token as auth param
       const wsProtocol = backendUrl.startsWith('https') ? 'wss:' : 'ws:';
       const host = backendUrl.replace(/^https?:\/\//, '');
       const path = sessionData.wsPath || '/ws/live';
-      wsUrl = `${wsProtocol}//${host}${path}`;
+      // idToken is passed as query param because WebSocket API cannot set custom headers
+      wsUrl = `${wsProtocol}//${host}${path}?token=${encodeURIComponent(idToken)}`;
     }
 
     // 3. Connect WebSocket
