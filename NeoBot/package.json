@@ -1,0 +1,22 @@
+{
+  "name": "neobot",
+  "version": "1.0.0",
+  "description": "NeoBranium Live Multimodal AI Feature by Aevorin (Gemini Multimodal Live API)",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node test-frontend.js && node test-server.js",
+    "test:live": "node test-live-integration.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

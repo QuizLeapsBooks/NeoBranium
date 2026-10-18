@@ -3,6 +3,9 @@ import dns from 'dns';
 // Force IPv4 — Render free tier does not support IPv6
 dns.setDefaultResultOrder('ipv4first');
 import nodemailer from 'nodemailer';
+import http from 'http';
+import { sessionRouter } from './NeoBot/backend/routes/session.js';
+import { setupWebSocketProxy } from './NeoBot/backend/routes/proxy.js';
 
 import express from 'express';
 import cors from 'cors';
@@ -109,12 +112,16 @@ app.use(helmet({
                 "'self'",
                 "https://api.groq.com",
                 "https://generativelanguage.googleapis.com",
+                "wss://generativelanguage.googleapis.com",
                 "https://www.gstatic.com",
                 "https://firebase.googleapis.com",
                 "https://firebasestorage.googleapis.com",
                 "https://identitytoolkit.googleapis.com",
                 "https://securetoken.googleapis.com",
-                "https://neobranium.onrender.com"
+                "https://neobranium.onrender.com",
+                "wss://neobranium.onrender.com",
+                "ws:",
+                "wss:"
             ],
             imgSrc: ["'self'", "data:", "blob:", "https://firebasestorage.googleapis.com", "https://www.gstatic.com", "https://res.cloudinary.com"],
             frameSrc: ["'self'", "https://neobranium.firebaseapp.com"]
@@ -163,8 +170,10 @@ app.use(cors({
 // Strict server-side origin check middleware
 const strictOriginCheck = (req, res, next) => {
     if (!req.path.startsWith('/api/')) return next();
-    // Health endpoint is public - no origin check needed
-    if (req.path === '/api/health') return next();
+    // Health and keepalive endpoints are public - no origin check needed
+    if (req.path === '/api/health' || req.path === '/health') return next();
+    // In local development, permit direct testing tools without Origin headers
+    if (isDevelopment && !req.headers.origin && !req.headers.referer) return next();
     const origin = req.headers.origin || req.headers.referer;
     if (!origin) {
         return res.status(403).json({ reply: 'Forbidden: Direct API access is not allowed' });
@@ -1604,12 +1613,39 @@ app.post('/api/tts', boardRateLimit, async (req, res) => {
 // END ElevenLabs TTS Route
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-// Health check endpoint
+// Health check helper
+const getHealthPayload = () => ({
+    status: 'healthy',
+    ok: true,
+    service: 'neobranium-backend',
+    uptimeSeconds: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+    model: process.env.GEMINI_MODEL || 'gemini-3.8-live',
+    voice: process.env.GEMINI_VOICE || 'Puck',
+    robotName: process.env.ROBOT_NAME || 'NeoBranium AI',
+    hasApiKey: Boolean(
+        process.env.GEMINI_API_KEY &&
+        process.env.GEMINI_API_KEY.trim() !== '' &&
+        process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here' &&
+        process.env.GEMINI_API_KEY !== 'your_gemini_api_key'
+    )
+});
+
+// Health check endpoints (supports both NeoBranium /api/health and /health keep-alive pings)
 app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'healthy',
-        timestamp: new Date().toISOString()
-    });
+    res.json(getHealthPayload());
+});
+
+app.get('/health', (req, res) => {
+    res.json({ ...getHealthPayload(), status: 'ok' });
+});
+
+// Mount NeoBranium Multimodal Live AI session router
+app.use('/api', sessionRouter);
+
+// Convenient route alias for NeoBranium Live AI page
+app.get(['/neobot', '/neobot/'], (req, res) => {
+    res.sendFile(path.join(__dirname, 'NeoBot', 'index.html'));
 });
 
 // Statistics endpoint
@@ -2150,6 +2186,14 @@ if (process.env.NODE_ENV === 'production') {
     });
 }
 
+// 404 handler for unmatched routes
+app.use((req, res) => {
+    if (req.path.startsWith('/api/') || req.headers.accept?.includes('application/json') || req.path === '/unknown-route-test') {
+        return res.status(404).json({ error: 'Endpoint not found', path: req.originalUrl });
+    }
+    res.status(404).sendFile(path.join(__dirname, '404.html'));
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Server Error:', err);
@@ -2160,8 +2204,13 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+// Create HTTP server and bind WebSocket proxy relay
+const server = http.createServer(app);
+setupWebSocketProxy(server);
+
+server.listen(PORT, () => {
+    console.log(`🚀 NeoBranium Server running on port ${PORT}`);
     console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔑 Groq Model: ${GROQ_MODEL}`);
+    console.log(`🤖 NeoBranium Multimodal Live AI: Active on /api/session-token & /ws/live`);
 });
