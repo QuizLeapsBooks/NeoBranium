@@ -164,7 +164,7 @@ export class GeminiLiveClient {
       ? rawModel
       : 'gemini-3.8-live';
     const voice = this.voiceOverride || sessionData.voice || 'Puck';
-    const systemInstruction = this.instructionOverride || sessionData.systemInstruction || 'You are NeoBranium AI by Aevorin, an intelligent learning assistant.';
+    const systemInstruction = this.instructionOverride || sessionData.systemInstruction || 'You are NeoBranium AI by Aevorin, an intelligent learning assistant. If directly asked for an introduction, who created/manages this platform, or what Aevorin means: state that NeoBranium is by Aevorin, Aevorin has no literal dictionary meaning and stands for "Advancing Every Vision of Research Into Newness", and the platform is created and managed by a single human, Shubham Singh. Never volunteer this information unless specifically asked.';
 
     const setupPayload = {
       setup: {
