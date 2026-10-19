@@ -526,9 +526,54 @@ class NeoBotApp {
       }
     });
 
+    // Automatic mobile fullscreen handler
+    this.setupMobileAutoFullscreen();
+
     // Cleanup on window unload
     window.addEventListener('beforeunload', () => {
       this.handleStop();
+    });
+  }
+
+  setupMobileAutoFullscreen() {
+    const isMobile = () => window.innerWidth <= 820 || ('ontouchstart' in window);
+
+    const tryMobileFullscreen = () => {
+      if (!isMobile()) return;
+      if (!document.fullscreenElement) {
+        const docEl = document.documentElement;
+        const req = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+        if (req) {
+          req.call(docEl).catch(() => {});
+        }
+      }
+    };
+
+    // Auto-enter fullscreen on mobile when starting AI, switching tabs, or first interaction
+    if (this.runBtn) {
+      this.runBtn.addEventListener('click', tryMobileFullscreen);
+    }
+    if (this.tabStageBtn) {
+      this.tabStageBtn.addEventListener('click', tryMobileFullscreen);
+    }
+    if (this.tabChatBtn) {
+      this.tabChatBtn.addEventListener('click', tryMobileFullscreen);
+    }
+    if (this.mobileChatFab) {
+      this.mobileChatFab.addEventListener('click', tryMobileFullscreen);
+    }
+
+    const onFirstTouch = () => {
+      tryMobileFullscreen();
+      window.removeEventListener('touchstart', onFirstTouch);
+    };
+    window.addEventListener('touchstart', onFirstTouch, { passive: true, once: true });
+
+    // Track fullscreen active state
+    document.addEventListener('fullscreenchange', () => {
+      if (this.fullscreenBtn) {
+        this.fullscreenBtn.classList.toggle('active', Boolean(document.fullscreenElement));
+      }
     });
   }
 

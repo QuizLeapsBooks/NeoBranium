@@ -119,16 +119,26 @@ const SEARCH_INDEX = [
   { title: "Political Science Notes Class 12", url: "/Notes/notes-political-science-class12.html", category: "Class 12 Notes", excerpt: "Complete political science notes for class 12 humanities." },
   { title: "Geography Notes Class 12", url: "/Notes/notes-geography-class12.html", category: "Class 12 Notes", excerpt: "Complete geography notes for class 12 humanities." },
   { title: "Sociology Notes Class 12", url: "/Notes/notes-sociology-class12.html", category: "Class 12 Notes", excerpt: "Complete sociology notes for class 12 humanities." },
-  { title: "Class 12 Notes Directory", url: "/Notes/class12-notes.html", category: "Class 12 Notes", excerpt: "Directory of all notes for Class 12 Science, Commerce, and Humanities." }
+  { title: "Class 12 Notes Directory", url: "/Notes/class12-notes.html", category: "Class 12 Notes", excerpt: "Directory of all notes for Class 12 Science, Commerce, and Humanities." },
+
+  // --- AI Tools & Features ---
+  { title: "NeoBot Live Multimodal AI", url: "/NeoBot/index.html", category: "AI Tools", icon: "🤖", excerpt: "Real-time voice and live camera vision learning tutor powered by Google Gemini Multimodal Live API." },
+  { title: "NeoLens AI Doubt Solver", url: "/htmls/doubt/index.html", category: "AI Tools", icon: "📸", excerpt: "Upload or snap question images for instant step-by-step solutions, follow-ups, and auto quizzes." },
+  { title: "AI Board Smart Whiteboard", url: "/ai-board/ai-board.html", category: "AI Tools", icon: "🎨", excerpt: "Infinite interactive creative canvas for sketching math diagrams, geometry, formulas, and visual notes." },
+  { title: "Question Paper Generator AI", url: "/htmls/question-paper_generator-ai/ai-generate.html", category: "AI Tools", icon: "📝", excerpt: "Create customized CBSE mock exam question papers with full solutions and marking schemes." },
+  { title: "NeoLearn Peer Community", url: "/htmls/neolearn/index.html", category: "Community", icon: "👥", excerpt: "Connect with classmates, share study moments, follow student profiles, and learn together." },
+  { title: "Peer Chat Messenger", url: "/htmls/chat/chat_app.html", category: "Community", icon: "💬", excerpt: "Real-time student chat and collaborative peer learning." }
 ];
 
 // Category color map
 const CATEGORY_COLORS = {
+  'AI Tools': '#6366f1',
+  'Community': '#10b981',
   'Blog': '#8b5cf6',
   'Question': '#f59e0b',
   'Class 9 Notes': '#10b981',
-      'Class 12 Notes': { bg: '#fee2e2', text: '#b91c1c', icon: 'fa-graduation-cap' },
-  'Class 11 Notes': { bg: '#e0e7ff', text: '#4338ca', icon: 'fa-book-open' },
+  'Class 12 Notes': '#ef4444',
+  'Class 11 Notes': '#6366f1',
   'Class 10 Notes': '#0ea5e9',
   'Expected Questions': '#f59e0b',
 };
