@@ -177,6 +177,9 @@ class NeoBotApp {
           this.geminiClient.sendVideoFrame(base64Jpeg);
         }
       },
+      onScreenShareEnded: () => {
+        this.handleScreenShareEnded();
+      },
       onError: (err) => {
         console.error('[Camera Error]', err);
         this.showToast('Camera error: ' + (err.message || 'Check permissions'));
@@ -287,11 +290,13 @@ class NeoBotApp {
 
     const identityRule = ' Identity Rule: If and only if the user asks for an introduction, who created or manages this platform/AI, or what Aevorin means, explain that NeoBranium is by Aevorin, "Aevorin" has no literal dictionary meaning and stands for "Advancing Every Vision of Research Into Newness", and this platform is created and managed by a single human, Shubham Singh. Never volunteer this information unless specifically asked.';
 
+    const visionRule = ' Visual & Screen Sharing Rule: You have real-time multimodal visual perception. You receive 1 FPS live video frames of the user\'s camera OR their shared screen / application window. When screen sharing is active, you can clearly see their computer screen, code, browser, documents, or slides. If the user asks "Can you see my screen?", "Kya aapko meri screen dikh rahi hai?", or asks questions about what is on their screen, NEVER say you cannot see it. Analyze the incoming video frames and describe or assist with what is on screen.';
+
     const subjectInstructions = {
-      science: 'You are NeoBranium AI by Aevorin, an encouraging, deeply knowledgeable Science and Physics mentor. Explain concepts vividly with real-world analogies, step-by-step logic, and clarity.' + identityRule,
-      math: 'You are NeoBranium AI by Aevorin, an expert Mathematics and Calculus tutor. Walk through problem steps logically, verify formulas, and guide the student interactively.' + identityRule,
-      coding: 'You are NeoBranium AI by Aevorin, a senior software architect and coding mentor. Explain code cleanly, detect errors, and teach best practices in programming.' + identityRule,
-      general: 'You are NeoBranium AI by Aevorin, an intelligent multimodal learning companion with voice and vision. Answer concisely, engagingly, and helpfully.' + identityRule
+      science: 'You are NeoBranium AI by Aevorin, an encouraging, deeply knowledgeable Science and Physics mentor. Explain concepts vividly with real-world analogies, step-by-step logic, and clarity.' + identityRule + visionRule,
+      math: 'You are NeoBranium AI by Aevorin, an expert Mathematics and Calculus tutor. Walk through problem steps logically, verify formulas, and guide the student interactively.' + identityRule + visionRule,
+      coding: 'You are NeoBranium AI by Aevorin, a senior software architect and coding mentor. Explain code cleanly, detect errors, and teach best practices in programming.' + identityRule + visionRule,
+      general: 'You are NeoBranium AI by Aevorin, an intelligent multimodal learning companion with voice and vision. Answer concisely, engagingly, and helpfully.' + identityRule + visionRule
     };
 
     return subjectInstructions[this.selectedSubject] || subjectInstructions.science;
@@ -364,20 +369,7 @@ class NeoBotApp {
     // Stage Quick Tools: Screen Share Toggle (both dock & pip buttons)
     const handleScreenShare = async () => {
       const isSharing = await this.cameraManager.toggleScreenShare();
-      if (this.screenDockBtn) {
-        this.screenDockBtn.classList.toggle('active', isSharing);
-      }
-      if (this.visionBadgeText) {
-        this.visionBadgeText.textContent = isSharing ? 'SCREEN SHARE' : 'VISION 1 FPS';
-      }
-      if (isSharing) {
-        this.cameraVideo.style.transform = 'none';
-        this.showToast('Screen Sharing Active to AI');
-        this.addSystemMessage('Screen sharing enabled. NeoBranium AI can now view your shared window or screen.');
-      } else {
-        this.cameraVideo.style.transform = this.cameraManager.facingMode === 'user' ? 'scaleX(-1)' : 'none';
-        this.showToast('Camera feed restored');
-      }
+      this.updateScreenShareUI(isSharing);
     };
 
     if (this.screenDockBtn) this.screenDockBtn.addEventListener('click', handleScreenShare);
@@ -1079,6 +1071,41 @@ class NeoBotApp {
     if (this.statusPill) this.statusPill.setAttribute('data-state', state);
     if (this.robotFace) this.robotFace.setAttribute('data-state', state);
     if (this.statusText) this.statusText.textContent = text;
+  }
+
+  /**
+   * Updates UI states, camera transformations, and notifies AI when screen sharing toggles
+   */
+  updateScreenShareUI(isSharing) {
+    if (this.screenDockBtn) {
+      this.screenDockBtn.classList.toggle('active', isSharing);
+    }
+    if (this.screenShareBtn) {
+      this.screenShareBtn.classList.toggle('active', isSharing);
+    }
+    if (this.visionBadgeText) {
+      this.visionBadgeText.textContent = isSharing ? 'SCREEN SHARE' : 'VISION 1 FPS';
+    }
+    if (isSharing) {
+      this.cameraVideo.style.transform = 'none';
+      this.showToast('Screen Sharing Active to AI');
+      this.addSystemMessage('Screen sharing enabled. NeoBranium AI can now view your shared window or screen.');
+      // Notify Gemini Live session that screen sharing is now active
+      if (this.geminiClient && this.geminiClient.isConnected) {
+        this.geminiClient.sendTextMessage('[System Notice: The user has started sharing their screen. The incoming video stream is now showing their live computer screen or application window. Acknowledge briefly that you can see their screen.]');
+      }
+    } else {
+      this.cameraVideo.style.transform = (this.cameraManager && this.cameraManager.facingMode === 'user') ? 'scaleX(-1)' : 'none';
+      this.showToast('Camera feed restored');
+      this.addSystemMessage('Screen sharing ended. Video feed restored to camera.');
+      if (this.geminiClient && this.geminiClient.isConnected) {
+        this.geminiClient.sendTextMessage('[System Notice: Screen sharing ended. The video stream has returned to camera feed.]');
+      }
+    }
+  }
+
+  handleScreenShareEnded() {
+    this.updateScreenShareUI(false);
   }
 }
 

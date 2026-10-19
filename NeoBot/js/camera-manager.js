@@ -15,21 +15,22 @@ export class CameraManager {
     this.stream = null;
     this.intervalId = null;
     this.facingMode = options.facingMode || 'user'; // 'user' or 'environment'
-    this.canvas = document.createElement('canvas');
-    this.ctx = this.canvas.getContext('2d');
+    this.canvas = typeof document !== 'undefined' ? document.createElement('canvas') : null;
+    this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
     this.isRunning = false;
     this.isVideoEnabled = true;
     this.isScreenSharing = false;
 
     this.onFrameCaptured = options.onFrameCaptured || (() => {});
     this.onError = options.onError || (() => {});
+    this.onScreenShareEnded = options.onScreenShareEnded || (() => {});
   }
 
   /**
    * Starts camera capture and begins 1 FPS snapshot loop
    */
   async start() {
-    if (this.isRunning) return;
+    if (this.isRunning && !this.isScreenSharing) return;
 
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
@@ -46,7 +47,9 @@ export class CameraManager {
         await this.videoElement.play().catch(() => {});
       }
 
+      this.isScreenSharing = false;
       this.isRunning = true;
+      this.isVideoEnabled = true;
       this.startSnapshotLoop();
     } catch (err) {
       console.warn('[CameraManager] Camera not accessible. Continuing in voice-only mode:', err.message);
@@ -75,7 +78,7 @@ export class CameraManager {
    * Captures a single video frame, scales to canvas, compresses to JPEG, and invokes callback
    */
   captureFrame() {
-    if (!this.isRunning || !this.videoElement || this.videoElement.readyState < 2) {
+    if (!this.isRunning || !this.isVideoEnabled || !this.videoElement || this.videoElement.readyState < 2 || !this.canvas || !this.ctx) {
       return;
     }
 
@@ -84,11 +87,12 @@ export class CameraManager {
 
     if (!videoWidth || !videoHeight) return;
 
-    // Scale dimensions maintaining aspect ratio within max limits
+    // Use higher resolution and quality when screen sharing for crisp text/code recognition
     let targetWidth = videoWidth;
     let targetHeight = videoHeight;
-    const maxWidth = CONFIG.CAMERA_MAX_WIDTH;
-    const maxHeight = CONFIG.CAMERA_MAX_HEIGHT;
+    const maxWidth = this.isScreenSharing ? 1280 : CONFIG.CAMERA_MAX_WIDTH;
+    const maxHeight = this.isScreenSharing ? 720 : CONFIG.CAMERA_MAX_HEIGHT;
+    const quality = this.isScreenSharing ? 0.8 : CONFIG.CAMERA_QUALITY;
 
     if (targetWidth > maxWidth || targetHeight > maxHeight) {
       const ratio = Math.min(maxWidth / targetWidth, maxHeight / targetHeight);
@@ -105,7 +109,7 @@ export class CameraManager {
     this.ctx.drawImage(this.videoElement, 0, 0, targetWidth, targetHeight);
 
     // Export as JPEG data URL
-    const dataUrl = this.canvas.toDataURL('image/jpeg', CONFIG.CAMERA_QUALITY);
+    const dataUrl = this.canvas.toDataURL('image/jpeg', quality);
     // Strip "data:image/jpeg;base64," header to get raw base64 payload
     const base64Data = dataUrl.split(',')[1];
 
@@ -119,7 +123,7 @@ export class CameraManager {
    */
   async switchCamera() {
     this.facingMode = this.facingMode === 'user' ? 'environment' : 'user';
-    if (this.isRunning) {
+    if (this.isRunning && !this.isScreenSharing) {
       this.stop();
       await this.start();
     }
@@ -160,10 +164,14 @@ export class CameraManager {
       }
 
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: { cursor: 'always' },
+        video: {
+          cursor: 'always',
+          displaySurface: 'monitor'
+        },
         audio: false
       });
 
+      // Stop previous camera hardware tracks
       if (this.stream) {
         this.stream.getTracks().forEach((t) => t.stop());
       }
@@ -171,18 +179,44 @@ export class CameraManager {
       this.stream = screenStream;
       this.isScreenSharing = true;
       this.isVideoEnabled = true;
+      this.isRunning = true;
 
       if (this.videoElement) {
         this.videoElement.srcObject = screenStream;
         await this.videoElement.play().catch(() => {});
       }
 
+      // Ensure snapshot loop is actively pumping frames at 1 FPS
+      this.startSnapshotLoop();
+
+      // Trigger immediate frame capture once dimensions are loaded
+      const triggerImmediateFrame = () => {
+        if (this.videoElement && this.videoElement.videoWidth > 0) {
+          this.captureFrame();
+        }
+      };
+
+      if (this.videoElement) {
+        if (this.videoElement.readyState >= 2 && this.videoElement.videoWidth > 0) {
+          triggerImmediateFrame();
+        } else {
+          this.videoElement.onloadedmetadata = () => {
+            triggerImmediateFrame();
+          };
+        }
+      }
+
       const track = screenStream.getVideoTracks()[0];
       if (track) {
         track.addEventListener('ended', async () => {
-          if (this.isScreenSharing && this.isRunning) {
+          if (this.isScreenSharing) {
             this.isScreenSharing = false;
-            await this.start();
+            if (typeof this.onScreenShareEnded === 'function') {
+              this.onScreenShareEnded();
+            }
+            if (this.isRunning) {
+              await this.start();
+            }
           }
         });
       }

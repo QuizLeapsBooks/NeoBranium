@@ -89,6 +89,8 @@ async function runFrontendTests() {
   assert(htmlContent.includes('id="stage-column"'), 'index.html contains stage-column dual-zone element');
   assert(htmlContent.includes('id="chat-column"'), 'index.html contains chat-column dual-zone element');
   assert(htmlContent.includes('id="mic-toggle-btn"'), 'index.html contains mic-toggle-btn element');
+  assert(htmlContent.includes('id="screen-dock-btn"'), 'index.html contains screen-dock-btn element');
+  assert(htmlContent.includes('id="screen-share-btn"'), 'index.html contains screen-share-btn element');
 
   // Group 4: GeminiLiveClient Protocol & Barge-In Verification
   console.log('\n--- Test Group 4: GeminiLiveClient Protocol & Barge-In ---');
@@ -206,6 +208,19 @@ async function runFrontendTests() {
     }
   });
   assert(transcriptReceived === 'Hello human!' && speakerReceived === 'robot', 'outputTranscription triggers onTranscript with robot speaker');
+
+  // Group 5: CameraManager Screen Share & Vision State
+  console.log('\n--- Test Group 5: CameraManager Screen Share & Vision State ---');
+  const { CameraManager } = await import('./js/camera-manager.js');
+  let screenEndedFired = false;
+  const mockVideo = { readyState: 2, videoWidth: 1920, videoHeight: 1080 };
+  const camManager = new CameraManager(mockVideo, {
+    onFrameCaptured: () => {},
+    onScreenShareEnded: () => { screenEndedFired = true; }
+  });
+  assert(camManager.isScreenSharing === false, 'CameraManager initialized with isScreenSharing: false');
+  assert(typeof camManager.toggleScreenShare === 'function', 'CameraManager has toggleScreenShare method');
+  assert(typeof camManager.onScreenShareEnded === 'function', 'CameraManager accepts onScreenShareEnded callback');
 
   console.log(`\n========================================`);
   console.log(`🏁 Test Results: ${passed}/${total} passed`);
