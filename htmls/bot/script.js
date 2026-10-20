@@ -1,6 +1,6 @@
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import { isGuestUser } from '../../js/auth.js';
+import { isGuestUser, auth } from '../../js/auth.js';
 
 // Configure marked for better code highlighting
 marked.setOptions({
@@ -196,6 +196,7 @@ class ChatAssistant {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(auth.currentUser ? { Authorization: `Bearer ${await auth.currentUser.getIdToken()}` } : {}),
                 },
                 credentials: 'include',
                 body: JSON.stringify({

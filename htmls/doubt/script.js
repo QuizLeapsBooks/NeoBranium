@@ -183,6 +183,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const API_BASE_URL = getApiBaseUrl();
 
+    const getAuthHeaders = async () => {
+        const headers = { 'Content-Type': 'application/json' };
+        if (auth.currentUser) {
+            headers.Authorization = `Bearer ${await auth.currentUser.getIdToken()}`;
+        }
+        return headers;
+    };
+
     // --- Smooth Reveal Effect ---
     const revealContent = (element, html) => {
         element.classList.remove('reveal-active');
@@ -319,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const response = await fetch(`${API_BASE_URL}/gemini-solve`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await getAuthHeaders(),
                 credentials: 'include',
                 body: JSON.stringify({
                     base64: base64Data,
@@ -757,7 +765,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const fullSolution = outputContent.innerText;
             const response = await fetch(`${API_BASE_URL}/chat`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await getAuthHeaders(),
                 credentials: 'include',
                 body: JSON.stringify({
                     message: `
@@ -840,7 +848,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const response = await fetch(`${API_BASE_URL}/tutor/create-quiz`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await getAuthHeaders(),
                 credentials: 'include',
                 body: JSON.stringify({
                     base64: base64Data,
@@ -1055,7 +1063,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         const response = await fetch(`${getApiBaseUrl()}/tutor/practice-similar`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: await getAuthHeaders(),
                             credentials: 'include',
                             body: JSON.stringify({
                                 base64: base64Data,

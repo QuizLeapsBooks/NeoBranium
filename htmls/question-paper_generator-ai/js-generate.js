@@ -137,7 +137,7 @@ function getClientSessionId() {
 function getApiBaseUrl() {
   const configured = document.querySelector('meta[name="paper-api-base"]')?.content?.trim();
   if (configured) return configured.replace(/\/$/, '');
-  if (['localhost', '127.0.0.1'].includes(window.location.hostname) && ['5500', '5501'].includes(window.location.port)) return 'http://localhost:3000';
+  if (['localhost', '127.0.0.1'].includes(window.location.hostname) && window.location.port !== '3000') return `http://${window.location.hostname}:3000`;
   return window.location.origin;
 }
 

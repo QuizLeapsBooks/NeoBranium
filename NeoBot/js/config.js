@@ -20,8 +20,7 @@ export const CONFIG = {
 
       // Local development handling
       if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        const devPorts = ['5500', '5501', '5502', '5503', '5173', '4173', '8080', '8000'];
-        if (devPorts.includes(port)) {
+        if (port !== '3000') {
           return `http://${hostname}:3000`;
         }
         return window.location.origin;
