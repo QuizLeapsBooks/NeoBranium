@@ -1,0 +1,9 @@
+#boardCanvas,
+#previewCanvas {
+  position: absolute;
+  inset: 0;
+}
+
+#previewCanvas {
+  pointer-events: none;
+}

@@ -4,128 +4,173 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NeoBranium AI Question Paper Generator</title>
+  <title>NeoBranium AI Question Paper Generator & Handwritten Answer-Sheet Evaluator</title>
+  <meta name="description" content="Generate practice question papers and request AI feedback on handwritten answer sheets." />
+  
+  <link rel="icon" href="/online-graduation_16847316.png" type="image/png" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="/CSS/ai-pages.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <!-- KaTeX CSS for math rendering -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-
 </head>
 
 <body class="nb-paper-page">
+  <!-- Top App Navigation -->
+  <nav class="app-navbar" aria-label="Main Navigation">
+    <div class="navbar-container">
+      <a href="/index.html" class="brand-link" aria-label="NeoBranium Home">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="brand-logo" />
+        <span>NeoBranium</span>
+      </a>
+      <div class="nav-links">
+        <a href="/index.html" class="nav-link">Home</a>
+        <a href="/htmls/dashboard.html" class="nav-link">Dashboard</a>
+        <a href="/htmls/notes.html" class="nav-link">Notes</a>
+        <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle dark/light mode" title="Toggle theme">
+          <span id="themeToggleIcon">🌙</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
   <div class="page-container">
+    <!-- Header -->
     <header class="header">
       <div class="header-content">
-        <h1 class="page-title">NS-x AI Question Paper Generator</h1>
-        <p class="page-subtitle">Create professional exam papers instantly with NeoBranium's AI assistant</p>
+        <div class="header-badge">
+          <span>Question practice from the locally maintained curriculum catalog</span>
+        </div>
+        <h1 class="page-title">Exam Paper Generator & AI Evaluator</h1>
+        <p class="page-subtitle">
+          Generate practice papers from the cataloged class and subject topics, then request AI feedback on handwritten answers.
+        </p>
       </div>
     </header>
 
     <main class="main-content">
-      <form id="paperForm" class="generator-form">
-        <!-- Exam Configuration -->
+      <!-- Error Notification Banner -->
+      <div id="errorBanner" class="error-banner" hidden role="alert">
+        <span class="error-icon">⚠️</span>
+        <div id="errorMessage" class="error-text">An error occurred.</div>
+      </div>
+
+      <!-- Generator Form -->
+      <form id="paperForm" class="generator-form" novalidate>
+        <!-- 1. Exam Configuration -->
         <div class="form-section">
-          <h2 class="section-title">📋 Exam Configuration</h2>
-          <div class="form-grid">
+          <h2 class="section-title"><span>📋</span> Exam Configuration</h2>
+          <p class="section-desc">Select a cataloged class, subject, chapter scope, and exam mode.</p>
+          
+        <div class="form-grid">
             <div class="form-group">
-              <label for="classSelect">Class</label>
-              <select id="classSelect" required>
-                <option value="" disabled selected>Choose class</option>
-                <option>6</option>
-                <option>7</option>
-                <option>8</option>
-                <option>9</option>
-                <option>10</option>
-                <option>11</option>
-                <option>12</option>
+            <label for="classSelect">Class <span class="label-hint">(cataloged classes)</span></label>
+              <select id="classSelect" required aria-label="Select a cataloged class">
+                <option value="10" selected>Class 10</option>
+                <option value="9">Class 9</option>
+                <option value="11">Class 11</option>
+                <option value="12">Class 12</option>
+                <option value="8">Class 8</option>
+                <option value="7">Class 7</option>
+                <option value="6">Class 6</option>
               </select>
             </div>
+
             <div class="form-group">
-              <label for="subjectInput">Subject</label>
-              <input type="text" id="subjectInput" required placeholder="e.g., Mathematics" />
+              <label for="subjectSelect">Subject</label>
+              <select id="subjectSelect" required>
+                <!-- Populated dynamically based on class -->
+              </select>
             </div>
-            <div class="form-group">
-              <label for="chapterInput">Chapter/Syllabus</label>
-              <input type="text" id="chapterInput" required placeholder="Chapter names(Do not write 'Full Syllabus')" />
+
+            <div class="form-group chapter-wrapper">
+              <label for="chapterSelect">Chapter / Syllabus Scope</label>
+              <select id="chapterSelect">
+                <!-- Populated dynamically with NCERT chapters -->
+              </select>
+              <input type="text" id="customChapterInput" placeholder="Enter custom topic or chapter" style="display: none; margin-top: 0.35rem;" />
+              <a href="#" id="toggleCustomChapterBtn" class="chapter-toggle-link">+ Enter custom topic</a>
             </div>
+
             <div class="form-group">
-              <label for="examType">Exam Type</label>
+              <label for="examType">Exam Mode</label>
               <select id="examType" required>
-                <option value="" disabled selected>Choose exam type</option>
-                <option>Board Exam</option>
-                <option>School Exam</option>
-                <option>Competitive</option>
-                <option>Practice Test</option>
+                <option value="cbse" selected>CBSE-style practice (not an official rubric)</option>
+                <option value="school">School Examination (School Prescribed)</option>
+                <option value="competitive">Competitive / Foundation (HOTS & Rigor)</option>
+                <option value="practice">Practice / Formative Test (Feedback Focus)</option>
               </select>
             </div>
+
             <div class="form-group">
               <label for="difficultyLevel">Difficulty Level</label>
               <select id="difficultyLevel" required>
-                <option value="" disabled selected>Choose difficulty</option>
-                <option>Easy</option>
-                <option>Medium</option>
-                <option>Hard</option>
-                <option>Mixed</option>
+                <option value="Easy">Easy</option>
+                <option value="Medium" selected>Medium (Standard Board)</option>
+                <option value="Hard">Hard (HOTS / Challenging)</option>
+                <option value="Mixed">Mixed (Standard Distribution)</option>
               </select>
             </div>
+
             <div class="form-group">
-              <label for="totalMarks">Total Marks</label>
-              <input type="number" id="totalMarks" required min="10" placeholder="100" />
+              <label for="totalMarks">Target Total Marks</label>
+              <input type="number" id="totalMarks" required min="10" max="100" value="50" />
             </div>
+
             <div class="form-group">
-              <label for="examTime">Duration (minutes)</label>
-              <input type="number" id="examTime" required min="10" placeholder="180" />
+              <label for="examTime">Duration <span class="label-hint">(Minutes)</span></label>
+              <input type="number" id="examTime" required min="15" max="300" value="90" />
             </div>
           </div>
         </div>
 
-        <!-- Question Structure -->
+        <!-- 2. Question Structure -->
         <div class="form-section">
-          <h2 class="section-title">📝 Question Structure</h2>
+          <h2 class="section-title"><span>📝</span> Question Structure</h2>
+          <p class="section-desc">Specify the count of questions for each section.</p>
+          
           <div class="form-grid">
             <div class="form-group">
-              <label for="mcqCount">MCQ Questions</label>
-              <input type="number" id="mcqCount" required min="0" value="10" />
+              <label for="mcqCount">Section A: MCQs (1 Mark)</label>
+              <input type="number" id="mcqCount" required min="0" max="30" value="5" />
             </div>
             <div class="form-group">
-              <label for="shortCount">Short Answer Questions</label>
-              <input type="number" id="shortCount" required min="0" value="5" />
+              <label for="shortCount">Section B: Short Answer (2 Marks)</label>
+              <input type="number" id="shortCount" required min="0" max="20" value="5" />
             </div>
             <div class="form-group">
-              <label for="longCount">Long Answer Questions</label>
-              <input type="number" id="longCount" required min="0" value="5" />
+              <label for="longCount">Section C: Long Answer (5 Marks)</label>
+              <input type="number" id="longCount" required min="0" max="15" value="3" />
             </div>
-            <div class="form-group">
-              <label for="marksPerQuestion">Marks per Question</label>
-              <input type="number" id="marksPerQuestion" required min="1" value="2" />
-            </div>
+          </div>
+
+          <div class="structure-summary">
+            <span><strong>Total Questions:</strong> <span id="summaryTotalQuestions">13</span></span>
+            <span><strong>Calculated Marks:</strong> <span id="summaryCalculatedMarks">30</span> Marks</span>
+            <span id="summaryMarksNotice" style="color: var(--text-muted); font-size: 0.8rem;">Adjust counts to meet your target total.</span>
           </div>
         </div>
 
-        <!-- Extra Options -->
+        <!-- 3. Additional Options -->
         <div class="form-section">
-          <h2 class="section-title">⚙️ Additional Options</h2>
+          <h2 class="section-title"><span>⚙️</span> Curriculum & Question Heuristics</h2>
           <div class="checkbox-container">
             <label class="checkbox-item">
-              <input type="checkbox" id="includeRepeated" />
-              <span class="checkmark"></span>
-              Include Most Repeated Questions
+              <input type="checkbox" id="includeNCERT" checked />
+              Use NCERT-focused wording where applicable
             </label>
             <label class="checkbox-item">
-              <input type="checkbox" id="includeNCERT" />
-              <span class="checkmark"></span>
-              Include NCERT Based Questions
+              <input type="checkbox" id="includeRepeated" />
+              Include High-Frequency Board Questions
             </label>
             <label class="checkbox-item">
               <input type="checkbox" id="includeNumericals" />
-              <span class="checkmark"></span>
-              Include Numericals
+              Include Numerical & Calculation Problems
             </label>
             <label class="checkbox-item">
               <input type="checkbox" id="includeCaseStudy" />
-              <span class="checkmark"></span>
-              Include Case Study
+              Include Case-Based Questions
             </label>
           </div>
         </div>
@@ -134,37 +179,197 @@
         <div class="form-actions">
           <button type="submit" id="generateBtn" class="btn btn-primary">
             <span class="btn-icon">🚀</span>
-            Generate Paper
+            <span class="btn-label">Generate Paper</span>
           </button>
         </div>
       </form>
 
       <!-- Loading State -->
-      <div id="loading" class="loading-state" hidden>
+      <div id="loading" class="loading-state" hidden aria-live="polite">
         <div class="loading-spinner"></div>
-        <p>Generating your question paper... This may take a few moments.</p>
+        <div class="loading-text" id="loadingTitle">Setting Your Question Paper...</div>
+        <div class="loading-subtext" id="loadingSubtext">Aligning questions with NCERT syllabus standards. This may take 10-20 seconds.</div>
       </div>
 
-      <!-- Results -->
-      <div id="resultArea" class="results-container" hidden>
-        <div class="results-header">
-          <h2 class="results-title">📄 Generated Question Paper</h2>
+      <!-- Evaluation Scorecard Summary (Shown after checking) -->
+      <section id="evalSummaryCard" class="eval-results-card" hidden aria-labelledby="evalTitle">
+        <div class="eval-results-header">
+          <h2 id="evalTitle" class="eval-title">
+            <span>🎯</span> Evaluation Results & Scorecard
+          </h2>
           <div class="results-actions">
-            <button id="copyBtn" class="btn btn-secondary">
-              <span class="btn-icon">📋</span>
-              Copy
+            <button id="openMarksModalBtn" class="btn btn-primary">
+              <span>📊</span> View Question-wise Marks
             </button>
-            <button id="downloadPdfBtn" class="btn btn-secondary">
-              <span class="btn-icon">⬇️</span>
-              Download
+            <button id="summaryViewModelAnswersBtn" class="btn btn-secondary">
+            <span>🔑</span> Generate Model Answers
             </button>
           </div>
         </div>
+
+        <div class="score-stats-grid">
+          <div class="stat-box">
+            <div id="statTotalScore" class="stat-val">-- / --</div>
+            <div class="stat-label">Marks Obtained</div>
+          </div>
+          <div class="stat-box">
+            <div id="statPercentage" class="stat-val">--%</div>
+            <div class="stat-label">Percentage</div>
+          </div>
+          <div class="stat-box">
+            <div id="statAttempted" class="stat-val">--</div>
+            <div class="stat-label">Attempted / Total</div>
+          </div>
+          <div class="stat-box">
+            <div id="statNeedsReview" class="stat-val warning">0</div>
+            <div class="stat-label">Needs Review / Unclear</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Question Paper Results Container -->
+      <section id="resultArea" class="results-container" hidden aria-labelledby="paperResultsTitle">
+        <div class="results-header">
+          <h2 id="paperResultsTitle" class="results-title">
+            <span>📄</span> Generated Question Paper
+          </h2>
+          <div class="results-actions">
+            <button id="copyBtn" class="btn btn-secondary" title="Copy question paper to clipboard">
+              <span class="btn-icon">📋</span> Copy Paper
+            </button>
+            <button id="downloadPdfBtn" class="btn btn-secondary" title="Download or print paper as PDF">
+              <span class="btn-icon">⬇️</span> Download PDF
+            </button>
+            <button id="viewModelAnswersBtn" class="btn btn-secondary" title="Generate model answers for this paper">
+              <span class="btn-icon">🔑</span> Generate Model Answers
+            </button>
+          </div>
+        </div>
+        
+        <!-- Rendered Exam Paper (Questions only by default!) -->
         <div id="generated-paper" class="exam-paper"></div>
-      </div>
+      </section>
     </main>
   </div>
 
+  <!-- Floating Action Button for Upload (Appears only when valid paper exists) -->
+  <button id="floatingUploadBtn" class="floating-fab-btn" hidden aria-label="Upload handwritten answer sheet for grading" title="Upload your handwritten answer sheet">
+    <span class="fab-icon">📸</span>
+    <span>Upload Answer Sheet</span>
+  </button>
+
+  <!-- MODAL 1: Upload Answer-Sheet Dialog -->
+  <div id="uploadModal" class="nb-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle" aria-describedby="uploadModalHelp" hidden>
+    <div class="nb-modal-dialog">
+      <div class="modal-header">
+        <h3 id="uploadModalTitle" class="modal-title">
+          <span>📤</span> Upload Handwritten Answer Sheet
+        </h3>
+        <button id="closeUploadModalBtn" class="modal-close-btn" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="uploadDropzone" class="upload-dropzone" role="button" tabindex="0" aria-label="Select answer sheet images">
+          <input type="file" id="answerSheetInput" accept="image/jpeg,image/png,image/webp" multiple style="display: none;" />
+          <div class="dropzone-icon">📷</div>
+          <div class="dropzone-title">Click to select or drag and drop photographs</div>
+          <div class="dropzone-hint">JPEG, PNG, or WebP &bull; Max 4 pages &bull; Up to 5 MB per page</div>
+        </div>
+
+        <div id="uploadedPagesGrid" class="uploaded-pages-grid">
+          <!-- Thumbnails rendered dynamically -->
+        </div>
+
+        <div class="info-notice">
+          <span>ℹ️</span>
+          <div id="uploadModalHelp">
+            <strong>Guidelines for accurate grading:</strong>
+            Use readable, upright photos with complete answers and visible question numbers (e.g. <em>Q1</em>, <em>Q2(a)</em>).
+            Unreadable answers will be flagged for review rather than incorrectly marked wrong.
+          </div>
+        </div>
+
+        <div class="info-notice" style="margin-top: 0.6rem; font-size: 0.775rem; color: var(--text-muted);">
+          <span>🔒</span>
+          <div>
+            <strong>Privacy Notice:</strong> Images are sent to the configured AI provider for evaluation and are not saved in public storage by this app. Evaluation summaries may be kept with your paper in Firestore; in-memory records can be lost when the server restarts. Check the provider and deployment retention policies before uploading sensitive material. Upload complete, readable pages; file signatures are checked, but image decoding and orientation correction are not performed by this server.
+          </div>
+        </div>
+
+        <div id="uploadEvaluationProgress" style="display: none; margin-top: 1.25rem; text-align: center;">
+          <div class="loading-spinner" style="width: 32px; height: 32px;"></div>
+          <div id="evalProgressText" style="font-weight: 600; font-size: 0.95rem; margin-top: 0.5rem;">Scanning handwriting & evaluating steps...</div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="cancelUploadBtn" class="btn btn-secondary">Cancel</button>
+        <button id="submitCheckAnswersBtn" class="btn btn-primary" disabled>
+          <span>✨</span> Check My Answers
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Question-Wise Marks Modal -->
+  <div id="marksModal" class="nb-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="marksModalTitle" aria-describedby="modalScoreSummary" hidden>
+    <div class="nb-modal-dialog" style="max-width: 820px;">
+      <div class="modal-header">
+        <h3 id="marksModalTitle" class="modal-title">
+          <span>📊</span> Question-wise Marks Breakdown
+        </h3>
+        <button id="closeMarksModalBtn" class="modal-close-btn" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div id="modalScoreSummary" style="margin-bottom: 1.25rem; padding: 0.85rem 1.25rem; background: var(--surface-raised); border-radius: var(--radius); display: flex; justify-content: space-between; align-items: center; font-weight: 700;">
+          <span>Student Total: <span id="modalTotalMarksText" style="color: var(--primary-color);">-- / --</span></span>
+          <span id="modalPercentageText">--%</span>
+        </div>
+
+        <div id="evalQuestionsList" class="eval-questions-list">
+          <!-- Question evaluation cards rendered dynamically -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="closeMarksModalFooterBtn" class="btn btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Model Answers Modal -->
+  <div id="modelAnswersModal" class="nb-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modelAnswersModalTitle" aria-describedby="modelAnswersHelp" hidden>
+    <div class="nb-modal-dialog" style="max-width: 850px;">
+      <div class="modal-header">
+        <h3 id="modelAnswersModalTitle" class="modal-title">
+          <span>🔑</span> Official Model Answers & Marking Scheme
+        </h3>
+        <button id="closeModelAnswersModalBtn" class="modal-close-btn" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p id="modelAnswersHelp">Generated only after you request model answers for this paper.</p>
+        <div id="modelAnswersLoading" style="display: none; text-align: center; padding: 2rem;">
+          <div class="loading-spinner"></div>
+          <p style="font-weight: 600;">Generating comprehensive step-by-step model solutions...</p>
+        </div>
+
+        <div id="modelAnswersContent" class="model-answers-list">
+          <!-- Solutions rendered dynamically -->
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="copyModelAnswersBtn" class="btn btn-secondary">
+          <span>📋</span> Copy Answers
+        </button>
+        <button id="closeModelAnswersFooterBtn" class="btn btn-primary">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <!-- KaTeX JS for math rendering -->
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>

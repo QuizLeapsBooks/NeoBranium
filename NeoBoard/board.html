@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#17221d">
+  <title>NeoBranium Blackboard</title>
+  <link rel="stylesheet" href="/NeoBoard/board.css">
+  <link rel="stylesheet" href="/NeoBoard/board-preview.css">
+  <link rel="stylesheet" href="/NeoBoard/board-selection.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="NeoBranium home"><span class="brand-mark">N</span><span>NeoBranium <small>BLACKBOARD</small></span></a>
+    <div class="board-title"><span class="live-dot"></span><input id="boardTitle" aria-label="Board title" value="Untitled lesson"></div>
+    <div class="top-actions">
+      <span id="saveStatus" class="save-status" role="status">Saved</span>
+      <select id="boardLibrary" class="quiet-btn board-library" aria-label="Open a saved board"><option value="">Saved boards</option></select>
+      <button id="newBoard" class="quiet-btn">＋ <span>New board</span></button>
+      <button id="exportPng" class="quiet-btn">⇩ <span>Export image</span></button>
+      <button id="exportJson" class="quiet-btn">⇧ <span>Board data</span></button>
+      <button id="importJson" class="icon-btn" aria-label="Restore board data" title="Restore board data">↥</button><input id="importFile" type="file" accept="application/json,.json" hidden>
+      <button id="present" class="present-btn">⛶ <span>Present</span></button>
+    </div>
+  </header>
+  <main class="workspace">
+    <aside class="rail" aria-label="Board tools">
+      <button class="tool active" data-tool="pen" title="Pen (P)" aria-label="Pen">✎</button>
+      <button class="tool" data-tool="eraser" title="Eraser (E)" aria-label="Eraser">◩</button>
+      <button class="tool" data-tool="select" title="Select (V)" aria-label="Select">⌖</button>
+      <button class="tool" data-tool="ai-select" title="AI Select (A)" aria-label="AI Select">▣</button>
+      <button class="tool" data-tool="pan" title="Pan (Space)" aria-label="Pan">✥</button>
+      <span class="rail-rule"></span>
+      <button class="tool" data-tool="text" title="Text (T)" aria-label="Add text">T</button>
+      <button class="tool" data-tool="line" title="Line" aria-label="Line">／</button>
+      <button class="tool" data-tool="arrow" title="Arrow" aria-label="Arrow">↗</button>
+      <button class="tool" data-tool="rect" title="Rectangle" aria-label="Rectangle">▱</button>
+      <button class="tool" data-tool="ellipse" title="Circle" aria-label="Circle">◯</button>
+      <span class="rail-spacer"></span>
+      <button id="undo" class="tool" title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
+      <button id="redo" class="tool" title="Redo (Ctrl+Y)" aria-label="Redo">↷</button>
+      <button id="clear" class="tool danger" title="Clear board" aria-label="Clear board">⌫</button>
+    </aside>
+    <section class="board-stage" aria-label="Blackboard workspace">
+      <div class="toolbar">
+        <div class="swatches" aria-label="Chalk colour">
+          <button class="swatch selected" data-color="#f4f2e8" style="--swatch:#f4f2e8" aria-label="White chalk"></button>
+          <button class="swatch" data-color="#a9e6b4" style="--swatch:#a9e6b4" aria-label="Green chalk"></button>
+          <button class="swatch" data-color="#f2c96d" style="--swatch:#f2c96d" aria-label="Yellow chalk"></button>
+          <button class="swatch" data-color="#f08b83" style="--swatch:#f08b83" aria-label="Pink chalk"></button>
+          <button class="swatch" data-color="#90c8f4" style="--swatch:#90c8f4" aria-label="Blue chalk"></button>
+          <input id="customColor" type="color" value="#f4f2e8" aria-label="Custom chalk colour">
+        </div>
+        <span class="tool-separator"></span>
+        <label class="width-control" title="Stroke width"><span>Width</span><input id="width" type="range" min="1" max="18" value="4"><b id="widthValue">4</b></label>
+        <span class="tool-separator"></span>
+        <button id="zoomOut" class="small-btn" aria-label="Zoom out">−</button><span id="zoomLabel" class="zoom-label">100%</span><button id="zoomIn" class="small-btn" aria-label="Zoom in">＋</button><button id="zoomReset" class="small-btn fit-btn">Fit</button>
+      </div>
+      <div class="canvas-frame" id="canvasFrame"><canvas id="boardCanvas" aria-label="Interactive blackboard"></canvas><canvas id="previewCanvas" aria-hidden="true"></canvas><div class="selection-box" id="selectionBox" hidden></div><section class="selection-actions" id="selectionActions" aria-label="Actions for selected content" hidden><div class="selection-action-head"><span id="selectionSummary">0 items selected</span><div><button id="deselectSelection" type="button">Deselect</button><button id="deleteSelection" type="button" aria-label="Delete selected content">Delete</button></div></div><div id="selectionActionGroups" class="selection-action-groups" aria-live="polite"></div></section><div class="text-editor" id="textEditor" contenteditable="true" spellcheck="false" hidden></div></div>
+      <footer class="board-footer"><span id="toolStatus">Pen · White chalk</span><span>Autosaved on this device</span><span id="objectCount">0 objects</span></footer>
+    </section>
+    <aside class="future-panel" id="futurePanel" aria-label="Learning tools"><button id="collapsePanel" class="panel-collapse" aria-label="Collapse side panel">‹</button><div class="panel-icon">✧</div><div class="panel-copy"><strong>Learning tools</strong><span>Select board content to see its context and available actions.</span></div><span class="soon-pill" hidden>Coming later</span><div class="panel-context-actions" id="panelContextActions" aria-live="polite"></div></aside>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <dialog id="confirmClear"><form method="dialog"><div class="dialog-icon">⌫</div><h2>Clear this board?</h2><p>This removes all strokes and objects from the current board.</p><div class="dialog-actions"><button value="cancel" class="quiet-btn">Keep board</button><button value="confirm" class="clear-btn">Clear board</button></div></form></dialog>
+  <script type="module" src="/NeoBoard/board-app.js"></script>
+</body>
+</html>

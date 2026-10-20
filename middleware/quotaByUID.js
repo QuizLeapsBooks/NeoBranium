@@ -34,6 +34,10 @@ export function createQuotaMiddleware({ category, dailyLimit, failOpen = true })
     try {
       const result = await checkAndTrackUsageByUID(uid, category, dailyLimit);
 
+      if (result.unavailable && failOpen === false) {
+        return res.status(503).json({ error: 'Usage quota service is unavailable. Please try again later.', code: 'QUOTA_SERVICE_UNAVAILABLE' });
+      }
+
       if (!result.allowed) {
         logSecurityEvent('quota_exhausted', {
           uid,
@@ -102,4 +106,25 @@ export const ttsQuota = createQuotaMiddleware({
 export const liveSessionQuota = createQuotaMiddleware({
   category: 'live_session',
   dailyLimit: parseInt(process.env.QUOTA_LIVE_DAILY || '5', 10)
+});
+
+// /api/paper/generate — Exam paper generator
+export const paperQuota = createQuotaMiddleware({
+  category: 'paper',
+  dailyLimit: parseInt(process.env.QUOTA_PAPER_DAILY || '15', 10),
+  failOpen: false
+});
+
+// /api/paper/upload-evaluate — Handwritten answer-sheet AI evaluation
+export const paperEvalQuota = createQuotaMiddleware({
+  category: 'paper_eval',
+  dailyLimit: parseInt(process.env.QUOTA_PAPER_EVAL_DAILY || '10', 10),
+  failOpen: false
+});
+
+// /api/paper/model-answers — Model answers generation
+export const paperModelAnswerQuota = createQuotaMiddleware({
+  category: 'paper_model',
+  dailyLimit: parseInt(process.env.QUOTA_PAPER_MODEL_DAILY || '15', 10),
+  failOpen: false
 });

@@ -153,7 +153,7 @@ export async function checkAndTrackUsageByUID(uid, category = 'chat', dailyLimit
 
   if (!db) {
     console.warn(`[Quota] Firebase DB not initialized for checkAndTrackUsageByUID(uid=${uid}). Failing open.`);
-    return { allowed: true, count: 0, limit: dailyLimit, remaining: dailyLimit, resetAt };
+    return { allowed: category.startsWith('paper') ? false : true, unavailable: true, count: 0, limit: dailyLimit, remaining: dailyLimit, resetAt };
   }
 
   const docRef = db.collection('ai_quotas').doc(uid);

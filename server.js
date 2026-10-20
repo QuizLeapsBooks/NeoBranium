@@ -6,6 +6,7 @@ import nodemailer from 'nodemailer';
 import http from 'http';
 import { sessionRouter } from './NeoBot/backend/routes/session.js';
 import { setupWebSocketProxy } from './NeoBot/backend/routes/proxy.js';
+import { paperRouter } from './routes/paperRoutes.js';
 
 import express from 'express';
 import cors from 'cors';
@@ -196,7 +197,9 @@ const strictOriginCheck = (req, res, next) => {
 
 app.use(strictOriginCheck);
 
-app.use(express.json({ limit: '10mb' }));
+// Answer-sheet images are base64 encoded in JSON. Keep the parser ceiling above
+// the validated 16 MB binary batch cap, accounting for base64 expansion.
+app.use(express.json({ limit: '24mb' }));
 
 // Cloudinary configuration (credentials loaded strictly from server-side environment variables)
 const isCloudinaryConfigured = () => {
@@ -443,8 +446,8 @@ IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and st
 
         let queryContext = '';
         if (task === 'paper_generation') {
-            systemIdentity = `You are a professional Indian school exam paper setter AI for NeoBranium. Your task is to generate high-quality, NCERT-compliant exam papers.`;
-            queryContext = `Act as an expert examiner. Follow all formatting instructions for the exam paper strictly.`;
+            systemIdentity = `You are a professional Indian school exam paper setter AI for NeoBranium. Your task is to generate high-quality, NCERT-compliant exam papers. Use standard KaTeX-compatible LaTeX ($...$ or $$...$$) for mathematical expressions. DO NOT include any answers, solutions, or answer keys in the question paper response; this is strictly an examination paper for students to attempt.`;
+            queryContext = `Act as an expert examiner. Generate only questions and instructions. Never output answer keys or solutions.`;
         } else {
             queryContext = queryType === 'code'
                 ? 'You are a programming expert. Provide code examples with explanations.'
@@ -1575,6 +1578,9 @@ app.get('/health', (req, res) => {
 // Mount NeoBranium Multimodal Live AI session router
 app.use('/api', sessionRouter);
 
+// Mount NeoBranium Question Paper & Answer Sheet Evaluation router
+app.use('/api/paper', paperRouter);
+
 // Convenient route alias for NeoBranium Live AI page
 app.get(['/neobot', '/neobot/'], (req, res) => {
     res.sendFile(path.join(__dirname, 'NeoBot', 'index.html'));
@@ -1952,6 +1958,7 @@ app.use((req, res, next) => {
         pathLower.startsWith('/js/') || 
         pathLower.startsWith('/htmls/') || 
         pathLower.startsWith('/ai-board/') ||
+        pathLower.startsWith('/neoboard/') ||
         pathLower.startsWith('/blog/') ||
         pathLower.startsWith('/screenshot_images/')) {
         return next();
