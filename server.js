@@ -233,9 +233,14 @@ const geminiApiKey = process.env.GEMINI_API_KEY;
 const GEMINI_ROUTINE_MODEL = getRoutineTextModel();
 const GEMINI_VISION_MODEL = getVisionModel();
 const HANDWRITING_MODEL = getHandwritingModel();
-const HANDWRITING_FALLBACK_MODELS = HANDWRITING_MODEL === 'gemini-3.8-flash' ? ['gemini-3.6-flash'] : ['gemini-3.8-flash'];
+// Handwriting is multimodal. Step down through the other supported Flash
+// models when the selected Gemini model is temporarily overloaded.
+const HANDWRITING_FALLBACK_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite']
+    .filter(model => model !== HANDWRITING_MODEL);
 const handwritingInFlight = new Set();
-const handwritingRateLimit = rateLimit({windowMs:15*60*1000,max:8,standardHeaders:true,legacyHeaders:false,keyGenerator:req=>req.uid||req.ip,message:{error:'Too many handwriting recognition requests. Try again later.',code:'RATE_LIMITED'}});
+// These routes share the daily UID quota; allow a reasonable burst for board
+// selections while still capping rapid retries across recognition and analysis.
+const handwritingRateLimit = rateLimit({windowMs:15*60*1000,max:20,standardHeaders:true,legacyHeaders:false,keyGenerator:req=>req.uid||req.ip,message:{error:'NeoBoard AI is receiving requests too quickly. Please wait a few minutes and try again.',code:'RATE_LIMITED'}});
 
 
 // In-memory fallback if Redis is down
@@ -727,10 +732,10 @@ RULES:
 app.post('/api/blackboard/recognize-handwriting', requireAuth, handwritingQuota, handwritingRateLimit, async (req, res) => {
     const uid = req.uid;
     if (handwritingInFlight.has(uid)) return res.status(429).json({error:'A recognition request is already running for this account.',code:'REQUEST_IN_PROGRESS'});
-    if (!process.env.GEMINI_API_KEY) return res.status(503).json({error:'Handwriting recognition is not configured. Add GEMINI_API_KEY to the server environment.',code:'GEMINI_NOT_CONFIGURED'});
+    if (!process.env.GEMINI_API_KEY && !groqApiKey) return res.status(503).json({error:'NeoBoard AI is not configured on the server.',code:'AI_NOT_CONFIGURED'});
     handwritingInFlight.add(uid);
     try {
-        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS});
+        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS,fallbackApiKey:groqApiKey,fallbackModel:GROQ_MODEL,fallbackVisionModel:process.env.GROQ_VISION_MODEL||'qwen/qwen3.8-27b'});
         res.json({success:true,result});
     } catch (error) {
         const status = [400,413,415,429,502,503,504].includes(error.status) ? error.status : 502;
@@ -741,11 +746,11 @@ app.post('/api/blackboard/recognize-handwriting', requireAuth, handwritingQuota,
 app.post('/api/blackboard/analyze-selection', requireAuth, handwritingQuota, handwritingRateLimit, async (req, res) => {
     const uid = req.uid;
     if (handwritingInFlight.has(uid)) return res.status(429).json({error:'A learning request is already running for this account.',code:'REQUEST_IN_PROGRESS'});
-    if (!process.env.GEMINI_API_KEY) return res.status(503).json({error:'Gemini learning analysis is not configured. Add GEMINI_API_KEY to the server environment.',code:'GEMINI_NOT_CONFIGURED'});
+    if (!process.env.GEMINI_API_KEY && !groqApiKey) return res.status(503).json({error:'NeoBoard AI is not configured on the server.',code:'AI_NOT_CONFIGURED'});
     handwritingInFlight.add(uid);
     try {
         validateSelectionMetadata(req.body?.selection);
-        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,selectedText:req.body?.selectedText,subject:req.body?.subject,requestedFormat:req.body?.requestedFormat,customQuestion:req.body?.customQuestion,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS});
+        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,selectedText:req.body?.selectedText,subject:req.body?.subject,requestedFormat:req.body?.requestedFormat,customQuestion:req.body?.customQuestion,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS,fallbackApiKey:groqApiKey,fallbackModel:GROQ_MODEL,fallbackVisionModel:process.env.GROQ_VISION_MODEL||'qwen/qwen3.8-27b'});
         res.json({success:true,result});
     } catch (error) {
         const status = [400,413,415,429,502,503,504].includes(error.status) ? error.status : 502;

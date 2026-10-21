@@ -74,3 +74,58 @@
   .selection-actions { top: 7px; right: 7px; gap: 4px; padding: 4px 5px 4px 7px; font-size: 10px; }
   .selection-actions button { padding: 5px 6px; }
 }
+
+/* Resizable learning workspace */
+.workspace { --learning-width: 320px; grid-template-columns: 58px minmax(0,1fr) 6px var(--learning-width); }
+.panel-resize { cursor: col-resize; position:relative; touch-action:none; z-index:3; }
+.panel-resize::after { content:""; position:absolute; inset:0 2px; border-radius:8px; background:#34463a; }
+.panel-resize:hover::after,.panel-resize:focus-visible::after { background:#b9d49d; }
+.panel-expand { display:none; }
+.future-panel { min-width:250px; }
+.future-panel.expanded { padding:20px 18px; }
+.panel-result { white-space:normal; }
+.panel-result > p { margin:0; white-space:pre-wrap; }
+.visual-card { display:grid; gap:8px; padding:10px; border:1px solid #435748; border-radius:9px; background:#17221c; }
+.visual-card h4 { margin:0; color:#d9e8d2; font-size:12px; }
+.visual-card canvas { width:100%; height:240px; border:1px solid #435748; border-radius:7px; touch-action:none; cursor:grab; }
+.visual-controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; color:#bbc9bc; font-size:11px; }
+.visual-controls input[type=range] { min-width:90px; flex:1; accent-color:#b9d49d; }
+.timeline-list { display:grid; gap:6px; }
+.timeline-list details { border-left:2px solid #b9d49d; padding:5px 8px; background:#202e24; border-radius:0 6px 6px 0; }
+.timeline-list summary { cursor:pointer; color:#d9e8d2; font-size:11px; }
+.timeline-list p { margin:5px 0 0; color:#b9c5b7; font-size:10px; }
+.diagram-flow { display:grid; gap:7px; }
+.diagram-node { padding:8px; text-align:center; color:#e1ecda; background:#2b4030; border:1px solid #667d5d; border-radius:8px; font-size:11px; }
+.diagram-arrow { text-align:center; color:#bddb9a; }
+.panel-result .result-close { justify-self:end; }
+.workspace.panel-collapsed { grid-template-columns:58px minmax(0,1fr) 6px 32px; }
+.workspace.panel-collapsed .panel-resize { display:none; }
+.future-panel { gap:10px; padding:18px 16px; scrollbar-color:#526653 #1b2520; scrollbar-width:thin; }
+.panel-brand { display:flex; align-items:center; gap:10px; padding:2px 0 10px; border-bottom:1px solid #35443a; }
+.panel-brand .panel-icon { width:40px; height:40px; font-size:23px; border-radius:11px; }
+.panel-brand strong,.panel-brand span { display:block; }
+.panel-brand strong { color:#e8efe5; font-size:14px; }
+.panel-brand span { margin-top:2px; color:#b9d49d; font-size:10px; letter-spacing:.04em; }
+.future-panel .panel-copy { color:#aab6ac; font-size:11px; line-height:1.45; }
+.future-panel .panel-copy .selection-panel-summary strong { color:#e2e9e1; font-size:12px; }
+.future-panel .panel-copy .selection-panel-summary span { color:#aab6ac; }
+.handwriting-tools { padding:11px; }
+.handwriting-tools button#analyzeSelection { min-height:38px; background:#bddb9a; color:#1c281e; border-color:#bddb9a; font-size:12px; }
+.handwriting-tools button#analyzeSelection:hover { background:#cde7ad; }
+#learningStatus,#questionStatus { min-height:0; color:#b8c8b6; overflow-wrap:anywhere; }
+#learningStatus:empty,#questionStatus:empty { display:none; }
+#learningResult[hidden],#panelResult[hidden] { display:none; }
+.panel-ai-suggestions { padding:11px; border:1px solid #35443a; border-radius:9px; background:#17221c; }
+.panel-ai-suggestions h3 { color:#d8e5d1; font-size:10px; letter-spacing:.04em; }
+@media(max-width:1000px) { .workspace { --learning-width:290px; gap:9px; padding-inline:10px; } }
+@media(max-width:700px) {
+ .workspace { grid-template-columns:48px minmax(0,1fr) 32px; position:relative; gap:8px; padding:8px; }
+ .panel-resize { display:none; }
+ .future-panel { position:fixed; z-index:8; right:0; top:68px; bottom:0; width:min(92vw,420px); min-width:0; border-radius:13px 0 0 13px; box-shadow:-15px 0 35px #0008; transform:translateX(calc(100% - 32px)); transition:transform .2s ease; }
+ .future-panel::before { content:""; position:absolute; left:0; top:45%; width:16px; height:54px; }
+ .workspace:not(.panel-collapsed) .future-panel { transform:translateX(0); }
+ .future-panel .panel-collapse { left:2px; transform:translateY(-50%) rotate(180deg); }
+ .future-panel .panel-expand { display:none; }
+ .workspace.panel-collapsed { grid-template-columns:48px minmax(0,1fr) 32px; }
+ .workspace.panel-collapsed .future-panel { transform:translateX(calc(100% - 32px)); }
+}
