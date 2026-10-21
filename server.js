@@ -22,7 +22,9 @@ import { boardRateLimit } from './boardMiddleware.js';
 import queueManager from './queueManager.js';
 import { endSession, verifyAuthToken, db, admin, rtdb } from './firebaseAdmin.js';
 import { requireAuth } from './middleware/requireAuth.js';
-import { chatQuota, solverQuota, boardQuota, ttsQuota, liveSessionQuota } from './middleware/quotaByUID.js';
+import { chatQuota, solverQuota, boardQuota, ttsQuota, liveSessionQuota, handwritingQuota } from './middleware/quotaByUID.js';
+import { requestHandwritingRecognition, validateSelectionMetadata } from './NeoBoard/handwriting-recognition.js';
+import { getRoutineTextModel, getVisionModel, getHandwritingModel, getLiveModel, getPaperModel } from './gemini-models.js';
 import { v2 as cloudinary } from 'cloudinary';
 import { createNeoLearnUploadHandler } from './neolearn-upload-handler.js';
 import { createNeoLearnMomentHandlers } from './neolearn-moment-handler.js';
@@ -228,7 +230,12 @@ if (isCloudinaryConfigured()) {
 const groqApiKey = process.env.GROQ_API_KEY;
 const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 const geminiApiKey = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+const GEMINI_ROUTINE_MODEL = getRoutineTextModel();
+const GEMINI_VISION_MODEL = getVisionModel();
+const HANDWRITING_MODEL = getHandwritingModel();
+const HANDWRITING_FALLBACK_MODELS = HANDWRITING_MODEL === 'gemini-3.8-flash' ? ['gemini-3.6-flash'] : ['gemini-3.8-flash'];
+const handwritingInFlight = new Set();
+const handwritingRateLimit = rateLimit({windowMs:15*60*1000,max:8,standardHeaders:true,legacyHeaders:false,keyGenerator:req=>req.uid||req.ip,message:{error:'Too many handwriting recognition requests. Try again later.',code:'RATE_LIMITED'}});
 
 
 // In-memory fallback if Redis is down
@@ -483,7 +490,8 @@ IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and st
 
         let geminiResponse;
         try {
-            geminiResponse = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`, {
+            const textModel = task === 'paper_generation' ? getPaperModel() : GEMINI_ROUTINE_MODEL;
+            geminiResponse = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${textModel}:generateContent?key=${geminiApiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -491,7 +499,7 @@ IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and st
                     contents,
                     generationConfig: {
                         temperature: 0.7,
-                        maxOutputTokens: task === 'paper_generation' ? 8192 : 4096
+                        maxOutputTokens: task === 'paper_generation' ? 6000 : 1600
                     }
                 })
             });
@@ -715,6 +723,36 @@ RULES:
 });
 
 
+// Blackboard handwriting recognition: explicit, authenticated image request.
+app.post('/api/blackboard/recognize-handwriting', requireAuth, handwritingQuota, handwritingRateLimit, async (req, res) => {
+    const uid = req.uid;
+    if (handwritingInFlight.has(uid)) return res.status(429).json({error:'A recognition request is already running for this account.',code:'REQUEST_IN_PROGRESS'});
+    if (!process.env.GEMINI_API_KEY) return res.status(503).json({error:'Handwriting recognition is not configured. Add GEMINI_API_KEY to the server environment.',code:'GEMINI_NOT_CONFIGURED'});
+    handwritingInFlight.add(uid);
+    try {
+        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS});
+        res.json({success:true,result});
+    } catch (error) {
+        const status = [400,413,415,429,502,503,504].includes(error.status) ? error.status : 502;
+        res.status(status).json({error:error.message||'Handwriting recognition failed.',code:error.code||'RECOGNITION_FAILED'});
+    } finally { handwritingInFlight.delete(uid); }
+});
+
+app.post('/api/blackboard/analyze-selection', requireAuth, handwritingQuota, handwritingRateLimit, async (req, res) => {
+    const uid = req.uid;
+    if (handwritingInFlight.has(uid)) return res.status(429).json({error:'A learning request is already running for this account.',code:'REQUEST_IN_PROGRESS'});
+    if (!process.env.GEMINI_API_KEY) return res.status(503).json({error:'Gemini learning analysis is not configured. Add GEMINI_API_KEY to the server environment.',code:'GEMINI_NOT_CONFIGURED'});
+    handwritingInFlight.add(uid);
+    try {
+        validateSelectionMetadata(req.body?.selection);
+        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,selectedText:req.body?.selectedText,subject:req.body?.subject,requestedFormat:req.body?.requestedFormat,customQuestion:req.body?.customQuestion,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS});
+        res.json({success:true,result});
+    } catch (error) {
+        const status = [400,413,415,429,502,503,504].includes(error.status) ? error.status : 502;
+        res.status(status).json({error:error.message||'Gemini learning analysis failed.',code:error.code||'ANALYSIS_FAILED'});
+    } finally { handwritingInFlight.delete(uid); }
+});
+
 // Gemini Image Solving API — requires Firebase auth + UID-keyed daily quota
 app.post('/api/gemini-solve', requireAuth, solverQuota, async (req, res) => {
     try {
@@ -737,7 +775,7 @@ app.post('/api/gemini-solve', requireAuth, solverQuota, async (req, res) => {
 
         let response;
         try {
-            response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
+            response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_VISION_MODEL}:generateContent?key=${geminiApiKey}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -753,7 +791,8 @@ app.post('/api/gemini-solve', requireAuth, solverQuota, async (req, res) => {
                                 }
                             }
                         ]
-                    }]
+                    }],
+                    generationConfig: { maxOutputTokens: 1800, temperature: 0.2 }
                 })
             });
         } catch (fetchError) {
@@ -848,7 +887,7 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
         let geminiResponse;
         try {
             geminiResponse = await fetchWithRetry(
-                `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/${base64 ? GEMINI_VISION_MODEL : GEMINI_ROUTINE_MODEL}:generateContent?key=${geminiApiKey}`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -866,7 +905,7 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
                         }],
                         generationConfig: {
                             temperature: 0.6,
-                            maxOutputTokens: 4096
+                            maxOutputTokens: 1800
                         }
                     })
                 }
@@ -1014,13 +1053,13 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
         let geminiResponse;
         try {
             geminiResponse = await fetchWithRetry(
-                `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${geminiApiKey}`,
+                `https://generativelanguage.googleapis.com/v1beta/models/${base64 ? GEMINI_VISION_MODEL : GEMINI_ROUTINE_MODEL}:generateContent?key=${geminiApiKey}`,
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{ parts }],
-                        generationConfig: { temperature: 0.6, maxOutputTokens: 4096 }
+                        generationConfig: { temperature: 0.6, maxOutputTokens: 1600 }
                     })
                 }
             );
@@ -1232,7 +1271,7 @@ Explanation Guidelines:
 
         let response;
         try {
-            response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
+            response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_VISION_MODEL}:generateContent?key=${geminiApiKey}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1248,7 +1287,8 @@ Explanation Guidelines:
                                 }
                             }
                         ]
-                    }]
+                    }],
+                    generationConfig: { maxOutputTokens: 1000, temperature: 0.2 }
                 })
             });
         } catch (fetchError) {
@@ -1555,7 +1595,7 @@ const getHealthPayload = () => ({
     service: 'neobranium-backend',
     uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
-    model: process.env.GEMINI_MODEL || 'gemini-3.8-live',
+    model: getLiveModel(),
     voice: process.env.GEMINI_VOICE || 'Puck',
     robotName: process.env.ROBOT_NAME || 'NeoBranium AI',
     hasApiKey: Boolean(
@@ -2152,4 +2192,13 @@ server.listen(PORT, () => {
     console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔑 Groq Model: ${GROQ_MODEL}`);
     console.log(`🤖 NeoBranium Multimodal Live AI: Active on /api/session-token & /ws/live`);
+});
+server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${PORT} is already in use. Stop the existing process or start this server on another port, for example: PORT=3001 node server.js`);
+        process.exitCode = 1;
+        return;
+    }
+    console.error('❌ Server failed to start:', error.message);
+    process.exitCode = 1;
 });

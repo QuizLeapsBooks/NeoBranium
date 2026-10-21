@@ -51,6 +51,24 @@
 .panel-context-actions .selection-panel-summary strong { font-size: 13px; }
 .panel-context-actions .selection-panel-summary span { color: #aab6ac; font-size: 10px; line-height: 1.45; }
 .future-panel .panel-collapse:disabled { opacity: .55; }
+.recognition-override { display:grid; gap:5px; color:#aab6ac; font-size:10px; }
+.recognition-override select { width:100%; border:1px solid #435448; border-radius:7px; background:#26342b; color:#e7eee4; padding:7px; font:inherit; }
+.panel-selection-text { max-height:96px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; color:#d4dfd4; font-size:11px; line-height:1.45; padding:8px; border:1px solid #34433a; border-radius:8px; background:#17211b; }
+.panel-result { display:grid; gap:7px; padding:10px; border:1px solid #71835f; border-radius:9px; background:#26362b; color:#e5eddf; font-size:11px; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; }
+.panel-result button { justify-self:start; border:1px solid #64755a; border-radius:6px; background:#394b3b; color:#edf3e8; padding:6px 8px; cursor:pointer; }
+.panel-ai-suggestions { display:grid; gap:5px; border-top:1px solid #35443a; padding-top:9px; color:#aab6ac; font-size:10px; }
+.panel-ai-suggestions h3 { margin:0; font-size:9px; text-transform:uppercase; letter-spacing:.09em; color:#aebcae; }
+.handwriting-tools { display:grid; gap:7px; padding:9px; border:1px solid #405243; border-radius:9px; background:#17221c; color:#aab6ac; font-size:10px; line-height:1.4; }
+.handwriting-tools[hidden] { display:none; }
+.handwriting-tools button { border:1px solid #687c5b; border-radius:7px; background:#344636; color:#e5efdf; padding:8px; font:inherit; font-weight:600; cursor:pointer; }
+.handwriting-tools button:disabled { opacity:.65; cursor:wait; }
+.handwriting-tools label { display:grid; gap:4px; color:#c4d1c5; }
+.handwriting-tools input,.handwriting-tools select,.handwriting-tools textarea,.recognition-override select,.recognition-override input { width:100%; min-width:0; border:1px solid #435448; border-radius:6px; background:#26342b; color:#f0f4ee; padding:7px; font:inherit; }
+.handwriting-tools textarea { resize:vertical; }
+.recognition-override { display:grid; gap:5px; color:#c4d1c5; font-size:10px; }
+.recognition-override[hidden] { display:none; }
+#handwritingStatus { overflow-wrap:anywhere; }
+#handwritingStatus:empty { display:none; }
 
 @media (max-width: 580px) {
   .selection-actions { top: 7px; right: 7px; gap: 4px; padding: 4px 5px 4px 7px; font-size: 10px; }

@@ -28,6 +28,7 @@ import {
   EXAM_MODES,
   getEvaluationRules
 } from '../js/paper-syllabus-data.js';
+import { getPaperModel, getVisionModel } from '../gemini-models.js';
 import {
   validateAnswerSheetPages,
   sanitizePaperPromptInput,
@@ -63,15 +64,11 @@ const modelAnswerLimiter = rateLimit({
 
 // Helper for Gemini fetch
 async function callGeminiAPI(payload, apiKey, modelOverride) {
-  const model = modelOverride || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const model = modelOverride || getPaperModel();
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-  // Ensure thinkingConfig: { thinkingBudget: 0 } is applied for fast, direct JSON generation
-  // so thinking tokens do not deplete the output token allowance and cause truncation.
+  // Do not apply legacy Gemini 2.5 thinking settings to the selected models.
   payload.generationConfig = payload.generationConfig || {};
-  if (!payload.generationConfig.thinkingConfig && (model.includes('2.5') || model.includes('gemini-2.5'))) {
-    payload.generationConfig.thinkingConfig = { thinkingBudget: 0 };
-  }
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), Number(process.env.PAPER_AI_TIMEOUT_MS) || 60000);
@@ -363,7 +360,7 @@ Return strictly a valid JSON object matching this schema:
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.6,
-        maxOutputTokens: 8192,
+        maxOutputTokens: 6000,
         responseMimeType: 'application/json'
       }
     }, geminiApiKey);
@@ -598,10 +595,10 @@ Return your evaluation strictly in the following JSON format:
       contents: [{ role: 'user', parts: contentsParts }],
       generationConfig: {
         temperature: 0.2, // Low temperature for consistent grading
-        maxOutputTokens: 8192,
+        maxOutputTokens: 5000,
         responseMimeType: 'application/json'
       }
-    }, geminiApiKey);
+    }, geminiApiKey, getVisionModel());
 
     let parsedResult;
     try {
@@ -717,7 +714,7 @@ Return your response strictly in the following JSON format:
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.3,
-        maxOutputTokens: 8192,
+        maxOutputTokens: 5000,
         responseMimeType: 'application/json'
       }
     }, geminiApiKey);

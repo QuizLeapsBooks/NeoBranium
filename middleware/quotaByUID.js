@@ -90,6 +90,13 @@ export const solverQuota = createQuotaMiddleware({
   dailyLimit: parseInt(process.env.QUOTA_SOLVER_DAILY || '15', 10)
 });
 
+// Blackboard handwriting recognition: strict UID-backed quota, fail closed.
+export const handwritingQuota = createQuotaMiddleware({
+  category: 'blackboard_handwriting',
+  dailyLimit: parseInt(process.env.QUOTA_HANDWRITING_DAILY || '20', 10),
+  failOpen: false
+});
+
 // /api/analyze-board, /api/rephrase-board, /api/chat-stream — AI Board (expensive)
 export const boardQuota = createQuotaMiddleware({
   category: 'board',

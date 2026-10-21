@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { getRobotPersonality } from '../config/robot-personality.js';
 import { requireAuth } from '../../../middleware/requireAuth.js';
 import { liveSessionQuota } from '../../../middleware/quotaByUID.js';
+import { getLiveModel } from '../../../gemini-models.js';
 
 export const sessionRouter = Router();
 
@@ -16,9 +17,7 @@ sessionRouter.post('/session-token', requireAuth, liveSessionQuota, async (req, 
   const apiKey = process.env.GEMINI_API_KEY;
 
   // Resolve model — ensure Live API compatibility (bidiGenerateContent requires a live model)
-  const rawModel = (process.env.GEMINI_MODEL || '').trim();
-  const DEFAULT_LIVE_MODEL = 'gemini-3.8-live';
-  const model = (rawModel && rawModel.includes('live') && rawModel !== 'your_model_here') ? rawModel : DEFAULT_LIVE_MODEL;
+  const model = getLiveModel();
 
   const voice = process.env.GEMINI_VOICE || 'Puck';
   const robotName = process.env.ROBOT_NAME || 'NeoBranium AI';

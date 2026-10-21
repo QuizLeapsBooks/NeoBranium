@@ -4,6 +4,7 @@ import http from 'http';
 import dotenv from 'dotenv';
 import { sessionRouter } from './backend/routes/session.js';
 import { setupWebSocketProxy } from './backend/routes/proxy.js';
+import { getLiveModel } from '../gemini-models.js';
 
 // Load environment variables from .env
 dotenv.config();
@@ -63,7 +64,7 @@ app.get('/health', (req, res) => {
     service: 'neobranium-backend',
     uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString(),
-    model: process.env.GEMINI_MODEL || 'gemini-3.8-live',
+    model: getLiveModel(),
     voice: process.env.GEMINI_VOICE || 'Puck',
     robotName: process.env.ROBOT_NAME || 'NeoBranium AI',
     hasApiKey: Boolean(

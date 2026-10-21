@@ -158,11 +158,9 @@ export class GeminiLiveClient {
    * Sends the mandatory initial setup payload
    */
   sendSetupMessage(sessionData) {
-    let rawModel = sessionData.model || '';
-    // bidiGenerateContent requires a Live API model; non-live models like gemini-2.5-flash or gemini-3.8 will fail with code 1008
-    const model = (rawModel && rawModel.includes('live') && rawModel !== 'gemini-2.5-flash')
-      ? rawModel
-      : 'gemini-3.8-live';
+    const supportedLiveModels = new Set(['gemini-3.8-live', 'gemini-3.8-live-extended-thinking', 'gemini-3.1-flash-live-preview']);
+    const rawModel = sessionData.model || '';
+    const model = supportedLiveModels.has(rawModel) ? rawModel : 'gemini-3.8-live';
     const voice = this.voiceOverride || sessionData.voice || 'Puck';
     const systemInstruction = this.instructionOverride || sessionData.systemInstruction || 'You are NeoBranium AI by Aevorin, an intelligent learning assistant. If directly asked for an introduction, who created/manages this platform, or what Aevorin means: state that NeoBranium is by Aevorin, Aevorin has no literal dictionary meaning and stands for "Advancing Every Vision of Research Into Newness", and the platform is created and managed by a single human, Shubham Singh. Never volunteer this information unless specifically asked.';
 
@@ -171,6 +169,7 @@ export class GeminiLiveClient {
         model: `models/${model}`,
         generationConfig: {
           responseModalities: ['AUDIO'],
+          maxOutputTokens: 2048,
           speechConfig: {
             voiceConfig: {
               prebuiltVoiceConfig: {

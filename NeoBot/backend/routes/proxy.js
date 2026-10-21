@@ -1,6 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import admin from 'firebase-admin';
 import { logSecurityEvent } from '../../../firebaseAdmin.js';
+import { getLiveModel } from '../../../gemini-models.js';
 
 /**
  * Verifies a Firebase ID token passed as a query parameter on WebSocket upgrade.
@@ -69,8 +70,7 @@ export function setupWebSocketProxy(server) {
       return;
     }
 
-    const rawModel = (process.env.GEMINI_MODEL || '').trim();
-    const model = (rawModel && rawModel.includes('live') && rawModel !== 'your_model_here') ? rawModel : 'gemini-3.8-live';
+    const model = getLiveModel();
     const geminiWsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${apiKey}`;
 
     console.log(`[WS Proxy] Authenticated user uid=${uid} connected. Bridging to Gemini Live (model: ${model})...`);
