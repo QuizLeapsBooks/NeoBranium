@@ -56,9 +56,22 @@
 .panel-selection-text { max-height:96px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere; color:#d4dfd4; font-size:11px; line-height:1.45; padding:8px; border:1px solid #34433a; border-radius:8px; background:#17211b; }
 .panel-result { display:grid; gap:7px; padding:10px; border:1px solid #71835f; border-radius:9px; background:#26362b; color:#e5eddf; font-size:11px; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; }
 .panel-result button { justify-self:start; border:1px solid #64755a; border-radius:6px; background:#394b3b; color:#edf3e8; padding:6px 8px; cursor:pointer; }
+.learning-archive { display:grid; gap:4px; }
+.learning-archive-controls { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:7px; }
+.learning-archive-controls label { display:grid; gap:5px; min-width:0; color:#aab6ac; font-size:10px; }
+.learning-archive-controls select,.learning-archive-controls button { min-width:0; border:1px solid #435448; border-radius:7px; background:#26342b; color:#e5eddf; padding:8px; font:inherit; }
+.learning-archive-controls button { cursor:pointer; white-space:nowrap; background:#344636; }
+.learning-archive-controls button:hover { background:#405641; }
+.learning-archive #learningArchiveStatus { color:#aab6ac; font-size:10px; }
+.learning-archive #learningArchiveStatus:empty { display:none; }
 .panel-ai-suggestions { display:grid; gap:5px; border-top:1px solid #35443a; padding-top:9px; color:#aab6ac; font-size:10px; }
 .panel-ai-suggestions h3 { margin:0; font-size:9px; text-transform:uppercase; letter-spacing:.09em; color:#aebcae; }
 .handwriting-tools { display:grid; gap:7px; padding:9px; border:1px solid #405243; border-radius:9px; background:#17221c; color:#aab6ac; font-size:10px; line-height:1.4; }
+.compound-tools { display:grid; gap:7px; padding-top:8px; border-top:1px solid #35443a; }
+.compound-tools[hidden] { display:none; }
+.compound-tools label { display:grid; gap:5px; color:#c4d1c5; }
+.compound-tools select,.compound-tools button { width:100%; border:1px solid #435448; border-radius:6px; background:#26342b; color:#f0f4ee; padding:8px; font:inherit; }
+.compound-tools button { cursor:pointer; background:#3b513d; border-color:#778e67; font-weight:600; }
 .handwriting-tools[hidden] { display:none; }
 .handwriting-tools button { border:1px solid #687c5b; border-radius:7px; background:#344636; color:#e5efdf; padding:8px; font:inherit; font-weight:600; cursor:pointer; }
 .handwriting-tools button:disabled { opacity:.65; cursor:wait; }
@@ -95,6 +108,14 @@
 .timeline-list summary { cursor:pointer; color:#d9e8d2; font-size:11px; }
 .timeline-list p { margin:5px 0 0; color:#b9c5b7; font-size:10px; }
 .diagram-flow { display:grid; gap:7px; }
+.molecule-stage { position:relative; min-height:190px; display:grid; place-items:center; overflow:hidden; border-radius:8px; background:radial-gradient(ellipse at center,#26372b,#17221c 72%); }
+.molecule-stage > svg { position:absolute; inset:0; width:100%; height:100%; }
+.molecule-atoms { position:absolute; inset:0; z-index:1; }
+.molecule-atom { display:grid; place-items:center; min-width:48px; min-height:48px; padding:6px; border:2px solid #b9d49d; border-radius:50%; background:#304333; color:#eef5e8; font-size:12px; font-weight:700; box-shadow:0 0 16px #a9e6b455; }
+.molecule-atom { position:absolute; transform:translate(-50%,-50%); }
+.learning-data-table { width:100%; border-collapse:collapse; color:#d6e4d3; font-size:11px; }
+.learning-data-table th,.learning-data-table td { padding:6px; border:1px solid #435748; text-align:left; vertical-align:top; }
+.learning-data-table th { color:#bee09a; background:#202e24; }
 .diagram-node { padding:8px; text-align:center; color:#e1ecda; background:#2b4030; border:1px solid #667d5d; border-radius:8px; font-size:11px; }
 .diagram-arrow { text-align:center; color:#bddb9a; }
 .panel-result .result-close { justify-self:end; }
