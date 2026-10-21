@@ -124,7 +124,7 @@ const SEARCH_INDEX = [
   // --- AI Tools & Features ---
   { title: "NeoBot Live Multimodal AI", url: "/NeoBot/index.html", category: "AI Tools", icon: "🤖", excerpt: "Real-time voice and live camera vision learning tutor powered by Google Gemini Multimodal Live API." },
   { title: "NeoLens AI Doubt Solver", url: "/htmls/doubt/index.html", category: "AI Tools", icon: "📸", excerpt: "Upload or snap question images for instant step-by-step solutions, follow-ups, and auto quizzes." },
-  { title: "AI Board Smart Whiteboard", url: "/ai-board/ai-board.html", category: "AI Tools", icon: "🎨", excerpt: "Infinite interactive creative canvas for sketching math diagrams, geometry, formulas, and visual notes." },
+  { title: "NeoBoard Smart Whiteboard", url: "/NeoBoard/board.html", category: "AI Tools", icon: "🎨", excerpt: "Interactive learning canvas for sketching math diagrams, geometry, formulas, and visual notes." },
   { title: "Question Paper Generator AI", url: "/htmls/question-paper_generator-ai/ai-generate.html", category: "AI Tools", icon: "📝", excerpt: "Create customized CBSE mock exam question papers with full solutions and marking schemes." },
   { title: "NeoLearn Peer Community", url: "/htmls/neolearn/index.html", category: "Community", icon: "👥", excerpt: "Connect with classmates, share study moments, follow student profiles, and learn together." },
   { title: "Peer Chat Messenger", url: "/htmls/chat/chat_app.html", category: "Community", icon: "💬", excerpt: "Real-time student chat and collaborative peer learning." }
