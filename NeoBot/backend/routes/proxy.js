@@ -26,12 +26,34 @@ async function verifyWsToken(token) {
  * Enables fallback real-time streaming if ephemeral tokens are restricted or unsupported.
  */
 export function setupWebSocketProxy(server) {
-  const wss = new WebSocketServer({ noServer: true });
+  const wss = new WebSocketServer({ noServer: true, maxPayload: 1024 * 1024 });
+  const allowedOrigins = new Set([
+    'https://neobranium.web.app', 'https://neobranium.firebaseapp.com',
+    'https://neobranium.com', 'https://www.neobranium.com',
+    'https://neo-branium.vercel.app', 'https://neobranium.vercel.app',
+    ...((process.env.ALLOWED_ORIGINS || '').split(',').map(value => value.trim()).filter(Boolean))
+  ]);
+  const activeByUid = new Map();
+  const maxConnectionsPerUid = Number(process.env.LIVE_WS_MAX_CONNECTIONS_PER_UID) || 2;
 
   server.on('upgrade', async (request, socket, head) => {
-    const { pathname, searchParams } = new URL(request.url, `http://${request.headers.host}`);
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(request.url, 'http://localhost');
+    } catch {
+      socket.destroy();
+      return;
+    }
+    const { pathname, searchParams } = parsedUrl;
 
     if (pathname !== '/ws/live') {
+      socket.destroy();
+      return;
+    }
+
+    const origin = request.headers.origin;
+    if (!origin || !allowedOrigins.has(origin)) {
+      socket.write('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');
       socket.destroy();
       return;
     }
@@ -53,11 +75,33 @@ export function setupWebSocketProxy(server) {
       return;
     }
 
+    const activeCount = activeByUid.get(decoded.uid) || 0;
+    if (activeCount >= maxConnectionsPerUid) {
+      socket.write('HTTP/1.1 429 Too Many Requests\r\nConnection: close\r\n\r\n');
+      socket.destroy();
+      return;
+    }
+    activeByUid.set(decoded.uid, activeCount + 1);
+    let reservationReleased = false;
+    const releaseReservation = () => {
+      if (reservationReleased) return;
+      reservationReleased = true;
+      const remaining = Math.max(0, (activeByUid.get(decoded.uid) || 1) - 1);
+      if (remaining) activeByUid.set(decoded.uid, remaining);
+      else activeByUid.delete(decoded.uid);
+    };
+
     // Token verified — proceed with WebSocket upgrade
-    wss.handleUpgrade(request, socket, head, (clientWs) => {
-      clientWs._uid = decoded.uid;  // Attach verified UID for logging
-      wss.emit('connection', clientWs, request);
-    });
+    try {
+      wss.handleUpgrade(request, socket, head, (clientWs) => {
+        clientWs._uid = decoded.uid;  // Attach verified UID for logging
+        clientWs.once('close', releaseReservation);
+        wss.emit('connection', clientWs, request);
+      });
+    } catch (upgradeError) {
+      releaseReservation();
+      socket.destroy();
+    }
   });
 
   wss.on('connection', (clientWs, request) => {
@@ -78,12 +122,15 @@ export function setupWebSocketProxy(server) {
 
     // Queue messages sent by client before Gemini connection is open
     const clientMessageQueue = [];
+    let queuedBytes = 0;
     let cleaned = false; // Guard against double-cleanup race condition
 
     geminiWs.on('open', () => {
       console.log('[WS Proxy] Connected to Gemini Live API. Flushing queued messages...');
       while (clientMessageQueue.length > 0 && geminiWs.readyState === WebSocket.OPEN) {
-        geminiWs.send(clientMessageQueue.shift());
+        const queued = clientMessageQueue.shift();
+        queuedBytes -= queued.length;
+        geminiWs.send(queued);
       }
     });
 
@@ -92,7 +139,13 @@ export function setupWebSocketProxy(server) {
       if (geminiWs.readyState === WebSocket.OPEN) {
         geminiWs.send(data, { binary: isBinary });
       } else if (geminiWs.readyState === WebSocket.CONNECTING) {
+        if (queuedBytes + data.length > 2 * 1024 * 1024) {
+          clientWs.close(1009, 'Message queue limit exceeded');
+          cleanup();
+          return;
+        }
         clientMessageQueue.push(data);
+        queuedBytes += data.length;
       }
     });
 

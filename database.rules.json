@@ -18,7 +18,7 @@
           ],
           "$commentId": {
             ".write": "auth != null && ((!data.exists() && newData.child('userId').val() === auth.uid) || (data.child('userId').val() === auth.uid && !newData.exists()))",
-            ".validate": "newData.hasChildren(['userId', 'text', 'createdAt']) && newData.child('userId').val() === auth.uid && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 500 && !newData.child('text').val().matches(/.*<script.*/) && newData.child('createdAt').isNumber()"
+            ".validate": "newData.hasChildren(['userId', 'text', 'createdAt']) && newData.child('userId').val() === auth.uid && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 500 && newData.child('createdAt').isNumber() && newData.child('createdAt').val() <= now && newData.child('createdAt').val() >= now - 2592000000"
           }
         }
       },
@@ -26,7 +26,7 @@
         "$userId": {
           ".read": "auth != null",
           ".write": "auth != null && auth.uid === $userId",
-          ".validate": "newData.hasChildren(['state', 'last_changed']) && newData.child('state').isString() && newData.child('last_changed').isNumber()"
+          ".validate": "newData.hasChildren(['state', 'last_changed']) && newData.child('state').isString() && (newData.child('state').val() === 'online' || newData.child('state').val() === 'offline') && newData.child('last_changed').isNumber() && newData.child('last_changed').val() <= now + 60000 && newData.child('last_changed').val() >= now - 2592000000"
         }
       }
     },
@@ -74,8 +74,8 @@
         "timestamp"
       ],
       "$messageId": {
-        ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && data.child('uid').val() === auth.uid && (!newData.exists() || (newData.child('deleted').val() === true && newData.child('uid').val() === data.child('uid').val()))) || (data.exists() && newData.child('reported').val() === true && newData.child('uid').val() === data.child('uid').val() && newData.child('text').val() === data.child('text').val()))",
-        ".validate": "newData.hasChildren(['uid', 'username', 'text', 'timestamp']) && newData.child('uid').isString() && newData.child('username').isString() && newData.child('username').val().length > 0 && newData.child('username').val().length <= 100 && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 2000 && newData.child('timestamp').isNumber() && (!newData.hasChild('reported') || newData.child('reported').isBoolean()) && (!newData.hasChild('deleted') || newData.child('deleted').isBoolean())"
+        ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && data.child('uid').val() === auth.uid && (!newData.exists() || (newData.child('deleted').val() === true && newData.child('uid').val() === data.child('uid').val()))) || (data.exists() && newData.child('reported').val() === true && newData.child('uid').val() === data.child('uid').val() && newData.child('text').val() === data.child('text').val() && newData.child('username').val() === data.child('username').val() && newData.child('timestamp').val() === data.child('timestamp').val() && newData.child('deleted').val() === data.child('deleted').val()))",
+        ".validate": "newData.hasChildren(['uid', 'username', 'text', 'timestamp']) && newData.child('uid').isString() && newData.child('username').isString() && newData.child('username').val().length > 0 && newData.child('username').val().length <= 100 && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 2000 && newData.child('timestamp').isNumber() && newData.child('timestamp').val() <= now && newData.child('timestamp').val() >= now - 2592000000 && (!newData.hasChild('reported') || newData.child('reported').isBoolean()) && (!newData.hasChild('deleted') || newData.child('deleted').isBoolean()) && (!data.exists() || newData.child('uid').val() === data.child('uid').val())"
       }
     },
     "reactions": {
@@ -83,7 +83,7 @@
         ".read": "auth != null",
         "$userId": {
           ".write": "auth != null && auth.uid === $userId",
-          ".validate": "newData.hasChildren(['emoji', 'timestamp']) && newData.child('emoji').isString() && newData.child('emoji').val().length <= 10 && newData.child('timestamp').isNumber()"
+          ".validate": "newData.hasChildren(['emoji', 'timestamp']) && newData.child('emoji').isString() && newData.child('emoji').val().length > 0 && newData.child('emoji').val().length <= 10 && newData.child('timestamp').isNumber() && newData.child('timestamp').val() <= now && newData.child('timestamp').val() >= now - 2592000000"
         }
       }
     },

@@ -195,7 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const revealContent = (element, html) => {
         element.classList.remove('reveal-active');
         element.style.opacity = '0';
-        element.innerHTML = html;
+        element.innerHTML = DOMPurify.sanitize(html, {
+            ALLOWED_TAGS: ['p', 'strong', 'em', 'br', 'span', 'i', 'ul', 'li', 'ol'],
+            ALLOWED_ATTR: ['style']
+        });
 
         setTimeout(() => {
             element.classList.add('reveal-active');
@@ -561,8 +564,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Image preview: use a neutral icon placeholder instead of a remote URL.
                 // The actual image (if saved) is retrieved from IndexedDB when the item is opened.
-                html += `
-                    <div class="history-item" data-id="${docId}" style="cursor: pointer;">
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.dataset.id = docId;
+                item.style.cursor = 'pointer';
+                item.innerHTML = `
                         <div class="history-item-icon" style="
                             display:flex; align-items:center; justify-content:center;
                             width:60px; height:60px; flex-shrink:0;
@@ -572,13 +578,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             <i class="fa-solid fa-image"></i>
                         </div>
                         <div class="history-item-content">
-                            <span class="history-item-date">${date}</span>
-                            <div class="history-item-text">${snippet}</div>
+                            <span class="history-item-date"></span>
+                            <div class="history-item-text"></div>
                         </div>
-                    </div>
                 `;
+                item.querySelector('.history-item-date').textContent = date;
+                item.querySelector('.history-item-text').textContent = snippet;
+                listEl.appendChild(item);
             });
-            listEl.innerHTML = html;
 
             const historyItems = listEl.querySelectorAll('.history-item');
             historyItems.forEach(item => {
@@ -590,7 +597,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (error) {
             console.error("Error loading history:", error);
-            listEl.innerHTML = '<p style="text-align:center; color: var(--error); padding: 40px;">Connection Failure: ' + error.message + '</p>';
+            listEl.textContent = 'Connection Failure: Unable to load saved sessions.';
         }
     }
 
@@ -749,7 +756,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const userMsgDiv = document.createElement('div');
         userMsgDiv.style.marginBottom = '15px';
-        userMsgDiv.innerHTML = `<strong style="color:var(--primary)">Q:</strong> ${userDoubt}`;
+        const questionLabel = document.createElement('strong');
+        questionLabel.style.color = 'var(--primary)';
+        questionLabel.textContent = 'Q: ';
+        userMsgDiv.append(questionLabel, document.createTextNode(userDoubt));
         followUpContent.appendChild(userMsgDiv);
 
         isFollowUpLoading = true;

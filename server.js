@@ -41,7 +41,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.set('trust proxy', 1);
+// This service runs behind a single trusted hosting proxy in production.
+// Keep the hop count aligned with the Render deployment topology.
+app.set('trust proxy', process.env.TRUST_PROXY_HOPS ? Number(process.env.TRUST_PROXY_HOPS) : 1);
 
 // Redis client for session storage
 const redisClient = createClient({
@@ -167,7 +169,10 @@ const isAllowedOrigin = (origin) => {
 // which sends a proper 403. Using a custom origin callback that returns false
 // causes the cors library to call next(undefined) and crash the request chain.
 app.use(cors({
-    origin: true,
+    origin(origin, callback) {
+        if (!origin || isAllowedOrigin(origin)) return callback(null, true);
+        return callback(null, false);
+    },
     credentials: true
 }));
 
@@ -1715,7 +1720,7 @@ app.get('/api/board-queue-status', async (req, res) => {
 });
 
 // Profile Photo Upload Endpoint (Cloudinary + Firestore)
-app.post('/api/profile/upload-photo', async (req, res) => {
+app.post('/api/profile/upload-photo', express.json({ limit: '7mb' }), async (req, res) => {
     try {
         let decodedToken;
         try {
@@ -1741,31 +1746,43 @@ app.post('/api/profile/upload-photo', async (req, res) => {
             return res.status(400).json({ success: false, error: 'Missing image payload' });
         }
 
-        const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
-        let detectedMime = (mimeType || '').toLowerCase();
-        if (!detectedMime && image.startsWith('data:')) {
-            const match = image.match(/^data:([^;]+);base64,/);
-            if (match) detectedMime = match[1].toLowerCase();
-        }
-
-        if (!detectedMime || !allowedMimeTypes.includes(detectedMime)) {
+        const match = image.match(/^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/]+={0,2})$/i);
+        const declaredMime = typeof mimeType === 'string' ? mimeType.toLowerCase() : '';
+        if (!match || (declaredMime && declaredMime !== match[1].toLowerCase())) {
             return res.status(400).json({
                 success: false,
                 error: 'Invalid or unsupported image format. Supported formats: JPEG, PNG, WebP, GIF.'
             });
         }
 
-        const base64Data = image.includes(';base64,') ? image.split(';base64,')[1] : image;
-        const approximateSizeBytes = (base64Data.length * 3) / 4;
+        const detectedMime = match[1].toLowerCase();
+        const base64Data = match[2];
+        if (base64Data.length % 4 !== 0) {
+            return res.status(400).json({ success: false, error: 'Invalid image encoding.' });
+        }
+        const imageBuffer = Buffer.from(base64Data, 'base64');
+        if (imageBuffer.toString('base64') !== base64Data) {
+            return res.status(400).json({ success: false, error: 'Invalid image encoding.' });
+        }
         const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
-        if (approximateSizeBytes > MAX_SIZE_BYTES) {
+        if (imageBuffer.length === 0 || imageBuffer.length > MAX_SIZE_BYTES) {
             return res.status(400).json({
                 success: false,
                 error: 'Image file size exceeds the 5MB limit.'
             });
         }
 
-        const dataUri = image.startsWith('data:') ? image : `data:${detectedMime};base64,${base64Data}`;
+        const signatures = {
+            'image/jpeg': imageBuffer.length >= 3 && imageBuffer[0] === 0xff && imageBuffer[1] === 0xd8 && imageBuffer[2] === 0xff,
+            'image/png': imageBuffer.length >= 8 && imageBuffer.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])),
+            'image/gif': imageBuffer.length >= 6 && ['GIF87a', 'GIF89a'].includes(imageBuffer.toString('ascii', 0, 6)),
+            'image/webp': imageBuffer.length >= 12 && imageBuffer.toString('ascii', 0, 4) === 'RIFF' && imageBuffer.toString('ascii', 8, 12) === 'WEBP'
+        };
+        if (!signatures[detectedMime]) {
+            return res.status(400).json({ success: false, error: 'Image data does not match its declared format.' });
+        }
+
+        const dataUri = `data:${detectedMime};base64,${base64Data}`;
 
         const uploadResult = await cloudinary.uploader.upload(dataUri, {
             folder: `neobranium/users/${userId}/profile`,
@@ -1799,10 +1816,10 @@ app.post('/api/profile/upload-photo', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error in /api/profile/upload-photo:', error);
+        console.error('Error in /api/profile/upload-photo:', error.message);
         return res.status(500).json({
             success: false,
-            error: error.message || 'Failed to upload profile photo'
+            error: 'Failed to upload profile photo'
         });
     }
 });
