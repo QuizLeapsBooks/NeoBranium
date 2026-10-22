@@ -61,15 +61,17 @@ export class AudioManager {
     await this.ensureAudioContext();
 
     // Request microphone access
-    this.mediaStream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        channelCount: 1,
-        sampleRate: { ideal: CONFIG.AUDIO_INPUT_SAMPLE_RATE },
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true
-      }
-    });
+    if (!this.mediaStream) {
+      this.mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: 1,
+          sampleRate: { ideal: CONFIG.AUDIO_INPUT_SAMPLE_RATE },
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+    }
 
     const hardwareSampleRate = this.audioContext.sampleRate;
     this.audioSourceNode = this.audioContext.createMediaStreamSource(this.mediaStream);

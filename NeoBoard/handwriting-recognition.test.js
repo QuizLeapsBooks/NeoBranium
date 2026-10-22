@@ -63,11 +63,23 @@ test('Gemini overload falls back to the compatible documented Flash model',async
 });
 
 test('missing provider key, malformed response and provider quota fail clearly',async()=>{
-  await assert.rejects(requestHandwritingRecognition({imageBase64:pngHeader()}),{code:'GEMINI_NOT_CONFIGURED'});
+  await assert.rejects(requestHandwritingRecognition({imageBase64:pngHeader()}),{code:'AI_NOT_CONFIGURED'});
   const badJson=async()=>({ok:true,json:async()=>({candidates:[{content:{parts:[{text:'not json'}]}}]})});
   await assert.rejects(requestHandwritingRecognition({imageBase64:pngHeader(),apiKey:'x',fetchImpl:badJson}),{code:'INVALID_PROVIDER_RESPONSE'});
   const limited=async()=>({ok:false,status:429});
   await assert.rejects(requestHandwritingRecognition({imageBase64:pngHeader(),apiKey:'x',fetchImpl:limited}),{code:'PROVIDER_QUOTA',status:429});
+});
+
+test('Groq vision fallback limits output size and hides organization details on token quota exhaustion',async()=>{
+  let requestBody;
+  const fetchImpl=async(_url,options)=>{requestBody=JSON.parse(options.body);return{ok:false,status:429,json:async()=>({error:{message:'Rate limit reached for org_private on output tokens per minute'}})};};
+  await assert.rejects(requestHandwritingRecognition({imageBase64:pngHeader(),fallbackApiKey:'backup-secret',fallbackVisionModel:'qwen-vision',fetchImpl}),error=>{
+    assert.equal(error.code,'FALLBACK_RATE_LIMIT');
+    assert.match(error.message,/temporary usage limit/);
+    assert.doesNotMatch(error.message,/org_private|output tokens per minute/);
+    return true;
+  });
+  assert.equal(requestBody.max_tokens,600);
 });
 
 test('response sanitizer clamps confidence and accepts only registered action IDs',()=>{

@@ -20,6 +20,10 @@ export class GeminiLiveClient {
     this._resumptionHandle = null; // tracks latest session resumption handle
     this.voiceOverride = options.voice || null;
     this.instructionOverride = options.systemInstruction || null;
+    this.tokenProvider = options.tokenProvider || null;
+    this.backendUrlOverride = options.backendUrl || null;
+    this.onToolCall = options.onToolCall || (() => {});
+    this.tools = options.tools || [];
 
     // Callbacks
     this.onReady = options.onReady || (() => {});
@@ -36,12 +40,14 @@ export class GeminiLiveClient {
    * Requires a valid Firebase ID token via window._getNBIdToken (set by NeoBot auth gate).
    */
   async connect() {
-    const backendUrl = CONFIG.getBackendUrl();
+    const backendUrl = this.backendUrlOverride || CONFIG.getBackendUrl();
 
     // 0. Obtain Firebase ID token (set by NeoBot auth gate script in index.html)
     let idToken = null;
     try {
-      if (typeof window._getNBIdToken === 'function') {
+      if (this.tokenProvider) {
+        idToken = await this.tokenProvider();
+      } else if (typeof window._getNBIdToken === 'function') {
         idToken = await window._getNBIdToken();
       }
     } catch (tokenErr) {
@@ -178,9 +184,12 @@ export class GeminiLiveClient {
             }
           }
         },
+        inputAudioTranscription: {},
+        outputAudioTranscription: {},
         systemInstruction: {
           parts: [{ text: systemInstruction }]
-        }
+        },
+        ...(this.tools.length ? { tools: [{ functionDeclarations: this.tools }] } : {})
       }
     };
 
@@ -192,6 +201,14 @@ export class GeminiLiveClient {
    * Handles incoming server messages
    */
   handleIncomingMessage(message) {
+    if (message.toolCall?.functionCalls?.length) {
+      Promise.resolve(this.onToolCall(message.toolCall.functionCalls)).then((responses) => {
+        if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify({ toolResponse: { functionResponses: responses } }));
+      }).catch((error) => {
+        if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify({ toolResponse: { functionResponses: message.toolCall.functionCalls.map(call => ({ id: call.id, name: call.name, response: { ok: false, error: String(error.message || 'Action failed').slice(0, 180) } })) } }));
+      });
+      return;
+    }
     // 1. Setup Complete → resolve the connect() Promise and fire onReady
     if (message.setupComplete) {
       console.log('✅ Gemini Live Setup Complete. Ready for real-time interaction.');
@@ -351,6 +368,16 @@ export class GeminiLiveClient {
       console.warn('[GeminiLiveClient] Error sending text message:', err);
       return false;
     }
+  }
+
+  sendContextUpdate(text) {
+    if (!this.isConnected || !this.isSetupComplete || !this.ws) return false;
+    const cleanText = (text || '').trim();
+    if (!cleanText) return false;
+    try {
+      this.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: cleanText }] }], turnComplete: false } }));
+      return true;
+    } catch { return false; }
   }
 
   /**
