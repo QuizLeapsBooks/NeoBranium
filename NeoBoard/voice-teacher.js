@@ -27,7 +27,23 @@ export class VoiceTeacher {
     if (this.busy || this.client) return;
     this.busy = true; const generation = ++this.generation; this.update('Connecting…');
     try {
-      if (!this.auth.currentUser) throw new Error('Sign in to start a voice lesson.');
+      const user = this.auth.currentUser || await new Promise(resolve => {
+        let settled = false, unsubscribe = () => {};
+        import('https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js').then(({ onAuthStateChanged }) => {
+          unsubscribe = onAuthStateChanged(this.auth, currentUser => {
+            if (settled) return;
+            settled = true;
+            unsubscribe();
+            resolve(currentUser);
+          }, () => {
+            if (settled) return;
+            settled = true;
+            unsubscribe();
+            resolve(null);
+          });
+        }).catch(() => resolve(null));
+      });
+      if (!user) throw new Error('Sign in to start a voice lesson.');
       if (!navigator.mediaDevices?.getUserMedia) throw new Error('Microphone access requires HTTPS and a supported browser.');
       this.documentId = this.context.snapshot().documentId;
       const ctx = this.formatContext();
@@ -38,7 +54,7 @@ export class VoiceTeacher {
       if (generation !== this.generation) { stream.getTracks().forEach(track => track.stop()); return; }
       this.audio.mediaStream = stream;
       this.client = new GeminiLiveClient({
-        tokenProvider: () => this.auth.currentUser?.getIdToken(),
+        tokenProvider: () => this.auth.currentUser?.getIdToken() || user.getIdToken(),
         systemInstruction: `${teacherGuidance}\n\nCURRENT BOARD CONTEXT (JSON): ${ctx}`,
         tools: [declaration],
         onReady: () => this.update('Listening'),
