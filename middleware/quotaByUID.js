@@ -81,13 +81,15 @@ export function createQuotaMiddleware({ category, dailyLimit, failOpen = true })
 // /api/chat — general NeoBot chat (configurable via env)
 export const chatQuota = createQuotaMiddleware({
   category: 'chat',
-  dailyLimit: parseInt(process.env.QUOTA_CHAT_DAILY || '50', 10)
+  dailyLimit: parseInt(process.env.QUOTA_CHAT_DAILY || '50', 10),
+  failOpen: false
 });
 
 // /api/gemini-solve, /api/tutor/* — image solving and quiz generation
 export const solverQuota = createQuotaMiddleware({
   category: 'solver',
-  dailyLimit: parseInt(process.env.QUOTA_SOLVER_DAILY || '15', 10)
+  dailyLimit: parseInt(process.env.QUOTA_SOLVER_DAILY || '15', 10),
+  failOpen: false
 });
 
 // Blackboard handwriting recognition: strict UID-backed quota, fail closed.
@@ -100,19 +102,22 @@ export const handwritingQuota = createQuotaMiddleware({
 // /api/analyze-board, /api/rephrase-board, /api/chat-stream — AI Board (expensive)
 export const boardQuota = createQuotaMiddleware({
   category: 'board',
-  dailyLimit: parseInt(process.env.QUOTA_BOARD_DAILY || '30', 10)
+  dailyLimit: parseInt(process.env.QUOTA_BOARD_DAILY || '30', 10),
+  failOpen: false
 });
 
 // /api/tts — Text-to-Speech
 export const ttsQuota = createQuotaMiddleware({
   category: 'tts',
-  dailyLimit: parseInt(process.env.QUOTA_TTS_DAILY || '60', 10)
+  dailyLimit: parseInt(process.env.QUOTA_TTS_DAILY || '60', 10),
+  failOpen: false
 });
 
 // /api/session-token — NeoBot Live AI ephemeral tokens
 export const liveSessionQuota = createQuotaMiddleware({
   category: 'live_session',
-  dailyLimit: parseInt(process.env.QUOTA_LIVE_DAILY || '5', 10)
+  dailyLimit: parseInt(process.env.QUOTA_LIVE_DAILY || '5', 10),
+  failOpen: false
 });
 
 // /api/paper/generate — Exam paper generator

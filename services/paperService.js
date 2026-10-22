@@ -115,14 +115,10 @@ export async function getPaperRecord(paperId, requesterUid, clientSessionId = nu
   // 1. Exact UID match (Firebase UID or matching guest identifier)
   const isDirectOwner = record.ownerUid === requesterUid;
   // 2. Client session header match (same browser client across cross-origin ports / tabs)
-  const isMatchingSession = Boolean(clientSessionId && record.clientSessionId && record.clientSessionId === clientSessionId);
-  // 3. Guest IP match (same device IP hash when either paper owner or requester is in guest mode)
-  const isMatchingGuestIp = Boolean(
-    (record.ownerUid?.startsWith('guest:') || requesterUid?.startsWith('guest:')) &&
-    ipHash &&
-    record.ipHash &&
-    record.ipHash === ipHash
-  );
+  // Guest requesterUid is derived from a verified signed token by paperAuth.
+  // Client session headers and IP equality alone are not ownership proof.
+  const isMatchingSession = Boolean(clientSessionId && record.clientSessionId && record.clientSessionId === clientSessionId && record.ownerUid === requesterUid);
+  const isMatchingGuestIp = false;
 
   if (!isDirectOwner && !isMatchingSession && !isMatchingGuestIp) {
     const authErr = new Error('Access denied: You do not have permission to view or evaluate this paper.');
@@ -132,14 +128,6 @@ export async function getPaperRecord(paperId, requesterUid, clientSessionId = nu
   }
 
   // Gracefully upgrade paper ownership to authenticated user if created as a guest on same session/device
-  if (record.ownerUid?.startsWith('guest:') && requesterUid && !requesterUid.startsWith('guest:') && (isMatchingSession || isMatchingGuestIp)) {
-    record.ownerUid = requesterUid;
-    memoryPaperStore.set(paperId, record);
-    if (db) {
-      db.collection('exam_papers').doc(paperId).update({ ownerUid: requesterUid }).catch(() => {});
-    }
-  }
-
   return record;
 }
 

@@ -33,6 +33,8 @@ let loadingEarlierMessages = false;
 let nextPeersCursor = null;
 let loadingMorePeers = false;
 let hiddenConversations = new Map();
+const pendingReadReceipts = new Map();
+let presenceUnsubscribe = null;
 
 function hiddenConversationsStorageKey(userId) {
   return `neolearn_hidden_chats_${userId}`;
@@ -115,17 +117,29 @@ function refreshUnreadMessageCount() {
   updateMessageBadges(unread);
 }
 
-async function markIncomingMessagesRead(peerId) {
+function markIncomingMessagesRead(peerId) {
+  const pending = pendingReadReceipts.get(peerId);
+  if (pending) return pending;
   const uid = auth.currentUser?.uid;
-  if (!uid || !peerId) return;
+  if (!uid || !peerId) return Promise.resolve();
   const messages = Object.fromEntries(mergeConversationMessages(
     olderMessagePages.get(peerId) || {},
     conversationSnapshots.get(peerId) || {}
   ));
   const unreadEntries = Object.entries(messages).filter(([, message]) => message?.senderId && message.senderId !== uid && !message.readByRecipient);
-  if (!unreadEntries.length) return;
-  await messageApiRequest('/api/neolearn/messages/seen', { targetUserId: peerId, messageIds: unreadEntries.map(e => e[0]) });
+  if (!unreadEntries.length) return Promise.resolve();
+  const request = messageApiRequest('/api/neolearn/messages/seen', { targetUserId: peerId, messageIds: unreadEntries.map(e => e[0]) });
+  pendingReadReceipts.set(peerId, request);
+  return request.finally(() => {
+    if (pendingReadReceipts.get(peerId) === request) pendingReadReceipts.delete(peerId);
+  });
+}
 
+function reportReadReceiptFailure(peerId, error) {
+  console.warn('[NeoLearn Messages] Read receipt update failed:', error?.message || error);
+  if (activePeer?.userId === peerId) {
+    showError('Messages loaded, but read status could not be updated.');
+  }
 }
 
 function subscribeToPeerUnreadMessages(user, peer) {
@@ -150,7 +164,7 @@ function subscribeToPeerUnreadMessages(user, peer) {
     refreshUnreadMessageCount();
     if (activePeer?.userId === peer.userId) {
       renderMessages(peer.userId, snapshot);
-      markIncomingMessagesRead(peer.userId);
+      markIncomingMessagesRead(peer.userId).catch((error) => reportReadReceiptFailure(peer.userId, error));
     }
     renderPeers();
   }, (error) => {
@@ -304,7 +318,6 @@ function renderMessages(peerId, snapshot, { preserveScroll = false } = {}) {
   threadList.scrollTop = preserveScroll
     ? previousScrollTop + threadList.scrollHeight - previousScrollHeight
     : threadList.scrollHeight;
-  if (activePeer) markIncomingMessagesRead(activePeer.userId);
   threadLoading.hidden = true;
   threadList.hidden = false;
 }
@@ -344,6 +357,10 @@ function subscribeToPeerPresence(peer) {
             if (headerDiv) headerDiv.appendChild(statusEl);
         }
         statusEl.textContent = statusText;
+    }, (error) => {
+        console.warn('[NeoLearn Messages] Presence listener error:', error?.message || error);
+        const statusEl = document.getElementById('messageThreadPresence');
+        if (statusEl) statusEl.textContent = peer.showLastSeen ? 'Status unavailable' : '';
     });
 }
 
@@ -390,7 +407,7 @@ async function selectPeer(peer) {
   try {
     const existing = conversationSnapshots.get(peer.userId);
     if (existing) renderMessages(peer.userId, { val: () => existing });
-    await markIncomingMessagesRead(peer.userId);
+    markIncomingMessagesRead(peer.userId).catch((error) => reportReadReceiptFailure(peer.userId, error));
     if (generation !== conversationGeneration || activePeer?.userId !== peer.userId) return;
   } catch (err) {
     if (generation !== conversationGeneration) return;
@@ -528,12 +545,12 @@ composer.addEventListener('submit', async (event) => {
 });
 
 async function initialize() {
-  setupPresence(auth.currentUser);
   try {
     const user = auth.currentUser || await new Promise((resolve) => {
       const unsubscribe = auth.onAuthStateChanged((current) => { unsubscribe(); resolve(current); });
     });
     if (!user) return;
+    setupPresence(user);
     const page = await getNeoLearnPeersPage(user, null, 'learning');
     peers = page.peers;
     nextPeersCursor = page.nextCursor;
@@ -560,12 +577,15 @@ async function initialize() {
 
 initialize();
 
-window.addEventListener('beforeunload', cleanupConversationSnapshots);
+window.addEventListener('beforeunload', () => {
+  cleanupConversationSnapshots();
+  peerPresenceUnsubscribe?.();
+  presenceUnsubscribe?.();
+});
 
 
 
 
-let presenceUnsubscribe = null;
 function setupPresence(user) {
   if (!user) return;
   const userStatusDatabaseRef = ref(rtdb, `/neolearn_realtime/presence/` + user.uid);
@@ -579,11 +599,12 @@ function setupPresence(user) {
   };
 
   const connectedRef = ref(rtdb, '.info/connected');
-  onValue(connectedRef, (snap) => {
+  presenceUnsubscribe?.();
+  presenceUnsubscribe = onValue(connectedRef, (snap) => {
       if (snap.val() === true) {
-          onDisconnect(userStatusDatabaseRef).set(isOfflineForDatabase).then(() => {
-              set(userStatusDatabaseRef, isOnlineForDatabase);
-          });
+          onDisconnect(userStatusDatabaseRef).set(isOfflineForDatabase)
+              .then(() => set(userStatusDatabaseRef, isOnlineForDatabase))
+              .catch((error) => console.warn('[NeoLearn Messages] Presence write failed:', error?.message || error));
       }
-  });
+  }, (error) => console.warn('[NeoLearn Messages] Connection listener failed:', error?.message || error));
 }

@@ -125,13 +125,17 @@ const themeToggleIcon = document.getElementById('themeToggleIcon');
 // ─────────────────────────────────────────────────────────────────────────────
 // API Configuration
 // ─────────────────────────────────────────────────────────────────────────────
-function getClientSessionId() {
-  let sid = sessionStorage.getItem('nb_paper_session_id');
-  if (!sid) {
-    sid = 'cs_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
-    sessionStorage.setItem('nb_paper_session_id', sid);
-  }
-  return sid;
+let guestOwnershipToken = null;
+let guestOwnershipExpiresAt = 0;
+
+async function getGuestOwnershipToken(baseUrl) {
+  if (guestOwnershipToken && Date.now() < guestOwnershipExpiresAt - 60_000) return guestOwnershipToken;
+  const response = await fetch(`${baseUrl}/api/paper/guest-session`, { method: 'POST', credentials: 'include' });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || !result.guestOwnershipToken) throw new Error(result.error || 'Could not start a secure guest paper session.');
+  guestOwnershipToken = result.guestOwnershipToken;
+  guestOwnershipExpiresAt = Date.now() + Number(result.expiresInSeconds || 0) * 1000;
+  return guestOwnershipToken;
 }
 
 function getApiBaseUrl() {
@@ -146,8 +150,7 @@ async function makeApiRequest(endpoint, payload) {
   const url = `${baseUrl}${endpoint}`;
 
   const headers = {
-    'Content-Type': 'application/json',
-    'X-Client-Session-Id': getClientSessionId()
+    'Content-Type': 'application/json'
   };
 
   try {
@@ -157,6 +160,10 @@ async function makeApiRequest(endpoint, payload) {
     }
   } catch (tErr) {
     console.warn('[PaperGenerator] Token retrieval skipped:', tErr);
+  }
+
+  if (!headers.Authorization) {
+    headers['X-Guest-Ownership-Token'] = await getGuestOwnershipToken(baseUrl);
   }
 
   const response = await fetch(url, {

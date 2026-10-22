@@ -82,7 +82,7 @@ export function createNeoLearnMessageHandlers({ verifyAuthToken, db, rtdb }) {
         if (!db || !rtdb) return res.status(503).json({ success: false, error: 'NeoLearn data is unavailable.' });
 
         const { targetUserId, messageIds } = req.body || {};
-        if (!validUserId(targetUserId) || targetUserId === viewerId || !Array.isArray(messageIds) || !messageIds.length) {
+        if (!validUserId(targetUserId) || targetUserId === viewerId || !Array.isArray(messageIds) || !messageIds.length || messageIds.length > 100 || messageIds.some(id => typeof id !== 'string' || !id || id.length > 128 || id.includes('/') || id.includes('.'))) {
             return res.status(400).json({ success: false, error: 'Invalid read receipt data.' });
         }
 
@@ -96,19 +96,16 @@ export function createNeoLearnMessageHandlers({ verifyAuthToken, db, rtdb }) {
             }
 
             const [firstId, secondId] = [viewerId, targetUserId].sort();
+            const messagesRef = rtdb.ref(`neolearn_direct_messages/${firstId}/${secondId}/messages`);
+            const snapshots = await Promise.all(messageIds.map(id => messagesRef.child(id).get()));
             const updates = {};
-            
-            for (const msgId of messageIds) {
-                if (typeof msgId === 'string' && msgId.length < 100) {
-                    // Only update if we are the recipient. We do this by checking the senderId?
-                    // RTDB admin SDK allows raw writes. We'll verify recipient client-side, but it's safe 
-                    // enough since it only sets readByRecipient = true.
-                    updates[`${msgId}/readByRecipient`] = true;
-                }
-            }
-            
-            if (Object.keys(updates).length > 0) {
-                await rtdb.ref(`neolearn_direct_messages/${firstId}/${secondId}/messages`).update(updates);
+            snapshots.forEach((snapshot, index) => {
+                const message = snapshot.val();
+                if (!snapshot.exists() || !message || message.senderId !== targetUserId) return;
+                updates[`${messageIds[index]}/readByRecipient`] = true;
+            });
+            if (Object.keys(updates).length) {
+                await messagesRef.update(updates);
             }
 
             return res.json({ success: true });

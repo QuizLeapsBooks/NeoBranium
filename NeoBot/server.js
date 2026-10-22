@@ -11,7 +11,11 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
+const configuredOrigin = process.env.ALLOWED_ORIGIN;
+const isProduction = process.env.NODE_ENV === 'production';
+const allowedOrigin = (isProduction && configuredOrigin === '*')
+  ? 'https://neobranium.web.app,https://neobranium.firebaseapp.com,https://neobranium.com,https://www.neobranium.com'
+  : configuredOrigin || 'https://neobranium.web.app,https://neobranium.firebaseapp.com,https://neobranium.com,https://www.neobranium.com';
 
 // Build the set of allowed origins (always includes self)
 const buildAllowedOrigins = (envValue, selfUrl) => {

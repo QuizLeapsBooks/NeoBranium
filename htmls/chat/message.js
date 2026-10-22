@@ -70,10 +70,19 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// Keep one RTDB subscription per visible message and release subscriptions
+// when chat.js replaces the message list after a realtime update.
+const reactionListeners = new Map();
+
 // Update reactions display
 const updateReactions = (messageId, reactionsDiv) => {
+    const current = reactionListeners.get(messageId);
+    if (current?.element === reactionsDiv) return;
+    current?.unsubscribe?.();
+
     const reactionsRef = ref(db, `reactions/${messageId}`);
-    onValue(reactionsRef, (snapshot) => {
+    const entry = { element: reactionsDiv, unsubscribe: null };
+    entry.unsubscribe = onValue(reactionsRef, (snapshot) => {
         const reactions = snapshot.val();
         if (reactions) {
             const reactionCounts = { '👍': 0, '👎': 0, '😄': 0 };
@@ -87,7 +96,15 @@ const updateReactions = (messageId, reactionsDiv) => {
         } else {
             reactionsDiv.innerHTML = '';
         }
+    }, (error) => {
+        console.error(`Error loading reactions for ${messageId}:`, error);
+        reactionsDiv.textContent = 'Reactions unavailable.';
+        if (reactionListeners.get(messageId) === entry) {
+            reactionListeners.delete(messageId);
+            delete reactionsDiv.dataset.initialized;
+        }
     });
+    reactionListeners.set(messageId, entry);
 };
 
 // Initialize reaction pickers and listeners
@@ -95,10 +112,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageList = document.getElementById('message-list');
     // Watch for changes in message list to add reaction pickers
     const observer = new MutationObserver(() => {
+        const visibleElements = new Map(Array.from(document.querySelectorAll('.message'))
+            .map(message => [message.querySelector('.menu-btn')?.dataset.messageId, message.querySelector('.reactions')])
+            .filter(([messageId, reactionsDiv]) => messageId && reactionsDiv));
+
+        for (const [messageId, entry] of reactionListeners) {
+            if (visibleElements.get(messageId) !== entry.element) {
+                entry.unsubscribe?.();
+                reactionListeners.delete(messageId);
+            }
+        }
+
         document.querySelectorAll('.message').forEach(message => {
-            const messageId = message.querySelector('.menu-btn').dataset.messageId;
+            const messageId = message.querySelector('.menu-btn')?.dataset.messageId;
             let reactionsDiv = message.querySelector('.reactions');
-            if (!reactionsDiv.dataset.initialized) {
+            if (messageId && reactionsDiv && !reactionsDiv.dataset.initialized) {
                 // Add reaction picker
                 const picker = document.createElement('div');
                 picker.className = 'reaction-picker hidden absolute left-0 bottom-[-40px] bg-gray-800 border border-indigo-500/30 rounded-lg shadow-lg z-10 flex gap-2 p-2';

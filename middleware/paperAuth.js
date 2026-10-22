@@ -4,28 +4,35 @@
  * Authentication & session resolution middleware for NeoBranium Paper Generator:
  * - If Authorization Bearer token is provided: verifies via Firebase Admin SDK.
  * - Attaches req.uid (verified Firebase UID).
- * - If no token is provided: permits safe, limited guest mode keyed by secure session/IP.
- *   Prioritizes X-Client-Session-Id header over ephemeral cross-origin cookies.
+ * - Guest access requires a short-lived server-signed ownership token bound to the client IP.
  * - Enforces strict ownership checks on paper IDs and evaluations.
  * - Prevents arbitrary cross-user access to papers or evaluation records.
  */
 
 import crypto from 'crypto';
+import { verifyGuestOwnershipToken, signGuestOwnershipToken } from '../utils/guestOwnership.js';
 import { verifyAuthToken, logSecurityEvent } from '../firebaseAdmin.js';
+
+export { issueGuestOwnershipToken };
+
+function issueGuestOwnershipToken(ipHash) {
+  const sid = crypto.randomBytes(24).toString('base64url');
+  return { token: signGuestOwnershipToken({ sid, ipHash }), sid };
+}
+
+export function getPaperIpHash(req) {
+  let rawIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+  if (rawIp.startsWith('::ffff:')) rawIp = rawIp.substring(7);
+  if (rawIp === '::1' || rawIp === 'localhost') rawIp = '127.0.0.1';
+  return crypto.createHash('sha256').update(rawIp + (process.env.SESSION_SECRET || 'neobranium_guest')).digest('hex').slice(0, 16);
+}
 
 export async function paperAuth(req, res, next) {
   const authHeader = req.headers?.authorization;
-  const clientSessionHeader = req.headers['x-client-session-id'];
-  let rawIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
-  if (rawIp.startsWith('::ffff:')) {
-    rawIp = rawIp.substring(7);
-  }
-  if (rawIp === '::1' || rawIp === 'localhost') {
-    rawIp = '127.0.0.1';
-  }
-  const ipHash = crypto.createHash('sha256').update(rawIp + (process.env.SESSION_SECRET || 'neobranium_guest')).digest('hex').slice(0, 16);
+  const ipHash = getPaperIpHash(req);
 
-  req.clientSessionId = clientSessionHeader || null;
+  // Browser-generated session IDs are never accepted as ownership credentials.
+  req.clientSessionId = null;
   req.ipHash = ipHash;
 
   // 1. Authenticated user path
@@ -51,12 +58,18 @@ export async function paperAuth(req, res, next) {
     }
   }
 
-  // 2. Safe Guest User path
-  // Prioritize persistent client session header over ephemeral cross-origin cookies
-  const sessionId = clientSessionHeader || (req.session?.id && req.cookies?.['connect.sid'] ? req.session.id : null);
-  const guestIdentifier = sessionId ? `guest:s_${sessionId}` : `guest:ip_${ipHash}`;
-
-  req.uid = guestIdentifier;
+  // 2. Guest path: require a short-lived signed token issued by this server.
+  const guestToken = req.headers['x-guest-ownership-token'];
+  if (typeof guestToken !== 'string' || !guestToken) {
+    return res.status(401).json({ success: false, error: 'A valid guest session is required. Start a new guest session.' });
+  }
+  try {
+    const claims = verifyGuestOwnershipToken(guestToken, ipHash);
+    req.uid = `guest:${claims.sid}`;
+    req.clientSessionId = claims.sid;
+  } catch {
+    return res.status(401).json({ success: false, error: 'Guest session expired or invalid. Start a new guest session.' });
+  }
   req.isGuest = true;
   next();
 }

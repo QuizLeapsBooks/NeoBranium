@@ -6,8 +6,9 @@ import queueManager from './queueManager.js';
  */
 export const boardRateLimit = async (req, res, next) => {
   // 1. Get userId
-  const userId = req.session?.id;
+  const userId = req.uid;
   if (!userId) return res.status(403).json({ error: 'No session' });
+  if (req.session) req.session.firebaseUid = userId;
 
   // 2. QUEUE CHECK
   const queueResult = queueManager.tryJoin(userId);
@@ -25,6 +26,11 @@ export const boardRateLimit = async (req, res, next) => {
   try {
     // 3. FIREBASE RATE LIMIT CHECK
     const usage = await checkAndTrackUsage(userId);
+
+    if (usage.unavailable) {
+      queueManager.leave(userId);
+      return res.status(503).json({ error: 'AI usage service is unavailable. Please try again later.' });
+    }
     
     if (!usage.allowed) {
       queueManager.leave(userId);

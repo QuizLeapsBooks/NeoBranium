@@ -44,6 +44,12 @@ service cloud.firestore {
 
       // Allow create of own document — but block privileged fields
       allow create: if isOwner(userId)
+        && request.resource.data.keys().hasOnly([
+          'fname', 'lname', 'username', 'bio', 'phone', 'email', 'photoURL',
+          'profilePhotoUrl', 'notificationPref', 'messagePrivacy', 'readReceipts',
+          'thoughtOfTheDay', 'thoughtOfTheDayExpiresAt', 'thoughtOfTheDayCreatedAt',
+          'showLastSeen', 'createdAt', 'updatedAt'
+        ])
         && !('role' in request.resource.data)
         && !('isAdmin' in request.resource.data)
         && !('isBanned' in request.resource.data)
@@ -54,13 +60,27 @@ service cloud.firestore {
 
       // Allow update of own document — but block privileged fields from being changed
       allow update: if isOwner(userId)
-        && !('role' in request.resource.data)
-        && !('isAdmin' in request.resource.data)
-        && !('isBanned' in request.resource.data)
-        && !('subscription' in request.resource.data)
-        && !('score' in request.resource.data)
-        && !('highScore' in request.resource.data)
-        && !('rank' in request.resource.data);
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'fname', 'lname', 'username', 'bio', 'phone', 'email', 'photoURL',
+          'profilePhotoUrl', 'notificationPref', 'messagePrivacy', 'readReceipts',
+          'thoughtOfTheDay', 'thoughtOfTheDayExpiresAt', 'thoughtOfTheDayCreatedAt',
+          'showLastSeen', 'updatedAt'
+        ])
+        && (!('fname' in request.resource.data) || (request.resource.data.fname is string && request.resource.data.fname.size() <= 100))
+        && (!('lname' in request.resource.data) || (request.resource.data.lname is string && request.resource.data.lname.size() <= 100))
+        && (!('username' in request.resource.data) || (request.resource.data.username is string && request.resource.data.username.size() <= 100))
+        && (!('bio' in request.resource.data) || (request.resource.data.bio is string && request.resource.data.bio.size() <= 1000))
+        && (!('phone' in request.resource.data) || (request.resource.data.phone is string && request.resource.data.phone.size() <= 32))
+        && (!('email' in request.resource.data) || (request.resource.data.email is string && request.resource.data.email.size() <= 320))
+        && (!('photoURL' in request.resource.data) || (request.resource.data.photoURL is string && request.resource.data.photoURL.size() <= 2048))
+        && (!('profilePhotoUrl' in request.resource.data) || (request.resource.data.profilePhotoUrl is string && request.resource.data.profilePhotoUrl.size() <= 2048))
+        && (!('notificationPref' in request.resource.data) || request.resource.data.notificationPref in ['all', 'important', 'none'])
+        && (!('messagePrivacy' in request.resource.data) || request.resource.data.messagePrivacy in ['everyone', 'learning_only', 'none'])
+        && (!('readReceipts' in request.resource.data) || request.resource.data.readReceipts is bool)
+        && (!('thoughtOfTheDay' in request.resource.data) || (request.resource.data.thoughtOfTheDay is string && request.resource.data.thoughtOfTheDay.size() <= 280))
+        && (!('thoughtOfTheDayExpiresAt' in request.resource.data) || request.resource.data.thoughtOfTheDayExpiresAt is timestamp)
+        && (!('thoughtOfTheDayCreatedAt' in request.resource.data) || request.resource.data.thoughtOfTheDayCreatedAt is timestamp)
+        && (!('showLastSeen' in request.resource.data) || request.resource.data.showLastSeen is bool);
 
       // No direct client deletes of root profile
       allow delete: if false;

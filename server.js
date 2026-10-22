@@ -34,6 +34,7 @@ import { createNeoLearnNotificationHandlers } from './neolearn-notification-hand
 import { createNeoLearnModerationHandlers } from './neolearn-moderation-handler.js';
 import { createNeoLearnMessageHandlers } from './neolearn-message-handler.js';
 import { createNeoLearnImpressionHandlers } from './neolearn-impression-handler.js';
+import { validateAIImage } from './utils/paperSecurity.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -98,10 +99,9 @@ const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 50, // Stricter limit: 50 requests per 15 minutes
     message: { reply: 'Too many requests, please try again later.' },
-    keyGenerator: (req) => {
-        // Limit by session ID if available, otherwise fallback to IP
-        return req.session?.id || req.ip;
-    }
+    // IP-based baseline; identity-specific AI quotas are enforced separately.
+    standardHeaders: true,
+    legacyHeaders: false
 });
 app.use('/api/', limiter);
 
@@ -199,9 +199,18 @@ const strictOriginCheck = (req, res, next) => {
 
 app.use(strictOriginCheck);
 
-// Answer-sheet images are base64 encoded in JSON. Keep the parser ceiling above
-// the validated 16 MB binary batch cap, accounting for base64 expansion.
-app.use(express.json({ limit: '24mb' }));
+// Keep large JSON bodies limited to the one endpoint that accepts multi-page
+// answer sheets. Smaller AI image endpoints use a base64-aware limit.
+app.use((req, res, next) => {
+    const routePath = req.path;
+    const paperEvaluation = routePath === '/api/paper/upload-evaluate';
+    const imageAI = [
+        '/api/gemini-solve', '/api/tutor/create-quiz', '/api/analyze-board',
+        '/api/blackboard/recognize-handwriting', '/api/blackboard/analyze-selection'
+    ].includes(routePath);
+    const limit = paperEvaluation ? '24mb' : imageAI ? '8mb' : '1mb';
+    return express.json({ limit })(req, res, next);
+});
 
 // Cloudinary configuration (credentials loaded strictly from server-side environment variables)
 const isCloudinaryConfigured = () => {
@@ -773,10 +782,9 @@ app.post('/api/gemini-solve', requireAuth, solverQuota, async (req, res) => {
             return res.status(400).json({ success: false, error: 'Missing image data or mimeType' });
         }
 
-        // 🛡️ Strip data URI prefix
-        if (base64.startsWith('data:')) {
-            base64 = base64.split(',')[1];
-        }
+        const validatedImage = validateAIImage(base64, mimeType);
+        base64 = validatedImage.cleanBase64;
+        mimeType = validatedImage.verifiedMimeType;
 
         let response;
         try {
@@ -848,10 +856,9 @@ app.post('/api/tutor/create-quiz', requireAuth, solverQuota, async (req, res) =>
             return res.status(400).json({ success: false, error: 'Missing image data.' });
         }
 
-        // Strip data URI prefix if present
-        if (base64.startsWith('data:')) {
-            base64 = base64.split(',')[1];
-        }
+        const validatedImage = validateAIImage(base64, mimeType);
+        base64 = validatedImage.cleanBase64;
+        mimeType = validatedImage.verifiedMimeType;
 
         // Sanitize the aiSolution context to prevent injection
         const safeContext = typeof aiSolution === 'string'
@@ -1180,10 +1187,9 @@ app.post('/api/analyze-board', requireAuth, boardQuota, boardRateLimit, async (r
             return res.status(400).json({ success: false, error: 'Missing image data' });
         }
 
-        // 🛡️ SECURITY & STABILITY: Strip data URI prefix if present
-        if (base64.startsWith('data:')) {
-            base64 = base64.split(',')[1];
-        }
+        const validatedImage = validateAIImage(base64, mimeType);
+        base64 = validatedImage.cleanBase64;
+        mimeType = validatedImage.verifiedMimeType;
 
         let modeInstruction = "";
         switch (mode) {
@@ -1677,14 +1683,14 @@ app.get('/api/stats', async (req, res) => {
 });
 
 app.post('/api/board-heartbeat', async (req, res) => {
-    const userId = req.session?.id;
+    const userId = req.session?.firebaseUid || req.session?.id;
     if (!userId) return res.status(403).json({ error: 'No session' });
     queueManager.heartbeat(userId);
     res.json({ ok: true });
 });
 
 app.post('/api/board-session-end', async (req, res) => {
-    const userId = req.session?.id;
+    const userId = req.session?.firebaseUid || req.session?.id;
     if (!userId) return res.status(403).json({ error: 'No session' });
     queueManager.leave(userId);
     await endSession(userId).catch(e => console.error(e));
@@ -1693,7 +1699,7 @@ app.post('/api/board-session-end', async (req, res) => {
 
 app.get('/api/board-queue-status', async (req, res) => {
     try {
-        const userId = req.session?.id;
+        const userId = req.session?.firebaseUid || req.session?.id;
         // If no session exists yet, this is a fresh user — grant full access (don't block as "expired")
         if (!userId) {
             return res.json({ sessionData: null });
@@ -2006,6 +2012,10 @@ app.use((req, res, next) => {
         pathLower.startsWith('/neoboard/') ||
         pathLower.startsWith('/blog/') ||
         pathLower.startsWith('/screenshot_images/')) {
+        const ext = path.extname(pathLower);
+        if (['.map', '.md', '.json', '.py', '.cjs', '.mjs'].includes(ext) || pathLower.includes('/node_modules/')) {
+            return res.status(404).json({ error: 'Not found' });
+        }
         return next();
     }
     
@@ -2035,17 +2045,12 @@ const emailRateLimit = rateLimit({
 });
 
 app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
-    // 1. Immediately return success to frontend to optimize UX
-    res.json({ success: true, message: 'Email sending initiated' });
-
-    // 2. Process email in background
     try {
         const authHeader = req.headers.authorization || '';
         const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
         if (!idToken) {
-            console.error('❌ send-verification-email: Unauthorized. No token.');
-            return;
+            return res.status(401).json({ success: false, error: 'Authentication required.' });
         }
 
         const decodedToken = await admin.auth().verifyIdToken(idToken);
@@ -2054,12 +2059,13 @@ app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
 
         if (userRecord.emailVerified) {
             console.log(`ℹ️ Email already verified for ${userRecord.email}`);
-            return;
+            return res.json({ success: true, alreadyVerified: true });
         }
 
         const userEmail = userRecord.email;
-        const fname = req.body.fname || userRecord.displayName?.split(' ')[0] || 'User';
-        const isNewSignup = !!req.body.fname; // fname is only sent during signup, not resend
+        const requestedName = typeof req.body?.fname === 'string' ? req.body.fname.slice(0, 80) : '';
+        const fname = requestedName.replace(/[<>"'&]/g, '') || userRecord.displayName?.split(' ')[0] || 'User';
+        const isNewSignup = Boolean(requestedName);
 
         // ⏳ If this is a fresh signup, wait 4 seconds before generating the link.
         // Firebase internally rate-limits generateEmailVerificationLink right after
@@ -2158,9 +2164,11 @@ app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
         });
 
         console.log(`✅ Verification email sent to ${userEmail}`);
+        return res.json({ success: true, message: 'Verification email sent.' });
 
     } catch (err) {
         console.error('❌ Background email task error:', err.message);
+        if (!res.headersSent) return res.status(500).json({ success: false, error: 'Verification email could not be sent.' });
     }
 });
 
@@ -2181,7 +2189,7 @@ app.use((req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Server Error:', err);
-    res.status(500).json({
+    res.status(err.status === 413 ? 413 : err.type === 'entity.parse.failed' ? 400 : 500).json({
         reply: 'Internal server error. Please try again later.'
     });
 });

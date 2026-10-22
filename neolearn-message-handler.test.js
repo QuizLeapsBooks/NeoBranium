@@ -23,6 +23,18 @@ function createHarness() {
         ref(path) {
             return {
                 async get() { return { val: () => data.get(path) || null }; },
+                child(id) {
+                    const [collectionPath, messageId] = [path, id];
+                    return { async get() { const value = data.get(collectionPath)?.[messageId]; return { exists: () => Boolean(value), val: () => value }; } };
+                },
+                async update(updates) {
+                    const current = data.get(path) || {};
+                    for (const [key, value] of Object.entries(updates)) {
+                        const [messageId, field] = key.split('/');
+                        if (current[messageId]) current[messageId][field] = value;
+                    }
+                    data.set(path, current);
+                },
                 orderByChild(field) {
                     assert.equal(field, 'createdAt');
                     return {
@@ -43,13 +55,38 @@ function createHarness() {
             };
         }
     };
+    const db = {
+        collection() {
+            return {
+                doc() {
+                    return { async get() { return { data: () => ({ readReceipts: true }) }; } };
+                }
+            };
+        }
+    };
     const handlers = createNeoLearnMessageHandlers({
         verifyAuthToken: async () => ({ uid: 'viewer-uid' }),
-        db: {},
+        db,
         rtdb
     });
     return { ...handlers, data };
 }
+
+test('read receipts only mark existing messages from the named recipient in the conversation', async () => {
+    const { markMessageSeen, data } = createHarness();
+    const res = response();
+    await markMessageSeen({ body: { targetUserId: 'peer-uid', messageIds: ['first', 'latest', 'missing'] } }, res);
+    assert.equal(res.statusCode, 200);
+    assert.equal(data.get('neolearn_direct_messages/peer-uid/viewer-uid/messages').first.readByRecipient, true);
+    assert.equal(data.get('neolearn_direct_messages/peer-uid/viewer-uid/messages').latest.readByRecipient, undefined);
+});
+
+test('read receipts reject arbitrary or oversized message identifiers', async () => {
+    const { markMessageSeen } = createHarness();
+    const res = response();
+    await markMessageSeen({ body: { targetUserId: 'peer-uid', messageIds: ['../../other'] } }, res);
+    assert.equal(res.statusCode, 400);
+});
 
 test('deleting a chat hides it only for the authenticated user and preserves messages', async () => {
     const { deleteConversation, data } = createHarness();

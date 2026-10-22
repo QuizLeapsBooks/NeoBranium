@@ -57,11 +57,13 @@ function initializeCommentSections(user, userData) {
 
             try {
                 commentSubmit.disabled = true;
+                setCommentStatus(card, '');
                 await postComment(noteId, user.uid, userData.username || user.displayName || 'User', commentText);
                 commentInput.value = ''; // Clear input
                 console.log(`Comment posted for note ${noteId}`);
             } catch (error) {
                 console.error(`Error posting comment for ${noteId}:`, error);
+                setCommentStatus(card, 'Comment could not be posted. Please try again.');
             } finally {
                 commentSubmit.disabled = false;
             }
@@ -75,6 +77,18 @@ function initializeCommentSections(user, userData) {
             }
         });
     });
+}
+
+function setCommentStatus(card, message) {
+    let status = card.querySelector('.comment-status');
+    if (!status && message) {
+        status = document.createElement('p');
+        status.className = 'comment-status text-danger small';
+        status.setAttribute('role', 'status');
+        status.setAttribute('aria-live', 'polite');
+        card.appendChild(status);
+    }
+    if (status) status.textContent = message;
 }
 
 // Post a comment to Realtime Database

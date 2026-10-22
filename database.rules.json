@@ -69,7 +69,7 @@
       ".write": false
     },
     "messages": {
-      ".read": true,
+      ".read": "auth != null",
       ".indexOn": [
         "timestamp"
       ],
@@ -80,7 +80,7 @@
     },
     "reactions": {
       "$messageId": {
-        ".read": true,
+        ".read": "auth != null",
         "$userId": {
           ".write": "auth != null && auth.uid === $userId",
           ".validate": "newData.hasChildren(['emoji', 'timestamp']) && newData.child('emoji').isString() && newData.child('emoji').val().length <= 10 && newData.child('timestamp').isNumber()"
@@ -99,12 +99,12 @@
     "notes": {
       "$noteId": {
         "comments": {
-          ".read": true,
+          ".read": "auth != null",
           ".indexOn": [
             "timestamp"
           ],
           "$commentId": {
-            ".write": "auth != null && (!data.exists() || (data.exists() && (!newData.exists() || newData.child('reported').val() === true || newData.child('deleted').val() === true)))",
+            ".write": "auth != null && !data.exists()",
             ".validate": "newData.hasChildren(['username', 'text', 'timestamp']) && newData.child('username').isString() && newData.child('username').val().length > 0 && newData.child('username').val().length <= 100 && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 2000 && !newData.child('text').val().matches(/.*<script.*/) && newData.child('timestamp').isNumber() && (!newData.hasChild('reported') || newData.child('reported').isBoolean()) && (!newData.hasChild('deleted') || newData.child('deleted').isBoolean())"
           }
         }

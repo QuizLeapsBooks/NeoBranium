@@ -10,7 +10,7 @@
 
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { paperAuth } from '../middleware/paperAuth.js';
+import { paperAuth, issueGuestOwnershipToken, getPaperIpHash } from '../middleware/paperAuth.js';
 import { paperQuota, paperEvalQuota, paperModelAnswerQuota } from '../middleware/quotaByUID.js';
 import {
   savePaperRecord,
@@ -36,6 +36,18 @@ import {
 } from '../utils/paperSecurity.js';
 
 export const paperRouter = express.Router();
+
+const guestSessionLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false });
+
+paperRouter.post('/guest-session', guestSessionLimiter, (req, res) => {
+  try {
+    const { token } = issueGuestOwnershipToken(getPaperIpHash(req));
+    return res.json({ success: true, guestOwnershipToken: token, expiresInSeconds: 604800 });
+  } catch (error) {
+    console.error('[PaperRoutes] Guest session unavailable:', error.message);
+    return res.status(503).json({ success: false, error: 'Guest paper sessions are temporarily unavailable.' });
+  }
+});
 
 // Strict rate limiters for expensive AI routes
 const paperGenLimiter = rateLimit({

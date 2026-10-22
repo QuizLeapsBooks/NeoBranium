@@ -269,7 +269,7 @@ test('Criterion 9: Protected routes in server.js are registered with requireAuth
   ];
 
   for (const ep of protectedEndpoints) {
-    const routeRegex = new RegExp(`app\\.post\\(\\s*['"]${ep}['"],\\s*requireAuth`, 'm');
+    const routeRegex = new RegExp(`app\\.post\\(\\s*['"]${ep}['"],(?:\\s*express\\.json\\([^)]*\\),)?\\s*requireAuth`, 'm');
     assert.ok(routeRegex.test(serverCode), `Route ${ep} must use requireAuth middleware`);
   }
 });
@@ -322,9 +322,25 @@ test('Criterion 14: Firestore rules lock privileged fields in users/{userId}', (
 
   // Verify privileged fields cannot be created/updated by client
   const privilegedFields = ['role', 'isAdmin', 'isBanned', 'subscription', 'score', 'highScore', 'rank'];
-  for (const field of privilegedFields) {
-    assert.ok(rules.includes(`!('${field}' in request.resource.data)`), `users/{userId} must prohibit '${field}'`);
-  }
+  for (const field of privilegedFields) assert.ok(rules.includes(`'${field}'`), `users/{userId} must account for '${field}'`);
+  assert.ok(rules.includes("request.resource.data.diff(resource.data).affectedKeys().hasOnly("), 'User updates must use an explicit changed-field allowlist');
+  assert.ok(rules.includes("request.resource.data.keys().hasOnly("), 'User creation must use an explicit field allowlist');
+});
+
+test('RTDB legacy public data reads require authentication', () => {
+  const rules = JSON.parse(fs.readFileSync(path.resolve('database.rules.json'), 'utf-8')).rules;
+  assert.equal(rules.messages['.read'], 'auth != null');
+  assert.equal(rules.reactions.$messageId['.read'], 'auth != null');
+  assert.equal(rules.notes.$noteId.comments['.read'], 'auth != null');
+});
+
+test('Callable solveDoubt requires authentication and validates before spending provider quota', () => {
+  const source = fs.readFileSync(path.resolve('functions/index.js'), 'utf-8');
+  assert.match(source, /if \(!auth\?\.uid\) throw new HttpsError\("unauthenticated"/);
+  assert.match(source, /SOLVE_DOUBT_MAX_QUESTION_CHARS/);
+  assert.match(source, /SOLVE_DOUBT_MAX_IMAGE_BYTES/);
+  assert.match(source, /AbortController/);
+  assert.doesNotMatch(source.slice(source.indexOf('exports.solveDoubt')), /request\.rawRequest\.headers\["x-forwarded-for"\]/);
 });
 
 test('Criterion 15: Firestore rules conserve all NeoMentor collections with strict owner isolation and default-deny', () => {

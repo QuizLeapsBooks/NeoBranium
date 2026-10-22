@@ -10,7 +10,18 @@ export const utils = {
             html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
         }
         if (typeof DOMPurify !== 'undefined') {
-            html = DOMPurify.sanitize(html);
+            html = DOMPurify.sanitize(html, { USE_PROFILES: { html: true }, FORBID_TAGS: ['style', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'svg', 'math'], FORBID_ATTR: ['style', 'srcset'] });
+        } else {
+            const template = document.createElement('template');
+            template.innerHTML = html;
+            template.content.querySelectorAll('script,style,iframe,object,embed,form,input,button,svg,math').forEach(node => node.remove());
+            template.content.querySelectorAll('*').forEach(node => {
+                [...node.attributes].forEach(attr => {
+                    if (/^on/i.test(attr.name) || ['style', 'srcdoc', 'srcset'].includes(attr.name.toLowerCase())) node.removeAttribute(attr.name);
+                    if (['href', 'src', 'xlink:href'].includes(attr.name.toLowerCase()) && /^\s*javascript:/i.test(attr.value)) node.removeAttribute(attr.name);
+                });
+            });
+            html = template.innerHTML;
         }
         return html;
     },

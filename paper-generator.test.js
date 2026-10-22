@@ -23,8 +23,11 @@ import {
   validateImageSignature,
   validateAnswerSheetPages,
   reconcileEvaluationMarks,
-  sanitizePaperPromptInput
+  sanitizePaperPromptInput,
+  validateAIImage
 } from './utils/paperSecurity.js';
+import { signGuestOwnershipToken, verifyGuestOwnershipToken, guestOwnershipTokenTtlSeconds } from './utils/guestOwnership.js';
+import { paperAuth } from './middleware/paperAuth.js';
 import {
   savePaperRecord,
   getPaperRecord,
@@ -348,10 +351,10 @@ test('17. Security: Sanitizes prompt injection and strip control characters', ()
   assert.ok(clean.length <= 500);
 });
 
-test('18. Paper Store: Multi-tier ownership allows access via matching clientSessionId even when ephemeral guest session ID changes', async () => {
+test('18. Paper Store: Guest paper ownership requires the same verified signed guest identity', async () => {
   const paperId = generatePaperId();
-  const guestUid1 = 'guest:s_tempSession1';
-  const clientSessionId = 'cs_tab_unique_session_abc';
+  const guestUid1 = 'guest:secure-session-abc';
+  const clientSessionId = 'secure-session-abc';
 
   await savePaperRecord({
     paperId,
@@ -363,13 +366,42 @@ test('18. Paper Store: Multi-tier ownership allows access via matching clientSes
     totalMarks: 1
   });
 
-  // When next request comes with different ephemeral guestUid (e.g. guest:s_tempSession2) but SAME clientSessionId:
-  const guestUid2 = 'guest:s_tempSession2';
-  const paper = await getPaperRecord(paperId, guestUid2, clientSessionId, 'ip_hash_local');
+  const paper = await getPaperRecord(paperId, guestUid1, clientSessionId, 'ip_hash_local');
   assert.equal(paper.paperId, paperId);
 
-  // But an attacker with a different clientSessionId and different IP is rejected:
+  // Caller-chosen browser IDs and another guest's signed identity are rejected.
   await assert.rejects(async () => {
-    await getPaperRecord(paperId, 'guest:s_attacker', 'cs_different_tab_xyz', 'ip_different');
+    await getPaperRecord(paperId, 'guest:attacker-session', 'secure-session-abc', 'ip_hash_local');
   }, { code: 'FORBIDDEN' });
+});
+
+test('Guest ownership tokens are signed, IP-bound, and expire', () => {
+  process.env.GUEST_OWNERSHIP_SECRET = 'test-only-secret-with-at-least-thirty-two-characters';
+  const token = signGuestOwnershipToken({ sid: 'session-id-that-is-long-enough-12345', ipHash: 'ip-a' }, 1000);
+  assert.equal(verifyGuestOwnershipToken(token, 'ip-a', 1001).sid, 'session-id-that-is-long-enough-12345');
+  assert.throws(() => verifyGuestOwnershipToken(token, 'ip-b', 1001));
+  assert.throws(() => verifyGuestOwnershipToken(token, 'ip-a', 1000 + guestOwnershipTokenTtlSeconds));
+  assert.throws(() => verifyGuestOwnershipToken(`${token}x`, 'ip-a', 1001));
+});
+
+test('paperAuth rejects forged client session headers and missing guest credentials', async () => {
+  const req = { headers: { 'x-client-session-id': 'attacker-chosen-session' }, ip: '127.0.0.1', path: '/paper' };
+  const res = {
+    statusCode: 200,
+    body: null,
+    status(code) { this.statusCode = code; return this; },
+    json(value) { this.body = value; return this; }
+  };
+  let nextCalled = false;
+  await paperAuth(req, res, () => { nextCalled = true; });
+  assert.equal(res.statusCode, 401);
+  assert.equal(nextCalled, false);
+  assert.equal(req.uid, undefined);
+});
+
+test('AI image validator checks signature and size', () => {
+  const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0x00]).toString('base64');
+  assert.equal(validateAIImage(jpeg, 'image/jpeg').verifiedMimeType, 'image/jpeg');
+  assert.throws(() => validateAIImage(Buffer.from('<svg/>').toString('base64'), 'image/svg+xml'));
+  assert.throws(() => validateAIImage(Buffer.from([0xff, 0xd8, 0xff, 0, 1]).toString('base64'), 'image/jpeg', 4), { status: 413 });
 });

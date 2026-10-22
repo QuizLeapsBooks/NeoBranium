@@ -13,6 +13,17 @@ export const MAX_PAGE_COUNT = Number(process.env.PAPER_MAX_PAGES) || 4;
 export const MAX_FILE_SIZE_BYTES = Number(process.env.PAPER_MAX_IMAGE_BYTES) || 5 * 1024 * 1024;
 export const MAX_TOTAL_SIZE_BYTES = Number(process.env.PAPER_MAX_TOTAL_BYTES) || 16 * 1024 * 1024;
 
+export function validateAIImage(base64, claimedMimeType, maxBytes = 5 * 1024 * 1024) {
+  const validated = validateImageSignature(base64, claimedMimeType);
+  if (validated.sizeBytes > maxBytes) {
+    const error = new Error(`Image exceeds the maximum allowed ${(maxBytes / (1024 * 1024)).toFixed(0)} MB.`);
+    error.status = 413;
+    error.code = 'IMAGE_TOO_LARGE';
+    throw error;
+  }
+  return validated;
+}
+
 /**
  * Validates a base64 encoded image against known file signatures (magic bytes).
  * Returns verified mimeType and clean base64 data, or throws an Error.

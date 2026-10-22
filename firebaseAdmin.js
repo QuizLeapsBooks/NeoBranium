@@ -42,11 +42,11 @@ export function setDb(customDb) {
 
 /**
  * Checks if the user is allowed to use the AI board and tracks usage.
- * @param {string} userId - The session ID of the user (req.session.id).
+ * @param {string} userId - Verified Firebase UID.
  * @returns {Promise<{allowed: boolean, minutesUsed: number, remainingMinutes: number, resetAt: Date|null}>}
  */
 export async function checkAndTrackUsage(userId) {
-  const fallback = { allowed: true, minutesUsed: 0, remainingMinutes: 20, resetAt: null };
+  const fallback = { allowed: false, unavailable: true, minutesUsed: 0, remainingMinutes: 0, resetAt: null };
   
   if (!db) {
     console.warn('Firebase DB not initialized. Returning fallback.');
@@ -55,83 +55,26 @@ export async function checkAndTrackUsage(userId) {
 
   try {
     const docRef = db.collection('aiboard_sessions').doc(userId);
-    const doc = await docRef.get();
     const now = new Date();
-    
-    // If not exists → create with defaults
-    if (!doc.exists) {
-      const defaults = {
-        minutesUsed: 0,
-        periodStart: now,
+    const sixHours = 6 * 60 * 60 * 1000;
+    return await db.runTransaction(async (txn) => {
+      const snapshot = await txn.get(docRef);
+      const data = snapshot.exists ? snapshot.data() : {};
+      let minutesUsed = Number(data.minutesUsed) || 0;
+      let periodStart = data.periodStart?.toDate ? data.periodStart.toDate() : now;
+      const sessionStart = data.sessionStart?.toDate ? data.sessionStart.toDate() : null;
+      if (now - periodStart > sixHours) { minutesUsed = 0; periodStart = now; }
+      if (sessionStart && data.isActive === true) minutesUsed += Math.max(0, (now - sessionStart) / 60000);
+      if (minutesUsed >= 20) return { allowed: false, minutesUsed, remainingMinutes: 0, resetAt: new Date(periodStart.getTime() + sixHours) };
+      txn.set(docRef, {
+        minutesUsed,
+        periodStart,
         sessionStart: now,
         isActive: true,
         lastActive: admin.firestore.FieldValue.serverTimestamp()
-      };
-      await docRef.set(defaults);
-      
-      const resetAt = new Date(now.getTime() + 6 * 60 * 60 * 1000);
-      return {
-        allowed: true,
-        minutesUsed: 0,
-        remainingMinutes: 20,
-        resetAt
-      };
-    }
-
-    const data = doc.data();
-    let minutesUsed = data.minutesUsed || 0;
-    let periodStart = data.periodStart ? data.periodStart.toDate() : now;
-    let sessionStart = data.sessionStart ? data.sessionStart.toDate() : null;
-    let isActive = data.isActive;
-
-    // 6-HOUR WINDOW CHECK
-    const sixHours = 6 * 60 * 60 * 1000;
-    let periodReset = false;
-    if (now - periodStart > sixHours) {
-      minutesUsed = 0;
-      periodStart = now;
-      periodReset = true;
-    }
-
-    // LIMIT CHECK (do this AFTER window check)
-    if (minutesUsed >= 20) {
-      const resetAt = new Date(periodStart.getTime() + sixHours);
-      return {
-        allowed: false,
-        minutesUsed,
-        remainingMinutes: 0,
-        resetAt
-      };
-    }
-
-    // SESSION TRACKING
-    let newMinutesUsed = minutesUsed;
-    if (sessionStart && isActive === true) {
-      const elapsed = (now - sessionStart) / (1000 * 60); // in minutes
-      newMinutesUsed = minutesUsed + elapsed;
-    }
-
-    // Update Firestore
-    const updateData = {
-      minutesUsed: newMinutesUsed,
-      sessionStart: now,
-      isActive: true,
-      lastActive: admin.firestore.FieldValue.serverTimestamp()
-    };
-    
-    if (periodReset) {
-      updateData.periodStart = now;
-    }
-
-    await docRef.set(updateData, { merge: true });
-
-    const resetAt = new Date(periodStart.getTime() + sixHours);
-    return {
-      allowed: true,
-      minutesUsed: newMinutesUsed,
-      remainingMinutes: Math.max(0, 20 - newMinutesUsed),
-      resetAt
-    };
+      }, { merge: true });
+      return { allowed: true, minutesUsed, remainingMinutes: Math.max(0, 20 - minutesUsed), resetAt: new Date(periodStart.getTime() + sixHours) };
+    });
 
   } catch (error) {
     console.error('Firebase error in checkAndTrackUsage:', error);
@@ -183,7 +126,7 @@ export async function checkAndTrackUsageByUID(uid, category = 'chat', dailyLimit
 
 /**
  * Ends the user's session and updates usage.
- * @param {string} userId - The session ID of the user (req.session.id).
+ * @param {string} userId - Verified Firebase UID.
  * @returns {Promise<number>} Updated minutes used.
  */
 export async function endSession(userId) {

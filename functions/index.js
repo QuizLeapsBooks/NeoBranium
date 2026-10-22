@@ -10,6 +10,32 @@ admin.initializeApp();
 // Global configuration for V2 Functions
 setGlobalOptions({ maxInstances: 10 });
 
+const SOLVE_DOUBT_DAILY_LIMIT = Number.parseInt(process.env.SOLVE_DOUBT_DAILY_LIMIT || "25", 10);
+const SOLVE_DOUBT_MAX_QUESTION_CHARS = 5000;
+const SOLVE_DOUBT_MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const SOLVE_DOUBT_TIMEOUT_MS = 30_000;
+
+function parseSolveDoubtImage(imageData) {
+  if (typeof imageData !== "string" || imageData.length > Math.ceil(SOLVE_DOUBT_MAX_IMAGE_BYTES / 3) * 4 + 64) {
+    throw new HttpsError("invalid-argument", "Image is too large.");
+  }
+  const match = imageData.match(/^(?:data:(image\/(?:jpeg|png|webp));base64,)?([A-Za-z0-9+/]+={0,2})$/i);
+  if (!match || match[2].length % 4 !== 0) throw new HttpsError("invalid-argument", "Image must be valid JPEG, PNG, or WebP base64 data.");
+  const mediaType = (match[1] || "image/jpeg").toLowerCase();
+  const base64 = match[2];
+  const bytes = Buffer.from(base64, "base64");
+  if (!bytes.length || bytes.length > SOLVE_DOUBT_MAX_IMAGE_BYTES || bytes.toString("base64") !== base64) {
+    throw new HttpsError("invalid-argument", "Image is empty, malformed, or too large.");
+  }
+  const validSignature = mediaType === "image/jpeg"
+    ? bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff
+    : mediaType === "image/png"
+      ? bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
+      : bytes.length >= 12 && bytes.toString("ascii", 0, 4) === "RIFF" && bytes.toString("ascii", 8, 12) === "WEBP";
+  if (!validSignature) throw new HttpsError("invalid-argument", "Image content does not match a supported image type.");
+  return { mediaType, base64 };
+}
+
 // ==========================================
 // Gmail SMTP Transporter (use App Password)
 // Set these via: firebase functions:secrets:set GMAIL_USER
@@ -32,6 +58,12 @@ function createTransporter() {
   });
 }
 
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[character]);
+}
+
 /**
  * Cloud Function: sendVerificationEmail
  * Sends a styled HTML verification email via Gmail SMTP.
@@ -50,6 +82,18 @@ exports.sendVerificationEmail = onCall({ cors: true }, async (request) => {
     return { success: true, message: "Email already verified." };
   }
 
+  const quotaRef = admin.firestore().collection("ai_quotas").doc(request.auth.uid);
+  const today = new Date().toISOString().slice(0, 10);
+  await admin.firestore().runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(quotaRef);
+    const emailQuota = snapshot.exists ? snapshot.data().verificationEmail || {} : {};
+    const count = emailQuota.date === today ? Number(emailQuota.count) || 0 : 0;
+    if (count >= 3) throw new HttpsError("resource-exhausted", "Verification email limit reached. Try again tomorrow.");
+    transaction.set(quotaRef, {
+      verificationEmail: { date: today, count: count + 1, lastUsed: admin.firestore.FieldValue.serverTimestamp() }
+    }, { merge: true });
+  });
+
   // Generate the Firebase verification link
   const actionCodeSettings = {
     url: "https://neobranium.web.app/htmls/verify-email.html",
@@ -64,7 +108,7 @@ exports.sendVerificationEmail = onCall({ cors: true }, async (request) => {
     throw new HttpsError("internal", "Could not generate verification link.");
   }
 
-  const fname = request.data?.fname || user.displayName?.split(" ")[0] || "User";
+  const fname = escapeHtml((typeof request.data?.fname === 'string' ? request.data.fname : user.displayName?.split(" ")[0] || "User").slice(0, 80));
 
   const mailOptions = {
     from: `"NeoBranium" <${process.env.GMAIL_USER}>`,
@@ -148,96 +192,49 @@ exports.sendVerificationEmail = onCall({ cors: true }, async (request) => {
  */
 exports.solveDoubt = onCall({ cors: true }, async (request) => {
   try {
-    // 1. Get the user's UID or request IP
     const auth = request.auth;
-    const ip = request.rawRequest.ip || request.rawRequest.headers["x-forwarded-for"] || "unknown_ip";
-    
-    // Sanitize to make a safe Firestore document ID
-    const uidOrIp = auth ? auth.uid : ip;
-    const docId = uidOrIp.replace(/\//g, "_");
+    if (!auth?.uid) throw new HttpsError("unauthenticated", "Sign in to use doubt solving.");
 
-    // 2. Check and increment Firestore rate limit using a transaction
+    const { question, imageBase64 } = request.data || {};
+    if (typeof question !== "string" || !question.trim() || question.length > SOLVE_DOUBT_MAX_QUESTION_CHARS) {
+      throw new HttpsError("invalid-argument", `Question must contain 1 to ${SOLVE_DOUBT_MAX_QUESTION_CHARS} characters.`);
+    }
+    const image = imageBase64 ? parseSolveDoubtImage(imageBase64) : null;
+    if (Buffer.byteLength(JSON.stringify({ question, imageBase64: imageBase64 || "" }), "utf8") > 7 * 1024 * 1024) {
+      throw new HttpsError("invalid-argument", "Request is too large.");
+    }
+
     const db = admin.firestore();
-    const docRef = db.collection("rateLimits").doc(docId);
-    const limit = auth ? 25 : 3;
+    const today = new Date().toISOString().slice(0, 10);
+    const docRef = db.collection("ai_quotas").doc(auth.uid);
 
     await db.runTransaction(async (transaction) => {
       const docSnap = await transaction.get(docRef);
-      const now = new Date();
-      let count = 0;
-      let lastReset = null;
-
-      if (docSnap.exists) {
-        const data = docSnap.data();
-        count = data.count || 0;
-        if (data.lastReset) {
-          lastReset = typeof data.lastReset.toDate === "function" 
-            ? data.lastReset.toDate() 
-            : new Date(data.lastReset);
-        }
-      }
-
-      // Check if the last reset was on a different calendar day (UTC)
-      const isSameDay = lastReset &&
-                        now.getUTCFullYear() === lastReset.getUTCFullYear() &&
-                        now.getUTCMonth() === lastReset.getUTCMonth() &&
-                        now.getUTCDate() === lastReset.getUTCDate();
-
-      if (!isSameDay) {
-        count = 0;
-      }
-
-      if (count >= limit) {
+      const quota = docSnap.exists ? docSnap.data().solveDoubt || {} : {};
+      const count = quota.date === today ? Number(quota.count) || 0 : 0;
+      if (count >= SOLVE_DOUBT_DAILY_LIMIT) {
         throw new HttpsError("resource-exhausted", "Daily limit reached");
       }
-
-      const newCount = count + 1;
-      const updateData = {
-        count: newCount
-      };
-      
-      // Update the reset timestamp if it's a new day or first request
-      if (!isSameDay) {
-        updateData.lastReset = admin.firestore.FieldValue.serverTimestamp();
-      }
-
-      transaction.set(docRef, updateData, { merge: true });
+      transaction.set(docRef, {
+        solveDoubt: { date: today, count: count + 1, lastUsed: admin.firestore.FieldValue.serverTimestamp() }
+      }, { merge: true });
     });
 
-    // 3. Extract and validate user request payload
-    const { question, imageBase64 } = request.data || {};
-    if (!question || typeof question !== "string") {
-      throw new HttpsError("invalid-argument", "The 'question' parameter is required and must be a string.");
-    }
-
-    // 4. Retrieve Anthropic API key from environment variables
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
       console.error("Missing ANTHROPIC_API_KEY environment variable.");
       throw new HttpsError("failed-precondition", "API key not configured on the server.");
     }
 
-    // 5. Construct multimodal content payload for Anthropic Messages API
     const content = [];
 
-    if (imageBase64) {
-      let mediaType = "image/jpeg";
-      let base64Data = imageBase64;
-
-      if (imageBase64.startsWith("data:")) {
-        const matches = imageBase64.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
-        if (matches) {
-          mediaType = matches[1];
-          base64Data = matches[2];
-        }
-      }
-
+    if (image) {
       content.push({
         type: "image",
         source: {
           type: "base64",
-          media_type: mediaType,
-          data: base64Data
+          media_type: image.mediaType,
+          data: image.base64
         }
       });
     }
@@ -258,26 +255,35 @@ exports.solveDoubt = onCall({ cors: true }, async (request) => {
       ]
     };
 
-    // 6. Make secure POST request to Anthropic API
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), SOLVE_DOUBT_TIMEOUT_MS);
+    let response;
+    try {
+      response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-api-key": apiKey,
         "anthropic-version": "2023-06-01"
       },
-      body: JSON.stringify(anthropicPayload)
-    });
+      body: JSON.stringify(anthropicPayload),
+      signal: controller.signal
+      });
+    } catch (error) {
+      if (error.name === "AbortError") throw new HttpsError("deadline-exceeded", "AI request timed out. Please try again.");
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Anthropic API request failed with status ${response.status}: ${errorText}`);
-      throw new HttpsError("internal", `Anthropic API error: ${response.status}`);
+      console.error(`Anthropic API request failed with status ${response.status}`);
+      throw new HttpsError("internal", "AI provider request failed.");
     }
 
     const responseData = await response.json();
     if (!responseData.content || responseData.content.length === 0 || responseData.content[0].type !== "text") {
-      console.error("Unexpected Anthropic API response format:", responseData);
+      console.error("Unexpected Anthropic API response format.");
       throw new HttpsError("internal", "Invalid response received from Anthropic API.");
     }
 
@@ -290,7 +296,7 @@ exports.solveDoubt = onCall({ cors: true }, async (request) => {
     if (error instanceof HttpsError) {
       throw error;
     }
-    console.error("Error inside solveDoubt function:", error);
-    throw new HttpsError("internal", error.message || "An unexpected error occurred during execution.");
+    console.error("Error inside solveDoubt function:", error.code || error.name || "unknown");
+    throw new HttpsError("internal", "An unexpected error occurred during execution.");
   }
 });
