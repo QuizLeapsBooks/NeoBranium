@@ -14,6 +14,18 @@
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
   <link rel="stylesheet" href="index_css.css">
+  <link rel="stylesheet" href="brand-intro.css">
+  <script>
+    // This lightweight check prevents the legacy loader from flashing before
+    // the optional intro. Storage-restricted browsers retain normal loading.
+    try {
+      if (localStorage.getItem('neobranium.brandIntro.v1.completed') !== '1' &&
+          !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        document.documentElement.classList.add('brand-intro-pending');
+      }
+    } catch (_) { /* Use the normal page if storage is unavailable. */ }
+  </script>
+  <script defer src="js/brand-intro.js"></script>
   <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <meta name="theme-color" content="#1a2233">
@@ -73,6 +85,25 @@
 </head>
 
 <body>
+  <!-- This overlay is only activated by js/brand-intro.js for a first root-page visit. -->
+  <section id="brand-intro" hidden role="dialog" aria-modal="true" aria-label="AEVORIN introduction">
+    <div class="brand-intro__stage">
+      <div class="brand-intro__aevorin">
+        <div class="brand-intro__logo-wrap">
+          <img class="brand-intro__logo-image" src="/online-graduation_16847316.png" alt="AEVORIN and NeoBranium" width="558" height="447">
+        </div>
+        <p class="brand-intro__wordmark">AEVORIN</p>
+        <div class="brand-intro__transition-line" aria-hidden="true"><span></span></div>
+        <p class="brand-intro__tagline">From confusion to clarity. Every mind can achieve greatness.</p>
+      </div>
+      <div class="brand-intro__neobranium" aria-label="NeoBranium, an Aevorin product">
+        <img class="brand-intro__neo-logo" src="/online-graduation_16847316.png" alt="" width="558" height="447">
+        <p class="brand-intro__neo-name">NeoBranium</p>
+        <p class="brand-intro__byline">AN AEVORIN PRODUCT</p>
+      </div>
+    </div>
+    <button class="brand-intro__skip" type="button" data-brand-intro-skip aria-label="Skip brand introduction">Skip Intro</button>
+  </section>
   <a href="#main-content"
     style="position:absolute;left:-9999px;top:0;z-index:9999;padding:8px 16px;background:#1a2233;color:white;border-radius:4px;font-size:14px;"
     onfocus="this.style.left='0'" onblur="this.style.left='-9999px'">Skip to main content</a>
