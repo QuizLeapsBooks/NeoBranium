@@ -2,7 +2,7 @@
   position: absolute;
   z-index: 4;
   top: 12px;
-  right: 12px;
+  left: 12px;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -16,7 +16,7 @@
 }
 
 .selection-actions[hidden] { display: none; }
-.selection-actions { width: min(330px, calc(100% - 20px)); max-height: 48vh; overflow: auto; flex-direction: column; align-items: stretch; }
+.selection-actions { width: min(360px, calc(100% - 20px)); max-height: min(48vh, 330px); overflow: auto; flex-direction: column; align-items: stretch; touch-action: pan-y; }
 .selection-action-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .selection-action-head > div { display: flex; gap: 5px; flex: none; }
 .selection-action-groups { display: grid; gap: 9px; margin-top: 9px; }
@@ -37,6 +37,11 @@
   cursor: pointer;
 }
 .selection-actions button:hover { background: #394c3d; }
+.selection-actions input[type="color"] { width:34px; height:28px; padding:2px; border:1px solid #435448; border-radius:6px; background:#26342b; }
+.selection-actions input[type="range"] { width:88px; accent-color:#bddb9a; }
+.selection-actions .selection-action-group:first-of-type .selection-action-list { gap:4px; }
+.selection-actions .selection-action-list button { min-height:30px; }
+.selection-actions .selection-action-group { min-width:0; }
 .selection-actions #deleteSelection { color: #ffc2b8; }
 .future-panel { align-items: stretch; justify-content: flex-start; padding: 22px 14px; gap: 13px; text-align: left; overflow: auto; }
 .future-panel .panel-icon { flex: none; }
@@ -84,8 +89,8 @@
 #handwritingStatus:empty { display:none; }
 
 @media (max-width: 580px) {
-  .selection-actions { top: 7px; right: 7px; gap: 4px; padding: 4px 5px 4px 7px; font-size: 10px; }
-  .selection-actions button { padding: 5px 6px; }
+  .selection-actions { top: 7px; left: 7px; gap: 4px; padding: 4px 5px 4px 7px; font-size: 10px; width:min(310px,calc(100% - 14px)); max-height:40vh; }
+  .selection-actions button { padding: 5px 6px; min-height:34px; }
 }
 
 /* Resizable learning workspace */
