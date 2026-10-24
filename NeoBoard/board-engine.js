@@ -1,23 +1,340 @@
 import {objectBounds,strokeBounds,unionBounds} from './board-core.js';
 export class BoardEngine {
-  constructor(canvas,previewCanvas,frame,getDocument){this.canvas=canvas;this.ctx=canvas.getContext('2d',{alpha:true});this.previewCanvas=previewCanvas;this.previewCtx=previewCanvas.getContext('2d',{alpha:true});this.frame=frame;this.getDocument=getDocument;this.zoom=1;this.pan={x:0,y:0};this.selected=new Set();this.objectRenderers=new Map();this.onChange=()=>{};this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(frame);this.resize();}
-  registerObjectRenderer(type,renderer){if(typeof renderer!=='function')throw new TypeError('Object renderer must be a function.');this.objectRenderers.set(type,renderer);return()=>this.objectRenderers.delete(type);}
-  resize(){const r=this.frame.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);for(const canvas of [this.canvas,this.previewCanvas]){canvas.width=Math.round(r.width*dpr);canvas.height=Math.round(r.height*dpr);}this.ctx.setTransform(dpr,0,0,dpr,0,0);this.previewCtx.setTransform(dpr,0,0,dpr,0,0);this.width=r.width;this.height=r.height;this.render();}
-  toBoard(e){const r=this.canvas.getBoundingClientRect();return{x:(e.clientX-r.left-this.pan.x)/this.zoom,y:(e.clientY-r.top-this.pan.y)/this.zoom,pressure:e.pressure||.5};}
-  toScreen(p){return{x:p.x*this.zoom+this.pan.x,y:p.y*this.zoom+this.pan.y};}
-  setZoom(n,center={x:this.width/2,y:this.height/2}){const old=this.zoom;this.zoom=Math.max(.25,Math.min(3,Math.round(n*100)/100));this.pan={x:center.x-(center.x-this.pan.x)*this.zoom/old,y:center.y-(center.y-this.pan.y)*this.zoom/old};this.render();this.onChange();}
-  render(){if(!this.ctx)return;const c=this.ctx,d=this.getDocument();c.clearRect(0,0,this.width,this.height);c.save();c.translate(this.pan.x,this.pan.y);c.scale(this.zoom,this.zoom);for(const s of d.strokes)this.drawStroke(s);for(const o of d.objects)this.drawObject(o);const bounds=this.selectionBounds();if(bounds)this.drawBounds(bounds);c.restore();}
-  selectionBounds(){const d=this.getDocument(),bounds=[...d.strokes.filter(s=>this.selected.has(s.id)).map(strokeBounds),...d.objects.filter(o=>this.selected.has(o.id)).map(objectBounds)];return unionBounds(bounds);}
-  selectionHandles(bounds=this.selectionBounds()){if(!bounds)return{};const selected=[...this.selected],d=this.getDocument(),objects=d.objects.filter(o=>selected.includes(o.id)),strokes=d.strokes.filter(s=>selected.includes(s.id)),midX=(bounds.minX+bounds.maxX)/2,midY=(bounds.minY+bounds.maxY)/2;
-    if(selected.length===1&&objects.length===1){const o=objects[0];if(o.type==='ellipse'){return{center:{x:o.x+o.width/2,y:o.y+o.height/2},radiusX:{x:o.x+o.width,y:o.y+o.height/2},radiusY:{x:o.x+o.width/2,y:o.y+o.height}};}if(o.type==='line'||o.type==='arrow')return{start:{x:o.x,y:o.y},end:{x:o.x+o.width,y:o.y+o.height},mid:{x:o.x+o.width/2,y:o.y+o.height/2}};}
-    return{nw:{x:bounds.minX,y:bounds.minY},n:{x:midX,y:bounds.minY},ne:{x:bounds.maxX,y:bounds.minY},e:{x:bounds.maxX,y:midY},se:{x:bounds.maxX,y:bounds.maxY},s:{x:midX,y:bounds.maxY},sw:{x:bounds.minX,y:bounds.maxY},w:{x:bounds.minX,y:midY}};}
-  hitSelectionHandle(point){const radius=12/this.zoom;for(const[handle,p]of Object.entries(this.selectionHandles()))if(Math.hypot(p.x-point.x,p.y-point.y)<=radius)return handle;return null;}
-  drawStroke(s){if(!s.points.length)return;const c=this.ctx;c.save();c.globalAlpha=Number.isFinite(s.opacity)?Math.max(0,Math.min(1,s.opacity)):1;c.strokeStyle=s.color;c.lineWidth=s.width;c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(s.points[0].x,s.points[0].y);if(s.points.length===1){c.lineTo(s.points[0].x+.1,s.points[0].y+.1);}else for(let i=1;i<s.points.length;i++){const p=s.points[i],prev=s.points[i-1];c.quadraticCurveTo(prev.x,prev.y,(prev.x+p.x)/2,(prev.y+p.y)/2);}const last=s.points.at(-1);if(s.points.length>1)c.lineTo(last.x,last.y);c.stroke();c.restore();}
-  drawLiveSegment(stroke,from,to){const c=this.ctx;c.save();c.translate(this.pan.x,this.pan.y);c.scale(this.zoom,this.zoom);c.strokeStyle=stroke.color;c.lineWidth=stroke.width;c.lineCap='round';c.beginPath();c.moveTo(from.x,from.y);c.lineTo(to.x,to.y);c.stroke();c.restore();}
-  drawPreview(object){const c=this.previewCtx;c.clearRect(0,0,this.width,this.height);const original=this.ctx;this.ctx=c;try{c.save();c.translate(this.pan.x,this.pan.y);c.scale(this.zoom,this.zoom);this.drawObject(object);c.restore();}finally{this.ctx=original;}}
-  clearPreview(){this.previewCtx.clearRect(0,0,this.width,this.height);}
-  drawObject(o){const extension=this.objectRenderers.get(o.type);if(extension){extension(this.ctx,o,{zoom:this.zoom});return;}const c=this.ctx;c.save();c.globalAlpha=Number.isFinite(o.opacity)?Math.max(0,Math.min(1,o.opacity)):1;c.strokeStyle=o.color;c.fillStyle=o.fillColor||o.color;c.lineWidth=o.strokeWidth||3;c.lineCap='round';c.lineJoin='round';const x=o.x,y=o.y,w=o.width,h=o.height;if(o.type==='text'){c.font=`${o.fontWeight||400} ${o.fontSize||22}px ${o.fontFamily||'system-ui,sans-serif'}`;c.textBaseline='top';const lines=String(o.text).split('\n');lines.forEach((line,i)=>c.fillText(line,x,y+i*(o.fontSize||22)*1.3));}else{c.beginPath();if(o.type==='line'||o.type==='arrow'){c.moveTo(x,y);c.lineTo(x+w,y+h);if(o.type==='arrow'){const a=Math.atan2(h,w),size=12;c.moveTo(x+w,y+h);c.lineTo(x+w-size*Math.cos(a-.45),y+h-size*Math.sin(a-.45));c.moveTo(x+w,y+h);c.lineTo(x+w-size*Math.cos(a+.45),y+h-size*Math.sin(a+.45));}}else if(o.type==='rect')c.rect(x,y,w,h);else if(o.type==='ellipse')c.ellipse(x+w/2,y+h/2,Math.abs(w/2),Math.abs(h/2),0,0,Math.PI*2);else {c.restore();return;}if(o.fillColor&&(o.type==='rect'||o.type==='ellipse'))c.fill();c.stroke();}c.restore();}
-  drawBounds(b){if(!b)return;const c=this.ctx,selected=[...this.selected],d=this.getDocument(),objects=d.objects.filter(o=>selected.includes(o.id)),strokes=d.strokes.filter(s=>selected.includes(s.id)),handles=this.selectionHandles(b),special=selected.length===1&&objects.length===1&&['ellipse','line','arrow'].includes(objects[0].type),circle=selected.length===1&&objects[0]?.type==='ellipse'&&Math.abs(objects[0].width-objects[0].height)<.01;c.save();c.strokeStyle='#d5e9ba';c.fillStyle='#294333';c.lineWidth=1.5/this.zoom;c.setLineDash([5/this.zoom,4/this.zoom]);if(!special)c.strokeRect(b.minX,b.minY,b.maxX-b.minX,b.maxY-b.minY);c.setLineDash([]);if(selected.length===1&&objects[0]?.type==='ellipse'){const o=objects[0],cx=o.x+o.width/2,cy=o.y+o.height/2;c.beginPath();c.moveTo(o.x,cy);c.lineTo(o.x+o.width,cy);c.moveTo(cx,o.y);c.lineTo(cx,o.y+o.height);c.stroke();c.beginPath();c.arc(cx,cy,3.5/this.zoom,0,Math.PI*2);c.fill();}for(const[key,p]of Object.entries(handles)){const isCenter=key==='center',isLineEnd=key==='start'||key==='end',isResize=(!special&&objects.some(o=>['rect','ellipse','graph','text'].includes(o.type)))||special&&key!=='center'&&key!=='mid';c.beginPath();if(isCenter)c.arc(p.x,p.y,4/this.zoom,0,Math.PI*2);else if(isLineEnd)c.arc(p.x,p.y,5/this.zoom,0,Math.PI*2);else if(isResize)c.arc(p.x,p.y,5/this.zoom,0,Math.PI*2);else c.rect(p.x-3/this.zoom,p.y-3/this.zoom,6/this.zoom,6/this.zoom);c.fill();c.stroke();}if(circle){c.beginPath();c.arc(objects[0].x+objects[0].width/2,objects[0].y+objects[0].height/2,Math.abs(objects[0].width/2),0,Math.PI*2);c.stroke();}c.restore();}
-  hit(p){const d=this.getDocument(),tolerance=8/this.zoom;for(let i=d.objects.length-1;i>=0;i--){const o=d.objects[i],b=objectBounds(o);if(p.x<b.minX-tolerance||p.x>b.maxX+tolerance||p.y<b.minY-tolerance||p.y>b.maxY+tolerance)continue;if(o.type==='ellipse'){const rx=Math.abs(o.width/2),ry=Math.abs(o.height/2),dx=(p.x-(o.x+o.width/2))/Math.max(rx,.01),dy=(p.y-(o.y+o.height/2))/Math.max(ry,.01);if(dx*dx+dy*dy<=1+tolerance/Math.max(rx,ry,1))return o.id;continue;}if(o.type==='line'||o.type==='arrow'){const dx=o.width,dy=o.height,len=dx*dx+dy*dy,t=len?Math.max(0,Math.min(1,((p.x-o.x)*dx+(p.y-o.y)*dy)/len)):0;if(Math.hypot(o.x+t*dx-p.x,o.y+t*dy-p.y)<=tolerance+(o.strokeWidth||3)/2)return o.id;continue;}return o.id;}for(let i=d.strokes.length-1;i>=0;i--){const s=d.strokes[i],b=strokeBounds(s);if(!b||p.x<b.minX-tolerance||p.x>b.maxX+tolerance||p.y<b.minY-tolerance||p.y>b.maxY+tolerance)continue;const limit=tolerance+s.width/2;if(s.points.length===1&&Math.hypot(s.points[0].x-p.x,s.points[0].y-p.y)<=limit)return s.id;for(let j=1;j<s.points.length;j++){const a=s.points[j-1],z=s.points[j],dx=z.x-a.x,dy=z.y-a.y,len=dx*dx+dy*dy,t=len?Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/len)):0;if(Math.hypot(a.x+t*dx-p.x,a.y+t*dy-p.y)<=limit)return s.id;}}return null;}
-  destroy(){this.resizeObserver.disconnect();}
+  constructor(canvas,previewCanvas,frame,getDocument){
+    this.canvas=canvas;
+    this.ctx=canvas.getContext('2d',{alpha:true});
+    this.previewCanvas=previewCanvas;
+    this.previewCtx=previewCanvas.getContext('2d',{alpha:true});
+    this.frame=frame;
+    this.getDocument=getDocument;
+    this.zoom=1;
+    this.pan={x:0,y:0};
+    this.selected=new Set();
+    this.objectRenderers=new Map();
+    this.imageCache=new Map();
+    this.onChange=()=>{};
+    this.resizeObserver=new ResizeObserver(()=>this.resize());
+    this.resizeObserver.observe(frame);
+    this.resize();
+  }
+  registerObjectRenderer(type,renderer){
+    if(typeof renderer!=='function')throw new TypeError('Object renderer must be a function.');
+    this.objectRenderers.set(type,renderer);
+    return()=>this.objectRenderers.delete(type);
+  }
+  resize(){
+    const r=this.frame.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);
+    for(const canvas of [this.canvas,this.previewCanvas]){
+      canvas.width=Math.round(r.width*dpr);
+      canvas.height=Math.round(r.height*dpr);
+    }
+    this.ctx.setTransform(dpr,0,0,dpr,0,0);
+    this.previewCtx.setTransform(dpr,0,0,dpr,0,0);
+    this.width=r.width;
+    this.height=r.height;
+    this.render();
+  }
+  toBoard(e){
+    const r=this.canvas.getBoundingClientRect();
+    return{x:(e.clientX-r.left-this.pan.x)/this.zoom,y:(e.clientY-r.top-this.pan.y)/this.zoom,pressure:e.pressure||.5};
+  }
+  toScreen(p){
+    return{x:p.x*this.zoom+this.pan.x,y:p.y*this.zoom+this.pan.y};
+  }
+  setZoom(n,center={x:this.width/2,y:this.height/2}){
+    const old=this.zoom;
+    this.zoom=Math.max(.25,Math.min(3,Math.round(n*100)/100));
+    this.pan={x:center.x-(center.x-this.pan.x)*this.zoom/old,y:center.y-(center.y-this.pan.y)*this.zoom/old};
+    this.render();
+    this.onChange();
+  }
+  fitToContent(padding=48){
+    const d=this.getDocument(),
+          bounds=[...d.strokes.map(strokeBounds),...d.objects.map(objectBounds)].filter(Boolean);
+    const u=unionBounds(bounds);
+    if(!u||(u.maxX===u.minX&&u.maxY===u.minY)){
+      this.zoom=1;
+      this.pan={x:0,y:0};
+      this.render();
+      this.onChange();
+      return;
+    }
+    const cw=Math.max(10,u.maxX-u.minX),ch=Math.max(10,u.maxY-u.minY);
+    const zx=(this.width-padding*2)/cw,zy=(this.height-padding*2)/ch;
+    const targetZoom=Math.max(.25,Math.min(2.5,Math.round(Math.min(zx,zy)*100)/100));
+    const cx=(u.minX+u.maxX)/2,cy=(u.minY+u.maxY)/2;
+    this.zoom=targetZoom;
+    this.pan={x:this.width/2-cx*targetZoom,y:this.height/2-cy*targetZoom};
+    this.render();
+    this.onChange();
+  }
+  render(){
+    if(!this.ctx)return;
+    const c=this.ctx,d=this.getDocument();
+    c.clearRect(0,0,this.width,this.height);
+    c.save();
+    c.translate(this.pan.x,this.pan.y);
+    c.scale(this.zoom,this.zoom);
+    for(const s of d.strokes)this.drawStroke(s);
+    for(const o of d.objects)this.drawObject(o);
+    const bounds=this.selectionBounds();
+    if(bounds)this.drawBounds(bounds);
+    c.restore();
+
+    // Subtle empty board guide
+    if(d.strokes.length===0&&d.objects.length===0&&!this.frame.closest('.workspace')?.classList.contains('presenting')){
+      c.save();
+      c.fillStyle='rgba(189,219,154,0.22)';
+      c.font='15px system-ui, -apple-system, sans-serif';
+      c.textAlign='center';
+      c.textBaseline='middle';
+      c.fillText('Draw with chalk, or choose a tool to begin',this.width/2,this.height/2);
+      c.restore();
+    }
+  }
+  selectionBounds(){
+    const d=this.getDocument(),bounds=[...d.strokes.filter(s=>this.selected.has(s.id)).map(strokeBounds),...d.objects.filter(o=>this.selected.has(o.id)).map(objectBounds)];
+    return unionBounds(bounds);
+  }
+  selectionHandles(bounds=this.selectionBounds()){
+    if(!bounds)return{};
+    const selected=[...this.selected],d=this.getDocument(),objects=d.objects.filter(o=>selected.includes(o.id));
+    if(selected.length===1&&objects.length===1&&objects[0].locked)return{};
+    const midX=(bounds.minX+bounds.maxX)/2,midY=(bounds.minY+bounds.maxY)/2;
+    if(selected.length===1&&objects.length===1){
+      const o=objects[0];
+      if(o.type==='ellipse'){
+        return{center:{x:o.x+o.width/2,y:o.y+o.height/2},radiusX:{x:o.x+o.width,y:o.y+o.height/2},radiusY:{x:o.x+o.width/2,y:o.y+o.height}};
+      }
+      if(o.type==='line'||o.type==='arrow')return{start:{x:o.x,y:o.y},end:{x:o.x+o.width,y:o.y+o.height},mid:{x:o.x+o.width/2,y:o.y+o.height/2}};
+    }
+    return{nw:{x:bounds.minX,y:bounds.minY},n:{x:midX,y:bounds.minY},ne:{x:bounds.maxX,y:bounds.minY},e:{x:bounds.maxX,y:midY},se:{x:bounds.maxX,y:bounds.maxY},s:{x:midX,y:bounds.maxY},sw:{x:bounds.minX,y:bounds.maxY},w:{x:bounds.minX,y:midY}};
+  }
+  hitSelectionHandle(point){
+    const d=this.getDocument(),objects=d.objects.filter(o=>this.selected.has(o.id));
+    if(objects.some(o=>o.locked))return null;
+    const radius=12/this.zoom;
+    for(const[handle,p]of Object.entries(this.selectionHandles()))if(Math.hypot(p.x-point.x,p.y-point.y)<=radius)return handle;
+    return null;
+  }
+  drawStroke(s){
+    if(!s.points.length)return;
+    const c=this.ctx;
+    c.save();
+    c.globalAlpha=Number.isFinite(s.opacity)?Math.max(0,Math.min(1,s.opacity)):1;
+    c.strokeStyle=s.color;
+    c.lineWidth=s.width;
+    c.lineCap='round';
+    c.lineJoin='round';
+    c.beginPath();
+    c.moveTo(s.points[0].x,s.points[0].y);
+    if(s.points.length===1){
+      c.lineTo(s.points[0].x+.1,s.points[0].y+.1);
+    }else for(let i=1;i<s.points.length;i++){
+      const p=s.points[i],prev=s.points[i-1];
+      c.quadraticCurveTo(prev.x,prev.y,(prev.x+p.x)/2,(prev.y+p.y)/2);
+    }
+    const last=s.points.at(-1);
+    if(s.points.length>1)c.lineTo(last.x,last.y);
+    c.stroke();
+    c.restore();
+  }
+  drawLiveSegment(stroke,from,to){
+    const c=this.ctx;
+    c.save();
+    c.translate(this.pan.x,this.pan.y);
+    c.scale(this.zoom,this.zoom);
+    c.strokeStyle=stroke.color;
+    c.lineWidth=stroke.width;
+    c.lineCap='round';
+    c.beginPath();
+    c.moveTo(from.x,from.y);
+    c.lineTo(to.x,to.y);
+    c.stroke();
+    c.restore();
+  }
+  drawPreview(object){
+    const c=this.previewCtx;
+    c.clearRect(0,0,this.width,this.height);
+    const original=this.ctx;
+    this.ctx=c;
+    try{
+      c.save();
+      c.translate(this.pan.x,this.pan.y);
+      c.scale(this.zoom,this.zoom);
+      this.drawObject(object);
+      c.restore();
+    }finally{
+      this.ctx=original;
+    }
+  }
+  clearPreview(){
+    this.previewCtx.clearRect(0,0,this.width,this.height);
+  }
+  drawObject(o){
+    const extension=this.objectRenderers.get(o.type);
+    if(extension){extension(this.ctx,o,{zoom:this.zoom});return;}
+    const c=this.ctx;
+    c.save();
+    c.globalAlpha=Number.isFinite(o.opacity)?Math.max(0,Math.min(1,o.opacity)):1;
+    c.strokeStyle=o.color;
+    c.fillStyle=o.fillColor||o.color;
+    c.lineWidth=o.strokeWidth||3;
+    c.lineCap='round';
+    c.lineJoin='round';
+    const x=o.x,y=o.y,w=o.width,h=o.height;
+    if(o.type==='text'){
+      c.font=`${o.fontWeight||400} ${o.fontSize||22}px ${o.fontFamily||'system-ui,sans-serif'}`;
+      c.textBaseline='top';
+      const lines=String(o.text).split('\n');
+      lines.forEach((line,i)=>c.fillText(line,x,y+i*(o.fontSize||22)*1.3));
+    }else if(o.type==='image'){
+      const src=o.src||o.metadata?.src;
+      if(src){
+        let img=this.imageCache.get(src);
+        if(!img){
+          img=new Image();
+          img.src=src;
+          img.onload=()=>{this.render();};
+          this.imageCache.set(src,img);
+        }
+        if(img.complete&&img.naturalWidth>0){
+          c.drawImage(img,x,y,w,h);
+        }else{
+          c.strokeStyle='#526b58';
+          c.lineWidth=1;
+          c.strokeRect(x,y,w,h);
+        }
+      }
+    }else{
+      c.beginPath();
+      if(o.type==='line'||o.type==='arrow'){
+        c.moveTo(x,y);
+        c.lineTo(x+w,y+h);
+        if(o.type==='arrow'){
+          const a=Math.atan2(h,w),size=12;
+          c.moveTo(x+w,y+h);
+          c.lineTo(x+w-size*Math.cos(a-.45),y+h-size*Math.sin(a-.45));
+          c.moveTo(x+w,y+h);
+          c.lineTo(x+w-size*Math.cos(a+.45),y+h-size*Math.sin(a+.45));
+        }
+      }else if(o.type==='rect')c.rect(x,y,w,h);
+      else if(o.type==='ellipse')c.ellipse(x+w/2,y+h/2,Math.abs(w/2),Math.abs(h/2),0,0,Math.PI*2);
+      else {c.restore();return;}
+      if(o.fillColor&&(o.type==='rect'||o.type==='ellipse'))c.fill();
+      c.stroke();
+    }
+    c.restore();
+  }
+  drawBounds(b){
+    if(!b)return;
+    const c=this.ctx,selected=[...this.selected],d=this.getDocument(),
+          objects=d.objects.filter(o=>selected.includes(o.id)),
+          special=selected.length===1&&objects.length===1&&['ellipse','line','arrow'].includes(objects[0].type),
+          circle=selected.length===1&&objects[0]?.type==='ellipse'&&Math.abs(objects[0].width-objects[0].height)<.01,
+          isLocked=selected.length===1&&objects[0]?.locked;
+    c.save();
+    c.strokeStyle=isLocked?'#ea998b':'#d5e9ba';
+    c.fillStyle='#294333';
+    c.lineWidth=1.5/this.zoom;
+    c.setLineDash([5/this.zoom,4/this.zoom]);
+    if(!special)c.strokeRect(b.minX,b.minY,b.maxX-b.minX,b.maxY-b.minY);
+    c.setLineDash([]);
+
+    if(isLocked){
+      c.fillStyle='#ea998b';
+      c.font=`bold ${11/this.zoom}px system-ui`;
+      c.fillText('🔒 Locked',b.minX+4/this.zoom,b.minY-6/this.zoom);
+      c.restore();
+      return;
+    }
+
+    if(selected.length===1&&objects[0]?.type==='ellipse'){
+      const o=objects[0],cx=o.x+o.width/2,cy=o.y+o.height/2,rx=Math.abs(o.width/2);
+      c.beginPath();
+      c.moveTo(o.x,cy);
+      c.lineTo(o.x+o.width,cy);
+      c.moveTo(cx,o.y);
+      c.lineTo(cx,o.y+o.height);
+      c.stroke();
+      c.beginPath();
+      c.arc(cx,cy,3.5/this.zoom,0,Math.PI*2);
+      c.fill();
+
+      if(circle){
+        // Circle radius annotation line and text
+        c.save();
+        c.strokeStyle='#b4d994';
+        c.lineWidth=1.2/this.zoom;
+        c.setLineDash([3/this.zoom,3/this.zoom]);
+        c.beginPath();
+        c.moveTo(cx,cy);
+        c.lineTo(cx+rx,cy);
+        c.stroke();
+        c.fillStyle='#d5e9ba';
+        c.font=`${11/this.zoom}px system-ui`;
+        c.textAlign='center';
+        c.fillText(`r = ${rx.toFixed(1)}`,cx+rx/2,cy-5/this.zoom);
+        c.restore();
+      }
+    }
+
+    if(selected.length===1&&['line','arrow'].includes(objects[0]?.type)){
+      const o=objects[0],len=Math.hypot(o.width,o.height),ang=(Math.atan2(o.height,o.width)*180/Math.PI).toFixed(0);
+      c.fillStyle='#d5e9ba';
+      c.font=`${11/this.zoom}px system-ui`;
+      c.fillText(`${len.toFixed(0)}u · ${ang}°`,o.x+o.width/2+6/this.zoom,o.y+o.height/2-6/this.zoom);
+    }
+
+    const handles=this.selectionHandles(b);
+    for(const[key,p]of Object.entries(handles)){
+      const isCenter=key==='center',isLineEnd=key==='start'||key==='end',
+            isResize=(!special&&objects.some(o=>['rect','ellipse','graph','text','image'].includes(o.type)))||special&&key!=='center'&&key!=='mid';
+      c.beginPath();
+      if(isCenter)c.arc(p.x,p.y,4/this.zoom,0,Math.PI*2);
+      else if(isLineEnd)c.arc(p.x,p.y,5/this.zoom,0,Math.PI*2);
+      else if(isResize)c.arc(p.x,p.y,5/this.zoom,0,Math.PI*2);
+      else c.rect(p.x-3/this.zoom,p.y-3/this.zoom,6/this.zoom,6/this.zoom);
+      c.fill();
+      c.stroke();
+    }
+    if(circle){
+      c.beginPath();
+      c.arc(objects[0].x+objects[0].width/2,objects[0].y+objects[0].height/2,Math.abs(objects[0].width/2),0,Math.PI*2);
+      c.stroke();
+    }
+    c.restore();
+  }
+  hit(p){
+    const d=this.getDocument(),tolerance=8/this.zoom;
+    for(let i=d.objects.length-1;i>=0;i--){
+      const o=d.objects[i],b=objectBounds(o);
+      if(p.x<b.minX-tolerance||p.x>b.maxX+tolerance||p.y<b.minY-tolerance||p.y>b.maxY+tolerance)continue;
+      if(o.type==='ellipse'){
+        const rx=Math.abs(o.width/2),ry=Math.abs(o.height/2),dx=(p.x-(o.x+o.width/2))/Math.max(rx,.01),dy=(p.y-(o.y+o.height/2))/Math.max(ry,.01);
+        if(dx*dx+dy*dy<=1+tolerance/Math.max(rx,ry,1))return o.id;
+        continue;
+      }
+      if(o.type==='line'||o.type==='arrow'){
+        const dx=o.width,dy=o.height,len=dx*dx+dy*dy,t=len?Math.max(0,Math.min(1,((p.x-o.x)*dx+(p.y-o.y)*dy)/len)):0;
+        if(Math.hypot(o.x+t*dx-p.x,o.y+t*dy-p.y)<=tolerance+(o.strokeWidth||3)/2)return o.id;
+        continue;
+      }
+      return o.id;
+    }
+    for(let i=d.strokes.length-1;i>=0;i--){
+      const s=d.strokes[i],b=strokeBounds(s);
+      if(!b||p.x<b.minX-tolerance||p.x>b.maxX+tolerance||p.y<b.minY-tolerance||p.y>b.maxY+tolerance)continue;
+      const limit=tolerance+s.width/2;
+      if(s.points.length===1&&Math.hypot(s.points[0].x-p.x,s.points[0].y-p.y)<=limit)return s.id;
+      for(let j=1;j<s.points.length;j++){
+        const a=s.points[j-1],z=s.points[j],dx=z.x-a.x,dy=z.y-a.y,len=dx*dx+dy*dy,t=len?Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/len)):0;
+        if(Math.hypot(a.x+t*dx-p.x,a.y+t*dy-p.y)<=limit)return s.id;
+      }
+    }
+    return null;
+  }
+  destroy(){
+    this.resizeObserver.disconnect();
+  }
 }

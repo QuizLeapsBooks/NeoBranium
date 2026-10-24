@@ -21,6 +21,12 @@ export function validateDocument(input) {
     for(const k of ['x','y','width','height']) if(!Number.isFinite(o[k])) throw new Error('Board object has invalid dimensions.');
     const result={...o,x:o.x,y:o.y,width:o.width,height:o.height};
     if(o.type==='text') {if(typeof o.text!=='string') throw new Error('Text object is invalid.');result.text=o.text.slice(0,20000);}
+    if(o.type==='image') {
+      const src=o.src??o.metadata?.src;
+      if(typeof src!=='string'||!src) throw new Error('Image object is missing src.');
+      if(!/^(https?:\/\/|data:image\/|blob:)/i.test(src)) throw new Error('Image object requires a valid http or data URL.');
+      result.src=src.slice(0,10_000_000);
+    }
     if(o.color!==undefined&&typeof o.color!=='string') throw new Error('Board object has invalid colour.');
     result.color=(o.color||'#f4f2e8').slice(0,40);result.strokeWidth=Number.isFinite(o.strokeWidth)?Math.max(.5,Math.min(100,o.strokeWidth)):3;
     if(o.metadata&&typeof o.metadata==='object'&&!Array.isArray(o.metadata))result.metadata=o.metadata;
@@ -43,11 +49,17 @@ export class HistoryManager {
   push(doc){this.undoStack.push(clone(doc));if(this.undoStack.length>this.limit)this.undoStack.shift();this.redoStack.length=0;}
   undo(current){if(!this.undoStack.length)return null;this.redoStack.push(clone(current));return this.undoStack.pop();}
   redo(current){if(!this.redoStack.length)return null;this.undoStack.push(clone(current));return this.redoStack.pop();}
+  canUndo(){return this.undoStack.length>0;}
+  canRedo(){return this.redoStack.length>0;}
 }
 export class StrokeManager {
   create(points,color,width){return{id:id(),color,width,points:points.map(p=>({...p})),metadata:{}};}
   erase(document,strokeId){const before=document.strokes.length;document.strokes=document.strokes.filter(stroke=>stroke.id!==strokeId);return before!==document.strokes.length;}
-  translate(stroke,dx,dy){stroke.points=stroke.points.map(p=>({...p,x:p.x+dx,y:p.y+dy}));return stroke;}
+  translate(stroke,dx,dy){
+    stroke.points=stroke.points.map(p=>({...p,x:p.x+dx,y:p.y+dy}));
+    if(stroke._bounds){stroke._bounds.minX+=dx;stroke._bounds.maxX+=dx;stroke._bounds.minY+=dy;stroke._bounds.maxY+=dy;}
+    return stroke;
+  }
 }
 export class ObjectManager {
   add(document,object){if(document.objects.some(item=>item.id===object.id))throw new Error(`Duplicate object id: ${object.id}`);document.objects.push(object);return object;}
@@ -57,7 +69,10 @@ export class ObjectManager {
 export class SelectionEngine {
   constructor(){this.ids=new Set();}
   clear(){this.ids.clear();}
+  has(id){return this.ids.has(id);}
   select(id,{additive=false}={}){if(!additive)this.clear();if(id)this.ids.add(id);}
+  toggle(id){if(!id)return;if(this.ids.has(id))this.ids.delete(id);else this.ids.add(id);}
+  selectAll(document){this.clear();for(const s of document.strokes)this.ids.add(s.id);for(const o of document.objects)this.ids.add(o.id);}
   selectRegion(document,rect,{additive=true}={}){if(!additive)this.clear();const normalized={x:Math.min(rect.x,rect.x+rect.width),y:Math.min(rect.y,rect.y+rect.height),width:Math.abs(rect.width),height:Math.abs(rect.height)};const intersects=b=>b&&b.maxX>=normalized.x&&b.minX<=normalized.x+normalized.width&&b.maxY>=normalized.y&&b.minY<=normalized.y+normalized.height;const matches=[...document.strokes.filter(s=>intersects(strokeBounds(s))),...document.objects.filter(o=>intersects(objectBounds(o)))];matches.forEach(item=>this.ids.add(item.id));return matches;}
   snapshot(){return [...this.ids];}
   selectedContent(document){const ids=new Set(this.ids),strokes=document.strokes.filter(s=>ids.has(s.id)).map(s=>({...clone(s),type:'stroke',bounds:strokeBounds(s)})),objects=document.objects.filter(o=>ids.has(o.id)).map(clone),bounds=unionBounds([...strokes.map(s=>s.bounds),...objects.map(objectBounds)]),itemIds=[...strokes.map(s=>s.id),...objects.map(o=>o.id)];return{documentId:document.id,objectIds:objects.map(o=>o.id),strokeIds:strokes.map(s=>s.id),itemIds,bounds,objects,strokes};}
@@ -90,9 +105,45 @@ export class BoardContextProvider {
   snapshot(){const d=this.getDocument();const ids=new Set(this.getSelection()),objects=d.objects.map(o=>clone(o));return Object.freeze({documentId:d.id,schemaVersion:d.schemaVersion,title:d.title,strokes:d.strokes.map(s=>({...clone(s),bounds:strokeBounds(s)})),objects,selection:[...ids],selectedObjects:objects.filter(o=>ids.has(o.id))});}
   region(rect){const {strokes,objects}=this.snapshot();const intersects=b=>b&&b.maxX>=rect.x&&b.minX<=rect.x+rect.width&&b.maxY>=rect.y&&b.minY<=rect.y+rect.height;return{strokes:strokes.filter(s=>intersects(strokeBounds(s))),objects:objects.filter(o=>intersects(objectBounds(o)))};}
 }
-export function strokeBounds(s){if(!s.points.length)return null;const xs=s.points.map(p=>p.x),ys=s.points.map(p=>p.y),pad=s.width/2;return{minX:Math.min(...xs)-pad,minY:Math.min(...ys)-pad,maxX:Math.max(...xs)+pad,maxY:Math.max(...ys)+pad};}
+export function strokeBounds(s){
+  if(s._bounds)return s._bounds;
+  if(!s.points||!s.points.length)return null;
+  const xs=s.points.map(p=>p.x),ys=s.points.map(p=>p.y),pad=(s.width||3)/2;
+  const b={minX:Math.min(...xs)-pad,minY:Math.min(...ys)-pad,maxX:Math.max(...xs)+pad,maxY:Math.max(...ys)+pad};
+  s._bounds=b;
+  return b;
+}
 export function objectBounds(o){return{minX:Math.min(o.x,o.x+o.width),minY:Math.min(o.y,o.y+o.height),maxX:Math.max(o.x,o.x+o.width),maxY:Math.max(o.y,o.y+o.height)};}
 export function unionBounds(bounds){const valid=bounds.filter(Boolean);if(!valid.length)return null;return{minX:Math.min(...valid.map(b=>b.minX)),minY:Math.min(...valid.map(b=>b.minY)),maxX:Math.max(...valid.map(b=>b.maxX)),maxY:Math.max(...valid.map(b=>b.maxY))};}
+export function alignSelected(document,ids,alignment){
+  const selectedSet=new Set(ids);
+  const strokes=document.strokes.filter(s=>selectedSet.has(s.id));
+  const objects=document.objects.filter(o=>selectedSet.has(o.id));
+  const items=[...strokes.map(s=>({kind:'stroke',item:s,bounds:strokeBounds(s)})),...objects.map(o=>({kind:'object',item:o,bounds:objectBounds(o)}))].filter(e=>e.bounds);
+  if(items.length<2)return false;
+  const totalBounds=unionBounds(items.map(i=>i.bounds));
+  if(!totalBounds)return false;
+  for(const entry of items){
+    let dx=0,dy=0;
+    const b=entry.bounds;
+    if(alignment==='left')dx=totalBounds.minX-b.minX;
+    else if(alignment==='center')dx=(totalBounds.minX+totalBounds.maxX)/2-(b.minX+b.maxX)/2;
+    else if(alignment==='right')dx=totalBounds.maxX-b.maxX;
+    else if(alignment==='top')dy=totalBounds.minY-b.minY;
+    else if(alignment==='middle')dy=(totalBounds.minY+totalBounds.maxY)/2-(b.minY+b.maxY)/2;
+    else if(alignment==='bottom')dy=totalBounds.maxY-b.maxY;
+    if(dx!==0||dy!==0){
+      if(entry.kind==='stroke'){
+        entry.item.points=entry.item.points.map(p=>({...p,x:p.x+dx,y:p.y+dy}));
+        if(entry.item._bounds){entry.item._bounds.minX+=dx;entry.item._bounds.maxX+=dx;entry.item._bounds.minY+=dy;entry.item._bounds.maxY+=dy;}
+      }else{
+        entry.item.x+=dx;
+        entry.item.y+=dy;
+      }
+    }
+  }
+  return true;
+}
 /* Provider adapter contract for future work: request({operation, context, options}) => Promise<structured result>. Register an implementation through ExtensionRegistry; no provider is bundled. */
 export const providerAdapterContract=Object.freeze({methods:['request'],request:{input:['operation','context','options'],output:'Promise<structured result>'}});
 /* Floating content panel contract: extensions can mount a panel descriptor
