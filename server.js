@@ -3,6 +3,7 @@ import dns from 'dns';
 // Force IPv4 — Render free tier does not support IPv6
 dns.setDefaultResultOrder('ipv4first');
 import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 import http from 'http';
 import { sessionRouter } from './NeoBot/backend/routes/session.js';
 import { setupWebSocketProxy } from './NeoBot/backend/routes/proxy.js';
@@ -100,6 +101,7 @@ app.use(session({
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 50, // Stricter limit: 50 requests per 15 minutes
+    skip: (req) => req.path === '/api/health' || req.path === '/health',
     message: { reply: 'Too many requests, please try again later.' },
     // IP-based baseline; identity-specific AI quotas are enforced separately.
     standardHeaders: true,
@@ -424,8 +426,8 @@ app.post('/api/chat', requireAuth, chatQuota, async (req, res) => {
             ...(isProd ? { msgLength: message.length } : { body: { message, historyCount: validatedHistory.length } })
         });
 
-        // 🔒 Secure Fix: Use the server-generated session ID instead of trusting the client
-        const secureUserId = req.session.id || 'fallback';
+        // 🔒 Secure Fix: Bind memory to verified Firebase UID (set by requireAuth)
+        const secureUserId = req.uid || req.session?.id || req.ip;
 
         // Get or create user memory
         let memory = await getUserMemory(secureUserId);
@@ -595,7 +597,7 @@ app.post('/api/chat-stream', requireAuth, boardQuota, boardRateLimit, async (req
                 content: h.content.slice(0, 2000) // cap each history message
             }));
 
-        const secureUserId = req.session?.id || 'fallback';
+        const secureUserId = req.uid || req.session?.id || req.ip;
         let memory = await getUserMemory(secureUserId);
         if (!memory) {
             memory = {
@@ -661,6 +663,13 @@ RULES:
             return res.end();
         }
 
+        const controller = new AbortController();
+        req.on('close', () => {
+            if (!res.writableEnded) {
+                controller.abort();
+            }
+        });
+
         let groqResponse;
         try {
             groqResponse = await fetchWithRetry('https://api.groq.com/openai/v1/chat/completions', {
@@ -669,9 +678,13 @@ RULES:
                     'Authorization': `Bearer ${groqApiKey}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify(requestBody),
+                signal: controller.signal
             });
         } catch (fetchError) {
+            if (fetchError.name === 'AbortError') {
+                return res.end();
+            }
             console.error("[AI] Groq Stream Fetch Error:", fetchError);
             res.write(`data: ${JSON.stringify({ error: 'AI stream failed' })}\n\n`);
             return res.end();
@@ -1572,9 +1585,8 @@ app.post('/api/tts', requireAuth, ttsQuota, boardRateLimit, async (req, res) => 
         if (!elResponse.ok) {
             const errText = await elResponse.text();
             console.error('❌ ElevenLabs TTS error:', elResponse.status, errText);
-            return res.status(elResponse.status).json({
-                error: 'ElevenLabs request failed',
-                details: errText
+            return res.status(502).json({
+                error: 'Text-to-speech conversion failed.'
             });
         }
 
@@ -1644,8 +1656,18 @@ app.get(['/neobot', '/neobot/'], (req, res) => {
 
 // Statistics endpoint
 app.get('/api/stats', async (req, res) => {
-    const authHeader = req.headers.authorization;
-    if (!process.env.ADMIN_KEY || authHeader !== `Bearer ${process.env.ADMIN_KEY}`) {
+    const adminKey = process.env.ADMIN_KEY;
+    const authHeader = req.headers.authorization || '';
+    const expected = adminKey ? `Bearer ${adminKey}` : null;
+    let authorized = false;
+    if (expected && authHeader.length === expected.length) {
+        try {
+            authorized = crypto.timingSafeEqual(Buffer.from(authHeader), Buffer.from(expected));
+        } catch {
+            authorized = false;
+        }
+    }
+    if (!authorized) {
         return res.status(403).json({ error: 'Unauthorized' });
     }
     try {
@@ -1715,7 +1737,7 @@ app.get('/api/board-queue-status', async (req, res) => {
         res.json({ ...position, sessionData });
     } catch (error) {
         console.error('Error in /api/board-queue-status:', error);
-        res.status(500).json({ error: 'Internal Server Error', message: error.message });
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -1939,7 +1961,7 @@ app.post('/api/profile/remove-photo', async (req, res) => {
         console.error('Error in /api/profile/remove-photo:', error);
         return res.status(500).json({
             success: false,
-            error: error.message || 'Failed to remove profile photo'
+            error: 'Failed to remove profile photo'
         });
     }
 });
@@ -2016,40 +2038,73 @@ app.get('/api/profile/public/:userId', async (req, res) => {
     }
 });
 
-// Serve static files safely - block access to root backend files
+// Serve static files safely via strict allowlist
 app.use((req, res, next) => {
-    const forbiddenExtensions = ['.js', '.json', '.md', '.env', '.rdb', '.py'];
     const pathLower = req.path.toLowerCase();
     
-    // Explicitly allow client-side folders
+    // Explicitly blocked backend paths, directories, and internal files
+    if (pathLower.startsWith('/middleware/') ||
+        pathLower.startsWith('/services/') ||
+        pathLower.startsWith('/utils/') ||
+        pathLower.startsWith('/routes/') ||
+        pathLower.startsWith('/functions/') ||
+        pathLower.startsWith('/scripts/') ||
+        pathLower.startsWith('/node_modules/') ||
+        pathLower.startsWith('/neobot/backend/') ||
+        pathLower.includes('/.') ||
+        pathLower.includes('.env')) {
+        return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    // Explicitly allowed client-side folders
     if (pathLower.startsWith('/css/') || 
         pathLower.startsWith('/js/') || 
         pathLower.startsWith('/htmls/') || 
         pathLower.startsWith('/ai-board/') ||
         pathLower.startsWith('/neoboard/') ||
         pathLower.startsWith('/blog/') ||
-        pathLower.startsWith('/screenshot_images/')) {
+        pathLower.startsWith('/notes/') ||
+        pathLower.startsWith('/iq/') ||
+        pathLower.startsWith('/screenshot_images/') ||
+        pathLower.startsWith('/neobot/') ||
+        pathLower.startsWith('/zohoverify/')) {
         const ext = path.extname(pathLower);
-        if (['.map', '.md', '.json', '.py', '.cjs', '.mjs'].includes(ext) || pathLower.includes('/node_modules/')) {
+        if (['.map', '.md', '.json', '.py', '.cjs', '.mjs', '.log', '.rdb', '.sh', '.yml', '.yaml', '.sql', '.bak'].includes(ext) || 
+            pathLower.includes('.test.js') || 
+            pathLower.includes('/node_modules/')) {
             return res.status(404).json({ error: 'Not found' });
         }
         return next();
     }
     
-    // Allow specific root HTML files
-    if (pathLower === '/' || pathLower === '/index.html' || pathLower === '/about.html') {
+    // Allowed root public files
+    const allowedRootFiles = new Set([
+        '/',
+        '/index.html',
+        '/about.html',
+        '/404.html',
+        '/header.html',
+        '/index.js',
+        '/search.js',
+        '/index_css.css',
+        '/brand-intro.css',
+        '/manifest.json',
+        '/robots.txt',
+        '/sitemap.xml',
+        '/ads.txt',
+        '/online-graduation_16847316.png',
+        '/codebase.png',
+        '/favicon.ico'
+    ]);
+
+    if (allowedRootFiles.has(pathLower)) {
         return next();
     }
     
-    // Block backend file extensions
-    const ext = path.extname(pathLower);
-    if (forbiddenExtensions.includes(ext) || pathLower.includes('.env')) {
-        return res.status(403).json({ error: 'Forbidden' });
-    }
-    
-    next();
+    // Block any other file in root
+    return res.status(404).json({ error: 'Not found' });
 });
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname), { dotfiles: 'deny' }));
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Email Verification Endpoint
