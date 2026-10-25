@@ -55,6 +55,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Keyboard shortcut handler
 document.addEventListener('keydown', (event) => {
+  // Global search shortcut (Ctrl+K or '/')
+  if ((event.key === '/' || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k')) && !document.querySelector('.modal.show')) {
+    const searchInput = document.getElementById('globalSearchInput');
+    if (searchInput && event.target !== searchInput) {
+      event.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+      return;
+    }
+  }
+
   // Skip if user is typing in an input, textarea, or modal is open
   if (
     event.target.tagName === 'INPUT' ||

@@ -49,6 +49,14 @@
         <i class="bi bi-list"></i>
       </button>
 
+      <!-- Global Search -->
+      <div class="nb-dash-search d-none d-md-flex" role="search">
+        <i class="bi bi-search nb-search-icon"></i>
+        <input type="text" id="globalSearchInput" placeholder="Search notes, quizzes, topics... (Ctrl+K)" autocomplete="off" aria-label="Search learning resources">
+        <span class="nb-search-kbd">Ctrl K</span>
+        <div id="globalSearchResults" class="search-results-dropdown"></div>
+      </div>
+
       <div class="header-nav-right">
         <span id="usernameDisplay" class="header-username d-none d-lg-flex"></span>
         <label class="switch ms-3" title="Toggle dark mode">
@@ -149,6 +157,10 @@
         <button class="nb-action-tile staggered-item" id="shortcutsBtn">
           <div class="nb-tile-icon"><i class="bi bi-lightning-charge-fill"></i></div>
           <span class="nb-tile-label">Shortcuts</span>
+        </button>
+        <button class="nb-action-tile staggered-item" id="savedQuestionsBtn" data-bs-toggle="modal" data-bs-target="#savedQuestionsModal">
+          <div class="nb-tile-icon"><i class="bi bi-bookmark-star-fill text-warning"></i></div>
+          <span class="nb-tile-label">Saved Questions <span id="savedQuestionsBadge" class="badge bg-warning text-dark ms-1 d-none">0</span></span>
         </button>
         <a href="/htmls/neolearn/index.html" class="nb-action-tile staggered-item text-decoration-none d-none" id="neolearnDashboardAction">
           <div class="nb-tile-icon"><i class="bi bi-person-badge-fill"></i></div>
@@ -506,6 +518,7 @@
   <script type="module" src="/js/learning-progress.js"></script>
   <script type="module" src="/js/dashboard-smart.js"></script>
   <script src="/js/shortcuts.js"></script>
+  <script src="/search.js"></script>
   <script src="/js/dashboard.js"></script>
 
   <!-- Dashboard: Today Date + Avatar + Thought of the Day -->
@@ -602,7 +615,119 @@
         }
       }).catch(err => console.error('Error checking NeoLearn profile', err));
     });
+
+    // ═══ SAVED QUESTIONS WIDGET ═════════════════════════════════════════
+    const BOOKMARKS_KEY = "neobranium_quiz_bookmarks";
+    function loadSavedQuestions() {
+      const container = document.getElementById('savedQuestionsContainer');
+      const badge = document.getElementById('savedQuestionsBadge');
+      if (!container) return;
+
+      let bookmarks = [];
+      try {
+        bookmarks = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || '[]');
+      } catch (e) {
+        bookmarks = [];
+      }
+
+      if (badge) {
+        if (bookmarks.length > 0) {
+          badge.textContent = bookmarks.length;
+          badge.classList.remove('d-none');
+        } else {
+          badge.classList.add('d-none');
+        }
+      }
+
+      if (bookmarks.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-5">
+            <i class="bi bi-bookmark-check fs-1 text-muted mb-3 d-block"></i>
+            <h5 class="text-light">No saved questions yet</h5>
+            <p class="text-muted small">When taking quizzes, click the bookmark icon on any difficult question to save it for revision here.</p>
+            <a href="/htmls/class9-10science.html" class="btn btn-primary btn-sm mt-2">Take a Science Quiz ⚡</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = bookmarks.map((b, idx) => `
+        <div class="nb-saved-q-card" id="savedQCard_${idx}">
+          <div class="nb-saved-q-header">
+            <span class="badge bg-primary">${b.quizTitle || 'Quiz Question'}</span>
+            <div>
+              <button class="btn btn-sm btn-outline-warning toggle-ans-btn me-2" data-target="ans_${idx}" style="font-size:0.75rem;">
+                <i class="bi bi-eye"></i> Answer
+              </button>
+              <button class="btn btn-sm btn-outline-danger remove-bm-btn" data-id="${b.id}" style="font-size:0.75rem;" title="Remove from saved">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div class="nb-saved-q-text">${b.question}</div>
+          <div class="nb-saved-q-ans d-none" id="ans_${idx}">
+            <strong>Correct Answer:</strong> ${b.answer}
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary border-opacity-25">
+            <small class="text-muted">${b.savedAt ? 'Saved ' + new Date(b.savedAt).toLocaleDateString() : ''}</small>
+            <a href="${b.quizPage || '/htmls/quiz_htmls/class10-physics-chapter-1.html'}" class="btn btn-sm btn-outline-info py-0 px-2" style="font-size:0.75rem;">
+              Practice Quiz <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      `).join('');
+
+      // Wire answer reveal
+      container.querySelectorAll('.toggle-ans-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = document.getElementById(btn.dataset.target);
+          if (target) {
+            const isHidden = target.classList.contains('d-none');
+            target.classList.toggle('d-none', !isHidden);
+            btn.innerHTML = isHidden ? '<i class="bi bi-eye-slash"></i> Hide' : '<i class="bi bi-eye"></i> Answer';
+          }
+        });
+      });
+
+      // Wire remove
+      container.querySelectorAll('.remove-bm-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          let list = [];
+          try { list = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || '[]'); } catch (e) {}
+          list = list.filter(item => item.id !== id);
+          localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(list));
+          loadSavedQuestions();
+        });
+      });
+    }
+
+    // Load initial badge count
+    loadSavedQuestions();
+
+    // Reload when modal opens
+    document.getElementById('savedQuestionsModal')?.addEventListener('show.bs.modal', loadSavedQuestions);
   </script>
+
+  <!-- Saved Questions Modal -->
+  <div class="modal fade" id="savedQuestionsModal" tabindex="-1" aria-labelledby="savedQuestionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+      <div class="modal-content" style="background:#1e1b4b; color:#e2e8f0; border:1px solid rgba(255,255,255,0.15); border-radius:18px;">
+        <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.1);">
+          <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2" id="savedQuestionsModalLabel">
+            <i class="bi bi-bookmark-star-fill text-warning"></i> Saved Quiz Questions &amp; Revision
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div id="savedQuestionsContainer"></div>
+        </div>
+        <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,0.1);">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>
