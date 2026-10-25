@@ -32,13 +32,16 @@ function goToSubjectPage() {
 window.openSubjectModal = openSubjectModal;
 window.goToSubjectPage = goToSubjectPage;
 
-// Toggle sidebar logic for mobile
-document.querySelector('.navbar-toggler').addEventListener('click', function () {
-  const sidebar = document.querySelector('.sidebar');
-  const main = document.querySelector('main');
-  sidebar.classList.toggle('active');
-  main.classList.toggle('shifted');
-});
+// Toggle sidebar logic for mobile — #mobileSidebarToggle (new HTML) or .navbar-toggler fallback
+const _sidebarBtn = document.getElementById('mobileSidebarToggle') || document.querySelector('.navbar-toggler');
+if (_sidebarBtn) {
+  _sidebarBtn.addEventListener('click', function () {
+    const sidebar = document.querySelector('.sidebar');
+    const main = document.querySelector('main');
+    if (sidebar) sidebar.classList.toggle('active');
+    if (main) main.classList.toggle('shifted');
+  });
+}
 
 // Adjust layout on resize
 window.addEventListener('resize', function () {
@@ -53,37 +56,36 @@ window.addEventListener('resize', function () {
   }
 });
 
-// Initial load adjustment with skeleton
+// Initial load adjustment
 window.addEventListener('load', function () {
   const main = document.querySelector('main');
-  if (window.innerWidth >= 768) {
-    main.style.marginLeft = '250px';
-  } else {
-    main.style.marginLeft = '0';
-  }
+  if (main) main.style.marginLeft = window.innerWidth >= 768 ? '250px' : '0';
 
-  // Simulate server data loading with skeleton
+  // Null-safe skeleton helpers
+  const safeStyle = (id, prop, val) => { const el = document.getElementById(id); if (el) el.style[prop] = val; };
+  safeStyle('classSkeleton', 'display', 'flex');
+  safeStyle('notesSkeleton', 'display', 'flex');
+  safeStyle('featuresSkeleton', 'display', 'flex');
+  safeStyle('spotlightSkeleton', 'display', 'flex');
+
   setTimeout(() => {
-    document.getElementById('classSkeleton').style.display = 'none';
-    document.getElementById('notesSkeleton').style.display = 'none';
-    document.getElementById('notesContent').style.display = 'flex';
-    document.getElementById('featuresSkeleton').style.display = 'none';
-    document.getElementById('featuresContent').style.display = 'flex';
-    document.getElementById('spotlightSkeleton').style.display = 'none';
-    document.getElementById('spotlightContent').style.display = 'flex';
+    safeStyle('classSkeleton', 'display', 'none');
+    safeStyle('notesSkeleton', 'display', 'none');
+    safeStyle('notesContent', 'display', 'flex');
+    safeStyle('featuresSkeleton', 'display', 'none');
+    safeStyle('featuresContent', 'display', 'flex');
+    safeStyle('spotlightSkeleton', 'display', 'none');
+    safeStyle('spotlightContent', 'display', 'flex');
   }, 2000);
 
-  // Initial skeleton display
-  document.getElementById('classSkeleton').style.display = 'flex';
-  document.getElementById('notesSkeleton').style.display = 'flex';
-  document.getElementById('featuresSkeleton').style.display = 'flex';
-  document.getElementById('spotlightSkeleton').style.display = 'flex';
-
-  // Add fade-in classes to main sections for staggered animation
-  const sections = document.querySelectorAll('main > section, main > h2, main > .row');
-  sections.forEach((section, index) => {
-    section.classList.add('fade-in-up');
-    section.classList.add(`delay-${(index % 4) + 1}`);
+  // Staggered section animations
+  document.querySelectorAll('main > section, main > .row, main > .mb-4').forEach((el, i) => {
+    el.classList.add('fade-in-up');
+    el.style.animationDelay = `${i * 75}ms`;
+  });
+  document.querySelectorAll('.staggered-item').forEach((el, i) => {
+    el.classList.add('fade-in-up');
+    el.style.animationDelay = `${i * 55}ms`;
   });
 });
 
@@ -103,9 +105,16 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFabToggle('sidebarFabBtn', 'sidebarFabMenu');
   setupFabToggle('bottomFabBtn', 'bottomFabMenu');
 
-  // NeoLens link is now active and redirects to /htmls/doubt/index.html
+  // Shortcuts modal (quick-action tile)
+  const shortcutsBtn = document.getElementById('shortcutsBtn');
+  if (shortcutsBtn) {
+    shortcutsBtn.addEventListener('click', () => {
+      const modal = new bootstrap.Modal(document.getElementById('shortcutsModal'));
+      modal.show();
+    });
+  }
 
-  // Close menus when clicking outside
+  // Close FAB menus when clicking outside
   document.addEventListener('click', () => {
     document.querySelectorAll('.fab-menu').forEach(menu => {
       menu.classList.remove('active');
