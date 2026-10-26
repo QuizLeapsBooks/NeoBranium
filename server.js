@@ -1889,6 +1889,10 @@ app.post('/api/neolearn/messages/seen', neoLearnMessageHandlers.markMessageSeen)
 app.post('/api/neolearn/messages/hidden', neoLearnMessageHandlers.getHiddenConversations);
 app.post('/api/neolearn/messages/delete', neoLearnMessageHandlers.deleteConversation);
 app.post('/api/neolearn/messages/restore', neoLearnMessageHandlers.restoreConversation);
+app.post('/api/neolearn/messages/unsend', neoLearnMessageHandlers.unsendMessage);
+app.post('/api/neolearn/messages/react', neoLearnMessageHandlers.reactToMessage);
+app.post('/api/neolearn/messages/delete-for-me', neoLearnMessageHandlers.deleteMessageForMe);
+app.get('/api/neolearn/messages/deleted-for-me', neoLearnMessageHandlers.getDeletedMessages);
 
 const neoLearnModerationHandlers = createNeoLearnModerationHandlers({
     verifyAuthToken,

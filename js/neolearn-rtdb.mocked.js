@@ -246,6 +246,23 @@ export async function addComment(postId, text) {
 }
 
 /**
+ * Delete a comment from RTDB.
+ */
+export async function deleteComment(postId, commentId) {
+  requirePostId(postId);
+  if (!commentId || typeof commentId !== 'string' || commentId.includes('/')) {
+    throw new Error('A valid comment ID is required.');
+  }
+  const user = requireCurrentUser();
+  const commentRef = ref(rtdb, `neolearn_realtime/post_comments/${postId}/${commentId}`);
+  try {
+    await set(commentRef, null);
+  } catch (error) {
+    throw new Error(networkOrPermissionError(error, 'Comment could not be deleted.'));
+  }
+}
+
+/**
  * Subscribe to realtime comment updates for a post.
  * Calls `onUpdate(comments)` where `comments` is an array of
  * `{ commentId, userId, text, createdAt }` sorted oldest-first.

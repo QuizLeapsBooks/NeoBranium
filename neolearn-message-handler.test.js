@@ -19,40 +19,116 @@ function createHarness() {
             latest: { senderId: 'viewer-uid', text: 'Hi', createdAt: 20 }
         }]
     ]);
+
+    function resolveValue(path) {
+        if (data.has(path)) return data.get(path);
+        for (const [key, val] of data.entries()) {
+            if (path.startsWith(key + '/')) {
+                const sub = path.slice(key.length + 1).split('/');
+                let curr = val;
+                for (const part of sub) {
+                    curr = curr?.[part];
+                }
+                return curr !== undefined ? curr : null;
+            }
+        }
+        return null;
+    }
+
+    function createRef(path) {
+        return {
+            async get() {
+                const value = resolveValue(path);
+                return { exists: () => value !== null && value !== undefined, val: () => value };
+            },
+            child(id) {
+                return createRef(`${path}/${id}`);
+            },
+            async update(updates) {
+                let current = resolveValue(path);
+                if (current && typeof current === 'object') {
+                    for (const [key, val] of Object.entries(updates)) {
+                        if (key.includes('/')) {
+                            const [subId, field] = key.split('/');
+                            if (current[subId]) current[subId][field] = val;
+                        } else {
+                            current[key] = val;
+                        }
+                    }
+                } else {
+                    const parent = data.get('neolearn_direct_messages/peer-uid/viewer-uid/messages');
+                    if (parent) {
+                        for (const [key, val] of Object.entries(updates)) {
+                            const [mId, field] = key.split('/');
+                            if (parent[mId]) parent[mId][field] = val;
+                        }
+                    }
+                }
+            },
+            orderByChild(field) {
+                assert.equal(field, 'createdAt');
+                return {
+                    limitToLast(count) {
+                        return {
+                            async get() {
+                                const entries = Object.entries(data.get(path) || {})
+                                    .sort((first, second) => first[1].createdAt - second[1].createdAt)
+                                    .slice(-count);
+                                return { val: () => Object.fromEntries(entries) };
+                            }
+                        };
+                    }
+                };
+            },
+            async set(value) {
+                data.set(path, value);
+                for (const key of data.keys()) {
+                    if (path.startsWith(key + '/')) {
+                        const sub = path.slice(key.length + 1).split('/');
+                        let curr = data.get(key);
+                        for (let i = 0; i < sub.length - 1; i++) {
+                            curr = curr[sub[i]] = curr[sub[i]] || {};
+                        }
+                        curr[sub[sub.length - 1]] = value;
+                    }
+                }
+                // Also ensure prefix paths can resolve this value
+                const parts = path.split('/');
+                for (let i = 1; i < parts.length; i++) {
+                    const prefix = parts.slice(0, i).join('/');
+                    let obj = data.get(prefix);
+                    if (!obj || typeof obj !== 'object') {
+                        obj = {};
+                        data.set(prefix, obj);
+                    }
+                    const rest = parts.slice(i);
+                    let curr = obj;
+                    for (let j = 0; j < rest.length - 1; j++) {
+                        curr = curr[rest[j]] = curr[rest[j]] || {};
+                    }
+                    curr[rest[rest.length - 1]] = value;
+                }
+            },
+            async remove() {
+                for (const key of data.keys()) {
+                    if (path.startsWith(key + '/')) {
+                        const sub = path.slice(key.length + 1).split('/');
+                        let curr = data.get(key);
+                        for (let i = 0; i < sub.length - 1; i++) {
+                            curr = curr?.[sub[i]];
+                        }
+                        if (curr) delete curr[sub[sub.length - 1]];
+                        return;
+                    }
+                }
+                data.delete(path);
+            }
+        };
+    }
+
     const rtdb = {
         ref(path) {
-            return {
-                async get() { return { val: () => data.get(path) || null }; },
-                child(id) {
-                    const [collectionPath, messageId] = [path, id];
-                    return { async get() { const value = data.get(collectionPath)?.[messageId]; return { exists: () => Boolean(value), val: () => value }; } };
-                },
-                async update(updates) {
-                    const current = data.get(path) || {};
-                    for (const [key, value] of Object.entries(updates)) {
-                        const [messageId, field] = key.split('/');
-                        if (current[messageId]) current[messageId][field] = value;
-                    }
-                    data.set(path, current);
-                },
-                orderByChild(field) {
-                    assert.equal(field, 'createdAt');
-                    return {
-                        limitToLast(count) {
-                            return {
-                                async get() {
-                                    const entries = Object.entries(data.get(path) || {})
-                                        .sort((first, second) => first[1].createdAt - second[1].createdAt)
-                                        .slice(-count);
-                                    return { val: () => Object.fromEntries(entries) };
-                                }
-                            };
-                        }
-                    };
-                },
-                async set(value) { data.set(path, value); },
-                async remove() { data.delete(path); }
-            };
+            return createRef(path);
         }
     };
     const db = {
@@ -167,4 +243,117 @@ test('message sending recognizes the canonical learning relationship ID', async 
     assert.equal(res.body.success, true);
     assert.equal(savedMessage.senderId, 'viewer-uid');
     assert.equal(savedMessage.text, 'Hello');
+});
+
+test('message sending attaches sanitized replyTo data when present', async () => {
+    let savedMessage = null;
+    const db = {
+        collection(name) {
+            return {
+                doc() {
+                    return {
+                        async get() {
+                            if (name === 'neolearn_blocks') return { exists: false };
+                            return { exists: true, data: () => ({ messagePrivacy: 'everyone' }) };
+                        }
+                    };
+                }
+            };
+        }
+    };
+    const rtdb = {
+        ref() {
+            return {
+                push() {
+                    return {
+                        key: 'msg-reply-id',
+                        async set(message) { savedMessage = message; }
+                    };
+                }
+            };
+        }
+    };
+    const { sendMessage } = createNeoLearnMessageHandlers({
+        verifyAuthToken: async () => ({ uid: 'viewer-uid' }),
+        db,
+        rtdb
+    });
+    const res = response();
+
+    await sendMessage({
+        body: {
+            targetUserId: 'peer-uid',
+            text: 'I agree with this',
+            replyTo: {
+                messageId: 'prev-123',
+                text: 'What do you think about physics?',
+                senderId: 'peer-uid',
+                senderName: 'Albert'
+            }
+        }
+    }, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(savedMessage.replyTo, {
+        messageId: 'prev-123',
+        text: 'What do you think about physics?',
+        senderId: 'peer-uid',
+        senderName: 'Albert'
+    });
+});
+
+test('unsendMessage marks own message as unsent and clears reactions', async () => {
+    const { unsendMessage, data } = createHarness();
+    const res = response();
+
+    await unsendMessage({ body: { targetUserId: 'peer-uid', messageId: 'latest' } }, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.success, true);
+    const updated = data.get('neolearn_direct_messages/peer-uid/viewer-uid/messages').latest;
+    assert.equal(updated.unsent, true);
+    assert.equal(updated.text, 'This message was unsent');
+    assert.equal(updated.reactions, null);
+});
+
+test('unsendMessage rejects unsending other people messages', async () => {
+    const { unsendMessage } = createHarness();
+    const res = response();
+
+    await unsendMessage({ body: { targetUserId: 'peer-uid', messageId: 'first' } }, res);
+
+    assert.equal(res.statusCode, 403);
+    assert.equal(res.body.error, 'You can only unsend your own messages.');
+});
+
+test('reactToMessage adds emoji reaction and toggles it off when clicked again', async () => {
+    const { reactToMessage, data } = createHarness();
+    const res1 = response();
+
+    await reactToMessage({ body: { targetUserId: 'peer-uid', messageId: 'first', emoji: '❤️' } }, res1);
+    assert.equal(res1.statusCode, 200);
+    assert.equal(res1.body.set, true);
+    const msg = data.get('neolearn_direct_messages/peer-uid/viewer-uid/messages').first;
+    assert.equal(msg.reactions['viewer-uid'].emoji, '❤️');
+
+    // Toggle off
+    const res2 = response();
+    await reactToMessage({ body: { targetUserId: 'peer-uid', messageId: 'first', emoji: '❤️' } }, res2);
+    assert.equal(res2.statusCode, 200);
+    assert.equal(res2.body.removed, true);
+    assert.equal(msg.reactions?.['viewer-uid'], undefined);
+});
+
+test('deleteMessageForMe stores hidden message marker for viewer', async () => {
+    const { deleteMessageForMe, getDeletedMessages, data } = createHarness();
+    const res1 = response();
+
+    await deleteMessageForMe({ body: { targetUserId: 'peer-uid', messageId: 'first' } }, res1);
+    assert.equal(res1.statusCode, 200);
+    assert.equal(res1.body.success, true);
+
+    const res2 = response();
+    await getDeletedMessages({}, res2);
+    assert.equal(res2.statusCode, 200);
+    assert.equal(res2.body.deletedMessages['peer-uid']['first'], true);
 });

@@ -68,6 +68,21 @@
       ".read": false,
       ".write": false
     },
+    "neolearn_message_deletes": {
+      ".read": false,
+      ".write": false
+    },
+    "neolearn_typing": {
+      "$firstUserId": {
+        "$secondUserId": {
+          ".read": "auth != null && (auth.uid === $firstUserId || auth.uid === $secondUserId)",
+          "$userId": {
+            ".write": "auth != null && auth.uid === $userId",
+            ".validate": "newData.isBoolean() || !newData.exists()"
+          }
+        }
+      }
+    },
     "messages": {
       ".read": "auth != null",
       ".indexOn": [

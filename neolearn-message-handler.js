@@ -21,7 +21,7 @@ export function createNeoLearnMessageHandlers({ verifyAuthToken, db, rtdb }) {
         if (!senderId) return;
         if (!db || !rtdb) return res.status(503).json({ success: false, error: 'NeoLearn data is unavailable.' });
 
-        const { targetUserId, text } = req.body || {};
+        const { targetUserId, text, replyTo } = req.body || {};
         if (!validUserId(targetUserId) || targetUserId === senderId || typeof text !== 'string' || !text.trim() || text.length > 2000) {
             return res.status(400).json({ success: false, error: 'Invalid message data.' });
         }
@@ -61,13 +61,30 @@ export function createNeoLearnMessageHandlers({ verifyAuthToken, db, rtdb }) {
             const conversationRef = rtdb.ref(`neolearn_direct_messages/${firstId}/${secondId}/messages`);
             const newMessageRef = conversationRef.push();
             const now = Date.now();
-            
-            await newMessageRef.set({
+
+            let sanitizedReplyTo = null;
+            if (replyTo && typeof replyTo === 'object') {
+                if (typeof replyTo.messageId === 'string' && typeof replyTo.text === 'string') {
+                    sanitizedReplyTo = {
+                        messageId: String(replyTo.messageId).slice(0, 128),
+                        text: String(replyTo.text).slice(0, 150),
+                        senderId: typeof replyTo.senderId === 'string' ? String(replyTo.senderId).slice(0, 128) : '',
+                        senderName: typeof replyTo.senderName === 'string' ? String(replyTo.senderName).slice(0, 100) : 'Learner'
+                    };
+                }
+            }
+
+            const messagePayload = {
                 senderId: senderId,
                 text: text.trim(),
                 createdAt: now,
                 readByRecipient: false
-            });
+            };
+            if (sanitizedReplyTo) {
+                messagePayload.replyTo = sanitizedReplyTo;
+            }
+            
+            await newMessageRef.set(messagePayload);
 
             return res.json({ success: true, messageId: newMessageRef.key, createdAt: now });
         } catch (error) {
@@ -177,5 +194,129 @@ export function createNeoLearnMessageHandlers({ verifyAuthToken, db, rtdb }) {
         }
     }
 
-    return { sendMessage, markMessageSeen, getHiddenConversations, deleteConversation, restoreConversation };
+    async function unsendMessage(req, res) {
+        const viewerId = await authenticate(req, res);
+        if (!viewerId) return;
+        if (!rtdb) return res.status(503).json({ success: false, error: 'NeoLearn data is unavailable.' });
+
+        const { targetUserId, messageId } = req.body || {};
+        if (!validUserId(targetUserId) || targetUserId === viewerId || typeof messageId !== 'string' || !messageId || messageId.length > 128 || messageId.includes('/') || messageId.includes('.')) {
+            return res.status(400).json({ success: false, error: 'Invalid unsend request data.' });
+        }
+
+        try {
+            const [firstId, secondId] = [viewerId, targetUserId].sort();
+            const messageRef = rtdb.ref(`neolearn_direct_messages/${firstId}/${secondId}/messages/${messageId}`);
+            const snapshot = await messageRef.get();
+            if (!snapshot.exists()) {
+                return res.status(404).json({ success: false, error: 'Message not found.' });
+            }
+            const message = snapshot.val();
+            if (message?.senderId !== viewerId) {
+                return res.status(403).json({ success: false, error: 'You can only unsend your own messages.' });
+            }
+
+            await messageRef.update({
+                unsent: true,
+                unsentAt: Date.now(),
+                text: 'This message was unsent',
+                reactions: null
+            });
+
+            return res.json({ success: true, messageId });
+        } catch (error) {
+            console.error('NeoLearn message unsend failed:', error.message);
+            return res.status(500).json({ success: false, error: 'Message could not be unsent.' });
+        }
+    }
+
+    const VALID_EMOJIS = new Set(['❤️', '👍', '😂', '😮', '😢', '🔥', '👏', '🎉']);
+
+    async function reactToMessage(req, res) {
+        const viewerId = await authenticate(req, res);
+        if (!viewerId) return;
+        if (!rtdb) return res.status(503).json({ success: false, error: 'NeoLearn data is unavailable.' });
+
+        const { targetUserId, messageId, emoji } = req.body || {};
+        if (!validUserId(targetUserId) || targetUserId === viewerId || typeof messageId !== 'string' || !messageId || messageId.length > 128 || messageId.includes('/') || messageId.includes('.')) {
+            return res.status(400).json({ success: false, error: 'Invalid reaction request.' });
+        }
+        if (typeof emoji !== 'string' || !VALID_EMOJIS.has(emoji)) {
+            return res.status(400).json({ success: false, error: 'Invalid reaction emoji.' });
+        }
+
+        try {
+            const [firstId, secondId] = [viewerId, targetUserId].sort();
+            const messageRef = rtdb.ref(`neolearn_direct_messages/${firstId}/${secondId}/messages/${messageId}`);
+            const snapshot = await messageRef.get();
+            if (!snapshot.exists()) {
+                return res.status(404).json({ success: false, error: 'Message not found.' });
+            }
+            const message = snapshot.val();
+            if (message.unsent) {
+                return res.status(400).json({ success: false, error: 'Cannot react to an unsent message.' });
+            }
+
+            const reactionRef = messageRef.child(`reactions/${viewerId}`);
+            const currentReactionSnap = await reactionRef.get();
+            if (currentReactionSnap.exists() && currentReactionSnap.val()?.emoji === emoji) {
+                await reactionRef.remove();
+                return res.json({ success: true, removed: true, emoji });
+            } else {
+                await reactionRef.set({
+                    emoji,
+                    updatedAt: Date.now()
+                });
+                return res.json({ success: true, set: true, emoji });
+            }
+        } catch (error) {
+            console.error('NeoLearn message reaction failed:', error.message);
+            return res.status(500).json({ success: false, error: 'Reaction could not be saved.' });
+        }
+    }
+
+    async function deleteMessageForMe(req, res) {
+        const viewerId = await authenticate(req, res);
+        if (!viewerId) return;
+        if (!rtdb) return res.status(503).json({ success: false, error: 'NeoLearn data is unavailable.' });
+
+        const { targetUserId, messageId } = req.body || {};
+        if (!validUserId(targetUserId) || targetUserId === viewerId || typeof messageId !== 'string' || !messageId || messageId.length > 128 || messageId.includes('/') || messageId.includes('.')) {
+            return res.status(400).json({ success: false, error: 'Invalid message data.' });
+        }
+
+        try {
+            await rtdb.ref(`neolearn_message_deletes/${viewerId}/${targetUserId}/${messageId}`).set(true);
+            return res.json({ success: true, messageId });
+        } catch (error) {
+            console.error('NeoLearn message delete for me failed:', error.message);
+            return res.status(500).json({ success: false, error: 'Message could not be deleted.' });
+        }
+    }
+
+    async function getDeletedMessages(req, res) {
+        const viewerId = await authenticate(req, res);
+        if (!viewerId) return;
+        if (!rtdb) return res.status(503).json({ success: false, error: 'NeoLearn data is unavailable.' });
+
+        try {
+            const snapshot = await rtdb.ref(`neolearn_message_deletes/${viewerId}`).get();
+            return res.json({ success: true, deletedMessages: snapshot.val() || {} });
+        } catch (error) {
+            console.error('NeoLearn get deleted messages failed:', error.message);
+            return res.status(500).json({ success: false, error: 'Deleted messages could not be loaded.' });
+        }
+    }
+
+    return {
+        sendMessage,
+        markMessageSeen,
+        getHiddenConversations,
+        deleteConversation,
+        restoreConversation,
+        unsendMessage,
+        reactToMessage,
+        deleteMessageForMe,
+        getDeletedMessages
+    };
 }

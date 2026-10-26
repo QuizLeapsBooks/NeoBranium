@@ -1,5 +1,6 @@
 import {
   addComment,
+  deleteComment,
   toggleLearn,
   togglePostLike,
   getNeoLearnPublicProfile,
@@ -13,6 +14,99 @@ import {
   subscribeToPostLikes,
   subscribeToPostComments
 } from './neolearn-rtdb.js';
+
+let socialToastEl = null;
+let socialToastTimeout = null;
+
+export function showSocialToast(message) {
+  if (!socialToastEl) {
+    socialToastEl = document.createElement('div');
+    socialToastEl.className = 'nl-social-toast';
+    socialToastEl.setAttribute('role', 'status');
+    socialToastEl.setAttribute('aria-live', 'polite');
+    document.body.appendChild(socialToastEl);
+  }
+  socialToastEl.textContent = message;
+  socialToastEl.classList.add('is-visible');
+  clearTimeout(socialToastTimeout);
+  socialToastTimeout = setTimeout(() => {
+    socialToastEl.classList.remove('is-visible');
+  }, 2400);
+}
+
+export function triggerDoubleTapLike(container, postId, likeButton) {
+  const heart = document.createElement('div');
+  heart.className = 'nl-insta-heart-burst';
+  heart.innerHTML = '<i class="bi bi-heart-fill" aria-hidden="true"></i>';
+  container.appendChild(heart);
+  setTimeout(() => heart.remove(), 900);
+
+  if (likeButton && likeButton.getAttribute('aria-pressed') !== 'true') {
+    likeButton.click();
+  }
+}
+
+export function isPostSaved(postId) {
+  const uid = auth.currentUser?.uid;
+  if (!uid || !postId) return false;
+  try {
+    const list = JSON.parse(localStorage.getItem(`neolearn_saved_${uid}`) || '[]');
+    return Array.isArray(list) && list.includes(postId);
+  } catch {
+    return false;
+  }
+}
+
+export function toggleSavePost(postId, saveButton, saveIcon, post = null) {
+  const uid = auth.currentUser?.uid;
+  if (!uid) {
+    showSocialToast('Please sign in to save posts.');
+    return;
+  }
+  try {
+    let list = JSON.parse(localStorage.getItem(`neolearn_saved_${uid}`) || '[]');
+    if (!Array.isArray(list)) list = [];
+    let dataMap = {};
+    try {
+      dataMap = JSON.parse(localStorage.getItem(`neolearn_saved_data_${uid}`) || '{}');
+      if (typeof dataMap !== 'object' || dataMap === null) dataMap = {};
+    } catch {}
+
+    const isSaved = list.includes(postId);
+    if (isSaved) {
+      list = list.filter(id => id !== postId);
+      delete dataMap[postId];
+      saveButton.classList.remove('is-saved');
+      saveIcon.className = 'bi bi-bookmark';
+      showSocialToast('Post removed from Saved');
+    } else {
+      list.unshift(postId);
+      if (post) {
+        dataMap[postId] = post;
+      }
+      saveButton.classList.add('is-saved');
+      saveIcon.className = 'bi bi-bookmark-fill';
+      showSocialToast('Post saved to your collection!');
+    }
+    localStorage.setItem(`neolearn_saved_${uid}`, JSON.stringify(list));
+    localStorage.setItem(`neolearn_saved_data_${uid}`, JSON.stringify(dataMap));
+    window.dispatchEvent(new CustomEvent('neolearn-saved-changed', { detail: { postId, saved: !isSaved } }));
+  } catch (e) {
+    console.warn('Could not save post:', e);
+  }
+}
+
+export function getSavedPosts(userId) {
+  if (!userId) return [];
+  try {
+    const list = JSON.parse(localStorage.getItem(`neolearn_saved_${userId}`) || '[]');
+    const dataMap = JSON.parse(localStorage.getItem(`neolearn_saved_data_${userId}`) || '{}');
+    return list.map(id => dataMap[id]).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 
 function element(tag, className, text) {
   const node = document.createElement(tag);
@@ -240,7 +334,7 @@ async function resolveProfile(userId) {
   });
 }
 
-function renderComment(comment) {
+function renderComment(comment, postId) {
   const item = element('div', 'nl-comment-item');
   const meta = element('div', 'nl-comment-meta');
   
@@ -257,6 +351,29 @@ function renderComment(comment) {
     ts.dateTime = new Date(comment.createdAt).toISOString();
     meta.append(ts);
   }
+
+  // Delete button if author of comment
+  if (auth.currentUser?.uid && auth.currentUser.uid === comment.userId) {
+    const deleteBtn = element('button', 'nl-comment-delete', '');
+    deleteBtn.type = 'button';
+    deleteBtn.title = 'Delete comment';
+    deleteBtn.setAttribute('aria-label', 'Delete comment');
+    deleteBtn.innerHTML = '<i class="bi bi-trash3" aria-hidden="true"></i>';
+    deleteBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!window.confirm('Delete this comment?')) return;
+      deleteBtn.disabled = true;
+      try {
+        await deleteComment(postId, comment.commentId);
+        showSocialToast('Comment deleted');
+      } catch (err) {
+        showSocialToast(err.message || 'Could not delete comment.');
+        deleteBtn.disabled = false;
+      }
+    });
+    meta.append(deleteBtn);
+  }
+
   const text = element('p', 'nl-comment-text', '');
   text.textContent = comment.text;
   item.append(meta, text);
@@ -313,7 +430,7 @@ export function createNeoLearnCommentSection(postId) {
       } else {
         loadStatus.textContent = '';
         for (const comment of comments) {
-          list.append(renderComment(comment));
+          list.append(renderComment(comment, postId));
         }
         list.scrollTop = list.scrollHeight;
       }
@@ -633,7 +750,20 @@ export function renderPostCard(post, author, detailDialog, { isOwner } = {}) {
   image.alt = post.description ? `Learning post: ${post.description}` : `Learning post by ${author.name || 'learner'}`;
   image.loading = 'lazy';
   openDetail.append(image);
-  openDetail.addEventListener('click', () => openPostDetail(post, author, detailDialog, { isOwner }));
+
+  let clickTimeout = null;
+  openDetail.addEventListener('click', () => {
+    if (clickTimeout) {
+      clearTimeout(clickTimeout);
+      clickTimeout = null;
+      triggerDoubleTapLike(openDetail, post.postId, likeButton);
+    } else {
+      clickTimeout = setTimeout(() => {
+        clickTimeout = null;
+        openPostDetail(post, author, detailDialog, { isOwner });
+      }, 260);
+    }
+  });
 
   const body = element('div', 'nl-post-body');
   const authorRow = element('div', 'nl-post-author');
@@ -711,6 +841,48 @@ export function renderPostCard(post, author, detailDialog, { isOwner } = {}) {
   });
 
   actions.append(commentsButton);
+
+  // Share button
+  const shareButton = element('button', 'nl-post-action nl-post-share-btn', '');
+  shareButton.type = 'button';
+  shareButton.title = 'Share post';
+  shareButton.setAttribute('aria-label', 'Share post');
+  shareButton.append(element('i', 'bi bi-send', ''), element('span', '', 'Share'));
+  shareButton.addEventListener('click', async () => {
+    const postUrl = `${window.location.origin}/htmls/neolearn/index.html?postId=${encodeURIComponent(post.postId)}`;
+    const shareData = {
+      title: `${author.name || 'Learner'} on NeoLearn`,
+      text: post.description || 'Check out this learning moment on NeoLearn!',
+      url: postUrl
+    };
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+      }
+    }
+    navigator.clipboard?.writeText(postUrl).then(() => {
+      showSocialToast('Post link copied to clipboard!');
+    }).catch(() => {
+      showSocialToast('Link: ' + postUrl);
+    });
+  });
+  actions.append(shareButton);
+
+  // Save / Bookmark button
+  const saveButton = element('button', `nl-post-action nl-post-save-btn${isPostSaved(post.postId) ? ' is-saved' : ''}`, '');
+  saveButton.type = 'button';
+  saveButton.title = 'Save post';
+  saveButton.setAttribute('aria-label', 'Save post');
+  const saveIcon = element('i', isPostSaved(post.postId) ? 'bi bi-bookmark-fill' : 'bi bi-bookmark', '');
+  saveButton.append(saveIcon);
+  saveButton.addEventListener('click', () => {
+    toggleSavePost(post.postId, saveButton, saveIcon, post);
+  });
+  actions.append(saveButton);
+
   body.append(actions, actionStatus, commentSection);
   card.append(openDetail, body);
 
@@ -741,9 +913,11 @@ export function openPostDetail(post, author, dialog, { isOwner } = {}) {
   content.append(close);
 
   const layout = element('div', 'nl-post-detail-layout');
+  const imageWrap = element('div', 'nl-post-image-button');
   const image = element('img', 'nl-post-detail-image');
   image.src = post.imageUrl;
   image.alt = post.description ? `Learning post: ${post.description}` : `Learning post by ${author.name || 'learner'}`;
+  imageWrap.append(image);
 
   const details = element('div', 'nl-post-detail-copy');
   const heading = element('div', 'nl-post-author nl-post-detail-author');
@@ -769,7 +943,7 @@ export function openPostDetail(post, author, dialog, { isOwner } = {}) {
     if (detailDescription) detailDescription.textContent = description;
     else if (description) {
       detailDescription = element('p', 'nl-post-description', description);
-      details.insertBefore(detailDescription, status);
+      details.insertBefore(detailDescription, detailActions);
     }
   });
   heading.append(postMenu);
@@ -779,6 +953,7 @@ export function openPostDetail(post, author, dialog, { isOwner } = {}) {
     details.append(detailDescription);
   }
 
+  const detailActions = element('div', 'nl-post-actions');
   const status = element('span', 'nl-post-action-status');
   status.setAttribute('role', 'status');
 
@@ -787,7 +962,11 @@ export function openPostDetail(post, author, dialog, { isOwner } = {}) {
     isLiked: post.isLiked === true,
     likeCount: Number.isFinite(post.likeCount) ? post.likeCount : null
   }, status);
-  details.append(likeButton);
+  detailActions.append(likeButton);
+
+  imageWrap.addEventListener('dblclick', () => {
+    triggerDoubleTapLike(imageWrap, post.postId, likeButton);
+  });
 
   const commentsButton = element('button', 'nl-post-action', '');
   commentsButton.type = 'button';
@@ -795,6 +974,46 @@ export function openPostDetail(post, author, dialog, { isOwner } = {}) {
   commentsButton.setAttribute('aria-label', 'Show comments');
   const commentCount = element('span', 'nl-like-count', '—');
   commentsButton.append(element('i', 'bi bi-chat', ''), element('span', '', 'Comments'), commentCount);
+  detailActions.append(commentsButton);
+
+  // Detail Share button
+  const shareButton = element('button', 'nl-post-action nl-post-share-btn', '');
+  shareButton.type = 'button';
+  shareButton.title = 'Share post';
+  shareButton.innerHTML = '<i class="bi bi-send" aria-hidden="true"></i> <span>Share</span>';
+  shareButton.addEventListener('click', async () => {
+    const postUrl = `${window.location.origin}/htmls/neolearn/index.html?postId=${encodeURIComponent(post.postId)}`;
+    const shareData = {
+      title: `${author.name || 'Learner'} on NeoLearn`,
+      text: post.description || 'Check out this learning moment on NeoLearn!',
+      url: postUrl
+    };
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+      }
+    }
+    navigator.clipboard?.writeText(postUrl).then(() => {
+      showSocialToast('Post link copied to clipboard!');
+    }).catch(() => {
+      showSocialToast('Link: ' + postUrl);
+    });
+  });
+  detailActions.append(shareButton);
+
+  // Detail Save button
+  const saveButton = element('button', `nl-post-action nl-post-save-btn${isPostSaved(post.postId) ? ' is-saved' : ''}`, '');
+  saveButton.type = 'button';
+  saveButton.title = 'Save post';
+  const saveIcon = element('i', isPostSaved(post.postId) ? 'bi bi-bookmark-fill' : 'bi bi-bookmark', '');
+  saveButton.append(saveIcon);
+  saveButton.addEventListener('click', () => {
+    toggleSavePost(post.postId, saveButton, saveIcon, post);
+  });
+  detailActions.append(saveButton);
 
   const commentSection = createNeoLearnCommentSection(post.postId);
 
@@ -819,8 +1038,8 @@ export function openPostDetail(post, author, dialog, { isOwner } = {}) {
     }
   });
 
-  details.append(commentsButton, status, commentSection);
-  layout.append(image, details);
+  details.append(detailActions, status, commentSection);
+  layout.append(imageWrap, details);
   content.append(layout);
 
   // Store cleanup function for when another post is opened or the dialog is closed.
