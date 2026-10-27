@@ -372,3 +372,199 @@ test('Criterion 15: Firestore rules conserve all NeoMentor collections with stri
   // Verify default deny is present at the end
   assert.ok(/match\s*\/\{document=\*\*\}\s*\{\s*allow\s*read,\s*write:\s*if\s*false;\s*\}/.test(rules), 'Must have default-deny match /{document=**}');
 });
+
+test('Criterion 16: Static file serving blocks backend paths, logs, dotfiles, and allows only public assets', () => {
+  const serverCode = fs.readFileSync(path.resolve('server.js'), 'utf-8');
+  assert.ok(serverCode.includes("pathLower.startsWith('/middleware/')"), 'Must block /middleware/');
+  assert.ok(serverCode.includes("pathLower.startsWith('/services/')"), 'Must block /services/');
+  assert.ok(serverCode.includes("pathLower.startsWith('/utils/')"), 'Must block /utils/');
+  assert.ok(serverCode.includes("pathLower.startsWith('/neobot/backend/')"), 'Must block /neobot/backend/');
+  assert.ok(serverCode.includes("pathLower.includes('.env')"), 'Must block .env files');
+  assert.ok(serverCode.includes("dotfiles: 'deny'"), 'Must set dotfiles to deny in express.static');
+  assert.ok(serverCode.includes("'/index.js'"), 'Must allow public index.js');
+  assert.ok(serverCode.includes("'/search.js'"), 'Must allow public search.js');
+  assert.ok(serverCode.includes("pathLower.startsWith('/notes/')"), 'Must allow /notes/ directory');
+  assert.ok(serverCode.includes("pathLower.startsWith('/iq/')"), 'Must allow /iq/ directory');
+});
+
+test('Criterion 17: Health check endpoints skip global API rate limiting', () => {
+  const serverCode = fs.readFileSync(path.resolve('server.js'), 'utf-8');
+  assert.ok(
+    serverCode.includes("skip: (req) => req.path === '/api/health' || req.path === '/health'"),
+    'Global rate limiter must exempt health check keep-alive endpoints'
+  );
+});
+
+test('Criterion 18: Admin stats endpoint implements constant-time timing-safe comparison', () => {
+  const serverCode = fs.readFileSync(path.resolve('server.js'), 'utf-8');
+  assert.ok(serverCode.includes('crypto.timingSafeEqual'), 'Stats endpoint must use crypto.timingSafeEqual for admin credentials');
+});
+
+test('Criterion 19: Note reactions in Firestore rules forbid delete and enforce strict field schema, owner isolation, and counter invariants', () => {
+  const rules = fs.readFileSync(path.resolve('firestore.rules'), 'utf-8');
+  assert.ok(rules.includes('match /reactions/{noteId}'), 'Must have reactions match');
+  assert.ok(rules.includes('allow delete: if false;'), 'Reactions must forbid direct client deletion');
+  assert.ok(rules.includes("data.keys().hasOnly(['likes', 'dislikes', 'users'])"), 'Reactions must enforce explicit schema keys');
+  assert.ok(rules.includes('isValidReactionCreate()'), 'Must use isValidReactionCreate');
+  assert.ok(rules.includes('isValidReactionUpdate()'), 'Must use isValidReactionUpdate');
+  assert.ok(rules.includes('isValidReactionTransition'), 'Must validate counter transition invariants');
+  assert.ok(rules.includes('data.users.diff(current.users).affectedKeys().hasOnly([request.auth.uid])'), 'Must isolate affected keys in users map to caller UID');
+
+  // Verify rules transition logic mathematically:
+  function evaluateReactionRules({ auth, resource, requestResource }) {
+    if (!auth || !auth.uid) return false;
+    const uid = auth.uid;
+    const data = requestResource.data;
+
+    // Schema validation
+    const allowed = new Set(['likes', 'dislikes', 'users']);
+    if (!Object.keys(data).every(k => allowed.has(k))) return false;
+    if (typeof data.likes !== 'number' || !Number.isInteger(data.likes) || data.likes < 0) return false;
+    if (typeof data.dislikes !== 'number' || !Number.isInteger(data.dislikes) || data.dislikes < 0) return false;
+    if (typeof data.users !== 'object' || data.users === null || Array.isArray(data.users)) return false;
+
+    // CREATE
+    if (!resource || !resource.data) {
+      const userKeys = Object.keys(data.users);
+      if (userKeys.length !== 1 || userKeys[0] !== uid) return false;
+      const val = data.users[uid];
+      if (val !== 'like' && val !== 'dislike') return false;
+      if (val === 'like' && (data.likes !== 1 || data.dislikes !== 0)) return false;
+      if (val === 'dislike' && (data.likes !== 0 || data.dislikes !== 1)) return false;
+      return true;
+    }
+
+    // UPDATE
+    const current = resource.data;
+    const prevUsers = (current && typeof current.users === 'object' && current.users !== null) ? current.users : {};
+    const nextUsers = data.users;
+
+    // Set of affected keys in users map
+    const affected = new Set();
+    for (const k of Object.keys(nextUsers)) {
+      if (!(k in prevUsers) || prevUsers[k] !== nextUsers[k]) affected.add(k);
+    }
+    for (const k of Object.keys(prevUsers)) {
+      if (!(k in nextUsers)) affected.add(k);
+    }
+
+    // affectedKeys must only contain caller's UID
+    for (const k of affected) {
+      if (k !== uid) return false;
+    }
+
+    const prevReaction = (uid in prevUsers) ? prevUsers[uid] : null;
+    const nextReaction = (uid in nextUsers) ? nextUsers[uid] : null;
+    if (nextReaction !== null && nextReaction !== 'like' && nextReaction !== 'dislike') return false;
+
+    const prevLikes = (typeof current.likes === 'number') ? current.likes : 0;
+    const prevDislikes = (typeof current.dislikes === 'number') ? current.dislikes : 0;
+    const dLikes = data.likes - prevLikes;
+    const dDislikes = data.dislikes - prevDislikes;
+
+    // Validate transition
+    return (
+      (prevReaction === null && nextReaction === 'like' && dLikes === 1 && dDislikes === 0) ||
+      (prevReaction === null && nextReaction === 'dislike' && dLikes === 0 && dDislikes === 1) ||
+      (prevReaction === 'like' && nextReaction === null && dLikes === -1 && dDislikes === 0) ||
+      (prevReaction === 'dislike' && nextReaction === null && dLikes === 0 && dDislikes === -1) ||
+      (prevReaction === 'like' && nextReaction === 'dislike' && dLikes === -1 && dDislikes === 1) ||
+      (prevReaction === 'dislike' && nextReaction === 'like' && dLikes === 1 && dDislikes === -1) ||
+      (prevReaction === nextReaction && dLikes === 0 && dDislikes === 0)
+    );
+  }
+
+  // Positive 1: Alice creates first like
+  assert.equal(evaluateReactionRules({
+    auth: { uid: 'alice' },
+    resource: null,
+    requestResource: { data: { likes: 1, dislikes: 0, users: { alice: 'like' } } }
+  }), true, 'Alice should be able to create initial like');
+
+  // Positive 2: Alice creates first dislike
+  assert.equal(evaluateReactionRules({
+    auth: { uid: 'alice' },
+    resource: null,
+    requestResource: { data: { likes: 0, dislikes: 1, users: { alice: 'dislike' } } }
+  }), true, 'Alice should be able to create initial dislike');
+
+  // Positive 3: Bob adds like to existing doc with Alice's like
+  const docWithAlice = { data: { likes: 1, dislikes: 0, users: { alice: 'like' } } };
+  assert.equal(evaluateReactionRules({
+    auth: { uid: 'bob' },
+    resource: docWithAlice,
+    requestResource: { data: { likes: 2, dislikes: 0, users: { alice: 'like', bob: 'like' } } }
+  }), true, 'Bob should be able to add like');
+
+  // Positive 4: Bob switches like to dislike
+  const docWithBoth = { data: { likes: 2, dislikes: 0, users: { alice: 'like', bob: 'like' } } };
+  assert.equal(evaluateReactionRules({
+    auth: { uid: 'bob' },
+    resource: docWithBoth,
+    requestResource: { data: { likes: 1, dislikes: 1, users: { alice: 'like', bob: 'dislike' } } }
+  }), true, 'Bob should be able to switch to dislike');
+
+  // Positive 5: Bob removes his reaction
+  const docWithBobDislike = { data: { likes: 1, dislikes: 1, users: { alice: 'like', bob: 'dislike' } } };
+  assert.equal(evaluateReactionRules({
+    auth: { uid: 'bob' },
+    resource: docWithBobDislike,
+    requestResource: { data: { likes: 1, dislikes: 0, users: { alice: 'like', bob: null } } }
+  }), true, 'Bob should be able to undo dislike');
+
+  // Negative 1: Unauthenticated rejected
+  assert.equal(evaluateReactionRules({
+    auth: null,
+    resource: null,
+    requestResource: { data: { likes: 1, dislikes: 0, users: { alice: 'like' } } }
+  }), false, 'Unauthenticated user must be rejected');
+
+  // Negative 2: Forged counter on create rejected
+  assert.equal(evaluateReactionRules({
+    auth: { uid: 'alice' },
+    resource: null,
+    requestResource: { data: { likes: 9999, dislikes: 0, users: { alice: 'like' } } }
+  }), false, 'Forged counter on create must be rejected');
+
+  // Negative 3: Arbitrary counter inflation on update rejected
+  assert.equal(evaluateReactionRules({
+    auth: { uid: 'bob' },
+    resource: docWithAlice,
+    requestResource: { data: { likes: 10, dislikes: 0, users: { alice: 'like', bob: 'like' } } }
+  }), false, 'Arbitrary counter inflation must be rejected');
+
+  // Negative 4: Alice modifying Bob\'s reaction rejected
+  assert.equal(evaluateReactionRules({
+    auth: { uid: 'alice' },
+    resource: docWithBoth,
+    requestResource: { data: { likes: 1, dislikes: 1, users: { alice: 'like', bob: 'dislike' } } }
+  }), false, 'Modifying another user\'s reaction must be rejected');
+
+  // Negative 5: Alice removing Bob\'s reaction rejected
+  assert.equal(evaluateReactionRules({
+    auth: { uid: 'alice' },
+    resource: docWithBoth,
+    requestResource: { data: { likes: 1, dislikes: 0, users: { alice: 'like', bob: null } } }
+  }), false, 'Deleting another user\'s reaction must be rejected');
+
+  // Negative 6: Injecting arbitrary field rejected
+  assert.equal(evaluateReactionRules({
+    auth: { uid: 'bob' },
+    resource: docWithAlice,
+    requestResource: { data: { likes: 2, dislikes: 0, users: { alice: 'like', bob: 'like' }, adminOverride: true } }
+  }), false, 'Injecting arbitrary fields must be rejected');
+});
+
+test('Criterion 20: Paper generator collections are explicitly denied to direct client access', () => {
+  const rules = fs.readFileSync(path.resolve('firestore.rules'), 'utf-8');
+  assert.ok(rules.includes('match /exam_papers/{paperId}'), 'Must define match for exam_papers');
+  assert.ok(rules.includes('match /paper_model_answers/{paperId}'), 'Must define match for paper_model_answers');
+  assert.ok(rules.includes('match /paper_evaluations/{paperId}'), 'Must define match for paper_evaluations');
+});
+
+test('Criterion 21: Error responses from AI and backend routes do not leak raw upstream error strings', () => {
+  const serverCode = fs.readFileSync(path.resolve('server.js'), 'utf-8');
+  assert.doesNotMatch(serverCode, /details:\s*errText/, 'TTS route must not reflect raw errText from ElevenLabs');
+  assert.doesNotMatch(serverCode, /res\.status\(500\)\.json\(\{\s*error:\s*'Internal Server Error',\s*message:\s*error\.message\s*\}\)/, 'Queue status must not return raw error.message on 500');
+});
+

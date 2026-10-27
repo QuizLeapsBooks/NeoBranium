@@ -1,5 +1,5 @@
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
-const { setGlobalOptions } = require("firebase-functions");
+const { setGlobalOptions } = require("firebase-functions/v2");
 const admin = require("firebase-admin");
 const fetch = require("node-fetch");
 const nodemailer = require("nodemailer");

@@ -5,7 +5,8 @@ import {
   togglePostLike as rtdbTogglePostLike,
   getPostLikeState as rtdbGetPostLikeState,
   getPostComments as rtdbGetPostComments,
-  addComment as rtdbAddComment
+  addComment as rtdbAddComment,
+  deleteComment as rtdbDeleteComment
 } from './neolearn-rtdb.js';
 import {
   syncLikeNotification,
@@ -191,6 +192,11 @@ export async function addComment(postId, text) {
     console.warn('[NeoLearn] Notification sync warning:', err?.message || err);
   });
   return commentId;
+}
+
+export async function deleteComment(postId, commentId) {
+  if (!postId || !commentId) throw new Error('Post ID and Comment ID are required.');
+  return rtdbDeleteComment(postId, commentId);
 }
 
 export async function deleteNeoLearnPost(postId, user = auth.currentUser) {

@@ -83,6 +83,10 @@
           <div id="neoLearnBlockedUsersList" class="nl-blocked-users-list"></div>
         </section>
         <section class="nl-posts-section" aria-labelledby="neoLearnPeerPostsHeading">
+          <div class="nl-profile-tabs" id="neoLearnProfileTabs" hidden>
+            <button type="button" class="nl-profile-tab is-active" id="profileTabPosts"><i class="bi bi-grid-3x3" aria-hidden="true"></i> Posts</button>
+            <button type="button" class="nl-profile-tab" id="profileTabSaved"><i class="bi bi-bookmark" aria-hidden="true"></i> Saved</button>
+          </div>
           <div class="nl-section-heading"><div><h2 id="neoLearnPeerPostsHeading">Learning moments</h2><p id="neoLearnPeerPostsSubtitle">Posts shared on NeoLearn.</p></div></div>
           <div id="neoLearnPeerPostsEmpty" class="nl-empty-state" hidden><i class="bi bi-images" aria-hidden="true"></i><h3>No posts yet</h3><p>There are no shared learning moments here yet.</p></div>
           <div id="neoLearnPeerPostsGrid" class="nl-post-grid" aria-live="polite"></div>
@@ -126,7 +130,7 @@
       toggleLearn,
       unblockNeoLearnUser
     } from '/js/neolearn-social-service.js';
-    import { renderPostCard, showConfirmDialog, showReportDialog } from '/js/neolearn-social-ui.js';
+    import { renderPostCard, showConfirmDialog, showReportDialog, showSocialToast, getSavedPosts } from '/js/neolearn-social-ui.js';
 
     checkAccess(true);
     const loading = document.getElementById('neoLearnProfileLoading');
@@ -158,6 +162,8 @@
     let profileLoadVersion = 0;
     let scrolledToPostId = null;
     let profileStartedForUid = null;
+    let currentResult = null;
+    let activeProfileTab = 'posts';
 
     async function openConnections(type) {
       const isLearners = type === 'learn';
@@ -299,12 +305,37 @@
 
         const actions = document.getElementById('neoLearnPeerActions');
         actions.replaceChildren();
+
+        const shareButton = document.createElement('button');
+        shareButton.type = 'button';
+        shareButton.className = 'nl-social-button nl-social-button--secondary';
+        shareButton.innerHTML = '<i class="bi bi-share" aria-hidden="true"></i> Share';
+        shareButton.setAttribute('aria-label', `Share ${profile.name || 'Learner'}'s profile`);
+        shareButton.addEventListener('click', async () => {
+          const shareUrl = `${location.origin}/htmls/neolearn/profile.html?uid=${encodeURIComponent(profile.userId)}`;
+          const shareText = `Check out ${profile.name || 'this profile'} on NeoLearn!`;
+          if (navigator.share) {
+            try {
+              await navigator.share({ title: profile.name || 'NeoProfile', text: shareText, url: shareUrl });
+              return;
+            } catch (e) {
+              if (e.name === 'AbortError') return;
+            }
+          }
+          try {
+            await navigator.clipboard.writeText(shareUrl);
+            showSocialToast('Profile link copied to clipboard!');
+          } catch (e) {
+            showSocialToast('Failed to copy link');
+          }
+        });
+
         if (result.isOwner) {
           const editButton = document.createElement('a');
           editButton.className = 'nl-social-button nl-social-button--secondary';
           editButton.href = '/htmls/setting.html#neolearnSection';
           editButton.innerHTML = '<i class="bi bi-pencil" aria-hidden="true"></i> Edit Profile';
-          actions.append(editButton);
+          actions.append(editButton, shareButton);
         } else {
           const learnButton = document.createElement('button');
           learnButton.type = 'button';
@@ -419,8 +450,14 @@
               menuBtn.setAttribute('aria-expanded', String(!isHidden));
             });
             menuWrap.append(menuBtn, menuDropdown);
-            actions.append(learnButton, messageButton, status, menuWrap);
+            actions.append(learnButton, messageButton, shareButton, status, menuWrap);
           }
+        }
+
+        currentResult = result;
+        const profileTabs = document.getElementById('neoLearnProfileTabs');
+        if (profileTabs) {
+          profileTabs.hidden = !result.isOwner;
         }
 
         savedThought = profile.thoughtOfTheDay || '';
@@ -432,6 +469,12 @@
         thoughtEditor.hidden = !result.isOwner || Boolean(savedThought);
         thoughtInput.value = savedThought;
         thoughtCount.textContent = `${thoughtInput.value.length}/280`;
+
+        if (activeProfileTab === 'saved' && result.isOwner) {
+          renderSavedTab();
+          return;
+        }
+
         const postsGrid = document.getElementById('neoLearnPeerPostsGrid');
         document.getElementById('neoLearnPeerPostsHeading').textContent = result.isOwner ? 'My Posts' : 'Learning moments';
         document.getElementById('neoLearnPeerPostsSubtitle').textContent = result.isOwner ? 'Posts you have shared on NeoLearn.' : 'Posts shared on NeoLearn.';
@@ -531,6 +574,52 @@
       } finally {
         loading.hidden = true;
       }
+    }
+
+    function renderSavedTab() {
+      const postsGrid = document.getElementById('neoLearnPeerPostsGrid');
+      Array.from(postsGrid.children).forEach((child) => {
+        if (child.cleanupRtdb) child.cleanupRtdb();
+      });
+      postsGrid.replaceChildren();
+
+      document.getElementById('neoLearnPeerPostsHeading').textContent = 'Saved Posts';
+      document.getElementById('neoLearnPeerPostsSubtitle').textContent = 'Posts you have saved to your collection.';
+      document.getElementById('loadMoreNeoLearnPeerPosts').hidden = true;
+
+      const savedPosts = getSavedPosts(activeUser?.uid);
+      const emptyState = document.getElementById('neoLearnPeerPostsEmpty');
+      if (savedPosts.length === 0) {
+        emptyState.hidden = false;
+        emptyState.querySelector('h3').textContent = 'No saved posts';
+        emptyState.querySelector('p').textContent = 'When you save posts, they will appear here.';
+      } else {
+        emptyState.hidden = true;
+        savedPosts.forEach((post) => {
+          const card = renderPostCard(post, currentResult?.profile || {}, detailDialog, { isOwner: false });
+          card.id = `post-${post.postId}`;
+          postsGrid.append(card);
+        });
+      }
+    }
+
+    const tabPosts = document.getElementById('profileTabPosts');
+    const tabSaved = document.getElementById('profileTabSaved');
+    if (tabPosts && tabSaved) {
+      tabPosts.addEventListener('click', () => {
+        if (activeProfileTab === 'posts') return;
+        activeProfileTab = 'posts';
+        tabPosts.classList.add('is-active');
+        tabSaved.classList.remove('is-active');
+        if (currentResult) renderProfileData(currentResult, false);
+      });
+      tabSaved.addEventListener('click', () => {
+        if (activeProfileTab === 'saved') return;
+        activeProfileTab = 'saved';
+        tabSaved.classList.add('is-active');
+        tabPosts.classList.remove('is-active');
+        renderSavedTab();
+      });
     }
 
     document.getElementById('retryNeoLearnProfile').addEventListener('click', loadProfile);

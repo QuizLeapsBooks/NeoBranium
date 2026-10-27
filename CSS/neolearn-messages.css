@@ -82,13 +82,70 @@ body.nb-neolearn-page .nl-message-back { display: none; align-items: center; jus
 body.nb-neolearn-page .nl-message-back:hover { color: var(--account-accent); background: var(--account-accent-soft); }
 body.nb-neolearn-page .nl-message-load-earlier { align-self: center; flex: 0 0 auto; margin: .55rem; padding: .45rem .75rem; color: var(--account-accent); background: var(--account-surface); border: 1px solid var(--account-border); border-radius: 8px; font: inherit; font-size: .78rem; cursor: pointer; }
 body.nb-neolearn-page .nl-message-load-earlier:disabled { opacity: .6; cursor: wait; }
-body.nb-neolearn-page .nl-message-thread-list { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; gap: .55rem; overflow: auto; overscroll-behavior: contain; padding: 1rem clamp(1rem, 3vw, 2rem); }
-body.nb-neolearn-page .nl-message-bubble { max-width: min(78%, 560px); align-self: flex-start; padding: .55rem .75rem; color: var(--account-text); background: var(--account-surface); border: 1px solid var(--account-border); border-radius: 12px 12px 12px 3px; overflow-wrap: anywhere; white-space: pre-wrap; }
-body.nb-neolearn-page .nl-message-bubble.is-own { align-self: flex-end; color: #fff; background: var(--account-accent); border-color: var(--account-accent); border-radius: 12px 12px 3px 12px; }
-body.nb-neolearn-page .nl-message-time { display: block; margin-top: .22rem; color: inherit; font-size: .66rem; opacity: .75; }
+body.nb-neolearn-page .nl-message-thread-list { display: flex; min-height: 0; flex: 1 1 auto; flex-direction: column; gap: .75rem; overflow: auto; overscroll-behavior: contain; padding: 1rem clamp(1rem, 3vw, 2rem); }
+body.nb-neolearn-page .nl-message-row { display: flex; flex-direction: column; max-width: min(78%, 560px); position: relative; }
+body.nb-neolearn-page .nl-message-row.is-own { align-self: flex-end; align-items: flex-end; }
+body.nb-neolearn-page .nl-message-row:not(.is-own) { align-self: flex-start; align-items: flex-start; }
+
+body.nb-neolearn-page .nl-message-row-inner { display: flex; align-items: center; gap: .4rem; width: 100%; }
+body.nb-neolearn-page .nl-message-row.is-own .nl-message-row-inner { flex-direction: row-reverse; }
+
+body.nb-neolearn-page .nl-message-bubble { width: 100%; padding: .6rem .85rem; color: var(--account-text); background: var(--account-surface); border: 1px solid var(--account-border); border-radius: 14px 14px 14px 3px; overflow-wrap: anywhere; white-space: pre-wrap; position: relative; transition: box-shadow .2s ease; }
+body.nb-neolearn-page .nl-message-bubble.is-own { color: #fff; background: var(--account-accent); border-color: var(--account-accent); border-radius: 14px 14px 3px 14px; }
+body.nb-neolearn-page .nl-message-bubble.is-highlighted { box-shadow: 0 0 0 3px var(--account-accent-soft), 0 0 12px var(--account-accent); }
+body.nb-neolearn-page .nl-message-bubble.is-unsent { font-style: italic; opacity: .75; background: var(--account-bg) !important; color: var(--account-muted) !important; border-color: var(--account-border) !important; border-style: dashed !important; }
+
+body.nb-neolearn-page .nl-message-time { display: flex; align-items: center; justify-content: flex-end; gap: 3px; margin-top: .25rem; color: inherit; font-size: .66rem; opacity: .78; }
+body.nb-neolearn-page .nl-message-quoted-reply { display: flex; flex-direction: column; gap: 2px; padding: .3rem .55rem; margin-bottom: .4rem; background: rgba(0, 0, 0, 0.06); border-left: 3px solid var(--account-accent); border-radius: 6px; font-size: .75rem; cursor: pointer; text-align: left; }
+body.nb-neolearn-page .nl-message-bubble.is-own .nl-message-quoted-reply { background: rgba(255, 255, 255, 0.18); border-left-color: #fff; }
+body.nb-neolearn-page .nl-message-quoted-author { font-weight: 650; font-size: .7rem; opacity: .9; }
+body.nb-neolearn-page .nl-message-quoted-snippet { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px; opacity: .85; }
+
+body.nb-neolearn-page .nl-message-actions-bar { display: inline-flex; align-items: center; gap: 3px; opacity: 0; transition: opacity .15s ease; flex-shrink: 0; }
+body.nb-neolearn-page .nl-message-row:hover .nl-message-actions-bar,
+body.nb-neolearn-page .nl-message-row:focus-within .nl-message-actions-bar,
+body.nb-neolearn-page .nl-message-actions-bar.is-open { opacity: 1; }
+
+body.nb-neolearn-page .nl-msg-act-btn { display: inline-grid; place-items: center; width: 27px; height: 27px; padding: 0; background: var(--account-surface); border: 1px solid var(--account-border); border-radius: 50%; color: var(--account-muted); font-size: .78rem; cursor: pointer; transition: all .15s ease; }
+body.nb-neolearn-page .nl-msg-act-btn:hover { color: var(--account-accent); border-color: var(--account-accent); transform: scale(1.1); }
+body.nb-neolearn-page .nl-msg-act-btn.is-danger:hover { color: var(--account-danger); border-color: var(--account-danger); }
+
+body.nb-neolearn-page .nl-emoji-reaction-picker { position: absolute; z-index: 10; display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px; background: var(--account-surface); border: 1px solid var(--account-border); border-radius: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.15); bottom: 100%; margin-bottom: 4px; }
+body.nb-neolearn-page .nl-emoji-reaction-picker button { font-size: 1.15rem; background: transparent; border: 0; cursor: pointer; padding: 2px 4px; border-radius: 6px; transition: transform .12s ease; }
+body.nb-neolearn-page .nl-emoji-reaction-picker button:hover { transform: scale(1.3); }
+
+body.nb-neolearn-page .nl-message-reactions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+body.nb-neolearn-page .nl-message-reaction-pill { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; font-size: .72rem; border-radius: 12px; background: var(--account-surface); border: 1px solid var(--account-border); color: var(--account-text); cursor: pointer; transition: all .12s ease; }
+body.nb-neolearn-page .nl-message-reaction-pill:hover { border-color: var(--account-accent); }
+body.nb-neolearn-page .nl-message-reaction-pill.is-active { border-color: var(--account-accent); background: var(--account-accent-soft); font-weight: 650; }
+
+body.nb-neolearn-page .nl-message-reply-preview { display: flex; align-items: center; justify-content: space-between; gap: .7rem; padding: .5rem 1rem; background: var(--account-surface); border-top: 1px solid var(--account-border); border-left: 3px solid var(--account-accent); }
+body.nb-neolearn-page .nl-message-reply-preview-content { min-width: 0; display: flex; flex-direction: column; font-size: .78rem; }
+body.nb-neolearn-page .nl-message-reply-preview-label { color: var(--account-accent); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+body.nb-neolearn-page .nl-message-reply-preview-snippet { color: var(--account-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 480px; }
+body.nb-neolearn-page .nl-message-reply-cancel { background: transparent; border: 0; color: var(--account-muted); font-size: .95rem; cursor: pointer; padding: 4px; border-radius: 6px; }
+body.nb-neolearn-page .nl-message-reply-cancel:hover { color: var(--account-danger); }
+
+body.nb-neolearn-page .nl-message-quick-emojis { display: flex; align-items: center; gap: 6px; padding: .4rem 1rem; background: var(--account-surface); border-top: 1px solid var(--account-border); overflow-x: auto; overscroll-behavior: contain; }
+body.nb-neolearn-page .nl-quick-emoji-btn { font-size: 1.15rem; background: transparent; border: 0; cursor: pointer; padding: 3px 6px; border-radius: 6px; transition: transform .12s; flex-shrink: 0; }
+body.nb-neolearn-page .nl-quick-emoji-btn:hover { transform: scale(1.28); }
+
+body.nb-neolearn-page .nl-message-composer-icon-btn { display: inline-grid; place-items: center; width: 38px; height: 38px; flex: 0 0 auto; color: var(--account-muted); background: var(--account-bg); border: 1px solid var(--account-border); border-radius: 9px; font-size: 1.1rem; cursor: pointer; transition: color .15s; }
+body.nb-neolearn-page .nl-message-composer-icon-btn:hover { color: var(--account-accent); border-color: var(--account-accent); }
+
+body.nb-neolearn-page .nl-message-typing-indicator { display: flex; align-items: center; gap: 8px; padding: .35rem 1.2rem; font-size: .78rem; color: var(--account-muted); font-style: italic; }
+body.nb-neolearn-page .nl-typing-dots { display: inline-flex; align-items: center; gap: 3px; }
+body.nb-neolearn-page .nl-typing-dots span { width: 5px; height: 5px; background: var(--account-accent); border-radius: 50%; display: inline-block; animation: nlBouncingDot 1.4s infinite ease-in-out both; }
+body.nb-neolearn-page .nl-typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+body.nb-neolearn-page .nl-typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+@keyframes nlBouncingDot { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1.1); opacity: 1; } }
+
+body.nb-neolearn-page .nl-toast { position: fixed; bottom: 85px; right: 24px; z-index: 9999; padding: .65rem 1.1rem; background: var(--account-surface); color: var(--account-text); border: 1px solid var(--account-accent); border-radius: 10px; font-size: .84rem; font-weight: 550; box-shadow: 0 6px 20px rgba(0,0,0,0.22); animation: nlToastIn .22s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none; }
+@keyframes nlToastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
 body.nb-neolearn-page .nl-message-composer { display: flex; flex: 0 0 auto; gap: .55rem; padding: .7rem 1rem calc(.7rem + env(safe-area-inset-bottom)); background: var(--account-surface); border-top: 1px solid var(--account-border); }
 body.nb-neolearn-page .nl-message-composer input { flex: 1 1 auto; min-width: 0; padding: .65rem .8rem; color: var(--account-text); background: var(--account-bg); border: 1px solid var(--account-border); border-radius: 9px; font: inherit; }
-body.nb-neolearn-page .nl-message-composer button { flex-shrink: 0; }
+body.nb-neolearn-page .nl-message-composer button[type="submit"] { flex-shrink: 0; }
 body.nb-neolearn-page #messagesError:empty { display: none; }
 
 @media (max-width: 991.98px) and (min-width: 768px) {

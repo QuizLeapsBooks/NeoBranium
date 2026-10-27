@@ -7,6 +7,7 @@
   <title>NeoBranium - Dashboard</title>
   <link rel="stylesheet" href="/CSS/dashboard.css">
   <link rel="stylesheet" href="/CSS/enhancements.css">
+  <link rel="stylesheet" href="/CSS/dashboard-smart.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
   <link rel="stylesheet" href="/CSS/dashboard-reference.css">
@@ -33,7 +34,7 @@
 
 <body class="dashboard-app">
   <header class="site-header fixed-top">
-    <!-- Left: Brand Zone (green gradient, same width as sidebar) -->
+    <!-- Left: Brand Zone -->
     <div class="header-brand-zone">
       <a href="/index.html" class="header-logo-link">
         <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="header-logo anim-float" />
@@ -41,12 +42,20 @@
       <a class="header-brand-name" href="/htmls/privacy_policy&terms_conditions.html">NeoBranium</a>
     </div>
 
-    <!-- Right: Nav Zone (purple gradient) -->
+    <!-- Right: Nav Zone -->
     <div class="header-nav-zone">
       <!-- Mobile sidebar toggle -->
       <button class="navbar-toggler-custom navbar-toggler d-lg-none" id="mobileSidebarToggle" aria-label="Toggle sidebar">
         <i class="bi bi-list"></i>
       </button>
+
+      <!-- Global Search -->
+      <div class="nb-dash-search d-none d-md-flex" role="search">
+        <i class="bi bi-search nb-search-icon"></i>
+        <input type="text" id="globalSearchInput" placeholder="Search notes, quizzes, topics... (Ctrl+K)" autocomplete="off" aria-label="Search learning resources">
+        <span class="nb-search-kbd">Ctrl K</span>
+        <div id="globalSearchResults" class="search-results-dropdown"></div>
+      </div>
 
       <div class="header-nav-right">
         <span id="usernameDisplay" class="header-username d-none d-lg-flex"></span>
@@ -97,40 +106,61 @@
   </div>
 
   <main>
-    <!-- Welcome Hero -->
-    <section class="mb-4">
-      <div class="card nb-hero-card border-0">
-        <div class="card-body px-4 py-4">
-          <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-            <div class="d-flex align-items-center gap-3">
-              <div class="nb-hero-icon">
-                <i class="bi bi-mortarboard-fill"></i>
-              </div>
-              <div class="text-start">
-                <h2 class="fw-bold nb-hero-title mb-1 slide-in">Welcome to NeoBranium!</h2>
-                <p class="nb-hero-sub mb-0 slide-in">Your one-stop platform for learning, quizzes, and more!</p>
-              </div>
+    <!-- ═══ PERSONALISED HERO ════════════════════════════════════════════ -->
+    <section class="mb-4" aria-label="Welcome">
+      <div class="nbs-hero-wrap">
+        <!-- Left: greeting + streak -->
+        <div class="nbs-hero-text">
+          <div class="nbs-hero-greeting-row">
+            <div id="dashboardProfileAvatar" class="nbs-avatar" aria-label="Profile photo"></div>
+            <div>
+              <h2 id="nbHeroTitle" class="nbs-hero-title">Welcome to NeoBranium!</h2>
+              <p id="nbHeroSub" class="nbs-hero-sub">Your personalised learning command centre.</p>
             </div>
-            <!-- Profile Photo & Thought of the Day (Desktop / Large Screen Only) -->
-            <div id="dashboardThoughtSection" class="dashboard-thought-widget d-none d-lg-flex flex-column align-items-center text-center">
-              <div id="dashboardProfileAvatar" class="dashboard-avatar mb-2" aria-label="Profile photo"></div>
-              <div id="dashboardThoughtCard" class="dashboard-thought-box d-none">
-                <span class="dashboard-thought-label"><i class="bi bi-chat-quote-fill me-1"></i>Thought of the Day</span>
-                <p id="dashboardThoughtText" class="dashboard-thought-text mb-0"></p>
-              </div>
+          </div>
+          <!-- Thought of the day (if set) -->
+          <div id="dashboardThoughtCard" class="nbs-thought d-none" aria-live="polite">
+            <i class="bi bi-chat-quote-fill"></i>
+            <span id="dashboardThoughtText"></span>
+          </div>
+        </div>
+
+        <!-- Right: Stats pills -->
+        <div class="nbs-hero-stats">
+          <!-- Streak -->
+          <div class="nbs-stat-pill" id="nbStreakContainer" title="Your study streak">
+            <span class="nbs-stat-icon"><i class="bi bi-fire"></i></span>
+            <div class="nbs-stat-copy">
+              <strong id="nbStreakBadge">–</strong>
+              <span id="nbStreakLabel">day streak</span>
+            </div>
+          </div>
+          <!-- Today's Date -->
+          <div class="nbs-stat-pill">
+            <span class="nbs-stat-icon"><i class="bi bi-calendar3"></i></span>
+            <div class="nbs-stat-copy">
+              <strong id="nbTodayDate">–</strong>
+              <span>Today</span>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Quick Actions -->
+    <!-- ═══ CONTINUE LEARNING BANNER ═════════════════════════════════════ -->
+    <div id="nbContinueLearning" class="nbs-continue-banner mb-4" style="display:none" aria-live="polite"></div>
+
+    <!-- ═══ QUICK ACTIONS ════════════════════════════════════════════════ -->
     <section class="mb-4">
       <p class="nb-section-label mb-3">Quick Actions</p>
       <div class="nb-action-grid">
         <button class="nb-action-tile staggered-item" id="shortcutsBtn">
           <div class="nb-tile-icon"><i class="bi bi-lightning-charge-fill"></i></div>
           <span class="nb-tile-label">Shortcuts</span>
+        </button>
+        <button class="nb-action-tile staggered-item" id="savedQuestionsBtn" data-bs-toggle="modal" data-bs-target="#savedQuestionsModal">
+          <div class="nb-tile-icon"><i class="bi bi-bookmark-star-fill text-warning"></i></div>
+          <span class="nb-tile-label">Saved Questions <span id="savedQuestionsBadge" class="badge bg-warning text-dark ms-1 d-none">0</span></span>
         </button>
         <a href="/htmls/neolearn/index.html" class="nb-action-tile staggered-item text-decoration-none d-none" id="neolearnDashboardAction">
           <div class="nb-tile-icon"><i class="bi bi-person-badge-fill"></i></div>
@@ -159,7 +189,45 @@
       </div>
     </section>
 
-    <!-- Study Tip + Motivational Quote -->
+    <!-- ═══ SMART RECOMMENDATIONS ════════════════════════════════════════ -->
+    <section class="mb-4" aria-labelledby="nbRecsTitle">
+      <div class="nbs-section-head mb-3">
+        <p class="nb-section-label mb-0" id="nbRecsTitle">Smart Recommendations</p>
+        <button class="nbs-pref-toggle-btn" id="nbPrefToggleBtn" type="button" aria-expanded="false" aria-controls="nbPreferenceWidget" title="Customise recommendations">
+          <i class="bi bi-sliders"></i> Personalise
+        </button>
+      </div>
+
+      <!-- Collapsible preference widget -->
+      <div id="nbPreferenceWidget" class="nbs-pref-widget mb-3" hidden aria-label="Learning preference settings"></div>
+
+      <!-- Recommendations grid -->
+      <div id="nbRecommendations" class="nbs-rec-grid" role="list" aria-label="Personalised recommendations">
+        <!-- Rendered by dashboard-smart.js -->
+        <div class="nb-rec-card nb-rec-skeleton" aria-hidden="true">
+          <div class="nb-rec-skeleton-line" style="width:40%"></div>
+          <div class="nb-rec-skeleton-line" style="width:80%"></div>
+          <div class="nb-rec-skeleton-line" style="width:60%"></div>
+        </div>
+        <div class="nb-rec-card nb-rec-skeleton" aria-hidden="true">
+          <div class="nb-rec-skeleton-line" style="width:35%"></div>
+          <div class="nb-rec-skeleton-line" style="width:75%"></div>
+          <div class="nb-rec-skeleton-line" style="width:50%"></div>
+        </div>
+        <div class="nb-rec-card nb-rec-skeleton" aria-hidden="true">
+          <div class="nb-rec-skeleton-line" style="width:45%"></div>
+          <div class="nb-rec-skeleton-line" style="width:70%"></div>
+          <div class="nb-rec-skeleton-line" style="width:55%"></div>
+        </div>
+        <div class="nb-rec-card nb-rec-skeleton" aria-hidden="true">
+          <div class="nb-rec-skeleton-line" style="width:38%"></div>
+          <div class="nb-rec-skeleton-line" style="width:78%"></div>
+          <div class="nb-rec-skeleton-line" style="width:48%"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ STUDY TIP + MOTIVATIONAL QUOTE ══════════════════════════════ -->
     <div class="row mb-4 g-3">
       <!-- Study Tip -->
       <div class="col-md-6">
@@ -179,6 +247,12 @@
                 </div>
                 <div class="carousel-item">
                   <p class="nb-widget-text">Teach what you learn to someone else to reinforce your knowledge!</p>
+                </div>
+                <div class="carousel-item">
+                  <p class="nb-widget-text">Review your quiz mistakes carefully — understanding errors is the fastest way to improve.</p>
+                </div>
+                <div class="carousel-item">
+                  <p class="nb-widget-text">Read chapter notes before attempting a quiz to activate prior knowledge.</p>
                 </div>
               </div>
               <div class="nb-carousel-nav">
@@ -202,12 +276,13 @@
             <span class="nb-widget-title">Motivational Quote</span>
           </div>
           <div class="nb-widget-body">
-            <p class="nb-widget-text nb-quote-text">"The only way to learn it is to do it!" – Keep pushing forward!</p>
+            <p class="nb-widget-text nb-quote-text" id="nbMotivationalQuote">"The only way to learn it is to do it!" – Keep pushing forward!</p>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- ═══ ACTIVITY + TASKS ══════════════════════════════════════════════ -->
     <section class="mb-4" aria-labelledby="activitySectionTitle">
       <div class="row g-3">
         <div class="col-lg-7">
@@ -252,6 +327,7 @@
       </div>
     </section>
 
+    <!-- ═══ LEARNING PROGRESS ════════════════════════════════════════════ -->
     <section class="mb-4 nb-progress-section" aria-labelledby="learningProgressTitle">
       <div class="nb-progress-heading">
         <div>
@@ -265,11 +341,11 @@
       </div>
     </section>
 
-    <!-- Class Selection -->
+    <!-- ═══ CLASS SELECTION ═══════════════════════════════════════════════ -->
     <section class="mb-5">
       <div class="text-center mb-4">
-        <h3 class="fw-bold nb-section-h3">Welcome to the Dashboard</h3>
-        <p class="text-muted mb-0">Select your class to continue.</p>
+        <h3 class="fw-bold nb-section-h3">Explore Quizzes by Class</h3>
+        <p class="text-muted mb-0">Select your class to browse subjects and chapters.</p>
       </div>
       <div class="row g-4 justify-content-center">
         <div class="col-sm-6 col-md-5">
@@ -290,59 +366,24 @@
         </div>
       </div>
     </section>
-    <!-- Moved buttons to Quick Actions section -->
 
-    <!-- Skeleton Loader for Class Selection -->
-    <div class="row skeleton-loader" id="classSkeleton" style="display: none;">
-      <div class="col-md-6">
-        <div class="card skeleton">
-          <div class="card-body">
-            <h5 class="skeleton-title"></h5>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card skeleton">
-          <div class="card-body">
-            <h5 class="skeleton-title"></h5>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sections removed as per design, keeping empty IDs to prevent JS errors -->
+    <!-- Hidden placeholder sections (kept to prevent JS errors from any lingering references) -->
+    <div id="classSkeleton" style="display: none;"></div>
     <div id="notesSection" class="d-none">
       <div id="notesSkeleton"></div>
       <div id="notesContent"></div>
     </div>
-
     <div id="featuresSection" class="d-none">
       <div id="featuresSkeleton"></div>
       <div id="featuresContent"></div>
     </div>
-
     <div id="spotlightSection" class="d-none">
       <div id="spotlightSkeleton"></div>
       <div id="spotlightContent"></div>
     </div>
 
-    <!-- Events/Announcements Panel -->
-    <!-- <section class="mt-5 events-panel slide-in-right">
-      <h3>Events & Announcements</h3>
-      <div class="card events-card">
-        <div class="card-body">
-          <ul id="eventsList">
-            <li class="staggered-item">Upcoming Webinar: "Maths Made Easy" - Aug 20, 2025</li>
-            <li class="staggered-item">New Quiz Competition: Join on Aug 22, 2025!</li>
-            <li class="staggered-item">Notes Upload Deadline: Aug 25, 2025</li>
-          </ul>
-        </div>
-      </div>
-    </section> -->
-
-    <!-- Shortcuts Dialog -->
-    <div class="modal fade zoom-in" id="shortcutsModal" tabindex="-1" aria-labelledby="shortcutsModalLabel"
-      aria-hidden="true">
+    <!-- ═══ SHORTCUTS DIALOG ══════════════════════════════════════════════ -->
+    <div class="modal fade zoom-in" id="shortcutsModal" tabindex="-1" aria-labelledby="shortcutsModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
@@ -373,6 +414,7 @@
       </div>
     </div>
 
+    <!-- Daily Activity Modal -->
     <div class="modal fade zoom-in" id="dailyActivityModal" tabindex="-1" aria-labelledby="dailyActivityTitle" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
@@ -392,8 +434,7 @@
   </main>
 
   <!-- Subject Modal -->
-  <div class="modal fade zoom-in" id="subjectModal" tabindex="-1" aria-labelledby="subjectModalLabel"
-    aria-hidden="true">
+  <div class="modal fade zoom-in" id="subjectModal" tabindex="-1" aria-labelledby="subjectModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -421,10 +462,10 @@
     <p id="userBioText">--Your Bio--</p>
   </div>
 
+  <!-- Mobile Bottom Navigation -->
   <div class="bottom-nav">
-    <a href="/htmls/dashboard.html" class="nav-icon"><i class="bi bi-question-circle"></i></a>
-    <a href="/htmls/notes.html" class="nav-icon"><i class="bi bi-journal"></i><span
-        class="notification-badge">3</span></a>
+    <a href="/htmls/dashboard.html" class="nav-icon"><i class="bi bi-grid-1x2"></i></a>
+    <a href="/htmls/notes.html" class="nav-icon"><i class="bi bi-journal"></i><span class="notification-badge">3</span></a>
     <a href="/htmls/spotlight.html" class="nav-icon"><i class="bi bi-star"></i></a>
     <a href="/htmls/contactus.html" class="nav-icon"><i class="bi bi-envelope"></i></a>
     <a href="/htmls/feedback.html" class="nav-icon"><i class="bi bi-chat"></i></a>
@@ -439,7 +480,7 @@
     <div class="footer-content">
       <div class="footer-section">
         <h4>About Us</h4>
-        <p>NeoBranium is your ultimate e-learning platform for Class 9 & 10 students, offering quizzes, notes, and
+        <p>NeoBranium is your ultimate e-learning platform for Class 9 &amp; 10 students, offering quizzes, notes, and
           interactive tools to boost your studies!</p>
       </div>
       <div class="footer-section">
@@ -475,16 +516,54 @@
   <script type="module" src="/js/auth.js"></script>
   <script type="module" src="/js/activity.js"></script>
   <script type="module" src="/js/learning-progress.js"></script>
-  <script type="module" src="/js/dashboard.js"></script>
+  <script type="module" src="/js/dashboard-smart.js"></script>
   <script src="/js/shortcuts.js"></script>
+  <script src="/search.js"></script>
+  <script src="/js/dashboard.js"></script>
 
-  <!-- Dashboard: Profile Avatar + Thought of the Day widget (desktop only) -->
+  <!-- Dashboard: Today Date + Avatar + Thought of the Day -->
   <script type="module">
     import { syncProfilePhoto, isThoughtActive } from '/js/profile-photo-cache.js';
     import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
     import { db } from '/js/auth.js';
 
-    const avatarEl  = document.getElementById('dashboardProfileAvatar');
+    // Set today's date pill
+    const todayEl = document.getElementById('nbTodayDate');
+    if (todayEl) {
+      todayEl.textContent = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+    }
+
+    // Preference toggle widget
+    const prefToggleBtn = document.getElementById('nbPrefToggleBtn');
+    const prefWidget    = document.getElementById('nbPreferenceWidget');
+    if (prefToggleBtn && prefWidget) {
+      prefToggleBtn.addEventListener('click', () => {
+        const expanded = prefToggleBtn.getAttribute('aria-expanded') === 'true';
+        prefToggleBtn.setAttribute('aria-expanded', String(!expanded));
+        prefWidget.hidden = expanded;
+      });
+    }
+
+    // Motivational quotes pool (rotated daily by seeding off day-of-year)
+    const quotes = [
+      '"The secret of getting ahead is getting started." – Mark Twain',
+      '"Education is the most powerful weapon you can use to change the world." – Nelson Mandela',
+      '"Success is the sum of small efforts, repeated day in and day out." – Robert Collier',
+      '"The more that you read, the more things you will know." – Dr. Seuss',
+      '"Believe you can and you\'re halfway there." – Theodore Roosevelt',
+      '"The only way to do great work is to love what you do." – Steve Jobs',
+      '"Don\'t watch the clock; do what it does. Keep going." – Sam Levenson',
+      '"You don\'t have to be great to start, but you have to start to be great." – Zig Ziglar',
+      '"The beautiful thing about learning is that no one can take it away from you." – B.B. King',
+      '"Push yourself, because no one else is going to do it for you." – Anonymous'
+    ];
+    const quoteEl = document.getElementById('nbMotivationalQuote');
+    if (quoteEl) {
+      const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+      quoteEl.textContent = quotes[dayOfYear % quotes.length];
+    }
+
+    const avatarEl    = document.getElementById('dashboardProfileAvatar');
     const thoughtCard = document.getElementById('dashboardThoughtCard');
     const thoughtText = document.getElementById('dashboardThoughtText');
 
@@ -518,28 +597,137 @@
       const remoteUrl = userData?.profilePhotoUrl || userData?.photoURL || user.photoURL || '';
       const initial   = (userData?.fname || userData?.username || user.displayName || '?')[0].toUpperCase();
 
-      // Show cached / remote avatar
       syncProfilePhoto(user.uid, remoteUrl, (displayUrl) => {
         setAvatar(displayUrl, initial);
       });
 
-      // Fallback initial while photo loads
       if (!remoteUrl) setAvatar('', initial);
 
-      // Wire thought
       setThought(userData || {});
 
       // Check NeoLearn Profile
-      getDoc(doc(db, "neolearn_profiles", user.uid)).then(neolearnSnap => {
+      getDoc(doc(db, 'neolearn_profiles', user.uid)).then(neolearnSnap => {
         if (neolearnSnap.exists()) {
           const actionLink = document.getElementById('neolearnDashboardAction');
           if (actionLink) actionLink.classList.remove('d-none');
           const dropdownLink = document.getElementById('dropdownNeoLearnLink');
           if (dropdownLink) dropdownLink.classList.remove('d-none');
         }
-      }).catch(err => console.error("Error checking NeoLearn profile", err));
+      }).catch(err => console.error('Error checking NeoLearn profile', err));
     });
+
+    // ═══ SAVED QUESTIONS WIDGET ═════════════════════════════════════════
+    const BOOKMARKS_KEY = "neobranium_quiz_bookmarks";
+    function loadSavedQuestions() {
+      const container = document.getElementById('savedQuestionsContainer');
+      const badge = document.getElementById('savedQuestionsBadge');
+      if (!container) return;
+
+      let bookmarks = [];
+      try {
+        bookmarks = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || '[]');
+      } catch (e) {
+        bookmarks = [];
+      }
+
+      if (badge) {
+        if (bookmarks.length > 0) {
+          badge.textContent = bookmarks.length;
+          badge.classList.remove('d-none');
+        } else {
+          badge.classList.add('d-none');
+        }
+      }
+
+      if (bookmarks.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-5">
+            <i class="bi bi-bookmark-check fs-1 text-muted mb-3 d-block"></i>
+            <h5 class="text-light">No saved questions yet</h5>
+            <p class="text-muted small">When taking quizzes, click the bookmark icon on any difficult question to save it for revision here.</p>
+            <a href="/htmls/class9-10science.html" class="btn btn-primary btn-sm mt-2">Take a Science Quiz ⚡</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = bookmarks.map((b, idx) => `
+        <div class="nb-saved-q-card" id="savedQCard_${idx}">
+          <div class="nb-saved-q-header">
+            <span class="badge bg-primary">${b.quizTitle || 'Quiz Question'}</span>
+            <div>
+              <button class="btn btn-sm btn-outline-warning toggle-ans-btn me-2" data-target="ans_${idx}" style="font-size:0.75rem;">
+                <i class="bi bi-eye"></i> Answer
+              </button>
+              <button class="btn btn-sm btn-outline-danger remove-bm-btn" data-id="${b.id}" style="font-size:0.75rem;" title="Remove from saved">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div class="nb-saved-q-text">${b.question}</div>
+          <div class="nb-saved-q-ans d-none" id="ans_${idx}">
+            <strong>Correct Answer:</strong> ${b.answer}
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary border-opacity-25">
+            <small class="text-muted">${b.savedAt ? 'Saved ' + new Date(b.savedAt).toLocaleDateString() : ''}</small>
+            <a href="${b.quizPage || '/htmls/quiz_htmls/class10-physics-chapter-1.html'}" class="btn btn-sm btn-outline-info py-0 px-2" style="font-size:0.75rem;">
+              Practice Quiz <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      `).join('');
+
+      // Wire answer reveal
+      container.querySelectorAll('.toggle-ans-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = document.getElementById(btn.dataset.target);
+          if (target) {
+            const isHidden = target.classList.contains('d-none');
+            target.classList.toggle('d-none', !isHidden);
+            btn.innerHTML = isHidden ? '<i class="bi bi-eye-slash"></i> Hide' : '<i class="bi bi-eye"></i> Answer';
+          }
+        });
+      });
+
+      // Wire remove
+      container.querySelectorAll('.remove-bm-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          let list = [];
+          try { list = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || '[]'); } catch (e) {}
+          list = list.filter(item => item.id !== id);
+          localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(list));
+          loadSavedQuestions();
+        });
+      });
+    }
+
+    // Load initial badge count
+    loadSavedQuestions();
+
+    // Reload when modal opens
+    document.getElementById('savedQuestionsModal')?.addEventListener('show.bs.modal', loadSavedQuestions);
   </script>
+
+  <!-- Saved Questions Modal -->
+  <div class="modal fade" id="savedQuestionsModal" tabindex="-1" aria-labelledby="savedQuestionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+      <div class="modal-content" style="background:#1e1b4b; color:#e2e8f0; border:1px solid rgba(255,255,255,0.15); border-radius:18px;">
+        <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.1);">
+          <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2" id="savedQuestionsModalLabel">
+            <i class="bi bi-bookmark-star-fill text-warning"></i> Saved Quiz Questions &amp; Revision
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div id="savedQuestionsContainer"></div>
+        </div>
+        <div class="modal-footer" style="border-top:1px solid rgba(255,255,255,0.1);">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

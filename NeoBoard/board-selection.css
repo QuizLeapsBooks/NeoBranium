@@ -168,3 +168,15 @@
  .workspace.panel-collapsed { grid-template-columns:48px minmax(0,1fr); }
  .workspace.panel-collapsed .future-panel { transform:translateX(calc(100% - 32px)); }
 }
+
+.small-btn:disabled, .quiet-btn:disabled, .tool:disabled, button:disabled {
+  opacity: .36 !important;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+}
+.small-btn, .quiet-btn, .tool {
+  transition: opacity .15s ease, background-color .15s ease, transform .1s ease;
+}
+.small-btn:active:not(:disabled), .tool:active:not(:disabled) {
+  transform: scale(0.96);
+}

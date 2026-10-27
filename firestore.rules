@@ -152,9 +152,86 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
     }
 
-    match /reactions/{noteId} {
-      allow read, write: if isSignedIn();
+    // ── Note reactions (like / dislike) ───────────────────────────────────────
+    function isValidReactionCreate() {
+      let data = request.resource.data;
+      return isSignedIn()
+        && data.keys().hasOnly(['likes', 'dislikes', 'users'])
+        && data.likes is int && data.likes >= 0
+        && data.dislikes is int && data.dislikes >= 0
+        && data.users is map
+        && data.users.keys().hasOnly([request.auth.uid])
+        && (
+          (data.users[request.auth.uid] == 'like' && data.likes == 1 && data.dislikes == 0)
+          || (data.users[request.auth.uid] == 'dislike' && data.likes == 0 && data.dislikes == 1)
+        );
     }
+
+    function isValidReactionTransition(prevReaction, nextReaction, dLikes, dDislikes) {
+      return (
+        // Case 1: New like
+        (prevReaction == null && nextReaction == 'like' && dLikes == 1 && dDislikes == 0)
+        // Case 2: New dislike
+        || (prevReaction == null && nextReaction == 'dislike' && dLikes == 0 && dDislikes == 1)
+        // Case 3: Undo like
+        || (prevReaction == 'like' && nextReaction == null && dLikes == -1 && dDislikes == 0)
+        // Case 4: Undo dislike
+        || (prevReaction == 'dislike' && nextReaction == null && dLikes == 0 && dDislikes == -1)
+        // Case 5: Switch like to dislike
+        || (prevReaction == 'like' && nextReaction == 'dislike' && dLikes == -1 && dDislikes == 1)
+        // Case 6: Switch dislike to like
+        || (prevReaction == 'dislike' && nextReaction == 'like' && dLikes == 1 && dDislikes == -1)
+        // Case 7: Idempotent / no-op
+        || (prevReaction == nextReaction && dLikes == 0 && dDislikes == 0)
+      );
+    }
+
+    function isValidReactionUpdate() {
+      let data = request.resource.data;
+      let current = resource.data;
+      let prevLikes = ('likes' in current && current.likes is int) ? current.likes : 0;
+      let prevDislikes = ('dislikes' in current && current.dislikes is int) ? current.dislikes : 0;
+      let dLikes = data.likes - prevLikes;
+      let dDislikes = data.dislikes - prevDislikes;
+      let prevReaction = ('users' in current && current.users is map && request.auth.uid in current.users)
+        ? current.users[request.auth.uid]
+        : null;
+      let nextReaction = (request.auth.uid in data.users)
+        ? data.users[request.auth.uid]
+        : null;
+
+      return isSignedIn()
+        && data.keys().hasOnly(['likes', 'dislikes', 'users'])
+        && data.likes is int && data.likes >= 0
+        && data.dislikes is int && data.dislikes >= 0
+        && data.users is map
+        && (
+          (!('users' in current) || !(current.users is map))
+            ? data.users.keys().hasOnly([request.auth.uid])
+            : data.users.diff(current.users).affectedKeys().hasOnly([request.auth.uid])
+        )
+        && (nextReaction == null || nextReaction in ['like', 'dislike'])
+        && isValidReactionTransition(prevReaction, nextReaction, dLikes, dDislikes);
+    }
+
+    match /reactions/{noteId} {
+      allow read: if isSignedIn();
+      allow delete: if false;
+      allow create: if isValidReactionCreate();
+      allow update: if isValidReactionUpdate();
+    }
+
+    // ── Exam papers & evaluations (Managed strictly via backend Paper Service) ──
+    match /exam_papers/{paperId} {
+      allow read, write: if false;
+    }
+    match /paper_model_answers/{paperId} {
+      allow read, write: if false;
+    }
+    match /paper_evaluations/{paperId} {
+      allow read, write: if false;
+    }
+
 
     // ── NeoLearn: Report validation helpers ───────────────────────────────────
 

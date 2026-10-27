@@ -50,9 +50,37 @@
           <div id="messageThreadLoading" class="nl-message-thread-state" hidden>Loading conversation…</div>
           <button id="loadEarlierMessages" class="nl-message-load-earlier" type="button" hidden>Load earlier messages</button>
           <div id="messageThreadList" class="nl-message-thread-list" aria-live="polite" aria-label="Messages" hidden></div>
-          <form id="messageComposer" class="nl-message-composer" hidden><input id="messageInput" type="text" maxlength="2000" placeholder="Write a message…" aria-label="Write a message" autocomplete="off" /><button type="submit" class="nl-social-button nl-social-button--primary"><i class="bi bi-send-fill" aria-hidden="true"></i><span>Send</span></button></form>
+          <div id="messageTypingIndicator" class="nl-message-typing-indicator" hidden>
+            <span class="nl-typing-dots"><span></span><span></span><span></span></span>
+            <span id="messageTypingText">typing…</span>
+          </div>
+          <div id="messageReplyPreview" class="nl-message-reply-preview" hidden>
+            <div class="nl-message-reply-preview-content">
+              <span class="nl-message-reply-preview-label"><i class="bi bi-reply-fill" aria-hidden="true"></i> Replying to <strong id="messageReplyAuthor">Learner</strong></span>
+              <span id="messageReplyText" class="nl-message-reply-preview-snippet"></span>
+            </div>
+            <button id="messageCancelReply" class="nl-message-reply-cancel" type="button" aria-label="Cancel reply"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+          </div>
+          <div id="messageQuickEmojis" class="nl-message-quick-emojis" aria-label="Quick emojis" hidden>
+            <button type="button" class="nl-quick-emoji-btn" data-emoji="❤️" title="Heart">❤️</button>
+            <button type="button" class="nl-quick-emoji-btn" data-emoji="😂" title="Laugh">😂</button>
+            <button type="button" class="nl-quick-emoji-btn" data-emoji="🔥" title="Fire">🔥</button>
+            <button type="button" class="nl-quick-emoji-btn" data-emoji="👍" title="Thumbs Up">👍</button>
+            <button type="button" class="nl-quick-emoji-btn" data-emoji="👏" title="Clap">👏</button>
+            <button type="button" class="nl-quick-emoji-btn" data-emoji="🎉" title="Party">🎉</button>
+            <button type="button" class="nl-quick-emoji-btn" data-emoji="🚀" title="Rocket">🚀</button>
+            <button type="button" class="nl-quick-emoji-btn" data-emoji="💯" title="100">💯</button>
+            <button type="button" class="nl-quick-emoji-btn" data-emoji="💡" title="Idea">💡</button>
+            <button type="button" class="nl-quick-emoji-btn" data-emoji="📚" title="Study">📚</button>
+          </div>
+          <form id="messageComposer" class="nl-message-composer" hidden>
+            <button id="toggleEmojiPicker" type="button" class="nl-message-composer-icon-btn" title="Quick emojis" aria-label="Toggle quick emojis"><i class="bi bi-emoji-smile" aria-hidden="true"></i></button>
+            <input id="messageInput" type="text" maxlength="2000" placeholder="Write a message…" aria-label="Write a message" autocomplete="off" />
+            <button type="submit" class="nl-social-button nl-social-button--primary"><i class="bi bi-send-fill" aria-hidden="true"></i><span>Send</span></button>
+          </form>
         </section>
       </section>
+      <div id="nlToast" class="nl-toast" role="status" aria-live="polite" hidden></div>
     </div>
   </main>
   <nav class="mobile-account-nav" aria-label="NeoLearn quick navigation">

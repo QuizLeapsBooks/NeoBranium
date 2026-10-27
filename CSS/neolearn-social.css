@@ -1252,3 +1252,105 @@ body.nb-neolearn-page .nl-post-description {
 body.nb-neolearn-page .nl-post-action[aria-pressed="true"] .bi-heart-fill {
   animation: nlHeartPulse .32s ease;
 }
+
+/* Instagram-style double tap heart burst */
+body.nb-neolearn-page .nl-post-image-button { position: relative; overflow: hidden; }
+body.nb-neolearn-page .nl-insta-heart-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  pointer-events: none;
+  z-index: 5;
+  filter: drop-shadow(0 4px 18px rgba(0,0,0,0.45));
+  animation: nlInstaHeartPop 0.85s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+body.nb-neolearn-page .nl-insta-heart-burst i {
+  font-size: 5rem;
+  color: #f43f5e;
+}
+@keyframes nlInstaHeartPop {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  35% { transform: translate(-50%, -50%) scale(1.35); opacity: 1; }
+  70% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.95; }
+  100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; }
+}
+
+/* Post Share & Bookmark Buttons */
+body.nb-neolearn-page .nl-post-action.nl-post-save-btn { margin-left: auto; }
+body.nb-neolearn-page .nl-post-action.nl-post-save-btn.is-saved { color: var(--account-accent); }
+body.nb-neolearn-page .nl-post-action.nl-post-save-btn.is-saved i { animation: nlHeartPulse .32s ease; }
+
+/* Comment Delete Button */
+body.nb-neolearn-page .nl-comment-delete {
+  margin-left: auto;
+  background: transparent;
+  border: 0;
+  color: var(--account-muted);
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: .8rem;
+  border-radius: 4px;
+  transition: color .15s ease;
+}
+body.nb-neolearn-page .nl-comment-delete:hover {
+  color: var(--account-danger);
+}
+
+/* Global Social Toast */
+.nl-social-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  z-index: 99999;
+  padding: .65rem 1.2rem;
+  background: var(--account-surface, #1e293b);
+  color: var(--account-text, #f8fafc);
+  border: 1px solid var(--account-accent, #6366f1);
+  border-radius: 30px;
+  font-size: .86rem;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+  opacity: 0;
+  transition: all .25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.nl-social-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Instagram-style profile tabs */
+body.nb-neolearn-page .nl-profile-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  border-top: 1px solid var(--account-border);
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+body.nb-neolearn-page .nl-profile-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: .75rem 1rem;
+  font-size: .85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--account-muted);
+  background: transparent;
+  border: 0;
+  border-top: 2px solid transparent;
+  cursor: pointer;
+  transition: all .15s ease;
+  margin-top: -1px;
+}
+body.nb-neolearn-page .nl-profile-tab:hover {
+  color: var(--account-text);
+}
+body.nb-neolearn-page .nl-profile-tab.is-active {
+  color: var(--account-accent);
+  border-top-color: var(--account-accent);
+}

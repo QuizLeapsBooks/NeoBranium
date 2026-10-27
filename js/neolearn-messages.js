@@ -22,6 +22,16 @@ const errorBox = document.getElementById('messagesError');
 const messagesShell = document.querySelector('.nl-messages-shell');
 const threadBack = document.getElementById('messageThreadBack');
 const deleteChatButton = document.getElementById('deleteMessageChat');
+const messageReplyPreview = document.getElementById('messageReplyPreview');
+const messageReplyAuthor = document.getElementById('messageReplyAuthor');
+const messageReplyText = document.getElementById('messageReplyText');
+const messageCancelReply = document.getElementById('messageCancelReply');
+const messageQuickEmojis = document.getElementById('messageQuickEmojis');
+const toggleEmojiPicker = document.getElementById('toggleEmojiPicker');
+const messageTypingIndicator = document.getElementById('messageTypingIndicator');
+const messageTypingText = document.getElementById('messageTypingText');
+const nlToast = document.getElementById('nlToast');
+
 let peers = [];
 let activePeer = null;
 let stopMessages = null;
@@ -33,8 +43,43 @@ let loadingEarlierMessages = false;
 let nextPeersCursor = null;
 let loadingMorePeers = false;
 let hiddenConversations = new Map();
+let deletedForMeMessages = new Set();
+let activeReply = null;
+let typingTimeout = null;
+let peerTypingUnsubscribe = null;
+let toastTimeout = null;
 const pendingReadReceipts = new Map();
 let presenceUnsubscribe = null;
+
+function showToast(text, duration = 2400) {
+  if (!nlToast) return;
+  nlToast.textContent = text;
+  nlToast.hidden = false;
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => {
+    nlToast.hidden = true;
+  }, duration);
+}
+
+function deletedMessagesStorageKey(userId) {
+  return `neolearn_deleted_msgs_${userId}`;
+}
+
+function loadLocalDeletedMessages(userId) {
+  try {
+    const list = JSON.parse(localStorage.getItem(deletedMessagesStorageKey(userId)) || '[]');
+    return new Set(Array.isArray(list) ? list : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveLocalDeletedMessages(userId) {
+  if (!userId) return;
+  try {
+    localStorage.setItem(deletedMessagesStorageKey(userId), JSON.stringify([...deletedForMeMessages]));
+  } catch { /* Storage might be full or restricted */ }
+}
 
 function hiddenConversationsStorageKey(userId) {
   return `neolearn_hidden_chats_${userId}`;
@@ -283,7 +328,9 @@ function renderMessages(peerId, snapshot, { preserveScroll = false } = {}) {
     refreshUnreadMessageCount();
   }
   threadList.replaceChildren();
-  const entries = mergeConversationMessages(olderMessagePages.get(peerId) || {}, latestMessages);
+  const entries = mergeConversationMessages(olderMessagePages.get(peerId) || {}, latestMessages)
+    .filter(([msgId]) => !deletedForMeMessages.has(msgId));
+
   loadEarlierButton.hidden = entries.length === 0 || !hasOlderMessages.get(peerId);
   if (!entries.length) {
     const empty = document.createElement('p');
@@ -291,28 +338,215 @@ function renderMessages(peerId, snapshot, { preserveScroll = false } = {}) {
     empty.textContent = 'Start the conversation with a message.';
     threadList.append(empty);
   } else {
-    entries.forEach(([, message]) => {
+    const currentUid = auth.currentUser?.uid;
+    entries.forEach(([messageId, message]) => {
       if (typeof message?.text !== 'string') return;
+      const isOwn = message.senderId === currentUid;
+      const isUnsent = message.unsent === true;
+
+      const row = document.createElement('div');
+      row.className = `nl-message-row${isOwn ? ' is-own' : ''}`;
+      row.dataset.messageId = messageId;
+
+      const inner = document.createElement('div');
+      inner.className = 'nl-message-row-inner';
+
       const bubble = document.createElement('div');
-      bubble.className = `nl-message-bubble${message.senderId === auth.currentUser?.uid ? ' is-own' : ''}`;
-      bubble.append(document.createTextNode(message.text));
+      bubble.className = `nl-message-bubble${isOwn ? ' is-own' : ''}${isUnsent ? ' is-unsent' : ''}`;
+
+      if (isUnsent) {
+        const unsentIcon = document.createElement('i');
+        unsentIcon.className = 'bi bi-slash-circle me-1';
+        bubble.append(unsentIcon, document.createTextNode('This message was unsent'));
+      } else {
+        // Quoted reply if present
+        if (message.replyTo && typeof message.replyTo.text === 'string') {
+          const quoted = document.createElement('div');
+          quoted.className = 'nl-message-quoted-reply';
+          const authorEl = document.createElement('span');
+          authorEl.className = 'nl-message-quoted-author';
+          authorEl.textContent = message.replyTo.senderName || 'Learner';
+          const snippetEl = document.createElement('span');
+          snippetEl.className = 'nl-message-quoted-snippet';
+          snippetEl.textContent = message.replyTo.text;
+          quoted.append(authorEl, snippetEl);
+          quoted.addEventListener('click', () => {
+            const targetEl = threadList.querySelector(`[data-message-id="${message.replyTo.messageId}"]`);
+            if (targetEl) {
+              targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              const targetBubble = targetEl.querySelector('.nl-message-bubble');
+              if (targetBubble) {
+                targetBubble.classList.add('is-highlighted');
+                setTimeout(() => targetBubble.classList.remove('is-highlighted'), 1600);
+              }
+            }
+          });
+          bubble.append(quoted);
+        }
+
+        bubble.append(document.createTextNode(message.text));
+
+        // Double-click to ❤️ reaction (Instagram signature!)
+        bubble.addEventListener('dblclick', () => {
+          reactToMessage(messageId, '❤️');
+        });
+      }
 
       if (Number.isFinite(message.createdAt)) {
         const time = document.createElement('time');
         time.className = 'nl-message-time';
         time.dateTime = new Date(message.createdAt).toISOString();
         time.textContent = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(message.createdAt);
-        if (message.senderId === auth.currentUser?.uid) {
-            const statusIcon = document.createElement('i');
-            statusIcon.className = message.readByRecipient ? 'bi bi-check2-all' : 'bi bi-check2';
-            statusIcon.style.marginLeft = '4px';
-            statusIcon.style.color = message.readByRecipient ? '#4ade80' : 'inherit';
-            time.appendChild(statusIcon);
+        if (isOwn) {
+          const statusIcon = document.createElement('i');
+          statusIcon.className = message.readByRecipient ? 'bi bi-check2-all' : 'bi bi-check2';
+          statusIcon.style.marginLeft = '4px';
+          statusIcon.style.color = message.readByRecipient ? '#4ade80' : 'inherit';
+          time.appendChild(statusIcon);
         }
         bubble.append(time);
       }
 
-      threadList.append(bubble);
+      inner.append(bubble);
+
+      // Action bar if not unsent
+      if (!isUnsent) {
+        const actionsBar = document.createElement('div');
+        actionsBar.className = 'nl-message-actions-bar';
+
+        // 1. React button
+        const reactBtn = document.createElement('button');
+        reactBtn.type = 'button';
+        reactBtn.className = 'nl-msg-act-btn';
+        reactBtn.title = 'React with emoji';
+        reactBtn.innerHTML = '<i class="bi bi-emoji-smile" aria-hidden="true"></i>';
+        
+        let reactionPicker = null;
+        reactBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (reactionPicker) {
+            reactionPicker.remove();
+            reactionPicker = null;
+            actionsBar.classList.remove('is-open');
+            return;
+          }
+          reactionPicker = document.createElement('div');
+          reactionPicker.className = 'nl-emoji-reaction-picker';
+          const emojis = ['❤️', '😂', '😮', '😢', '🔥', '👍', '👏', '🎉'];
+          emojis.forEach((emoji) => {
+            const eBtn = document.createElement('button');
+            eBtn.type = 'button';
+            eBtn.textContent = emoji;
+            eBtn.addEventListener('click', () => {
+              reactToMessage(messageId, emoji);
+              reactionPicker.remove();
+              reactionPicker = null;
+              actionsBar.classList.remove('is-open');
+            });
+            reactionPicker.append(eBtn);
+          });
+          row.append(reactionPicker);
+          actionsBar.classList.add('is-open');
+          
+          const closePicker = (evt) => {
+            if (!reactionPicker?.contains(evt.target)) {
+              reactionPicker?.remove();
+              reactionPicker = null;
+              actionsBar.classList.remove('is-open');
+              document.removeEventListener('click', closePicker);
+            }
+          };
+          setTimeout(() => document.addEventListener('click', closePicker), 50);
+        });
+        actionsBar.append(reactBtn);
+
+        // 2. Reply button
+        const replyBtn = document.createElement('button');
+        replyBtn.type = 'button';
+        replyBtn.className = 'nl-msg-act-btn';
+        replyBtn.title = 'Reply';
+        replyBtn.innerHTML = '<i class="bi bi-reply-fill" aria-hidden="true"></i>';
+        replyBtn.addEventListener('click', () => {
+          const senderName = isOwn ? 'You' : (activePeer?.name || 'Learner');
+          setReplyTarget(messageId, message.text, message.senderId, senderName);
+        });
+        actionsBar.append(replyBtn);
+
+        // 3. Copy button
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'nl-msg-act-btn';
+        copyBtn.title = 'Copy text';
+        copyBtn.innerHTML = '<i class="bi bi-clipboard" aria-hidden="true"></i>';
+        copyBtn.addEventListener('click', () => {
+          navigator.clipboard?.writeText(message.text).then(() => {
+            showToast('Message copied!');
+          }).catch(() => {
+            showToast('Failed to copy');
+          });
+        });
+        actionsBar.append(copyBtn);
+
+        // 4. If own message: Unsend button
+        if (isOwn) {
+          const unsendBtn = document.createElement('button');
+          unsendBtn.type = 'button';
+          unsendBtn.className = 'nl-msg-act-btn is-danger';
+          unsendBtn.title = 'Unsend for everyone';
+          unsendBtn.innerHTML = '<i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>';
+          unsendBtn.addEventListener('click', () => {
+            unsendMessage(messageId);
+          });
+          actionsBar.append(unsendBtn);
+        }
+
+        // 5. Delete for me button
+        const deleteForMeBtn = document.createElement('button');
+        deleteForMeBtn.type = 'button';
+        deleteForMeBtn.className = 'nl-msg-act-btn is-danger';
+        deleteForMeBtn.title = 'Delete for me';
+        deleteForMeBtn.innerHTML = '<i class="bi bi-trash3" aria-hidden="true"></i>';
+        deleteForMeBtn.addEventListener('click', () => {
+          deleteMessageForMe(messageId);
+        });
+        actionsBar.append(deleteForMeBtn);
+
+        inner.append(actionsBar);
+      }
+
+      row.append(inner);
+
+      // Render reaction pills if present
+      if (message.reactions && typeof message.reactions === 'object') {
+        const counts = {};
+        let viewerReaction = null;
+        Object.entries(message.reactions).forEach(([uId, rData]) => {
+          const em = rData?.emoji;
+          if (!em) return;
+          counts[em] = (counts[em] || 0) + 1;
+          if (uId === currentUid) viewerReaction = em;
+        });
+
+        const emojisWithCount = Object.entries(counts);
+        if (emojisWithCount.length) {
+          const reactionsWrap = document.createElement('div');
+          reactionsWrap.className = 'nl-message-reactions';
+          emojisWithCount.forEach(([emoji, count]) => {
+            const pill = document.createElement('button');
+            pill.type = 'button';
+            pill.className = `nl-message-reaction-pill${viewerReaction === emoji ? ' is-active' : ''}`;
+            pill.innerHTML = `<span>${emoji}</span> <span>${count}</span>`;
+            pill.title = viewerReaction === emoji ? 'Remove reaction' : `React with ${emoji}`;
+            pill.addEventListener('click', () => {
+              reactToMessage(messageId, emoji);
+            });
+            reactionsWrap.append(pill);
+          });
+          row.append(reactionsWrap);
+        }
+      }
+
+      threadList.append(row);
     });
   }
   threadList.scrollTop = preserveScroll
@@ -322,6 +556,123 @@ function renderMessages(peerId, snapshot, { preserveScroll = false } = {}) {
   threadList.hidden = false;
 }
 
+function setReplyTarget(messageId, text, senderId, senderName) {
+  activeReply = { messageId, text, senderId, senderName };
+  if (messageReplyAuthor) messageReplyAuthor.textContent = senderName || 'Learner';
+  if (messageReplyText) messageReplyText.textContent = text || 'Message';
+  if (messageReplyPreview) messageReplyPreview.hidden = false;
+  input.focus();
+}
+
+function clearReplyTarget() {
+  activeReply = null;
+  if (messageReplyPreview) messageReplyPreview.hidden = true;
+}
+
+messageCancelReply?.addEventListener('click', clearReplyTarget);
+
+toggleEmojiPicker?.addEventListener('click', () => {
+  if (messageQuickEmojis) {
+    messageQuickEmojis.hidden = !messageQuickEmojis.hidden;
+  }
+});
+
+messageQuickEmojis?.addEventListener('click', (e) => {
+  const btn = e.target.closest('.nl-quick-emoji-btn');
+  if (!btn) return;
+  const emoji = btn.dataset.emoji;
+  if (!emoji) return;
+  input.value += emoji;
+  input.focus();
+  broadcastTyping();
+});
+
+async function unsendMessage(messageId) {
+  if (!activePeer || !messageId) return;
+  if (!window.confirm('Unsend this message? It will be removed for everyone in the chat.')) return;
+  try {
+    await messageApiRequest('/api/neolearn/messages/unsend', {
+      targetUserId: activePeer.userId,
+      messageId
+    });
+    showToast('Message unsent');
+  } catch (err) {
+    showError(err.message || 'Could not unsend message.');
+  }
+}
+
+async function reactToMessage(messageId, emoji) {
+  if (!activePeer || !messageId || !emoji) return;
+  try {
+    await messageApiRequest('/api/neolearn/messages/react', {
+      targetUserId: activePeer.userId,
+      messageId,
+      emoji
+    });
+  } catch (err) {
+    showError(err.message || 'Could not update reaction.');
+  }
+}
+
+async function deleteMessageForMe(messageId) {
+  if (!activePeer || !messageId) return;
+  if (!window.confirm('Delete this message for yourself?')) return;
+  try {
+    deletedForMeMessages.add(messageId);
+    saveLocalDeletedMessages(auth.currentUser?.uid);
+    renderMessages(activePeer.userId, { val: () => conversationSnapshots.get(activePeer.userId) || {} });
+    await messageApiRequest('/api/neolearn/messages/delete-for-me', {
+      targetUserId: activePeer.userId,
+      messageId
+    });
+    showToast('Message deleted for you');
+  } catch (err) {
+    showError(err.message || 'Could not delete message.');
+  }
+}
+
+function conversationTypingRef(firstId, secondId, uid) {
+  const [first, second] = [firstId, secondId].sort();
+  return ref(rtdb, `neolearn_typing/${first}/${second}/${uid}`);
+}
+
+function broadcastTyping() {
+  const uid = auth.currentUser?.uid;
+  if (!uid || !activePeer) return;
+  const typingRef = conversationTypingRef(uid, activePeer.userId, uid);
+  set(typingRef, true).catch(() => {});
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => {
+    set(typingRef, null).catch(() => {});
+  }, 2200);
+}
+
+function clearTyping() {
+  clearTimeout(typingTimeout);
+  const uid = auth.currentUser?.uid;
+  if (!uid || !activePeer) return;
+  const typingRef = conversationTypingRef(uid, activePeer.userId, uid);
+  set(typingRef, null).catch(() => {});
+}
+
+function subscribeToPeerTyping(peer) {
+  if (peerTypingUnsubscribe) {
+    peerTypingUnsubscribe();
+    peerTypingUnsubscribe = null;
+  }
+  const uid = auth.currentUser?.uid;
+  if (!uid || !peer) return;
+  const peerTypingRef = conversationTypingRef(uid, peer.userId, peer.userId);
+  peerTypingUnsubscribe = onValue(peerTypingRef, (snap) => {
+    const isTyping = snap.val() === true;
+    if (messageTypingIndicator) {
+      messageTypingIndicator.hidden = !isTyping;
+      if (isTyping && messageTypingText) {
+        messageTypingText.textContent = `${peer.name || 'Learner'} is typing…`;
+      }
+    }
+  });
+}
 
 let peerPresenceUnsubscribe = null;
 
@@ -340,7 +691,6 @@ function subscribeToPeerPresence(peer) {
             statusText = '';
         } else if (status) {
             if (status.state === 'online') {
-
                 statusText = 'Online';
             } else if (status.last_changed) {
                 const date = new Date(status.last_changed);
@@ -380,6 +730,7 @@ async function selectPeer(peer) {
   const generation = ++conversationGeneration;
   if (stopMessages) stopMessages();
   stopMessages = null;
+  clearReplyTarget();
   activePeer = peer;
   peer._stopConversationSnapshot?.();
   subscribeToPeerUnreadMessages(auth.currentUser, peer);
@@ -398,6 +749,7 @@ async function selectPeer(peer) {
   }
   threadProfile.href = `/htmls/neolearn/profile.html?uid=${encodeURIComponent(peer.userId)}`;
   subscribeToPeerPresence(peer);
+  subscribeToPeerTyping(peer);
   loadEarlierButton.hidden = !hasOlderMessages.get(peer.userId);
   threadLoading.hidden = false;
   threadList.hidden = true;
@@ -466,6 +818,9 @@ async function loadEarlierMessages() {
 function returnToPeerList() {
   const previousPeer = activePeer;
   if (peerPresenceUnsubscribe) { peerPresenceUnsubscribe(); peerPresenceUnsubscribe = null; }
+  if (peerTypingUnsubscribe) { peerTypingUnsubscribe(); peerTypingUnsubscribe = null; }
+  clearReplyTarget();
+  clearTyping();
   conversationGeneration += 1;
   if (stopMessages) stopMessages();
   stopMessages = null;
@@ -481,6 +836,7 @@ function returnToPeerList() {
   threadList.hidden = true;
   loadEarlierButton.hidden = true;
   composer.hidden = true;
+  if (messageTypingIndicator) messageTypingIndicator.hidden = true;
   renderPeers();
 }
 
@@ -488,6 +844,9 @@ threadBack.addEventListener('click', returnToPeerList);
 loadEarlierButton.addEventListener('click', loadEarlierMessages);
 search.addEventListener('input', renderPeers);
 loadMorePeersButton.addEventListener('click', loadMoreMessagePeers);
+input.addEventListener('input', broadcastTyping);
+input.addEventListener('blur', clearTyping);
+
 deleteChatButton.addEventListener('click', async () => {
   const peer = activePeer;
   if (!peer || !window.confirm(`Delete your chat with ${peer.name || 'this learner'}? This will not delete it for them.`)) return;
@@ -509,6 +868,7 @@ deleteChatButton.addEventListener('click', async () => {
     deleteChatButton.disabled = false;
   }
 });
+
 composer.addEventListener('submit', async (event) => {
   event.preventDefault();
   const text = input.value.trim();
@@ -528,13 +888,18 @@ composer.addEventListener('submit', async (event) => {
       }
   }
 
-  const sendButton = composer.querySelector('button');
+  const sendButton = composer.querySelector('button[type="submit"]');
   sendButton.disabled = true;
+  clearTyping();
   try {
-    
-    await messageApiRequest('/api/neolearn/messages/send', { targetUserId: activePeer.userId, text });
+    const payload = { targetUserId: activePeer.userId, text };
+    if (activeReply) {
+      payload.replyTo = activeReply;
+    }
+    await messageApiRequest('/api/neolearn/messages/send', payload);
 
     input.value = '';
+    clearReplyTarget();
     errorBox.hidden = true;
   } catch (err) {
     showError(err.message || 'Message could not be sent.');
@@ -551,6 +916,19 @@ async function initialize() {
     });
     if (!user) return;
     setupPresence(user);
+    deletedForMeMessages = loadLocalDeletedMessages(user.uid);
+    try {
+      const delResult = await messageApiRequest('/api/neolearn/messages/deleted-for-me', {});
+      if (delResult.deletedMessages && typeof delResult.deletedMessages === 'object') {
+        Object.values(delResult.deletedMessages).forEach((peerObj) => {
+          if (peerObj && typeof peerObj === 'object') {
+            Object.keys(peerObj).forEach((msgId) => deletedForMeMessages.add(msgId));
+          }
+        });
+        saveLocalDeletedMessages(user.uid);
+      }
+    } catch { /* Ignore backend sync error if offline */ }
+
     const page = await getNeoLearnPeersPage(user, null, 'learning');
     peers = page.peers;
     nextPeersCursor = page.nextCursor;
@@ -580,7 +958,9 @@ initialize();
 window.addEventListener('beforeunload', () => {
   cleanupConversationSnapshots();
   peerPresenceUnsubscribe?.();
+  peerTypingUnsubscribe?.();
   presenceUnsubscribe?.();
+  clearTyping();
 });
 
 

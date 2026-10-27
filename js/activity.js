@@ -110,6 +110,36 @@ function renderCalendar(monthDate, records) {
 
 const dailyActivityCache = new Map();
 
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>'"]/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "'": "&#39;",
+    "\"": "&quot;"
+  }[character]));
+}
+
+function getSubject(quiz) {
+  if (quiz.subject) return quiz.subject;
+  const identity = `${quiz.quizId || ""} ${quiz.title || ""}`.toLowerCase();
+  if (/math/.test(identity)) return "Mathematics";
+  if (/biology|life processes|tissues|organisms|heredity|environment|food resources|fall ill/.test(identity)) return "Biology";
+  if (/chemistry|matter|atom|reaction|acid|metal|carbon/.test(identity)) return "Chemistry";
+  if (/physics|motion|force|gravitation|work and energy|electricity|magnetic|light|eye and colourful/.test(identity)) return "Physics";
+  return "";
+}
+
+function getChapter(quiz) {
+  if (quiz.chapter) return quiz.chapter;
+  const title = String(quiz.title || "");
+  const chapter = title
+    .replace(/\s+Quiz\b.*$/i, "")
+    .replace(/\s*\(Class\s*\d+\).*$/i, "")
+    .trim();
+  return chapter || String(quiz.quizId || "").replace(/[-_]/g, " ");
+}
+
 function formatActivityDate(key) {
   return new Date(`${key}T12:00:00`).toLocaleDateString(undefined, {
     year: "numeric", month: "long", day: "numeric"
@@ -132,30 +162,95 @@ function quizScore(quiz) {
 }
 
 function quizResult(quiz) {
-  const match = String(quiz.score || "").match(/(\d+)\s*\/\s*(\d+)/);
+  const match = String(quiz.score || "").match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
   if (!match) return null;
   return { correct: Number(match[1]), attempted: Number(match[2]) };
 }
 
-function renderDailyActivity(key, activity, tasks) {
+function renderDailyActivity(key, activity, tasks = []) {
   const body = document.getElementById("dailyActivityBody");
   if (!body) return;
   const quizzes = Array.isArray(activity?.quizDetails) ? activity.quizDetails : [];
-  const datedTasks = tasks.filter((task) => task.date === key || task.dueDate === key);
+  const taskList = Array.isArray(tasks) ? tasks : [];
+  const datedTasks = taskList.filter((task) => task && (task.date === key || task.dueDate === key));
   const sections = [];
-  if (activity?.visited) sections.push(`<section class="nb-daily-section"><h6>Website Activity</h6><p><i class="bi bi-check-circle-fill"></i> Visited NeoBranium</p><small>${formatActivityDate(key)}</small></section>`);
+
+  if (activity?.visited) {
+    sections.push(`
+      <section class="nb-daily-section">
+        <h6>Website Activity</h6>
+        <p><i class="bi bi-check-circle-fill"></i> Visited NeoBranium</p>
+        <small>${escapeHtml(formatActivityDate(key))}</small>
+      </section>
+    `);
+  }
+
   if (quizzes.length) {
     const results = quizzes.map(quizResult).filter(Boolean);
-    const attempted = results.reduce((sum, result) => sum + result.attempted, 0);
-    const correct = results.reduce((sum, result) => sum + result.correct, 0);
-    const average = results.length ? `${Math.round(results.reduce((sum, result) => sum + (result.correct / result.attempted) * 100, 0) / results.length)}%` : "Unavailable";
-    const counts = results.length ? `<p>${attempted} questions attempted · ${correct} correct · ${attempted - correct} incorrect</p>` : "";
-    sections.push(`<section class="nb-daily-section"><h6>Quiz Practice</h6><p><strong>${quizzes.length}</strong> quiz${quizzes.length === 1 ? "" : "zes"} completed</p>${counts}<p>Average score: ${average}</p><div class="nb-daily-quiz-list">${quizzes.map((quiz) => `<div class="nb-daily-quiz"><strong></strong><span>${quiz.subject || quiz.chapter ? `${quiz.subject || ""}${quiz.subject && quiz.chapter ? " · " : ""}${quiz.chapter || ""}` : ""}</span><em>${quizScore(quiz)}</em></div>`).join("")}</div></section>`);
-    quizzes.forEach((quiz, index) => { body.querySelectorAll(".nb-daily-quiz strong")[index].textContent = quiz.title || "Untitled quiz"; });
+    const attempted = results.reduce((sum, result) => sum + (result.attempted || 0), 0);
+    const correct = results.reduce((sum, result) => sum + (result.correct || 0), 0);
+    const validResults = results.filter((r) => r.attempted > 0);
+    const average = validResults.length
+      ? `${Math.round(validResults.reduce((sum, result) => sum + (result.correct / result.attempted) * 100, 0) / validResults.length)}%`
+      : "Unavailable";
+    const counts = results.length
+      ? `<p>${attempted} questions attempted · ${correct} correct · ${Math.max(0, attempted - correct)} incorrect</p>`
+      : "";
+
+    const quizListHtml = quizzes.map((quiz) => {
+      const title = escapeHtml(quiz.title || "Untitled quiz");
+      const subject = getSubject(quiz);
+      const chapter = getChapter(quiz);
+      const subtitle = [subject, chapter].filter(Boolean).join(" · ");
+      const score = escapeHtml(quizScore(quiz));
+      return `
+        <div class="nb-daily-quiz">
+          <strong>${title}</strong>
+          <span>${escapeHtml(subtitle)}</span>
+          <em>${score}</em>
+        </div>
+      `;
+    }).join("");
+
+    sections.push(`
+      <section class="nb-daily-section">
+        <h6>Quiz Practice</h6>
+        <p><strong>${quizzes.length}</strong> quiz${quizzes.length === 1 ? "" : "zes"} completed</p>
+        ${counts}
+        <p>Average score: ${average}</p>
+        <div class="nb-daily-quiz-list">
+          ${quizListHtml}
+        </div>
+      </section>
+    `);
   }
-  if (datedTasks.length) sections.push(`<section class="nb-daily-section"><h6>Tasks</h6>${datedTasks.map((task) => `<div class="nb-daily-task"><i class="bi bi-${task.status === "completed" ? "check-circle-fill" : "circle"}"></i><span><strong></strong><small>${task.source === "neomentor" ? "From NeoMentor" : "From NeoBranium"}</small></span></div>`).join("")}</section>`);
+
+  if (datedTasks.length) {
+    const taskListHtml = datedTasks.map((task) => {
+      const isCompleted = task.status === "completed";
+      const icon = isCompleted ? "check-circle-fill" : "circle";
+      const source = task.source === "neomentor" ? "From NeoMentor" : "From NeoBranium";
+      const title = escapeHtml(task.title || "Untitled task");
+      return `
+        <div class="nb-daily-task">
+          <i class="bi bi-${icon}"></i>
+          <span>
+            <strong>${title}</strong>
+            <small>${escapeHtml(source)}</small>
+          </span>
+        </div>
+      `;
+    }).join("");
+
+    sections.push(`
+      <section class="nb-daily-section">
+        <h6>Tasks</h6>
+        ${taskListHtml}
+      </section>
+    `);
+  }
+
   body.innerHTML = sections.length ? sections.join("") : '<p class="nb-daily-empty">No activity recorded for this date.</p>';
-  datedTasks.forEach((task, index) => { body.querySelectorAll(".nb-daily-task strong")[index].textContent = task.title || "Untitled task"; });
 }
 
 async function loadDailyActivity(key) {
@@ -193,6 +288,7 @@ async function loadDailyActivity(key) {
     }
   } catch (error) {
     console.error("Unable to load daily activity:", error);
+    dailyActivityCache.delete(cacheKey);
     showDailyState("error", key);
     document.getElementById("dailyActivityRetry")?.addEventListener("click", () => loadDailyActivity(key), { once: true });
   }

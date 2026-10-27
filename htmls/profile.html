@@ -75,6 +75,19 @@
         </div>
         <a href="/htmls/rank-score-info.html" class="account-link"><i class="bi bi-book me-1" aria-hidden="true"></i>How Rank &amp; Score are calculated?</a>
       </section>
+
+      <!-- ═══ SAVED QUESTIONS & REVISION QUEUE ════════════════════════ -->
+      <section class="account-card profile-card mt-4" aria-label="Saved quiz questions for revision">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="h5 mb-0 d-flex align-items-center gap-2" style="font-weight:700;">
+            <i class="bi bi-bookmark-star-fill text-warning"></i> Saved Quiz Questions (<span id="profileSavedCount">0</span>)
+          </h2>
+          <small class="account-muted">Revision Queue</small>
+        </div>
+        <div id="profileSavedQuestionsContainer">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
     </div>
   </main>
   <nav class="mobile-account-nav" aria-label="Quick navigation">
@@ -251,6 +264,80 @@
         document.body.style.background = "linear-gradient(135deg, #6366f1 0%, #a5b4fc 100%)";
       }
     });
+
+    // ─── Render Saved Questions in Profile ──────────────────────────────────
+    const BOOKMARKS_KEY = "neobranium_quiz_bookmarks";
+    function renderProfileSavedQuestions() {
+      const container = document.getElementById('profileSavedQuestionsContainer');
+      const countEl = document.getElementById('profileSavedCount');
+      if (!container) return;
+
+      let list = [];
+      try { list = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || '[]'); } catch (e) {}
+
+      if (countEl) countEl.textContent = list.length;
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-4">
+            <i class="bi bi-bookmark-dash fs-2 text-muted mb-2 d-block"></i>
+            <p class="account-muted mb-2">No questions saved yet.</p>
+            <a href="/htmls/quiz_htmls/class10-physics-chapter-1.html" class="btn btn-sm btn-outline-primary" style="border-radius:20px;">Try a Quiz &amp; Bookmark Tricky Questions</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map((item, idx) => `
+        <div class="nb-saved-q-card mb-3 p-3 rounded" style="background:var(--account-surface, rgba(255,255,255,0.04)); border:1px solid var(--account-border, rgba(255,255,255,0.08));">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge bg-primary" style="font-size:0.75rem;">${item.quizTitle || 'Quiz Question'}</span>
+            <div>
+              <button class="btn btn-sm btn-outline-warning prof-toggle-ans me-2" data-target="prof_ans_${idx}" style="font-size:0.75rem; border-radius:6px;">
+                <i class="bi bi-eye"></i> Answer
+              </button>
+              <button class="btn btn-sm btn-outline-danger prof-remove-bm" data-id="${item.id}" style="font-size:0.75rem; border-radius:6px;" title="Remove bookmark">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+          <p class="mb-2 fw-semibold" style="font-size:0.92rem; color:var(--account-text, #f1f5f9);">${item.question}</p>
+          <div class="d-none p-2 mb-2 rounded prof-ans-box" id="prof_ans_${idx}" style="background:rgba(16,185,129,0.12); color:#6ee7b7; font-size:0.85rem; border:1px solid rgba(16,185,129,0.25);">
+            <strong>Correct Answer:</strong> ${item.answer}
+          </div>
+          <div class="d-flex justify-content-between align-items-center pt-2" style="border-top:1px solid rgba(255,255,255,0.06); font-size:0.78rem;">
+            <span class="account-muted">${item.savedAt ? 'Bookmarked ' + new Date(item.savedAt).toLocaleDateString() : ''}</span>
+            <a href="${item.quizPage || '/htmls/quiz_htmls/class10-physics-chapter-1.html'}" class="btn btn-sm btn-outline-info py-0 px-2" style="font-size:0.75rem; border-radius:6px;">
+              Open Quiz <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      `).join('');
+
+      container.querySelectorAll('.prof-toggle-ans').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = document.getElementById(btn.dataset.target);
+          if (target) {
+            const isHidden = target.classList.contains('d-none');
+            target.classList.toggle('d-none', !isHidden);
+            btn.innerHTML = isHidden ? '<i class="bi bi-eye-slash"></i> Hide' : '<i class="bi bi-eye"></i> Answer';
+          }
+        });
+      });
+
+      container.querySelectorAll('.prof-remove-bm').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.id;
+          let current = [];
+          try { current = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || '[]'); } catch (e) {}
+          current = current.filter(x => x.id !== id);
+          localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(current));
+          renderProfileSavedQuestions();
+        });
+      });
+    }
+
+    renderProfileSavedQuestions();
   </script>
 </body>
 </html>
