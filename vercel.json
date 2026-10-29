@@ -1,144 +1,145 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "dest": "/api/$1"
+      "destination": "/api/$1"
     },
     {
       "source": "/top-questions",
-      "dest": "/IQ/top-question.html"
+      "destination": "/IQ/top-question.html"
     },
     {
       "source": "/blog",
-      "dest": "/blog/blog.html"
+      "destination": "/blog/blog.html"
     },
     {
       "source": "/notes",
-      "dest": "/Notes/notes-science-class9.html"
+      "destination": "/Notes/notes-science-class9.html"
     },
     {
       "source": "/notes/class10-science",
-      "dest": "/Notes/notes-science-class10.html"
+      "destination": "/Notes/notes-science-class10.html"
     },
     {
       "source": "/notes/class9-science-chapter1",
-      "dest": "/Notes/notes-science-class9.html#ch1"
+      "destination": "/Notes/notes-science-class9.html#ch1"
     },
     {
       "source": "/notes/class9-science-chapter2",
-      "dest": "/Notes/notes-science-class9.html#ch2"
+      "destination": "/Notes/notes-science-class9.html#ch2"
     },
     {
       "source": "/notes/class9-science-chapter3",
-      "dest": "/Notes/notes-science-class9.html#ch3"
+      "destination": "/Notes/notes-science-class9.html#ch3"
     },
     {
       "source": "/notes/class9-science-chapter4",
-      "dest": "/Notes/notes-science-class9.html#ch4"
+      "destination": "/Notes/notes-science-class9.html#ch4"
     },
     {
       "source": "/notes/class9-science-bio-chapter1",
-      "dest": "/Notes/notes-science-class9.html#bio-ch1"
+      "destination": "/Notes/notes-science-class9.html#bio-ch1"
     },
     {
       "source": "/notes/class9-science-bio-chapter2",
-      "dest": "/Notes/notes-science-class9.html#bio-ch2"
+      "destination": "/Notes/notes-science-class9.html#bio-ch2"
     },
     {
       "source": "/notes/class9-science-bio-chapter3",
-      "dest": "/Notes/notes-science-class9.html#bio-ch3"
+      "destination": "/Notes/notes-science-class9.html#bio-ch3"
     },
     {
       "source": "/notes/class9-science-bio-chapter4",
-      "dest": "/Notes/notes-science-class9.html#bio-ch4"
+      "destination": "/Notes/notes-science-class9.html#bio-ch4"
     },
     {
       "source": "/notes/class9-science-bio-chapter5",
-      "dest": "/Notes/notes-science-class9.html#bio-ch5"
+      "destination": "/Notes/notes-science-class9.html#bio-ch5"
     },
     {
       "source": "/notes/class9-science-phy-chapter1",
-      "dest": "/Notes/notes-science-class9.html#phy-ch1"
+      "destination": "/Notes/notes-science-class9.html#phy-ch1"
     },
     {
       "source": "/notes/class9-science-phy-chapter2",
-      "dest": "/Notes/notes-science-class9.html#phy-ch2"
+      "destination": "/Notes/notes-science-class9.html#phy-ch2"
     },
     {
       "source": "/notes/class9-science-phy-chapter3",
-      "dest": "/Notes/notes-science-class9.html#phy-ch3"
+      "destination": "/Notes/notes-science-class9.html#phy-ch3"
     },
     {
       "source": "/notes/class9-science-phy-chapter4",
-      "dest": "/Notes/notes-science-class9.html#phy-ch4"
+      "destination": "/Notes/notes-science-class9.html#phy-ch4"
     },
     {
       "source": "/notes/class9-science-phy-chapter5",
-      "dest": "/Notes/notes-science-class9.html#phy-ch5"
+      "destination": "/Notes/notes-science-class9.html#phy-ch5"
     },
     {
       "source": "/notes/class9-science-formulas",
-      "dest": "/Notes/notes-science-class9.html#phy-formulas"
+      "destination": "/Notes/notes-science-class9.html#phy-formulas"
     },
     {
       "source": "/notes/class10-science-chapter1",
-      "dest": "/Notes/notes-science-class10.html#ch1"
+      "destination": "/Notes/notes-science-class10.html#ch1"
     },
     {
       "source": "/notes/class10-science-chapter2",
-      "dest": "/Notes/notes-science-class10.html#ch2"
+      "destination": "/Notes/notes-science-class10.html#ch2"
     },
     {
       "source": "/notes/class10-science-chapter3",
-      "dest": "/Notes/notes-science-class10.html#ch3"
+      "destination": "/Notes/notes-science-class10.html#ch3"
     },
     {
       "source": "/notes/class10-science-chapter4",
-      "dest": "/Notes/notes-science-class10.html#ch4"
+      "destination": "/Notes/notes-science-class10.html#ch4"
     },
     {
       "source": "/notes/class10-science-phy-chapter1",
-      "dest": "/Notes/notes-science-class10.html#phy-ch1"
+      "destination": "/Notes/notes-science-class10.html#phy-ch1"
     },
     {
       "source": "/notes/class10-science-phy-chapter2",
-      "dest": "/Notes/notes-science-class10.html#phy-ch2"
+      "destination": "/Notes/notes-science-class10.html#phy-ch2"
     },
     {
       "source": "/notes/class10-science-phy-chapter3",
-      "dest": "/Notes/notes-science-class10.html#phy-ch3"
+      "destination": "/Notes/notes-science-class10.html#phy-ch3"
     },
     {
       "source": "/notes/class10-science-phy-chapter4",
-      "dest": "/Notes/notes-science-class10.html#phy-ch4"
+      "destination": "/Notes/notes-science-class10.html#phy-ch4"
     },
     {
       "source": "/notes/class10-science-bio-chapter1",
-      "dest": "/Notes/notes-science-class10.html#bio-ch1"
+      "destination": "/Notes/notes-science-class10.html#bio-ch1"
     },
     {
       "source": "/notes/class10-science-bio-chapter2",
-      "dest": "/Notes/notes-science-class10.html#bio-ch2"
+      "destination": "/Notes/notes-science-class10.html#bio-ch2"
     },
     {
       "source": "/notes/class10-science-bio-chapter3",
-      "dest": "/Notes/notes-science-class10.html#bio-ch3"
+      "destination": "/Notes/notes-science-class10.html#bio-ch3"
     },
     {
       "source": "/notes/class10-science-bio-chapter4",
-      "dest": "/Notes/notes-science-class10.html#bio-ch4"
+      "destination": "/Notes/notes-science-class10.html#bio-ch4"
     },
     {
       "source": "/notes/class10-science-bio-chapter5",
-      "dest": "/Notes/notes-science-class10.html#bio-ch5"
+      "destination": "/Notes/notes-science-class10.html#bio-ch5"
     },
     {
       "source": "/notes/class10-science-formulas",
-      "dest": "/Notes/notes-science-class10.html#formulas"
+      "destination": "/Notes/notes-science-class10.html#formulas"
     },
     {
       "source": "/(.*)",
-      "dest": "/$1"
+      "destination": "/$1"
     }
   ]
 }
