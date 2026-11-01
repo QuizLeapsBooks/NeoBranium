@@ -1,5 +1,5 @@
 import { auth, db, loadUserData, updateUserProfile, changeUserPassword, showStatus, checkAccess } from "/js/auth.js";
-import { doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+import { doc, getDoc, setDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 import { uploadProfilePhotoToServer, removeProfilePhotoFromServer } from "/js/profile-photo-cache.js";
 import { deleteNeoLearnProfile } from "/js/neolearn-social-service.js";
 
@@ -20,6 +20,40 @@ const currentPasswordInput = document.getElementById("currentPassword");
 const newPasswordInput = document.getElementById("newPassword");
 const changePasswordBtn = document.getElementById("changePasswordBtn");
 const themeSwitch = document.getElementById("themeSwitch");
+
+// Leaderboard Privacy Elements
+const leaderboardPrivacySelect = document.getElementById("leaderboardPrivacySelect");
+const leaderboardClassSelect = document.getElementById("leaderboardClassSelect");
+const leaderboardDisplayNameInput = document.getElementById("leaderboardDisplayNameInput");
+const saveLeaderboardPrivacyBtn = document.getElementById("saveLeaderboardPrivacyBtn");
+const syncLeaderboardStatsBtn = document.getElementById("syncLeaderboardStatsBtn");
+const lbStatusBadge = document.getElementById("lbStatusBadge");
+const leaderboardStatusFeedback = document.getElementById("leaderboardStatusFeedback");
+
+function showLeaderboardFeedback(message, isError = false) {
+    if (!leaderboardStatusFeedback) return;
+    leaderboardStatusFeedback.textContent = message;
+    leaderboardStatusFeedback.style.color = isError ? "var(--account-danger, #ef4444)" : "var(--account-success, #16a34a)";
+    setTimeout(() => {
+        if (leaderboardStatusFeedback.textContent === message) {
+            leaderboardStatusFeedback.textContent = "";
+        }
+    }, 4500);
+}
+
+function updateLeaderboardUI(isPublic) {
+    if (lbStatusBadge) {
+        if (isPublic) {
+            lbStatusBadge.textContent = "Public (Active on Leaderboard)";
+            lbStatusBadge.className = "neolearn-badge neolearn-badge--active";
+            if (syncLeaderboardStatsBtn) syncLeaderboardStatsBtn.style.display = "inline-block";
+        } else {
+            lbStatusBadge.textContent = "Private (Hidden from Leaderboard)";
+            lbStatusBadge.className = "neolearn-badge neolearn-badge--inactive";
+            if (syncLeaderboardStatsBtn) syncLeaderboardStatsBtn.style.display = "none";
+        }
+    }
+}
 
 // Profile Photo Management Elements
 const settingsPhotoInput = document.getElementById("settingsPhotoInput");
@@ -398,6 +432,14 @@ document.addEventListener("userLoaded", async (e) => {
     const activePhoto = userData.profilePhotoUrl || userData.photoURL;
     updateSettingsAvatarUI(activePhoto, userData.username || user.displayName);
     await loadNeoLearnState(user);
+
+    if (leaderboardPrivacySelect) {
+        const isPublic = (userData.showOnLeaderboard !== false && userData.leaderboardPrivacy !== 'private');
+        leaderboardPrivacySelect.value = isPublic ? 'public' : 'private';
+        if (leaderboardClassSelect) leaderboardClassSelect.value = userData.targetClass === '9' ? '9' : '10';
+        if (leaderboardDisplayNameInput) leaderboardDisplayNameInput.value = userData.publicDisplayName || userData.username || '';
+        updateLeaderboardUI(isPublic);
+    }
 });
 
 themeSwitch.addEventListener("change", () => {
@@ -499,4 +541,100 @@ if (urlParams.get('msg') === 'neolearn_missing') {
             showNeoLearnFeedback("NeoLearn profile not created yet. Create your NeoLearn profile here to access NeoLearn.", true);
         }
     }, 600); // slight delay to ensure UI is ready
+}
+
+// ── Leaderboard Privacy Save & Sync Handlers ───────────────────────────────
+if (saveLeaderboardPrivacyBtn) {
+    saveLeaderboardPrivacyBtn.addEventListener("click", async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+        saveLeaderboardPrivacyBtn.disabled = true;
+        saveLeaderboardPrivacyBtn.textContent = "Saving...";
+
+        const isPublic = leaderboardPrivacySelect.value === 'public';
+        const targetClass = leaderboardClassSelect ? leaderboardClassSelect.value : '10';
+        const publicDisplayName = leaderboardDisplayNameInput ? leaderboardDisplayNameInput.value.trim() : '';
+
+        try {
+            // Update users document with allowed fields
+            const userRef = doc(db, "users", user.uid);
+            await setDoc(userRef, {
+                showOnLeaderboard: isPublic,
+                leaderboardPrivacy: isPublic ? 'public' : 'private',
+                targetClass: targetClass,
+                publicDisplayName: publicDisplayName || user.displayName || 'Learner',
+                updatedAt: serverTimestamp()
+            }, { merge: true });
+
+            // If private, delete public_profiles doc immediately
+            if (!isPublic) {
+                try {
+                    await deleteDoc(doc(db, "public_profiles", user.uid));
+                } catch (delErr) {
+                    console.warn("Could not delete public profile directly:", delErr);
+                }
+            }
+
+            // Sync with backend API
+            try {
+                const token = await user.getIdToken();
+                await fetch("/api/leaderboard/privacy", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        privacy: isPublic ? 'public' : 'private',
+                        targetClass,
+                        publicDisplayName: publicDisplayName || user.displayName || 'Learner'
+                    })
+                });
+            } catch (apiErr) {
+                console.warn("Backend sync notice:", apiErr);
+            }
+
+            updateLeaderboardUI(isPublic);
+            showLeaderboardFeedback(isPublic
+                ? "Leaderboard profile is now PUBLIC. You will appear in rankings!"
+                : "Leaderboard profile is now PRIVATE. You are hidden from rankings.");
+        } catch (err) {
+            console.error("Failed to save leaderboard settings:", err);
+            showLeaderboardFeedback("Failed to update privacy: " + err.message, true);
+        } finally {
+            saveLeaderboardPrivacyBtn.disabled = false;
+            saveLeaderboardPrivacyBtn.textContent = "Save Privacy Settings";
+        }
+    });
+}
+
+if (syncLeaderboardStatsBtn) {
+    syncLeaderboardStatsBtn.addEventListener("click", async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+        syncLeaderboardStatsBtn.disabled = true;
+        syncLeaderboardStatsBtn.textContent = "Syncing...";
+
+        try {
+            const token = await user.getIdToken();
+            const res = await fetch("/api/leaderboard/sync", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+            const data = await res.json();
+            if (data.success) {
+                showLeaderboardFeedback("Leaderboard stats synchronized successfully!");
+            } else {
+                showLeaderboardFeedback(data.error || "Failed to sync stats", true);
+            }
+        } catch (err) {
+            showLeaderboardFeedback("Stats sync notice: " + err.message, true);
+        } finally {
+            syncLeaderboardStatsBtn.disabled = false;
+            syncLeaderboardStatsBtn.textContent = "Sync Leaderboard Stats";
+        }
+    });
 }

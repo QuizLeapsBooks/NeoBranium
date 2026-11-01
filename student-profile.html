@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Performance Profile | NeoBranium</title>
+  <meta name="description" content="View verified learning achievements, quiz accuracy, and subject-wise performance on the NeoBranium public student profile." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Student Performance Profile | NeoBranium" />
+  <meta property="og:description" content="Verified quiz performance, accuracy, and learning milestones on NeoBranium." />
+  <meta property="og:image" content="https://neobranium.web.app/online-graduation_16847316.png" />
+  <meta property="og:type" content="profile" />
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/CSS/leaderboard.css" />
+  <script src="/js/shortcuts.js"></script>
+</head>
+<body class="nb-lb-body">
+
+  <!-- ═══ NAVIGATION ════════════════════════════════════════════════════════════ -->
+  <header class="nb-lb-nav">
+    <div class="nb-lb-nav-inner">
+      <a href="/index.html" class="nb-lb-brand">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="nb-lb-logo" width="36" height="36" />
+        <span>NeoBranium</span>
+      </a>
+      <div class="nb-lb-nav-links">
+        <a href="/leaderboard.html" class="nb-lb-nav-link"><i class="bi bi-arrow-left"></i> Back to Leaderboard</a>
+        <a href="/index.html" class="nb-lb-nav-link">Home</a>
+        <a href="/htmls/dashboard.html" class="nb-lb-nav-link">Dashboard</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN PROFILE WRAPPER ══════════════════════════════════════════════════ -->
+  <main class="nb-lb-container" id="main-content">
+
+    <!-- Loading State -->
+    <div id="spLoading" class="nb-lb-loading" aria-live="polite">
+      <div class="nb-spinner"></div>
+      <p>Loading student profile…</p>
+    </div>
+
+    <!-- Error / Private State -->
+    <div id="spError" class="nb-lb-empty d-none">
+      <i class="bi bi-shield-lock nb-lb-empty-icon" style="color:var(--nb-primary);"></i>
+      <h3>Profile Unavailable</h3>
+      <p id="spErrorMessage">This student profile is private or does not exist.</p>
+      <div style="margin-top:1.5rem;">
+        <a href="/leaderboard.html" class="nb-lb-nav-btn">
+          <i class="bi bi-trophy"></i> Explore Public Leaderboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Active Profile Content -->
+    <div id="spProfile" class="d-none">
+      
+      <!-- Profile Header Card -->
+      <header class="nb-sp-header-card">
+        <div class="nb-sp-profile-identity">
+          <div class="nb-sp-avatar" id="spAvatar"></div>
+          <div>
+            <h1 class="nb-sp-name" id="spName">Student Name</h1>
+            <p class="nb-sp-bio d-none" id="spBio"></p>
+            <div class="nb-sp-badges-row">
+              <span class="nb-sp-badge" id="spClassTag">Class 10</span>
+              <span class="nb-sp-badge nb-sp-badge--rank" id="spRankBadge"><i class="bi bi-trophy-fill"></i> Rank #–</span>
+              <span class="nb-sp-badge nb-sp-badge--points" id="spPointsBadge"><i class="bi bi-lightning-charge-fill"></i> 0 Points</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <button type="button" class="nb-lb-formula-btn" id="spShareBtn">
+            <i class="bi bi-share-fill"></i> Share Profile
+          </button>
+        </div>
+      </header>
+
+      <!-- Key Performance Overview Cards -->
+      <section class="nb-sp-overview-grid" aria-label="Performance Metrics">
+        <div class="nb-stat-card">
+          <div class="nb-stat-icon"><i class="bi bi-check2-all"></i></div>
+          <div class="nb-stat-content">
+            <strong id="spStatQuizzes">–</strong>
+            <span>Quizzes Attempted</span>
+          </div>
+        </div>
+        <div class="nb-stat-card">
+          <div class="nb-stat-icon" style="color:var(--nb-accent); background:rgba(6,182,212,0.15);"><i class="bi bi-question-circle"></i></div>
+          <div class="nb-stat-content">
+            <strong id="spStatQuestions">–</strong>
+            <span>Questions Attempted</span>
+          </div>
+        </div>
+        <div class="nb-stat-card">
+          <div class="nb-stat-icon" style="color:var(--nb-success); background:rgba(16,185,129,0.15);"><i class="bi bi-check-circle-fill"></i></div>
+          <div class="nb-stat-content">
+            <strong id="spStatCorrect">–</strong>
+            <span>Correct Answers</span>
+          </div>
+        </div>
+        <div class="nb-stat-card">
+          <div class="nb-stat-icon" style="color:var(--nb-danger); background:rgba(239,68,68,0.15);"><i class="bi bi-x-circle-fill"></i></div>
+          <div class="nb-stat-content">
+            <strong id="spStatIncorrect">–</strong>
+            <span>Incorrect Answers</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section Tabs Navigation -->
+      <nav class="nb-sp-nav-tabs" role="tablist" aria-label="Profile sections">
+        <button type="button" class="nb-sp-tab-btn active" data-tab="overview" role="tab" aria-selected="true">
+          <i class="bi bi-grid-fill"></i> Overview
+        </button>
+        <button type="button" class="nb-sp-tab-btn" data-tab="subjects" role="tab" aria-selected="false">
+          <i class="bi bi-book-half"></i> Subject Performance
+        </button>
+        <button type="button" class="nb-sp-tab-btn" data-tab="chapters" role="tab" aria-selected="false">
+          <i class="bi bi-list-check"></i> Chapter Practice
+        </button>
+        <button type="button" class="nb-sp-tab-btn" data-tab="activity" role="tab" aria-selected="false">
+          <i class="bi bi-clock-history"></i> Learning Activity
+        </button>
+        <button type="button" class="nb-sp-tab-btn" data-tab="achievements" role="tab" aria-selected="false">
+          <i class="bi bi-trophy-fill"></i> Achievements
+        </button>
+      </nav>
+
+      <!-- ═══ TAB 1: OVERVIEW ═══════════════════════════════════════════════════ -->
+      <section id="tab-overview" class="nb-sp-tab-panel active" role="tabpanel">
+        <div class="nb-two-col-grid">
+          <!-- Accuracy Gauge -->
+          <div class="nb-panel-card">
+            <h3 class="nb-panel-title">
+              <span><i class="bi bi-bullseye" style="color:var(--nb-primary);"></i> Overall Accuracy</span>
+            </h3>
+            <div id="spAccuracyChart"></div>
+          </div>
+          <!-- Subject Quick Snapshot -->
+          <div class="nb-panel-card">
+            <h3 class="nb-panel-title">
+              <span><i class="bi bi-pie-chart-fill" style="color:var(--nb-accent);"></i> Subject Proficiency</span>
+            </h3>
+            <div id="spSubjectBars"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ TAB 2: SUBJECT PERFORMANCE ════════════════════════════════════════ -->
+      <section id="tab-subjects" class="nb-sp-tab-panel" role="tabpanel">
+        <div class="nb-panel-card">
+          <h3 class="nb-panel-title">Subject-wise Mastery</h3>
+          <p style="font-size:0.88rem; color:var(--nb-text-muted); margin-bottom:1.5rem;">
+            Accuracy rate and question counts calculated from verified quiz attempts.
+          </p>
+          <div id="spSubjectDetails">
+            <!-- Rendered in spSubjectBars -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ═══ TAB 3: CHAPTER PRACTICE ═══════════════════════════════════════════ -->
+      <section id="tab-chapters" class="nb-sp-tab-panel" role="tabpanel">
+        <div class="nb-panel-card">
+          <h3 class="nb-panel-title">Chapter-wise Practice Records</h3>
+          <div id="spChapterList" class="nb-recent-quizzes-list"></div>
+        </div>
+      </section>
+
+      <!-- ═══ TAB 4: LEARNING ACTIVITY ══════════════════════════════════════════ -->
+      <section id="tab-activity" class="nb-sp-tab-panel" role="tabpanel">
+        <div class="nb-panel-card">
+          <h3 class="nb-panel-title">Recently Completed Quizzes</h3>
+          <div id="spRecentQuizzes" class="nb-recent-quizzes-list"></div>
+        </div>
+      </section>
+
+      <!-- ═══ TAB 5: ACHIEVEMENTS ═══════════════════════════════════════════════ -->
+      <section id="tab-achievements" class="nb-sp-tab-panel" role="tabpanel">
+        <div class="nb-panel-card">
+          <h3 class="nb-panel-title">Earned Badges &amp; Milestones</h3>
+          <div id="spAchievementsGrid" class="nb-achievements-grid"></div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script type="module" src="/js/student-profile.js"></script>
+</body>
+</html>

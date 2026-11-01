@@ -63,6 +63,20 @@ export async function recordQuizCompletion(user, result) {
       }),
       updatedAt: serverTimestamp()
     }, { merge: true });
+
+    // Auto-sync public leaderboard profile if user has enabled it
+    try {
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists() && userDoc.data().showOnLeaderboard !== false && userDoc.data().leaderboardPrivacy !== 'private') {
+        const token = await user.getIdToken();
+        fetch("/api/leaderboard/sync", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
+        }).catch(() => {});
+      }
+    } catch (syncErr) {
+      // Best-effort non-blocking sync
+    }
   } catch (error) {
     console.error("Unable to record quiz completion:", error);
   }

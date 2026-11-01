@@ -48,7 +48,8 @@ service cloud.firestore {
           'fname', 'lname', 'username', 'bio', 'phone', 'email', 'photoURL',
           'profilePhotoUrl', 'notificationPref', 'messagePrivacy', 'readReceipts',
           'thoughtOfTheDay', 'thoughtOfTheDayExpiresAt', 'thoughtOfTheDayCreatedAt',
-          'showLastSeen', 'createdAt', 'updatedAt'
+          'showLastSeen', 'showOnLeaderboard', 'leaderboardPrivacy', 'targetClass',
+          'publicDisplayName', 'createdAt', 'updatedAt'
         ])
         && !('role' in request.resource.data)
         && !('isAdmin' in request.resource.data)
@@ -64,7 +65,8 @@ service cloud.firestore {
           'fname', 'lname', 'username', 'bio', 'phone', 'email', 'photoURL',
           'profilePhotoUrl', 'notificationPref', 'messagePrivacy', 'readReceipts',
           'thoughtOfTheDay', 'thoughtOfTheDayExpiresAt', 'thoughtOfTheDayCreatedAt',
-          'showLastSeen', 'updatedAt'
+          'showLastSeen', 'showOnLeaderboard', 'leaderboardPrivacy', 'targetClass',
+          'publicDisplayName', 'updatedAt'
         ])
         && (!('fname' in request.resource.data) || (request.resource.data.fname is string && request.resource.data.fname.size() <= 100))
         && (!('lname' in request.resource.data) || (request.resource.data.lname is string && request.resource.data.lname.size() <= 100))
@@ -80,7 +82,11 @@ service cloud.firestore {
         && (!('thoughtOfTheDay' in request.resource.data) || (request.resource.data.thoughtOfTheDay is string && request.resource.data.thoughtOfTheDay.size() <= 280))
         && (!('thoughtOfTheDayExpiresAt' in request.resource.data) || request.resource.data.thoughtOfTheDayExpiresAt is timestamp)
         && (!('thoughtOfTheDayCreatedAt' in request.resource.data) || request.resource.data.thoughtOfTheDayCreatedAt is timestamp)
-        && (!('showLastSeen' in request.resource.data) || request.resource.data.showLastSeen is bool);
+        && (!('showLastSeen' in request.resource.data) || request.resource.data.showLastSeen is bool)
+        && (!('showOnLeaderboard' in request.resource.data) || request.resource.data.showOnLeaderboard is bool)
+        && (!('leaderboardPrivacy' in request.resource.data) || request.resource.data.leaderboardPrivacy in ['public', 'private'])
+        && (!('targetClass' in request.resource.data) || request.resource.data.targetClass in ['9', '10'])
+        && (!('publicDisplayName' in request.resource.data) || (request.resource.data.publicDisplayName is string && request.resource.data.publicDisplayName.size() <= 100));
 
       // No direct client deletes of root profile
       allow delete: if false;
@@ -89,6 +95,17 @@ service cloud.firestore {
       match /{document=**} {
         allow read, write: if isOwner(userId);
       }
+    }
+
+    // ── Public student leaderboard & profiles ─────────────────────────────────
+    // Anyone (guests, unauthenticated visitors, students) can view public profiles.
+    // Client creation & update are blocked: all calculations & ranking updates
+    // are performed securely via the backend / Admin SDK to prevent score manipulation.
+    // The account owner may delete their public profile if toggled to private.
+    match /public_profiles/{userId} {
+      allow read: if true;
+      allow delete: if isOwner(userId);
+      allow create, update: if false; // Admin SDK only
     }
 
     // ── NeoMentor collections (Conserved for integrated 2nd project) ───────────

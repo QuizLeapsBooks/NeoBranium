@@ -8,6 +8,7 @@ import http from 'http';
 import { sessionRouter } from './NeoBot/backend/routes/session.js';
 import { setupWebSocketProxy } from './NeoBot/backend/routes/proxy.js';
 import { paperRouter } from './routes/paperRoutes.js';
+import { createLeaderboardRouter } from './routes/leaderboardRoutes.js';
 
 import express from 'express';
 import cors from 'cors';
@@ -1649,6 +1650,9 @@ app.use('/api', sessionRouter);
 // Mount NeoBranium Question Paper & Answer Sheet Evaluation router
 app.use('/api/paper', paperRouter);
 
+// Mount NeoBranium Public Leaderboard & Student Profile router
+app.use('/api', createLeaderboardRouter({ db }));
+
 // Convenient route alias for NeoBranium Live AI page
 app.get(['/neobot', '/neobot/'], (req, res) => {
     res.sendFile(path.join(__dirname, 'NeoBot', 'index.html'));
@@ -2085,6 +2089,8 @@ app.use((req, res, next) => {
     const allowedRootFiles = new Set([
         '/',
         '/index.html',
+        '/leaderboard.html',
+        '/student-profile.html',
         '/about.html',
         '/404.html',
         '/header.html',

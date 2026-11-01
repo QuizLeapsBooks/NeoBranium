@@ -24,6 +24,7 @@
     <div class="account-sidebar-brand"><img src="/online-graduation_16847316.png" alt="" /><span>NeoBranium</span></div>
     <nav>
       <a href="/htmls/dashboard.html"><i class="bi bi-grid-1x2" aria-hidden="true"></i>Dashboard</a>
+      <a href="/leaderboard.html"><i class="bi bi-trophy" aria-hidden="true"></i>Leaderboard</a>
       <a href="/htmls/notes.html"><i class="bi bi-journal" aria-hidden="true"></i>Notes</a>
       <a href="/htmls/spotlight.html"><i class="bi bi-star" aria-hidden="true"></i>Spotlight (Monthly)</a>
       <a href="/htmls/bot/bot.html"><i class="bi bi-robot" aria-hidden="true"></i>Bot Helper</a>
@@ -126,6 +127,51 @@
               <div id="neolearnStatusFeedback" class="status" role="status" aria-live="polite"></div>
             </div>
           </section>
+          <section class="account-card" id="leaderboardSection">
+            <h2>Public Leaderboard &amp; Profile</h2>
+            <p class="account-muted" style="margin-bottom: 0.85rem; font-size: 0.88rem; line-height: 1.45;">
+              Explore your ranking among registered students. When enabled, your verified learning points, quiz accuracy, and earned badges will be visible on the public leaderboard.
+            </p>
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+              <span style="font-size: 0.85rem; font-weight: 600;">Leaderboard Status:</span>
+              <span id="lbStatusBadge" class="neolearn-badge neolearn-badge--inactive">Private (Hidden)</span>
+            </div>
+
+            <div class="settings-field">
+              <label for="leaderboardPrivacySelect">Show my profile on the public leaderboard</label>
+              <select id="leaderboardPrivacySelect">
+                <option value="private">Private (Hidden from public leaderboard)</option>
+                <option value="public">Public (Show on leaderboard &amp; allow profile view)</option>
+              </select>
+            </div>
+
+            <div class="settings-field" id="lbClassField">
+              <label for="leaderboardClassSelect">Class</label>
+              <select id="leaderboardClassSelect">
+                <option value="10">Class 10</option>
+                <option value="9">Class 9</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label for="leaderboardDisplayNameInput">Public Display Name</label>
+              <input type="text" id="leaderboardDisplayNameInput" placeholder="Choose a display name" maxlength="50" autocomplete="off" />
+              <small class="account-muted" style="font-size:0.75rem; display:block; margin-top:4px;">
+                Protects your privacy: this name will be shown instead of your personal identity.
+              </small>
+            </div>
+
+            <div class="settings-actions" style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button id="saveLeaderboardPrivacyBtn" class="settings-save" type="button">Save Privacy Settings</button>
+              <button id="syncLeaderboardStatsBtn" class="settings-save" type="button" style="background:#7c3aed; display: none;">Sync Leaderboard Stats</button>
+              <div id="leaderboardStatusFeedback" class="status" role="status" aria-live="polite"></div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--account-border, rgba(255,255,255,0.1)); border-radius: 8px; padding: 0.75rem 1rem; margin-top: 1rem; font-size: 0.8rem; color: var(--account-muted, #94a3b8);">
+              <i class="bi bi-shield-check text-success me-1"></i>
+              <strong>Privacy Guarantee:</strong> NeoBranium never exposes emails, phone numbers, passwords, private notes, or chat logs.
+            </div>
+          </section>
           <section class="account-card">
             <h2>Account access</h2>
             <div class="settings-actions"><button id="logoutBtn" type="button"><i class="bi bi-box-arrow-right me-2" aria-hidden="true"></i>Logout</button><div id="status" class="status" role="status" aria-live="polite"></div></div>
@@ -192,6 +238,7 @@
   </div>
   <nav class="mobile-account-nav" aria-label="Quick navigation">
     <a href="/htmls/dashboard.html"><i class="bi bi-grid-1x2" aria-hidden="true"></i><span>Dashboard</span></a>
+    <a href="/leaderboard.html"><i class="bi bi-trophy" aria-hidden="true"></i><span>Leaderboard</span></a>
     <a href="/htmls/notes.html"><i class="bi bi-journal" aria-hidden="true"></i><span>Notes</span></a>
     <a href="/htmls/spotlight.html"><i class="bi bi-star" aria-hidden="true"></i><span>Spotlight</span></a>
     <a href="/htmls/setting.html" aria-current="page"><i class="bi bi-gear" aria-hidden="true"></i><span>Settings</span></a>

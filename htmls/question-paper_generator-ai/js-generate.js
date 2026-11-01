@@ -128,24 +128,57 @@ const themeToggleIcon = document.getElementById('themeToggleIcon');
 let guestOwnershipToken = null;
 let guestOwnershipExpiresAt = 0;
 
-async function getGuestOwnershipToken(baseUrl) {
-  if (guestOwnershipToken && Date.now() < guestOwnershipExpiresAt - 60_000) return guestOwnershipToken;
-  const response = await fetch(`${baseUrl}/api/paper/guest-session`, { method: 'POST', credentials: 'include' });
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok || !result.guestOwnershipToken) throw new Error(result.error || 'Could not start a secure guest paper session.');
-  guestOwnershipToken = result.guestOwnershipToken;
-  guestOwnershipExpiresAt = Date.now() + Number(result.expiresInSeconds || 0) * 1000;
-  return guestOwnershipToken;
-}
-
 function getApiBaseUrl() {
-  const configured = document.querySelector('meta[name="paper-api-base"]')?.content?.trim();
+  const configured = document.querySelector('meta[name="paper-api-base"]')?.content?.trim()
+    || document.querySelector('meta[name="backend-url"]')?.content?.trim();
   if (configured) return configured.replace(/\/$/, '');
-  if (['localhost', '127.0.0.1'].includes(window.location.hostname) && window.location.port !== '3000') return `http://${window.location.hostname}:3000`;
-  return window.location.origin;
+
+  const host = window.location.hostname;
+  if (['localhost', '127.0.0.1'].includes(host)) {
+    return window.location.port !== '3000' ? `http://${host}:3000` : window.location.origin;
+  }
+
+  // Hosted environments (Firebase Hosting e.g. neobranium.web.app, custom domain, Vercel)
+  return 'https://neobranium.onrender.com';
 }
 
-async function makeApiRequest(endpoint, payload) {
+// Pre-warm backend in case Render free tier is sleeping
+(function wakeUpBackend() {
+  try {
+    const base = getApiBaseUrl();
+    if (base.includes('onrender.com')) {
+      fetch(`${base}/api/health`, { method: 'GET', signal: AbortSignal.timeout(6000) }).catch(() => {});
+    }
+  } catch (_) {}
+})();
+
+async function getGuestOwnershipToken(baseUrl, retries = 2) {
+  if (guestOwnershipToken && Date.now() < guestOwnershipExpiresAt - 60_000) return guestOwnershipToken;
+  let lastError;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(`${baseUrl}/api/paper/guest-session`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.guestOwnershipToken) {
+        throw new Error(result.error || 'Could not start a secure guest paper session.');
+      }
+      guestOwnershipToken = result.guestOwnershipToken;
+      guestOwnershipExpiresAt = Date.now() + Number(result.expiresInSeconds || 0) * 1000;
+      return guestOwnershipToken;
+    } catch (err) {
+      lastError = err;
+      if (attempt < retries) {
+        await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+      }
+    }
+  }
+  throw lastError || new Error('Could not start a secure guest paper session.');
+}
+
+async function makeApiRequest(endpoint, payload, isRetry = false) {
   const baseUrl = getApiBaseUrl();
   const url = `${baseUrl}${endpoint}`;
 
@@ -180,6 +213,13 @@ async function makeApiRequest(endpoint, payload) {
   } else {
     const text = await response.text();
     throw new Error(`Server returned HTTP ${response.status}: ${text.slice(0, 100)}`);
+  }
+
+  // If a cached guest session token was invalidated or expired on the server, retry once with a freshly minted token
+  if (response.status === 401 && !headers.Authorization && !isRetry) {
+    guestOwnershipToken = null;
+    guestOwnershipExpiresAt = 0;
+    return makeApiRequest(endpoint, payload, true);
   }
 
   if (!response.ok) {

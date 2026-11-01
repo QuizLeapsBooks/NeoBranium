@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeoBranium Leaderboard — Learn. Improve. Rise Together.</title>
+  <meta name="description" content="Explore live rankings of registered NeoBranium students based on verified quiz performance, learning consistency, and subject mastery. Discover top learners in Class 9 and Class 10." />
+  <meta name="keywords" content="NeoBranium Leaderboard, Student Rankings, Class 9 Quiz, Class 10 Quiz, CBSE Learning Points, Academic Leaderboard" />
+
+  <!-- Open Graph / SEO -->
+  <meta property="og:title" content="NeoBranium Leaderboard — Learn. Improve. Rise Together." />
+  <meta property="og:description" content="Explore live student rankings for Class 9 and 10 on NeoBranium. Track genuine learning progress and celebrate achievements." />
+  <meta property="og:image" content="https://neobranium.web.app/online-graduation_16847316.png" />
+  <meta property="og:url" content="https://neobranium.web.app/leaderboard.html" />
+  <meta property="og:type" content="website" />
+  <link rel="canonical" href="https://neobranium.web.app/leaderboard.html" />
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/CSS/leaderboard.css" />
+  <script src="/js/shortcuts.js"></script>
+</head>
+<body class="nb-lb-body">
+
+  <!-- ═══ NAVIGATION ════════════════════════════════════════════════════════════ -->
+  <header class="nb-lb-nav">
+    <div class="nb-lb-nav-inner">
+      <a href="/index.html" class="nb-lb-brand">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium Logo" class="nb-lb-logo" width="36" height="36" />
+        <span>NeoBranium</span>
+      </a>
+      <div class="nb-lb-nav-links">
+        <a href="/index.html" class="nb-lb-nav-link">Home</a>
+        <a href="/Notes/notes-science-class10.html" class="nb-lb-nav-link">Notes</a>
+        <a href="/leaderboard.html" class="nb-lb-nav-link active" aria-current="page">Leaderboard</a>
+        <div id="nbNavAuthAction">
+          <a href="/htmls/sign.html" class="nb-lb-nav-btn"><i class="bi bi-box-arrow-in-right"></i> Sign In / Join</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN CONTENT ══════════════════════════════════════════════════════════ -->
+  <main class="nb-lb-container" id="main-content">
+    
+    <!-- Hero Section -->
+    <header class="nb-lb-hero">
+      <div class="nb-lb-badge">
+        <i class="bi bi-trophy-fill"></i> Public Rankings
+      </div>
+      <h1 class="nb-lb-title">NeoBranium Leaderboard</h1>
+      <p class="nb-lb-subtitle">Learn. Improve. Rise Together.</p>
+      <button type="button" class="nb-lb-formula-btn" id="nbFormulaBtn" aria-haspopup="dialog" aria-controls="nbFormulaModal">
+        <i class="bi bi-info-circle-fill"></i> How Rankings Work
+      </button>
+    </header>
+
+    <!-- Controls Bar -->
+    <section class="nb-lb-controls" aria-label="Leaderboard Filters and Search">
+      <!-- Class Tabs -->
+      <div class="nb-lb-tabs" role="tablist" aria-label="Class selection">
+        <button type="button" class="nb-lb-tab active" data-class="all" role="tab" aria-selected="true">All Classes</button>
+        <button type="button" class="nb-lb-tab" data-class="9" role="tab" aria-selected="false">Class 9</button>
+        <button type="button" class="nb-lb-tab" data-class="10" role="tab" aria-selected="false">Class 10</button>
+      </div>
+
+      <!-- Live Search -->
+      <div class="nb-lb-search-wrap">
+        <i class="bi bi-search nb-lb-search-icon" aria-hidden="true"></i>
+        <input type="text" id="nbSearchInput" class="nb-lb-search-input" placeholder="Search by student name…" aria-label="Search student by name" autocomplete="off" />
+      </div>
+
+      <!-- Sort Dropdown -->
+      <div class="nb-lb-sort-wrap">
+        <label for="nbSortSelect" class="nb-lb-sort-label"><i class="bi bi-sort-down"></i> Sort:</label>
+        <select id="nbSortSelect" class="nb-lb-select" aria-label="Sort ranking by metric">
+          <option value="rank" selected>Overall Rank</option>
+          <option value="accuracy">Quiz Accuracy</option>
+          <option value="questions">Questions Attempted</option>
+          <option value="correct">Total Correct Answers</option>
+          <option value="consistency">Learning Consistency</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Top 3 Podium (Populated dynamically) -->
+    <section class="nb-podium" id="nbPodium" aria-label="Top 3 Students Podium"></section>
+
+    <!-- Leaderboard Table Card -->
+    <section class="nb-lb-card" aria-label="Student Rankings Table">
+      <div class="nb-lb-table-header" role="row">
+        <span>Rank</span>
+        <span>Student</span>
+        <span class="nb-lb-col-hide-mobile">Quizzes</span>
+        <span class="nb-lb-col-hide-mobile">Questions</span>
+        <span class="nb-lb-col-hide-mobile">Correct</span>
+        <span>Accuracy</span>
+        <span>Points</span>
+      </div>
+
+      <!-- Loading State -->
+      <div id="nbLoadingState" class="nb-lb-loading" aria-live="polite">
+        <div class="nb-spinner"></div>
+        <p>Loading leaderboard rankings…</p>
+      </div>
+
+      <!-- Empty State -->
+      <div id="nbEmptyState" class="nb-lb-empty d-none">
+        <i class="bi bi-people nb-lb-empty-icon"></i>
+        <h3>No public learners yet</h3>
+        <p>Registered students can opt-in to appear here via their Account Settings.</p>
+      </div>
+
+      <!-- Table Body Container -->
+      <div id="nbTableBody" role="rowgroup"></div>
+
+      <!-- Pagination -->
+      <div class="nb-lb-pagination d-none" id="nbPagination">
+        <span class="nb-lb-page-info" id="nbPageInfo">Showing students</span>
+        <div class="nb-lb-page-actions">
+          <button type="button" class="nb-lb-page-btn" id="nbPrevPage" disabled><i class="bi bi-chevron-left"></i> Previous</button>
+          <button type="button" class="nb-lb-page-btn" id="nbNextPage">Next <i class="bi bi-chevron-right"></i></button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ═══ RANKING FORMULA MODAL ═════════════════════════════════════════════════ -->
+  <div class="nb-modal-backdrop" id="nbFormulaModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="formulaModalTitle">
+    <div class="nb-modal-dialog">
+      <button type="button" class="nb-modal-close" id="nbFormulaClose" aria-label="Close dialog">&times;</button>
+      <h2 class="nb-modal-title" id="formulaModalTitle">
+        <i class="bi bi-shield-check" style="color:var(--nb-primary);"></i> Fair Ranking Algorithm
+      </h2>
+      <p style="font-size:0.9rem; color:var(--nb-text-muted); line-height:1.5;">
+        NeoBranium ranks learners on <strong>genuine mastery and consistency</strong>, not simply the sheer quantity of quiz attempts.
+      </p>
+
+      <div class="nb-formula-grid">
+        <div class="nb-formula-item">
+          <strong><i class="bi bi-check2-circle"></i> Correct Answers</strong>
+          <p>+10 points per verified correct answer in authentic chapter quizzes.</p>
+        </div>
+        <div class="nb-formula-item">
+          <strong><i class="bi bi-bullseye"></i> Accuracy Bonus</strong>
+          <p>Up to +500 points multiplier for high accuracy across all attempts.</p>
+        </div>
+        <div class="nb-formula-item">
+          <strong><i class="bi bi-star-fill"></i> Chapter Mastery</strong>
+          <p>+50 points per distinct chapter where you achieve 80%+ score.</p>
+        </div>
+        <div class="nb-formula-item">
+          <strong><i class="bi bi-fire"></i> Study Consistency</strong>
+          <p>+15 points per active streak day (capped at 30 days) and active visit days.</p>
+        </div>
+      </div>
+
+      <h4 style="font-size:0.95rem; margin:1rem 0 0.5rem; color:#fff;">Spam &amp; Repeat Protection</h4>
+      <p style="font-size:0.82rem; color:var(--nb-text-muted); line-height:1.5; margin:0 0 1rem;">
+        Repeatedly retaking identical or easy quizzes provides diminishing returns. Ranks require a minimum of <strong>3 distinct quizzes and 15 questions</strong> before competitive rank assignment.
+      </p>
+
+      <h4 style="font-size:0.95rem; margin:0 0 0.5rem; color:#fff;">Privacy Notice</h4>
+      <p style="font-size:0.82rem; color:var(--nb-text-muted); line-height:1.5; margin:0;">
+        Profiles on this leaderboard are 100% voluntary. NeoBranium never displays emails, phone numbers, passwords, private notes, or chat logs. You can switch your profile to private at any time in Settings.
+      </p>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script type="module" src="/js/leaderboard.js"></script>
+</body>
+</html>
