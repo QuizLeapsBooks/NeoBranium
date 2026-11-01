@@ -15,9 +15,9 @@ import { verifyAuthToken, logSecurityEvent } from '../firebaseAdmin.js';
 
 export { issueGuestOwnershipToken };
 
-function issueGuestOwnershipToken(ipHash) {
+function issueGuestOwnershipToken() {
   const sid = crypto.randomBytes(24).toString('base64url');
-  return { token: signGuestOwnershipToken({ sid, ipHash }), sid };
+  return { token: signGuestOwnershipToken({ sid }), sid };
 }
 
 export function getPaperIpHash(req) {
@@ -64,7 +64,7 @@ export async function paperAuth(req, res, next) {
     return res.status(401).json({ success: false, error: 'A valid guest session is required. Start a new guest session.' });
   }
   try {
-    const claims = verifyGuestOwnershipToken(guestToken, ipHash);
+    const claims = verifyGuestOwnershipToken(guestToken);
     req.uid = `guest:${claims.sid}`;
     req.clientSessionId = claims.sid;
   } catch {

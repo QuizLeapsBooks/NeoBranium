@@ -10,7 +10,7 @@
 
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { paperAuth, issueGuestOwnershipToken, getPaperIpHash } from '../middleware/paperAuth.js';
+import { paperAuth, issueGuestOwnershipToken } from '../middleware/paperAuth.js';
 import { paperQuota, paperEvalQuota, paperModelAnswerQuota } from '../middleware/quotaByUID.js';
 import {
   savePaperRecord,
@@ -41,7 +41,7 @@ const guestSessionLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, stand
 
 paperRouter.post('/guest-session', guestSessionLimiter, (req, res) => {
   try {
-    const { token } = issueGuestOwnershipToken(getPaperIpHash(req));
+    const { token } = issueGuestOwnershipToken();
     return res.json({ success: true, guestOwnershipToken: token, expiresInSeconds: 604800 });
   } catch (error) {
     console.error('[PaperRoutes] Guest session unavailable:', error.message);

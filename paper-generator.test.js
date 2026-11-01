@@ -375,13 +375,12 @@ test('18. Paper Store: Guest paper ownership requires the same verified signed g
   }, { code: 'FORBIDDEN' });
 });
 
-test('Guest ownership tokens are signed, IP-bound, and expire', () => {
+test('Guest ownership tokens are signed, reject tampering, and expire', () => {
   process.env.GUEST_OWNERSHIP_SECRET = 'test-only-secret-with-at-least-thirty-two-characters';
-  const token = signGuestOwnershipToken({ sid: 'session-id-that-is-long-enough-12345', ipHash: 'ip-a' }, 1000);
-  assert.equal(verifyGuestOwnershipToken(token, 'ip-a', 1001).sid, 'session-id-that-is-long-enough-12345');
-  assert.throws(() => verifyGuestOwnershipToken(token, 'ip-b', 1001));
-  assert.throws(() => verifyGuestOwnershipToken(token, 'ip-a', 1000 + guestOwnershipTokenTtlSeconds));
-  assert.throws(() => verifyGuestOwnershipToken(`${token}x`, 'ip-a', 1001));
+  const token = signGuestOwnershipToken({ sid: 'session-id-that-is-long-enough-12345' }, 1000);
+  assert.equal(verifyGuestOwnershipToken(token, 1001).sid, 'session-id-that-is-long-enough-12345');
+  assert.throws(() => verifyGuestOwnershipToken(token, 1000 + guestOwnershipTokenTtlSeconds));
+  assert.throws(() => verifyGuestOwnershipToken(`${token}x`, 1001));
 });
 
 test('paperAuth rejects forged client session headers and missing guest credentials', async () => {
@@ -397,6 +396,27 @@ test('paperAuth rejects forged client session headers and missing guest credenti
   assert.equal(res.statusCode, 401);
   assert.equal(nextCalled, false);
   assert.equal(req.uid, undefined);
+});
+
+test('paperAuth keeps a signed guest session valid when the client IP changes', async () => {
+  process.env.GUEST_OWNERSHIP_SECRET = 'test-only-secret-with-at-least-thirty-two-characters';
+  const token = signGuestOwnershipToken({ sid: 'session-id-that-is-long-enough-12345' });
+  const req = {
+    headers: { 'x-guest-ownership-token': token },
+    ip: '203.0.113.42',
+    path: '/paper'
+  };
+  const res = {
+    statusCode: 200,
+    body: null,
+    status(code) { this.statusCode = code; return this; },
+    json(value) { this.body = value; return this; }
+  };
+  let nextCalled = false;
+  await paperAuth(req, res, () => { nextCalled = true; });
+  assert.equal(nextCalled, true);
+  assert.equal(req.uid, 'guest:session-id-that-is-long-enough-12345');
+  assert.equal(req.isGuest, true);
 });
 
 test('AI image validator checks signature and size', () => {
