@@ -51,6 +51,7 @@
             <div class="nl-profile-heading">
               <h2 id="neoLearnPeerName">Learner</h2>
               <p id="neoLearnPeerUsername" hidden></p>
+              <div id="neoLearnPeerPresence" class="nl-presence-status" style="display: none; margin-top: 4px;"></div>
               <p id="neoLearnPeerEmail" hidden></p>
               <p id="neoLearnPeerBio" hidden></p>
               <div id="neoLearnPeerActions" class="nl-profile-actions"></div>
@@ -119,7 +120,8 @@
   </dialog>
   <script type="module" src="/js/auth.js"></script>
   <script type="module">
-    import { auth, db, checkAccess } from '/js/auth.js';
+    import { auth, db, checkAccess, rtdb } from '/js/auth.js';
+    import { ref, onValue } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js';
     import { doc, setDoc, serverTimestamp, Timestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
     import {
       blockNeoLearnUser,
@@ -303,6 +305,41 @@
         document.getElementById('neoLearnPeerLearnCount').textContent = String(profile.learnCount ?? 0);
         document.getElementById('neoLearnPeerLearningCount').textContent = String(profile.learningCount ?? 0);
 
+        // Render presence and last seen if permitted by peer's privacy setting
+        const presenceEl = document.getElementById('neoLearnPeerPresence');
+        if (presenceEl) {
+          if (!result.isOwner && profile.showLastSeen !== false) {
+            presenceEl.style.display = 'flex';
+            presenceEl.className = 'nl-presence-status';
+            presenceEl.innerHTML = '<span class="nl-presence-dot"></span><span>Checking presence…</span>';
+            const presenceRef = ref(rtdb, `/neolearn_realtime/presence/` + profile.userId);
+            onValue(presenceRef, (snap) => {
+              const status = snap.val();
+              if (status && status.state === 'online') {
+                presenceEl.className = 'nl-presence-status is-online';
+                presenceEl.innerHTML = '<span class="nl-presence-dot online"></span><span>Online</span>';
+              } else if (status && status.last_changed) {
+                const date = new Date(status.last_changed);
+                const now = new Date();
+                const isToday = now.toDateString() === date.toDateString();
+                const yesterday = new Date(now);
+                yesterday.setDate(now.getDate() - 1);
+                const isYesterday = yesterday.toDateString() === date.toDateString();
+                const timeStr = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(date);
+                const formatted = isToday ? `today at ${timeStr}` : (isYesterday ? `yesterday at ${timeStr}` : new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(date));
+                presenceEl.className = 'nl-presence-status';
+                presenceEl.innerHTML = `<span class="nl-presence-dot"></span><span>Last seen ${formatted}</span>`;
+              } else {
+                presenceEl.className = 'nl-presence-status';
+                presenceEl.innerHTML = '<span class="nl-presence-dot"></span><span>Offline</span>';
+              }
+            }, { onlyOnce: true });
+          } else {
+            presenceEl.style.display = 'none';
+            presenceEl.innerHTML = '';
+          }
+        }
+
         const actions = document.getElementById('neoLearnPeerActions');
         actions.replaceChildren();
 
@@ -334,7 +371,7 @@
           const editButton = document.createElement('a');
           editButton.className = 'nl-social-button nl-social-button--secondary';
           editButton.href = '/htmls/setting.html#neolearnSection';
-          editButton.innerHTML = '<i class="bi bi-pencil" aria-hidden="true"></i> Edit Profile';
+          editButton.innerHTML = '<i class="bi bi-pencil" aria-hidden="true"></i> Edit Profile &amp; Privacy';
           actions.append(editButton, shareButton);
         } else {
           const learnButton = document.createElement('button');
@@ -344,7 +381,8 @@
           const messageButton = document.createElement('a');
           messageButton.className = 'nl-social-button nl-social-button--secondary';
           messageButton.href = `/htmls/neolearn/messages.html?uid=${encodeURIComponent(profile.userId)}`;
-          messageButton.hidden = !profile.isLearning;
+          const canReceiveMessages = profile.messagePrivacy !== 'none' && (profile.messagePrivacy !== 'learning_only' || profile.isLearning);
+          messageButton.hidden = !profile.isLearning || !canReceiveMessages;
           messageButton.innerHTML = '<i class="bi bi-chat-dots" aria-hidden="true"></i> Message';
           learnButton.addEventListener('click', async () => {
             const wasLearning = profile.isLearning === true;

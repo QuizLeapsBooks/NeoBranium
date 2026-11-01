@@ -25,6 +25,9 @@ function publicProfile(userId, raw = {}) {
         thoughtOfTheDay: thoughtIsActive ? thought : '',
         learnCount: safeSocialCount(raw.learnCount),
         learningCount: safeSocialCount(raw.learningCount),
+        messagePrivacy: typeof raw.messagePrivacy === 'string' ? raw.messagePrivacy : 'everyone',
+        showLastSeen: raw.showLastSeen !== false,
+        readReceipts: raw.readReceipts !== false,
         createdAt: timestampMillis(raw.createdAt)
     };
 }
@@ -54,7 +57,8 @@ export async function loadPublicProfile(db, userId, profileData, viewerId = user
         learnCount: profileData.learnCount,
         learningCount: profileData.learningCount,
         messagePrivacy: profileData.messagePrivacy || userData.messagePrivacy || "everyone",
-        showLastSeen: userData.showLastSeen !== false
+        showLastSeen: userData.showLastSeen !== false,
+        readReceipts: userData.readReceipts !== false
     });
     const relationshipSnapshots = viewerId === userId
         ? [{ exists: false }, { exists: false }]

@@ -130,33 +130,96 @@ function showNeoLearnFeedback(message, isError = false) {
 }
 
 
-const neolearnPrivacySettings = document.getElementById("neolearnPrivacySettings");
+// NeoLearn Privacy & Controls Elements
+const privacyShowLastSeen = document.getElementById("privacyShowLastSeen");
+const privacyReadReceipts = document.getElementById("privacyReadReceipts");
 const neolearnMessagePrivacy = document.getElementById("neolearnMessagePrivacy");
-const saveMessagePrivacyBtn = document.getElementById("saveMessagePrivacyBtn");
+const saveNeoLearnPrivacyBtn = document.getElementById("saveNeoLearnPrivacyBtn");
+const neolearnPrivacyFeedback = document.getElementById("neolearnPrivacyFeedback");
+const neolearnActiveControls = document.getElementById("neolearnActiveControls");
 
-if (saveMessagePrivacyBtn) {
-    saveMessagePrivacyBtn.addEventListener("click", async () => {
-        const user = auth.currentUser;
-        if (!user || !currentNeoLearnProfile) return;
-        
-        saveMessagePrivacyBtn.disabled = true;
-        saveMessagePrivacyBtn.textContent = "Saving...";
-        
-        try {
-            await updateDoc(doc(db, "neolearn_profiles", user.uid), {
-                messagePrivacy: neolearnMessagePrivacy.value
-            });
-            currentNeoLearnProfile.messagePrivacy = neolearnMessagePrivacy.value;
-            showNeoLearnFeedback("Message privacy updated successfully.");
-        } catch (err) {
-            console.error("Error updating privacy:", err);
-            showNeoLearnFeedback("Failed to update privacy: " + err.message, true);
-        } finally {
-            saveMessagePrivacyBtn.disabled = false;
-            saveMessagePrivacyBtn.textContent = "Save";
+function showNeoLearnPrivacyFeedback(message, isError = false) {
+    if (!neolearnPrivacyFeedback) return;
+    neolearnPrivacyFeedback.innerHTML = isError
+        ? `<i class="bi bi-exclamation-triangle-fill me-1" aria-hidden="true"></i>${message}`
+        : `<i class="bi bi-check-circle-fill me-1" aria-hidden="true"></i>${message}`;
+    neolearnPrivacyFeedback.style.color = isError ? "var(--account-danger, #ef4444)" : "var(--account-success, #16a34a)";
+    setTimeout(() => {
+        if (neolearnPrivacyFeedback.textContent.includes(message)) {
+            neolearnPrivacyFeedback.textContent = "";
         }
-    });
+    }, 4500);
 }
+
+async function saveNeoLearnPrivacySettings(showFeedback = true) {
+    const user = auth.currentUser;
+    if (!user) return;
+    
+    if (saveNeoLearnPrivacyBtn) {
+        saveNeoLearnPrivacyBtn.disabled = true;
+        saveNeoLearnPrivacyBtn.textContent = "Saving...";
+    }
+
+    const showLastSeen = privacyShowLastSeen ? privacyShowLastSeen.checked : true;
+    const readReceipts = privacyReadReceipts ? privacyReadReceipts.checked : true;
+    const messagePrivacy = neolearnMessagePrivacy ? neolearnMessagePrivacy.value : "everyone";
+
+    try {
+        // 1. Update Firestore users collection (permitted by firestore.rules)
+        await setDoc(doc(db, "users", user.uid), {
+            showLastSeen,
+            readReceipts,
+            messagePrivacy,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        // 2. Sync to backend settings API
+        try {
+            const token = await user.getIdToken();
+            await fetch("/api/neolearn/settings", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ showLastSeen, readReceipts, messagePrivacy })
+            });
+        } catch (apiErr) {
+            console.warn("Backend settings sync warning:", apiErr);
+        }
+
+        if (currentNeoLearnProfile) {
+            currentNeoLearnProfile.showLastSeen = showLastSeen;
+            currentNeoLearnProfile.readReceipts = readReceipts;
+            currentNeoLearnProfile.messagePrivacy = messagePrivacy;
+        }
+
+        if (showFeedback) {
+            showNeoLearnPrivacyFeedback("NeoLearn privacy settings saved successfully!");
+        }
+    } catch (err) {
+        console.error("Failed to update NeoLearn privacy settings:", err);
+        if (showFeedback) {
+            showNeoLearnPrivacyFeedback("Failed to save settings: " + (err.message || err), true);
+        }
+    } finally {
+        if (saveNeoLearnPrivacyBtn) {
+            saveNeoLearnPrivacyBtn.disabled = false;
+            saveNeoLearnPrivacyBtn.innerHTML = '<i class="bi bi-check-circle me-1" aria-hidden="true"></i>Save Privacy Settings';
+        }
+    }
+}
+
+if (saveNeoLearnPrivacyBtn) {
+    saveNeoLearnPrivacyBtn.addEventListener("click", () => saveNeoLearnPrivacySettings(true));
+}
+
+// Auto-save toggle switches for effortless user experience
+[privacyShowLastSeen, privacyReadReceipts].forEach((checkbox) => {
+    if (checkbox) {
+        checkbox.addEventListener("change", () => saveNeoLearnPrivacySettings(true));
+    }
+});
 
 function updateNeoLearnUI(hasProfile) {
     if (!neolearnToggleBtn || !neolearnStatusBadge) return;
@@ -165,25 +228,23 @@ function updateNeoLearnUI(hasProfile) {
         neolearnStatusBadge.textContent = "Active";
         neolearnStatusBadge.className = "neolearn-badge neolearn-badge--active";
         neolearnBtnText.textContent = "Remove NeoLearn Profile";
-        
         neolearnToggleBtn.className = "settings-save nl-btn-remove";
-        if (neolearnPrivacySettings) {
-            neolearnPrivacySettings.style.display = "block";
-            if (currentNeoLearnProfile && currentNeoLearnProfile.messagePrivacy) {
+        
+        if (neolearnActiveControls) {
+            neolearnActiveControls.style.display = "block";
+            if (currentNeoLearnProfile && currentNeoLearnProfile.messagePrivacy && neolearnMessagePrivacy) {
                 neolearnMessagePrivacy.value = currentNeoLearnProfile.messagePrivacy;
-            } else {
-                neolearnMessagePrivacy.value = "everyone";
             }
         }
-
     } else {
         neolearnStatusBadge.textContent = "Not created yet";
         neolearnStatusBadge.className = "neolearn-badge neolearn-badge--inactive";
         neolearnBtnText.textContent = "Create Profile on NeoLearn";
-        
         neolearnToggleBtn.className = "settings-save";
-        if (neolearnPrivacySettings) neolearnPrivacySettings.style.display = "none";
-
+        
+        if (neolearnActiveControls) {
+            neolearnActiveControls.style.display = "none";
+        }
     }
 }
 
@@ -431,6 +492,18 @@ document.addEventListener("userLoaded", async (e) => {
     notificationPref.value = userData.notificationPref || "all";
     const activePhoto = userData.profilePhotoUrl || userData.photoURL;
     updateSettingsAvatarUI(activePhoto, userData.username || user.displayName);
+
+    // Populate NeoLearn Privacy Preferences
+    if (privacyShowLastSeen) {
+        privacyShowLastSeen.checked = (userData.showLastSeen !== false);
+    }
+    if (privacyReadReceipts) {
+        privacyReadReceipts.checked = (userData.readReceipts !== false);
+    }
+    if (neolearnMessagePrivacy) {
+        neolearnMessagePrivacy.value = userData.messagePrivacy || "everyone";
+    }
+
     await loadNeoLearnState(user);
 
     if (leaderboardPrivacySelect) {

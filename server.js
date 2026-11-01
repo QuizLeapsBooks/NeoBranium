@@ -1935,6 +1935,28 @@ const neoLearnDirectoryHandlers = createNeoLearnDirectoryHandlers({ verifyAuthTo
 app.get('/api/neolearn/peers', neoLearnDirectoryHandlers.getPeers);
 app.get('/api/neolearn/profiles/:userId', neoLearnDirectoryHandlers.getProfile);
 
+app.post('/api/neolearn/settings', async (req, res) => {
+    try {
+        const decodedToken = await verifyAuthToken(req);
+        if (!decodedToken?.uid) return res.status(401).json({ success: false, error: 'Unauthorized: Invalid token' });
+        const uid = decodedToken.uid;
+        const { showLastSeen, readReceipts, messagePrivacy } = req.body || {};
+        const updates = {};
+        if (typeof showLastSeen === 'boolean') updates.showLastSeen = showLastSeen;
+        if (typeof readReceipts === 'boolean') updates.readReceipts = readReceipts;
+        if (['everyone', 'learning_only', 'none'].includes(messagePrivacy)) updates.messagePrivacy = messagePrivacy;
+
+        if (Object.keys(updates).length > 0) {
+            updates.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+            await db.collection('users').doc(uid).set(updates, { merge: true });
+        }
+        return res.json({ success: true, settings: updates });
+    } catch (err) {
+        console.error('Failed to update NeoLearn settings:', err);
+        return res.status(500).json({ success: false, error: 'Failed to update settings' });
+    }
+});
+
 const neoLearnSocialHandlers = createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadPublicProfile });
 app.get('/api/neolearn/social/summary/:userId', neoLearnSocialHandlers.getSummary);
 app.get('/api/neolearn/social/connections/:userId', neoLearnSocialHandlers.getConnections);

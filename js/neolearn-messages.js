@@ -1,10 +1,11 @@
-import { auth, rtdb, checkAccess } from './auth.js';
+import { auth, rtdb, checkAccess, loadUserData } from './auth.js';
 import { getBackendBaseUrl } from './profile-photo-cache.js';
 import { getNeoLearnPeersPage } from './neolearn-social-service.js';
 import { addEarlierMessagePage, mergeConversationMessages, NEOLEARN_MESSAGE_PAGE_SIZE, sortPeersByLatestMessage } from './neolearn-message-history.js';
 import { endAt, get, limitToLast, onValue, orderByChild, push, query, ref, serverTimestamp, set, onDisconnect } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js';
 
 checkAccess(true);
+let currentUserData = null;
 const peerList = document.getElementById('messagePeerList');
 const loadMorePeersButton = document.getElementById('loadMoreMessagePeers');
 const search = document.getElementById('messagePeerSearch');
@@ -163,6 +164,10 @@ function refreshUnreadMessageCount() {
 }
 
 function markIncomingMessagesRead(peerId) {
+  // Respect user's privacy setting: do not send read receipts if disabled
+  if (currentUserData && currentUserData.readReceipts === false) {
+    return Promise.resolve();
+  }
   const pending = pendingReadReceipts.get(peerId);
   if (pending) return pending;
   const uid = auth.currentUser?.uid;
@@ -399,9 +404,12 @@ function renderMessages(peerId, snapshot, { preserveScroll = false } = {}) {
         time.textContent = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(message.createdAt);
         if (isOwn) {
           const statusIcon = document.createElement('i');
-          statusIcon.className = message.readByRecipient ? 'bi bi-check2-all' : 'bi bi-check2';
+          const readReceiptsActive = (!currentUserData || currentUserData.readReceipts !== false) && activePeer?.readReceipts !== false;
+          const isRead = Boolean(message.readByRecipient && readReceiptsActive);
+          statusIcon.className = isRead ? 'bi bi-check2-all' : 'bi bi-check2';
           statusIcon.style.marginLeft = '4px';
-          statusIcon.style.color = message.readByRecipient ? '#4ade80' : 'inherit';
+          statusIcon.style.color = isRead ? '#4ade80' : 'inherit';
+          statusIcon.title = isRead ? 'Read' : 'Delivered';
           time.appendChild(statusIcon);
         }
         bubble.append(time);
@@ -676,41 +684,69 @@ function subscribeToPeerTyping(peer) {
 
 let peerPresenceUnsubscribe = null;
 
+function formatLastSeenDate(date) {
+  const now = new Date();
+  const isToday = now.toDateString() === date.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = yesterday.toDateString() === date.toDateString();
+  const timeStr = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(date);
+  if (isToday) return `today at ${timeStr}`;
+  if (isYesterday) return `yesterday at ${timeStr}`;
+  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(date);
+}
+
 function subscribeToPeerPresence(peer) {
     const peerId = peer.userId;
     if (peerPresenceUnsubscribe) {
         peerPresenceUnsubscribe();
         peerPresenceUnsubscribe = null;
     }
+
+    let statusEl = document.getElementById('messageThreadPresence');
+    if (!statusEl) {
+        statusEl = document.createElement('div');
+        statusEl.id = 'messageThreadPresence';
+        statusEl.className = 'nl-presence-status';
+        const headerDiv = threadHeader.querySelector('div');
+        if (headerDiv) {
+            const profileLink = document.getElementById('messageThreadProfile');
+            if (profileLink) headerDiv.insertBefore(statusEl, profileLink);
+            else headerDiv.appendChild(statusEl);
+        }
+    }
+
+    // Privacy rule: if peer or current viewer has disabled showLastSeen, do not show presence/last seen!
+    const peerAllows = peer.showLastSeen !== false;
+    const viewerAllows = !currentUserData || currentUserData.showLastSeen !== false;
+
+    if (!peerAllows || !viewerAllows) {
+        statusEl.innerHTML = '';
+        statusEl.style.display = 'none';
+        return;
+    }
+
+    statusEl.style.display = 'flex';
     const presenceRef = ref(rtdb, `/neolearn_realtime/presence/` + peerId);
     peerPresenceUnsubscribe = onValue(presenceRef, (snap) => {
         const status = snap.val();
-        let statusText = 'Offline';
-        
-        if (!peer.showLastSeen) {
-            statusText = '';
-        } else if (status) {
-            if (status.state === 'online') {
-                statusText = 'Online';
-            } else if (status.last_changed) {
-                const date = new Date(status.last_changed);
-                statusText = 'Last seen: ' + new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit', month: 'short', day: 'numeric' }).format(date);
-            }
+        if (status && status.state === 'online') {
+            statusEl.className = 'nl-presence-status is-online';
+            statusEl.innerHTML = '<span class="nl-presence-dot online"></span><span>Online</span>';
+        } else if (status && status.last_changed) {
+            const date = new Date(status.last_changed);
+            statusEl.className = 'nl-presence-status';
+            statusEl.innerHTML = `<span class="nl-presence-dot"></span><span>Last seen ${formatLastSeenDate(date)}</span>`;
+        } else {
+            statusEl.className = 'nl-presence-status';
+            statusEl.innerHTML = '<span class="nl-presence-dot"></span><span>Offline</span>';
         }
-        let statusEl = document.getElementById('messageThreadPresence');
-        if (!statusEl) {
-            statusEl = document.createElement('div');
-            statusEl.id = 'messageThreadPresence';
-            statusEl.style.fontSize = '0.75rem';
-            statusEl.style.color = 'var(--account-muted)';
-            const headerDiv = threadHeader.querySelector('div');
-            if (headerDiv) headerDiv.appendChild(statusEl);
-        }
-        statusEl.textContent = statusText;
     }, (error) => {
         console.warn('[NeoLearn Messages] Presence listener error:', error?.message || error);
-        const statusEl = document.getElementById('messageThreadPresence');
-        if (statusEl) statusEl.textContent = peer.showLastSeen ? 'Status unavailable' : '';
+        if (statusEl) {
+            statusEl.className = 'nl-presence-status';
+            statusEl.textContent = peerAllows && viewerAllows ? 'Status unavailable' : '';
+        }
     });
 }
 
@@ -754,6 +790,20 @@ async function selectPeer(peer) {
   threadLoading.hidden = false;
   threadList.hidden = true;
   composer.hidden = false;
+  const submitBtn = composer.querySelector('button[type="submit"]');
+  if (peer.messagePrivacy === 'none') {
+    input.disabled = true;
+    input.placeholder = 'This learner does not accept direct messages.';
+    if (submitBtn) submitBtn.disabled = true;
+  } else if (peer.messagePrivacy === 'learning_only' && !peer.isLearning && !peer.isLearnedByViewer) {
+    input.disabled = true;
+    input.placeholder = 'This learner only accepts messages from learning connections.';
+    if (submitBtn) submitBtn.disabled = true;
+  } else {
+    input.disabled = false;
+    input.placeholder = 'Write a message…';
+    if (submitBtn) submitBtn.disabled = false;
+  }
   const uid = auth.currentUser?.uid;
   if (!uid) return showError('Please sign in to send messages.');
   try {
@@ -909,13 +959,28 @@ composer.addEventListener('submit', async (event) => {
   }
 });
 
+document.addEventListener('userLoaded', (e) => {
+  if (e.detail?.userData) {
+    currentUserData = e.detail.userData;
+    if (auth.currentUser) {
+      setupPresence(auth.currentUser, currentUserData);
+      if (activePeer) {
+        subscribeToPeerPresence(activePeer);
+      }
+    }
+  }
+});
+
 async function initialize() {
   try {
     const user = auth.currentUser || await new Promise((resolve) => {
       const unsubscribe = auth.onAuthStateChanged((current) => { unsubscribe(); resolve(current); });
     });
     if (!user) return;
-    setupPresence(user);
+    if (!currentUserData) {
+      currentUserData = await loadUserData(user);
+    }
+    setupPresence(user, currentUserData);
     deletedForMeMessages = loadLocalDeletedMessages(user.uid);
     try {
       const delResult = await messageApiRequest('/api/neolearn/messages/deleted-for-me', {});
@@ -963,12 +1028,20 @@ window.addEventListener('beforeunload', () => {
   clearTyping();
 });
 
-
-
-
-function setupPresence(user) {
+function setupPresence(user, userData = currentUserData) {
   if (!user) return;
   const userStatusDatabaseRef = ref(rtdb, `/neolearn_realtime/presence/` + user.uid);
+  
+  // If user disabled showLastSeen, do not broadcast online state to others!
+  if (userData && userData.showLastSeen === false) {
+    presenceUnsubscribe?.();
+    set(userStatusDatabaseRef, {
+      state: 'offline',
+      last_changed: serverTimestamp(),
+    }).catch(() => {});
+    return;
+  }
+
   const isOfflineForDatabase = {
       state: 'offline',
       last_changed: serverTimestamp(),

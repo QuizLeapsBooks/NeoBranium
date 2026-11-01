@@ -183,3 +183,53 @@ body.nb-neolearn-page #messagesError:empty { display: none; }
   body.nb-neolearn-page .nl-message-thread-header .nl-social-avatar { width: 36px; height: 36px; }
   body.nb-neolearn-page .nl-message-composer button { padding-inline: .5rem; }
 }
+
+/* Presence and Last Seen Indicators */
+body.nb-neolearn-page .nl-presence-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  color: var(--account-muted);
+  line-height: 1.25;
+  margin-top: 1px;
+}
+body.nb-neolearn-page .nl-presence-status.is-online {
+  color: #10b981;
+  font-weight: 600;
+}
+body.nb-neolearn-page .nl-presence-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--account-muted);
+  display: inline-block;
+  flex-shrink: 0;
+}
+body.nb-neolearn-page .nl-presence-dot.online {
+  background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+  animation: nlPulseDot 2s infinite ease-in-out;
+}
+@keyframes nlPulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.75; }
+}
+
+body.nb-neolearn-page .nl-peer-avatar-wrapper {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+body.nb-neolearn-page .nl-peer-online-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #10b981;
+  border: 2px solid var(--account-surface);
+  box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
+}
+
