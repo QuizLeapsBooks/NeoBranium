@@ -45,14 +45,16 @@
     <!-- Right: Nav Zone -->
     <div class="header-nav-zone">
       <!-- Mobile sidebar toggle -->
-      <button class="navbar-toggler-custom navbar-toggler d-lg-none" id="mobileSidebarToggle" aria-label="Toggle sidebar">
+      <button class="navbar-toggler-custom navbar-toggler d-lg-none" id="mobileSidebarToggle"
+        aria-label="Toggle sidebar">
         <i class="bi bi-list"></i>
       </button>
 
       <!-- Global Search -->
       <div class="nb-dash-search d-none d-md-flex" role="search">
         <i class="bi bi-search nb-search-icon"></i>
-        <input type="text" id="globalSearchInput" placeholder="Search notes, quizzes, topics... (Ctrl+K)" autocomplete="off" aria-label="Search learning resources">
+        <input type="text" id="globalSearchInput" placeholder="Search notes, quizzes, topics... (Ctrl+K)"
+          autocomplete="off" aria-label="Search learning resources">
         <span class="nb-search-kbd">Ctrl K</span>
         <div id="globalSearchResults" class="search-results-dropdown"></div>
       </div>
@@ -69,10 +71,14 @@
           </button>
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
             <li><a class="dropdown-item" href="/htmls/profile.html"><i class="bi bi-person me-2"></i>Profile</a></li>
-            <li><a class="dropdown-item d-none" id="dropdownNeoLearnLink" href="/htmls/neolearn/index.html"><i class="bi bi-person-badge me-2"></i>NeoLearn</a></li>
+            <li><a class="dropdown-item d-none" id="dropdownNeoLearnLink" href="/htmls/neolearn/index.html"><i
+                  class="bi bi-person-badge me-2"></i>NeoLearn</a></li>
             <li><a class="dropdown-item" href="/htmls/setting.html"><i class="bi bi-gear me-2"></i>Settings</a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="#" id="logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+            <li><a class="dropdown-item text-danger" href="#" id="logout"><i
+                  class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
           </ul>
         </div>
       </div>
@@ -90,10 +96,12 @@
     <ul class="sidebar-nav">
       <li class="active"><a href="/htmls/dashboard.html"><i class="bi bi-grid-1x2"></i> Dashboard</a></li>
       <li><a href="/leaderboard.html"><i class="bi bi-trophy"></i> Leaderboard</a></li>
-      <li><a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes <span class="notification-badge">3</span></a></li>
+      <li><a href="/htmls/notes.html"><i class="bi bi-journal"></i> Notes <span class="notification-badge">3</span></a>
+      </li>
       <li><a href="/htmls/spotlight.html"><i class="bi bi-star"></i> Spotlight (Monthly)</a></li>
       <li><a href="/htmls/bot/bot.html"><i class="bi bi-robot"></i> Bot Helper</a></li>
-      <li><a href="/htmls/question-paper_generator-ai/ai-generate.html"><i class="bi bi-file-earmark-text"></i> Exam Paper Generator</a></li>
+      <li><a href="/htmls/question-paper_generator-ai/ai-generate.html"><i class="bi bi-file-earmark-text"></i> Exam
+          Paper Generator</a></li>
       <li><a href="/htmls/chat/chat_app.html"><i class="bi bi-chat-dots"></i> Live Chat</a></li>
     </ul>
     <div class="sidebar-footer">
@@ -159,15 +167,19 @@
           <div class="nb-tile-icon"><i class="bi bi-lightning-charge-fill"></i></div>
           <span class="nb-tile-label">Shortcuts</span>
         </button>
-        <button class="nb-action-tile staggered-item" id="savedQuestionsBtn" data-bs-toggle="modal" data-bs-target="#savedQuestionsModal">
+        <button class="nb-action-tile staggered-item" id="savedQuestionsBtn" data-bs-toggle="modal"
+          data-bs-target="#savedQuestionsModal">
           <div class="nb-tile-icon"><i class="bi bi-bookmark-star-fill text-warning"></i></div>
-          <span class="nb-tile-label">Saved Questions <span id="savedQuestionsBadge" class="badge bg-warning text-dark ms-1 d-none">0</span></span>
+          <span class="nb-tile-label">Saved Questions <span id="savedQuestionsBadge"
+              class="badge bg-warning text-dark ms-1 d-none">0</span></span>
         </button>
-        <a href="/htmls/my-learning.html" class="nb-action-tile staggered-item text-decoration-none" id="myLearningDashboardAction">
+        <a href="/htmls/my-learning.html" class="nb-action-tile staggered-item text-decoration-none"
+          id="myLearningDashboardAction">
           <div class="nb-tile-icon"><i class="bi bi-person-fill-gear" style="color:#a78bfa"></i></div>
           <span class="nb-tile-label">My Learning</span>
         </a>
-        <a href="/htmls/neolearn/index.html" class="nb-action-tile staggered-item text-decoration-none d-none" id="neolearnDashboardAction">
+        <a href="/htmls/neolearn/index.html" class="nb-action-tile staggered-item text-decoration-none d-none"
+          id="neolearnDashboardAction">
           <div class="nb-tile-icon"><i class="bi bi-person-badge-fill"></i></div>
           <span class="nb-tile-label">NeoLearn</span>
         </a>
@@ -189,7 +201,7 @@
         </a>
         <a href="/NeoBot/index.html" class="nb-action-tile staggered-item text-decoration-none" id="neoLiveAiBtn">
           <div class="nb-tile-icon" style="color: #a892f0;"><i class="bi bi-broadcast"></i></div>
-          <span class="nb-tile-label">Live AI</span>
+          <span class="nb-tile-label">NeoBot</span>
         </a>
       </div>
     </section>
@@ -198,7 +210,8 @@
     <section class="mb-4" aria-labelledby="nbRecsTitle">
       <div class="nbs-section-head mb-3">
         <p class="nb-section-label mb-0" id="nbRecsTitle">Smart Recommendations</p>
-        <button class="nbs-pref-toggle-btn" id="nbPrefToggleBtn" type="button" aria-expanded="false" aria-controls="nbPreferenceWidget" title="Customise recommendations">
+        <button class="nbs-pref-toggle-btn" id="nbPrefToggleBtn" type="button" aria-expanded="false"
+          aria-controls="nbPreferenceWidget" title="Customise recommendations">
           <i class="bi bi-sliders"></i> Personalise
         </button>
       </div>
@@ -245,7 +258,8 @@
             <div class="carousel slide" id="studyTipCarousel" data-bs-ride="carousel">
               <div class="carousel-inner">
                 <div class="carousel-item active">
-                  <p class="nb-widget-text">Break your study sessions into 25-minute chunks with 5-minute breaks to stay focused!</p>
+                  <p class="nb-widget-text">Break your study sessions into 25-minute chunks with 5-minute breaks to stay
+                    focused!</p>
                 </div>
                 <div class="carousel-item">
                   <p class="nb-widget-text">Use flashcards to memorize key concepts quickly!</p>
@@ -254,17 +268,20 @@
                   <p class="nb-widget-text">Teach what you learn to someone else to reinforce your knowledge!</p>
                 </div>
                 <div class="carousel-item">
-                  <p class="nb-widget-text">Review your quiz mistakes carefully — understanding errors is the fastest way to improve.</p>
+                  <p class="nb-widget-text">Review your quiz mistakes carefully — understanding errors is the fastest
+                    way to improve.</p>
                 </div>
                 <div class="carousel-item">
                   <p class="nb-widget-text">Read chapter notes before attempting a quiz to activate prior knowledge.</p>
                 </div>
               </div>
               <div class="nb-carousel-nav">
-                <button class="nb-carousel-btn custom-carousel-ctrl" type="button" data-bs-target="#studyTipCarousel" data-bs-slide="prev">
+                <button class="nb-carousel-btn custom-carousel-ctrl" type="button" data-bs-target="#studyTipCarousel"
+                  data-bs-slide="prev">
                   <i class="bi bi-chevron-left"></i>
                 </button>
-                <button class="nb-carousel-btn custom-carousel-ctrl" type="button" data-bs-target="#studyTipCarousel" data-bs-slide="next">
+                <button class="nb-carousel-btn custom-carousel-ctrl" type="button" data-bs-target="#studyTipCarousel"
+                  data-bs-slide="next">
                   <i class="bi bi-chevron-right"></i>
                 </button>
               </div>
@@ -281,7 +298,8 @@
             <span class="nb-widget-title">Motivational Quote</span>
           </div>
           <div class="nb-widget-body">
-            <p class="nb-widget-text nb-quote-text" id="nbMotivationalQuote">"The only way to learn it is to do it!" – Keep pushing forward!</p>
+            <p class="nb-widget-text nb-quote-text" id="nbMotivationalQuote">"The only way to learn it is to do it!" –
+              Keep pushing forward!</p>
           </div>
         </div>
       </div>
@@ -298,9 +316,11 @@
                 <p class="nb-activity-caption mb-0">Your learning rhythm</p>
               </div>
               <div class="nb-calendar-nav" aria-label="Calendar navigation">
-                <button type="button" class="nb-calendar-button" id="activityPreviousMonth" aria-label="Previous month"><i class="bi bi-chevron-left"></i></button>
+                <button type="button" class="nb-calendar-button" id="activityPreviousMonth"
+                  aria-label="Previous month"><i class="bi bi-chevron-left"></i></button>
                 <strong id="activityMonthLabel"></strong>
-                <button type="button" class="nb-calendar-button" id="activityNextMonth" aria-label="Next month"><i class="bi bi-chevron-right"></i></button>
+                <button type="button" class="nb-calendar-button" id="activityNextMonth" aria-label="Next month"><i
+                    class="bi bi-chevron-right"></i></button>
               </div>
             </div>
             <div class="nb-calendar" id="activityCalendar" aria-live="polite"></div>
@@ -317,7 +337,8 @@
                 <p class="nb-section-label mb-1">Tasks</p>
                 <p class="nb-activity-caption mb-0">Keep your next step visible</p>
               </div>
-              <button type="button" class="nb-task-add" id="addTaskButton"><i class="bi bi-plus-lg"></i><span>Add Task</span></button>
+              <button type="button" class="nb-task-add" id="addTaskButton"><i class="bi bi-plus-lg"></i><span>Add
+                  Task</span></button>
             </div>
             <form id="taskForm" class="nb-task-form d-none">
               <label class="visually-hidden" for="taskTitle">Task name</label>
@@ -326,7 +347,9 @@
                 <button class="btn btn-primary" type="submit">Add</button>
               </div>
             </form>
-            <div id="taskList" class="nb-task-list" aria-live="polite"><p class="nb-task-empty">No active tasks yet.</p></div>
+            <div id="taskList" class="nb-task-list" aria-live="polite">
+              <p class="nb-task-empty">No active tasks yet.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -339,10 +362,12 @@
           <p class="nb-section-label mb-1" id="learningProgressTitle">Your Learning Progress</p>
           <p class="nb-activity-caption mb-0">A private view of your quiz practice</p>
         </div>
-        <a class="nb-progress-action" href="/htmls/quiz_htmls/class9-10maths.html">Practice a quiz <i class="bi bi-arrow-up-right"></i></a>
+        <a class="nb-progress-action" href="/htmls/quiz_htmls/class9-10maths.html">Practice a quiz <i
+            class="bi bi-arrow-up-right"></i></a>
       </div>
       <div id="learningProgress" class="nb-progress-content" aria-live="polite">
-        <div class="nb-progress-loading"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading your progress...</div>
+        <div class="nb-progress-loading"><span class="spinner-border spinner-border-sm" role="status"
+            aria-hidden="true"></span> Loading your progress...</div>
       </div>
     </section>
 
@@ -388,7 +413,8 @@
     </div>
 
     <!-- ═══ SHORTCUTS DIALOG ══════════════════════════════════════════════ -->
-    <div class="modal fade zoom-in" id="shortcutsModal" tabindex="-1" aria-labelledby="shortcutsModalLabel" aria-hidden="true">
+    <div class="modal fade zoom-in" id="shortcutsModal" tabindex="-1" aria-labelledby="shortcutsModalLabel"
+      aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header">
@@ -420,7 +446,8 @@
     </div>
 
     <!-- Daily Activity Modal -->
-    <div class="modal fade zoom-in" id="dailyActivityModal" tabindex="-1" aria-labelledby="dailyActivityTitle" aria-hidden="true">
+    <div class="modal fade zoom-in" id="dailyActivityModal" tabindex="-1" aria-labelledby="dailyActivityTitle"
+      aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
@@ -439,7 +466,8 @@
   </main>
 
   <!-- Subject Modal -->
-  <div class="modal fade zoom-in" id="subjectModal" tabindex="-1" aria-labelledby="subjectModalLabel" aria-hidden="true">
+  <div class="modal fade zoom-in" id="subjectModal" tabindex="-1" aria-labelledby="subjectModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -471,7 +499,8 @@
   <div class="bottom-nav">
     <a href="/htmls/dashboard.html" class="nav-icon" title="Dashboard"><i class="bi bi-grid-1x2"></i></a>
     <a href="/leaderboard.html" class="nav-icon" title="Leaderboard"><i class="bi bi-trophy"></i></a>
-    <a href="/htmls/notes.html" class="nav-icon" title="Notes"><i class="bi bi-journal"></i><span class="notification-badge">3</span></a>
+    <a href="/htmls/notes.html" class="nav-icon" title="Notes"><i class="bi bi-journal"></i><span
+        class="notification-badge">3</span></a>
     <a href="/htmls/spotlight.html" class="nav-icon"><i class="bi bi-star"></i></a>
     <a href="/htmls/contactus.html" class="nav-icon"><i class="bi bi-envelope"></i></a>
     <a href="/htmls/feedback.html" class="nav-icon"><i class="bi bi-chat"></i></a>
@@ -541,7 +570,7 @@
 
     // Preference toggle widget
     const prefToggleBtn = document.getElementById('nbPrefToggleBtn');
-    const prefWidget    = document.getElementById('nbPreferenceWidget');
+    const prefWidget = document.getElementById('nbPreferenceWidget');
     if (prefToggleBtn && prefWidget) {
       prefToggleBtn.addEventListener('click', () => {
         const expanded = prefToggleBtn.getAttribute('aria-expanded') === 'true';
@@ -569,7 +598,7 @@
       quoteEl.textContent = quotes[dayOfYear % quotes.length];
     }
 
-    const avatarEl    = document.getElementById('dashboardProfileAvatar');
+    const avatarEl = document.getElementById('dashboardProfileAvatar');
     const thoughtCard = document.getElementById('dashboardThoughtCard');
     const thoughtText = document.getElementById('dashboardThoughtText');
 
@@ -586,7 +615,7 @@
 
     function setThought(userData) {
       if (!thoughtCard || !thoughtText) return;
-      const thought   = userData.thoughtOfTheDay || '';
+      const thought = userData.thoughtOfTheDay || '';
       const expiresAt = userData.thoughtOfTheDayExpiresAt;
       if (isThoughtActive(thought, expiresAt)) {
         thoughtText.textContent = thought;
@@ -601,7 +630,7 @@
       if (!user || !avatarEl) return;
 
       const remoteUrl = userData?.profilePhotoUrl || userData?.photoURL || user.photoURL || '';
-      const initial   = (userData?.fname || userData?.username || user.displayName || '?')[0].toUpperCase();
+      const initial = (userData?.fname || userData?.username || user.displayName || '?')[0].toUpperCase();
 
       syncProfilePhoto(user.uid, remoteUrl, (displayUrl) => {
         setAvatar(displayUrl, initial);
@@ -700,7 +729,7 @@
         btn.addEventListener('click', () => {
           const id = btn.dataset.id;
           let list = [];
-          try { list = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || '[]'); } catch (e) {}
+          try { list = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || '[]'); } catch (e) { }
           list = list.filter(item => item.id !== id);
           localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(list));
           loadSavedQuestions();
@@ -716,9 +745,11 @@
   </script>
 
   <!-- Saved Questions Modal -->
-  <div class="modal fade" id="savedQuestionsModal" tabindex="-1" aria-labelledby="savedQuestionsModalLabel" aria-hidden="true">
+  <div class="modal fade" id="savedQuestionsModal" tabindex="-1" aria-labelledby="savedQuestionsModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-      <div class="modal-content" style="background:#1e1b4b; color:#e2e8f0; border:1px solid rgba(255,255,255,0.15); border-radius:18px;">
+      <div class="modal-content"
+        style="background:#1e1b4b; color:#e2e8f0; border:1px solid rgba(255,255,255,0.15); border-radius:18px;">
         <div class="modal-header" style="border-bottom:1px solid rgba(255,255,255,0.1);">
           <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2" id="savedQuestionsModalLabel">
             <i class="bi bi-bookmark-star-fill text-warning"></i> Saved Quiz Questions &amp; Revision
@@ -734,6 +765,8 @@
       </div>
     </div>
   </div>
+  <!-- Guest Value Banner (shown only to unauthenticated visitors) -->
+  <script src="/js/guest-value-banner.js" defer></script>
 </body>
 
 </html>

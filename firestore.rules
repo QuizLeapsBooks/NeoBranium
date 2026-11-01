@@ -135,6 +135,9 @@ service cloud.firestore {
       match /items/{goalId} {
         allow read, write: if isOwner(userId);
       }
+      match /roadmap_items/{itemId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     match /mentor_chat/{userId} {

@@ -37,11 +37,31 @@ function esc(v) {
 }
 
 function parseScore(raw) {
-  const m = String(raw || "").match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
-  if (!m) return null;
-  const correct = Number(m[1]), total = Number(m[2]);
-  if (!isFinite(correct) || !isFinite(total) || total <= 0) return null;
-  return { correct, total, pct: Math.round((correct / total) * 100) };
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw === "number") {
+    if (raw <= 10) return { correct: raw, total: 10, pct: Math.round(raw * 10) };
+    return { correct: raw, total: 100, pct: Math.min(100, Math.round(raw)) };
+  }
+  if (typeof raw === "object") {
+    const c = Number(raw.correct ?? raw.score ?? 0);
+    const t = Number(raw.total ?? raw.totalQuestions ?? 10);
+    if (isFinite(c) && isFinite(t) && t > 0) {
+      return { correct: c, total: t, pct: Math.round((c / t) * 100) };
+    }
+  }
+  const m = String(raw).match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
+  if (m) {
+    const correct = Number(m[1]), total = Number(m[2]);
+    if (isFinite(correct) && isFinite(total) && total > 0) {
+      return { correct, total, pct: Math.round((correct / total) * 100) };
+    }
+  }
+  const num = parseFloat(String(raw).replace(/%/g, "").trim());
+  if (!isNaN(num) && isFinite(num)) {
+    if (num <= 10) return { correct: num, total: 10, pct: Math.round(num * 10) };
+    return { correct: num, total: 100, pct: Math.min(100, Math.round(num)) };
+  }
+  return null;
 }
 
 function detectSubject(quiz) {
@@ -110,16 +130,9 @@ async function _loadAllData() {
   if (!_user) return;
 
   try {
-    // Quiz records (last 90 days)
-    const since = new Date();
-    since.setDate(since.getDate() - 90);
-    const sinceKey = since.toISOString().slice(0, 10);
-
+    // 1. Fetch full calendar days directly without restrictive date cutoffs
     const [calSnap, taskSnap] = await Promise.all([
-      getDocs(query(
-        collection(db, "mentor_calendar", _user.uid, "days"),
-        where("date", ">=", sinceKey)
-      )),
+      getDocs(collection(db, "mentor_calendar", _user.uid, "days")),
       getDocs(query(
         collection(db, "mentor_goals", _user.uid, "items"),
         limit(50)
@@ -151,7 +164,32 @@ async function _loadAllData() {
       });
     });
 
-    _quizRecords.sort((a, b) => a.date.localeCompare(b.date));
+    // 2. Fetch quiz_results collection fallback to ensure all attempts are accounted for
+    try {
+      const qSnap = await getDocs(query(
+        collection(db, "quiz_results"),
+        where("userId", "==", _user.uid)
+      ));
+      qSnap.forEach((docSnap, i) => {
+        const data = docSnap.data();
+        const dateStr = data.timestamp?.toDate ? data.timestamp.toDate().toISOString().slice(0, 10) : (data.date || "recent");
+        _quizRecords.push({
+          id: `qz-${docSnap.id}-${i}`,
+          date: dateStr,
+          quizId: data.quizId || "quiz",
+          title: data.quizTitle || data.title || "Practice Quiz",
+          subject: detectSubject(data),
+          chapter: detectChapter(data),
+          scoreParsed: parseScore(data.score),
+          rawScore: data.score,
+          completedAt: dateStr
+        });
+      });
+    } catch (qErr) {
+      // Best-effort fallback
+    }
+
+    _quizRecords.sort((a, b) => String(a.date).localeCompare(String(b.date)));
     _streak = calculateStreak(recordsMap);
     _activeDays = activeSet.size;
     _taskCount = taskSnap.size;
@@ -352,26 +390,16 @@ async function _renderWeaknesses() {
   el.innerHTML = `<p class="nb-ml-loading-text"><span class="nb-ml-spinner-sm"></span> Analysing your quiz data…</p>`;
 
   try {
-    const { report, recordCount } = await buildWeaknessReport(_user);
+    const { report, recordCount } = await buildWeaknessReport(_user, _quizRecords);
 
     if (recordCount === 0) {
       el.innerHTML = `
         <div class="nb-ml-empty-block">
           <i class="bi bi-compass"></i>
           <h4>No quiz data yet</h4>
-          <p>Complete at least 2 quizzes per chapter to see weakness analysis.</p>
+          <p>Complete a practice quiz to view personalized weakness analysis and study recommendations.</p>
           <a href="/htmls/quiz_htmls/class9-10science.html" class="nb-ml-cta-btn">Take a Quiz</a>
         </div>`;
-      return;
-    }
-
-    if (report.insufficientData) {
-      el.innerHTML = `
-        <div class="nb-ml-info-block">
-          <i class="bi bi-info-circle-fill"></i>
-          <p>You have completed ${recordCount} quiz attempt${recordCount > 1 ? "s" : ""}, but need at least <strong>2 attempts per chapter</strong> before the system can identify patterns. Keep going!</p>
-        </div>
-        <a href="/htmls/quiz_htmls/class9-10science.html" class="nb-ml-cta-btn mt-3">Practice More</a>`;
       return;
     }
 

@@ -460,6 +460,57 @@ app.post('/api/chat', requireAuth, chatQuota, async (req, res) => {
         // Save updated memory asynchronously (don't block the request)
         saveUserMemory(secureUserId, memory).catch(err => console.error("Memory track error:", err));
 
+        // ── Fetch student learning profile from Firestore (non-blocking, best-effort) ──
+        // Uses the server-side Admin SDK (db = admin Firestore), so it bypasses client rules.
+        // We only read: display name, target class, preferred subject, and a
+        // lightweight quiz summary (last 5 attempts from mentor_calendar).
+        let studentProfile = null;
+        if (req.uid && task !== 'paper_generation') {
+            try {
+                const profileDoc = await db.collection('users').doc(req.uid).get();
+                if (profileDoc.exists) {
+                    const pd = profileDoc.data();
+                    studentProfile = {
+                        name: pd.fname || pd.username || memory.name || null,
+                        targetClass: pd.targetClass || '10',
+                        preferredSubject: pd.preferredSubject || null
+                    };
+                }
+
+                // Load last 5 quiz-completion day records for brief performance context
+                const since = new Date();
+                since.setDate(since.getDate() - 30);
+                const sinceStr = since.toISOString().slice(0, 10);
+
+                const calSnap = await db
+                    .collection('mentor_calendar')
+                    .doc(req.uid)
+                    .collection('days')
+                    .where('quizCompleted', '==', true)
+                    .where('date', '>=', sinceStr)
+                    .orderBy('date', 'desc')
+                    .limit(5)
+                    .get();
+
+                const recentQuizzes = [];
+                calSnap.forEach(dayDoc => {
+                    const day = dayDoc.data();
+                    (day.quizDetails || []).forEach(q => {
+                        if (recentQuizzes.length < 5) {
+                            recentQuizzes.push(`${q.title || q.quizId || 'quiz'} (${q.score || '?'})`);
+                        }
+                    });
+                });
+
+                if (recentQuizzes.length > 0 && studentProfile) {
+                    studentProfile.recentQuizzes = recentQuizzes;
+                }
+            } catch (profileErr) {
+                // Non-fatal: profile fetch failure must never break the chat
+                console.warn('[AI] Could not load student profile for context:', profileErr.message);
+            }
+        }
+
         // Build system prompt based on task
         let systemIdentity = `You are NS-x AI Learning Assistant from NeoBranium by Aevorin. NeoBranium is an educational learning platform focused on science, mathematics, programming, quizzes, and study tools for students.
 
@@ -485,11 +536,19 @@ IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and st
                     : 'You are a helpful learning assistant.';
         }
 
-        const personalContext = memory.name
-            ? `The user's name is ${memory.name}. `
-            : '';
-
-
+        // Build personalised student context for injection into user message
+        let personalContext = '';
+        if (studentProfile) {
+            const namePart = studentProfile.name ? `Student name: ${studentProfile.name}. ` : (memory.name ? `Student name: ${memory.name}. ` : '');
+            const classPart = studentProfile.targetClass ? `Class: ${studentProfile.targetClass}. ` : '';
+            const subjPart = studentProfile.preferredSubject && studentProfile.preferredSubject !== 'all' ? `Preferred subject: ${studentProfile.preferredSubject}. ` : '';
+            const quizPart = studentProfile.recentQuizzes?.length
+                ? `Recent quiz attempts (last 30 days): ${studentProfile.recentQuizzes.join('; ')}. `
+                : '';
+            personalContext = `[STUDENT PROFILE — use this silently to personalise your response]\n${namePart}${classPart}${subjPart}${quizPart}\n`;
+        } else if (memory.name) {
+            personalContext = `The student's name is ${memory.name}. `;
+        }
 
         // Build Gemini request content. Gemini uses "model" instead of "assistant".
         const systemContent = `${systemIdentity} ${queryContext}`;
