@@ -14,27 +14,12 @@
  */
 
 import { CURRICULUM_DATA, SYLLABUS_VERSION, EXAM_MODES } from '/js/paper-syllabus-data.js';
+import { AiHistorySDK } from '/js/ai-history-sdk.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
 
 // Firebase Auth resolution
 let currentUser = null;
 let getAuthToken = async () => null;
-
-try {
-  const authModule = await import('/js/auth.js');
-  if (authModule && authModule.auth) {
-    authModule.onAuthStateChanged(authModule.auth, (user) => {
-      currentUser = user;
-    });
-    getAuthToken = async () => {
-      if (authModule.auth.currentUser) {
-        return await authModule.auth.currentUser.getIdToken();
-      }
-      return null;
-    };
-  }
-} catch (authErr) {
-  console.info('[PaperGenerator] Running in standalone/guest session mode');
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // State Management
@@ -43,6 +28,7 @@ let currentPaper = null;
 let currentEvaluation = null;
 let currentModelAnswers = null;
 let modelAnswersBtnBusy = false;
+let aiHistory = null;
 let uploadedPages = []; // Array of { file, base64, mimeType, dataUrl, pageNumber }
 let pendingReads = 0;
 let uploadBytesPending = 0;
@@ -121,6 +107,37 @@ const copyModelAnswersBtn = document.getElementById('copyModelAnswersBtn');
 // Theme toggle
 const themeToggleBtn = document.getElementById('themeToggleBtn');
 const themeToggleIcon = document.getElementById('themeToggleIcon');
+
+try {
+  const authModule = await import('/js/auth.js');
+  if (authModule?.auth) {
+    onAuthStateChanged(authModule.auth, (user) => {
+      currentUser = user;
+      if (!user || aiHistory) return;
+      aiHistory = new AiHistorySDK({
+        feature: 'question_paper',
+        getAuthToken: () => authModule.auth.currentUser?.getIdToken(),
+        onOpen: restorePaperHistory,
+        onNew: () => {
+          currentPaper = null;
+          currentEvaluation = null;
+          currentModelAnswers = null;
+          uploadedPages = [];
+          renderUploadedThumbnails();
+          resultArea.hidden = true;
+          evalSummaryCard.hidden = true;
+          floatingUploadBtn.hidden = true;
+          clearHistoryImages();
+        },
+        onError: () => showError('Conversation history could not be synced.')
+      });
+      aiHistory.mountUI(document.body);
+    });
+    getAuthToken = async () => authModule.auth.currentUser?.getIdToken() || null;
+  }
+} catch (authErr) {
+  console.info('[PaperGenerator] Running in standalone/guest session mode');
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // API Configuration
@@ -230,6 +247,109 @@ async function makeApiRequest(endpoint, payload, isRetry = false) {
   }
 
   return data;
+}
+
+function clearHistoryImages() {
+  document.getElementById('ai-history-images')?.remove();
+}
+
+function renderHistoryImages(messages) {
+  clearHistoryImages();
+  const attachments = messages.flatMap(message => message.attachments || [])
+    .filter(item => typeof item?.url === 'string' && item.url.startsWith('https://'));
+  if (!attachments.length) return;
+
+  const gallery = document.createElement('section');
+  gallery.id = 'ai-history-images';
+  gallery.setAttribute('aria-label', 'Saved answer-sheet images');
+  gallery.style.cssText = 'display:flex;gap:8px;overflow-x:auto;margin:16px 0';
+  for (const attachment of attachments) {
+    const image = document.createElement('img');
+    image.src = attachment.url;
+    image.alt = attachment.name || 'Saved answer-sheet page';
+    image.loading = 'lazy';
+    image.referrerPolicy = 'no-referrer';
+    image.style.cssText = 'max-width:180px;max-height:220px;object-fit:contain;border-radius:8px';
+    gallery.appendChild(image);
+  }
+  resultArea.appendChild(gallery);
+}
+
+function restorePaperHistory(messages) {
+  currentPaper = null;
+  currentEvaluation = null;
+  currentModelAnswers = null;
+  resultArea.hidden = true;
+  evalSummaryCard.hidden = true;
+  floatingUploadBtn.hidden = true;
+  clearHistoryImages();
+  const latest = flow => [...messages].reverse().find(message =>
+    message.role === 'assistant' && message.metadata?.flow === flow
+  );
+  const paperMessage = latest('generated_paper');
+  const isAfterPaper = message => !paperMessage ||
+    (Number.isFinite(message?.sequence) && Number.isFinite(paperMessage.sequence) && message.sequence > paperMessage.sequence);
+  const evaluationMessage = latest('answer_evaluation');
+  const modelAnswersMessage = latest('model_answers');
+
+  try {
+    if (paperMessage) {
+      const paper = JSON.parse(paperMessage.text);
+      if (!paper || typeof paper !== 'object' || !Array.isArray(paper.questions)) {
+        throw new Error('Saved question paper has an invalid format.');
+      }
+      currentPaper = paper;
+      renderExamPaper(currentPaper);
+      resultArea.hidden = false;
+      floatingUploadBtn.hidden = !Boolean(currentPaper.paperId && currentPaper.questions.length);
+    }
+    if (evaluationMessage && isAfterPaper(evaluationMessage)) {
+      currentEvaluation = JSON.parse(evaluationMessage.text);
+      renderEvaluationSummary(currentEvaluation);
+    }
+    if (modelAnswersMessage && isAfterPaper(modelAnswersMessage)) currentModelAnswers = JSON.parse(modelAnswersMessage.text);
+    if (evaluationMessage || paperMessage) resultArea.hidden = false;
+    renderHistoryImages(messages);
+  } catch (error) {
+    console.warn('[PaperGenerator] Could not restore saved conversation:', error.message);
+    showError('This conversation contains a result that could not be restored.');
+  }
+}
+
+async function savePaperHistoryExchange({ title, userText, assistantText, flow, metadata = {}, files = [] }) {
+  if (!currentUser || !aiHistory) return;
+  try {
+    await aiHistory.startConversation({ title });
+    const conversationId = aiHistory.conversationId;
+    let failedImageUploads = 0;
+    const attachments = (await Promise.all(files.map(file =>
+      aiHistory.uploadImage(file, { conversationId }).catch(error => {
+        failedImageUploads += 1;
+        console.warn('[PaperGenerator] Answer-sheet history image upload failed:', error.message);
+        return null;
+      })
+    ))).filter(Boolean);
+    await aiHistory.saveMessage({
+      conversationId,
+      role: 'user',
+      text: userText,
+      attachments,
+      messageType: attachments.length ? 'image' : 'text',
+      metadata: { flow, ...metadata }
+    });
+    await aiHistory.saveMessage({
+      conversationId,
+      role: 'assistant',
+      text: assistantText,
+      metadata: { flow, ...metadata }
+    });
+    if (failedImageUploads) {
+      showError('The AI result was saved, but one or more answer-sheet images could not be saved to history.');
+    }
+  } catch (error) {
+    console.warn('[PaperGenerator] Conversation history save failed:', error.message);
+    showError('The AI result is ready, but conversation history could not be synced.');
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -395,7 +515,7 @@ form.addEventListener('submit', async (e) => {
   setLoading(true);
 
   try {
-    const data = await makeApiRequest('/api/paper/generate', {
+    const paperRequest = {
       classVal,
       subject,
       chapter,
@@ -410,7 +530,8 @@ form.addEventListener('submit', async (e) => {
       includeNCERT,
       includeNumericals,
       includeCaseStudy
-    });
+    };
+    const data = await makeApiRequest('/api/paper/generate', paperRequest);
 
     if (!data.success || !data.paper) {
       throw new Error(data.error || 'Failed to generate paper.');
@@ -424,6 +545,7 @@ form.addEventListener('submit', async (e) => {
     uploadBytesPending = 0;
     modelAnswersBtnBusy = false;
     renderUploadedThumbnails();
+    clearHistoryImages();
 
     // Reset evaluation card
     evalSummaryCard.hidden = true;
@@ -437,6 +559,13 @@ form.addEventListener('submit', async (e) => {
 
     // Scroll smoothly to results
     resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    void savePaperHistoryExchange({
+      title: `${subject} · ${chapter}`,
+      userText: `Generate a ${examMode} paper for Class ${classVal}, ${subject}, ${chapter} (${difficulty}, ${totalMarks} marks).`,
+      assistantText: JSON.stringify(currentPaper),
+      flow: 'generated_paper',
+      metadata: { request: paperRequest }
+    });
 
   } catch (err) {
     console.error('[PaperGenerator] Generation error:', err);
@@ -736,6 +865,7 @@ submitCheckAnswersBtn.addEventListener('click', async () => {
   evalProgressText.textContent = 'Transmitting answer-sheet pages securely...';
 
   try {
+    const pagesForHistory = uploadedPages.map(page => page.file);
     const payload = {
       paperId: currentPaper.paperId,
       pages: uploadedPages.map(p => ({
@@ -762,6 +892,14 @@ submitCheckAnswersBtn.addEventListener('click', async () => {
     renderEvaluationSummary(currentEvaluation);
 
     // Keep the detailed breakdown available on demand from the scorecard.
+    void savePaperHistoryExchange({
+      title: `Answer evaluation · ${currentPaper.metadata?.subject || 'Question paper'}`,
+      userText: `Evaluate my answers for paper ${currentPaper.paperId}.`,
+      assistantText: JSON.stringify(currentEvaluation),
+      flow: 'answer_evaluation',
+      metadata: { paperId: currentPaper.paperId },
+      files: pagesForHistory
+    });
 
   } catch (err) {
     console.error('[PaperGenerator] Evaluation error:', err);
@@ -917,6 +1055,13 @@ async function handleViewModelAnswers() {
 
     currentModelAnswers = data.modelAnswers;
     renderModelAnswers(currentModelAnswers);
+    void savePaperHistoryExchange({
+      title: `Model answers · ${currentPaper.metadata?.subject || 'Question paper'}`,
+      userText: `Show model answers for paper ${currentPaper.paperId}.`,
+      assistantText: JSON.stringify(currentModelAnswers),
+      flow: 'model_answers',
+      metadata: { paperId: currentPaper.paperId }
+    });
 
   } catch (err) {
     console.error('[PaperGenerator] Model answers error:', err);

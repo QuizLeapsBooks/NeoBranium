@@ -327,6 +327,14 @@ test('Criterion 14: Firestore rules lock privileged fields in users/{userId}', (
   assert.ok(rules.includes("request.resource.data.keys().hasOnly("), 'User creation must use an explicit field allowlist');
 });
 
+test('AI conversation documents are owner-readable and server-write-only despite legacy wildcard rules', () => {
+  const rules = fs.readFileSync(path.resolve('firestore.rules'), 'utf-8');
+  const conversationRules = rules.slice(rules.indexOf('match /conversations/{conversationId}'), rules.indexOf('// Public student leaderboard'));
+  assert.match(conversationRules, /allow read: if isOwner\(userId\) && resource\.data\.isDeleted == false;/);
+  assert.match(conversationRules, /allow write: if false;/);
+  assert.match(conversationRules, /subCollection != 'conversations'/);
+});
+
 test('RTDB legacy public data reads require authentication', () => {
   const rules = JSON.parse(fs.readFileSync(path.resolve('database.rules.json'), 'utf-8')).rules;
   assert.equal(rules.messages['.read'], 'auth != null');
@@ -567,4 +575,3 @@ test('Criterion 21: Error responses from AI and backend routes do not leak raw u
   assert.doesNotMatch(serverCode, /details:\s*errText/, 'TTS route must not reflect raw errText from ElevenLabs');
   assert.doesNotMatch(serverCode, /res\.status\(500\)\.json\(\{\s*error:\s*'Internal Server Error',\s*message:\s*error\.message\s*\}\)/, 'Queue status must not return raw error.message on 500');
 });
-

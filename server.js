@@ -37,6 +37,8 @@ import { createNeoLearnModerationHandlers } from './neolearn-moderation-handler.
 import { createNeoLearnMessageHandlers } from './neolearn-message-handler.js';
 import { createNeoLearnImpressionHandlers } from './neolearn-impression-handler.js';
 import { validateAIImage } from './utils/paperSecurity.js';
+import { createAiConversationHandler } from './ai-conversation-handler.js';
+import { createAiUploadHandler } from './ai-upload-handler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -214,7 +216,8 @@ app.use((req, res, next) => {
     const paperEvaluation = routePath === '/api/paper/upload-evaluate';
     const imageAI = [
         '/api/gemini-solve', '/api/tutor/create-quiz', '/api/analyze-board',
-        '/api/blackboard/recognize-handwriting', '/api/blackboard/analyze-selection'
+        '/api/blackboard/recognize-handwriting', '/api/blackboard/analyze-selection',
+        '/api/ai/upload-image'
     ].includes(routePath);
     const limit = paperEvaluation ? '24mb' : imageAI ? '8mb' : '1mb';
     return express.json({ limit })(req, res, next);
@@ -2003,6 +2006,42 @@ app.get('/api/neolearn/blocks/:targetUserId', neoLearnModerationHandlers.getBloc
 // POST /api/neolearn/impressions        → record one impression (atomic transaction)
 const neoLearnImpressionHandlers = createNeoLearnImpressionHandlers({ verifyAuthToken, db, admin });
 app.post('/api/neolearn/impressions', neoLearnImpressionHandlers.recordImpression);
+
+// ── AI Conversation History routes ────────────────────────────────────────────
+// All conversation CRUD is handled server-side (Admin SDK) to enforce auth,
+// sanitisation, and quota. Clients never write to Firestore directly.
+const aiConversationHandler = createAiConversationHandler({
+    db,
+    admin,
+    verifyAuthToken,
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME
+});
+
+// Image upload endpoint (must appear before json-body conversation routes)
+const aiImageUploadLimiter = rateLimit({ windowMs: 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false, keyGenerator: (req) => req.uid || req.ip });
+app.post(
+    '/api/ai/upload-image',
+    requireAuth,
+    aiImageUploadLimiter,
+    createAiUploadHandler({ verifyAuthToken, db, isCloudinaryConfigured, cloudinary })
+);
+
+const aiConvLimiter = rateLimit({ windowMs: 60 * 1000, max: 120, standardHeaders: true, legacyHeaders: false, keyGenerator: (req) => req.uid || req.ip });
+
+// Create / upsert conversation metadata
+app.post('/api/ai/conversations', requireAuth, aiConvLimiter, aiConversationHandler.createOrUpdateConversation);
+// List all conversations (optionally filter by feature)
+app.get('/api/ai/conversations', requireAuth, aiConvLimiter, aiConversationHandler.listConversations);
+// Get a single conversation
+app.get('/api/ai/conversations/:conversationId', requireAuth, aiConvLimiter, aiConversationHandler.getConversation);
+// Add a message to a conversation
+app.post('/api/ai/conversations/:conversationId/messages', requireAuth, aiConvLimiter, aiConversationHandler.addMessage);
+// Get messages in a conversation
+app.get('/api/ai/conversations/:conversationId/messages', requireAuth, aiConvLimiter, aiConversationHandler.getMessages);
+// Soft-delete a whole conversation
+app.delete('/api/ai/conversations/:conversationId', requireAuth, aiConvLimiter, aiConversationHandler.softDeleteConversation);
+// Soft-delete an individual message
+app.delete('/api/ai/conversations/:conversationId/messages/:messageId', requireAuth, aiConvLimiter, aiConversationHandler.softDeleteMessage);
 
 // Profile Photo Remove Endpoint
 app.post('/api/profile/remove-photo', async (req, res) => {

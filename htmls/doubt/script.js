@@ -2,6 +2,7 @@ import { db, auth } from "/js/auth.js";
 import DOMPurify from "dompurify";
 import { collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+import { AiHistorySDK } from "/js/ai-history-sdk.js";
 
 // ── IndexedDB helpers for client-side image storage ───────────────────────
 // Images are stored locally in the browser and never uploaded to Firebase.
@@ -52,9 +53,104 @@ async function loadImageFromIDB(key) {
 
 document.addEventListener('DOMContentLoaded', () => {
     let loggedInUserId = null;
+    // AI History SDK instance (initialised after auth)
+    let aiHistory = null;
+
     onAuthStateChanged(auth, (user) => {
         if (user) {
             loggedInUserId = user.uid;
+            // Init SDK only once
+            if (!aiHistory) {
+                aiHistory = new AiHistorySDK({
+                    feature: 'neolens',
+                    getAuthToken: () => auth.currentUser?.getIdToken(),
+                    onOpen: (messages, conversationId) => {
+                        resetUpload();
+                        const assistantMsg = [...messages].reverse().find(m =>
+                            m.role === 'assistant' && m.metadata?.context === 'image_solution'
+                        );
+                        if (assistantMsg && assistantMsg.text) {
+                            const rawHTML = assistantMsg.text
+                                .replace(/\*\*\s*(.*?)\s*\*\*/g, '<strong>$1</strong>')
+                                .replace(/\n\n/g, '</p><p style="margin-top:10px">')
+                                .replace(/\n/g, '<br>');
+                            const cleanHTML = DOMPurify.sanitize(`<p>${rawHTML}</p>`, {
+                                ALLOWED_TAGS: ['p', 'strong', 'em', 'br', 'span', 'i', 'ul', 'li', 'ol'],
+                                ALLOWED_ATTR: ['style']
+                            });
+                            outputContent.innerHTML = cleanHTML;
+                            outputContainer.classList.remove('hidden');
+                            lastGeneratedText = assistantMsg.text;
+                            updateStatus('Previous solution restored.', false);
+                        }
+                        const attachment = messages
+                            .flatMap(message => message.attachments || [])
+                            .reverse()
+                            .find(item => item && item.url);
+                        if (attachment) {
+                            currentFile = null;
+                            currentBase64 = null;
+                            imagePreview.src = attachment.url;
+                            uploadContent.classList.add('hidden');
+                            previewContainer.classList.remove('hidden');
+                            if (createQuizBtn) createQuizBtn.classList.add('hidden');
+                        }
+
+                        followUpContent.replaceChildren();
+                        const followUpMessages = messages.filter(message => message.metadata?.context === 'follow_up');
+                        followUpMessages.forEach(message => {
+                            const element = document.createElement('div');
+                            element.style.marginBottom = '15px';
+                            if (message.role === 'user') {
+                                const label = document.createElement('strong');
+                                label.style.color = 'var(--primary)';
+                                label.textContent = 'Q: ';
+                                element.append(label, document.createTextNode(message.text));
+                            } else if (message.role === 'assistant') {
+                                element.style.padding = '12px';
+                                element.style.background = 'rgba(0, 245, 255, 0.05)';
+                                element.style.borderLeft = '3px solid var(--primary)';
+                                element.style.borderRadius = '0 8px 8px 0';
+                                const html = message.text
+                                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                    .replace(/\n/g, '<br>');
+                                element.innerHTML = DOMPurify.sanitize(html);
+                            }
+                            followUpContent.appendChild(element);
+                        });
+                        followUpSection.classList.toggle('hidden', followUpMessages.length === 0);
+
+                        const quizMessage = [...messages].reverse().find(message =>
+                            message.role === 'assistant' &&
+                            ['quiz', 'practice_quiz'].includes(message.metadata?.context)
+                        );
+                        if (quizMessage) {
+                            try {
+                                const quiz = JSON.parse(quizMessage.text);
+                                const attempt = [...messages].reverse().find(message =>
+                                    message.role === 'user' &&
+                                    message.metadata?.context === 'quiz_attempt' &&
+                                    (!quizMessage.metadata?.quizId || message.metadata?.quizId === quizMessage.metadata.quizId)
+                                )?.metadata;
+                                quizPanel.classList.remove('hidden');
+                                renderQuiz(quiz, attempt, quizMessage.metadata?.quizId || null);
+                            } catch (error) {
+                                console.warn('[NeoLens] Could not restore saved quiz:', error.message);
+                            }
+                        }
+                    },
+                    onNew: () => {
+                        resetUpload();
+                        followUpContent.replaceChildren();
+                        followUpSection.classList.add('hidden');
+                        quizPanel.classList.add('hidden');
+                        quizContent.replaceChildren();
+                        updateStatus('New session. Waiting for input...', false);
+                    },
+                    onError: () => updateStatus('Conversation history could not be synced.', false)
+                });
+                aiHistory.mountUI(document.body);
+            }
         }
     });
 
@@ -290,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetUpload() {
         currentFile = null;
         currentBase64 = null;
+        lastGeneratedText = '';
         fileInput.value = '';
         imagePreview.src = '';
         previewContainer.classList.add('hidden');
@@ -327,6 +424,32 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const base64Data = currentBase64.split(',')[1];
             const mimeType = currentFile.type;
+            const imageFile = currentFile;
+
+            const historySave = aiHistory ? (async () => {
+                await aiHistory.startConversation({ title: 'Image doubt · NeoLens' });
+                const conversationId = aiHistory.conversationId;
+                let attachments = [];
+                let imageSaved = true;
+                try {
+                    attachments = [await aiHistory.uploadImage(imageFile)];
+                } catch (uploadError) {
+                    console.warn('[NeoLens] Image history upload failed:', uploadError.message);
+                    imageSaved = false;
+                }
+                await aiHistory.saveMessage({
+                    conversationId,
+                    role: 'user',
+                    text: 'Image doubt submitted.',
+                    attachments,
+                    messageType: 'image',
+                    metadata: { context: 'image_question' }
+                });
+                return { conversationId, imageSaved };
+            })().catch(historyError => {
+                console.warn('[NeoLens] User history save failed:', historyError.message);
+                return { conversationId: null, imageSaved: false };
+            }) : Promise.resolve(null);
 
             const response = await fetch(`${API_BASE_URL}/gemini-solve`, {
                 method: 'POST',
@@ -376,6 +499,25 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             revealContent(outputContent, cleanHTML);
+            historySave.then(history => {
+                if (!history || !aiHistory) return;
+                if (!history.conversationId) {
+                    updateStatus('Solution is ready, but conversation history could not be synced.', false);
+                    return;
+                }
+                if (!history.imageSaved) {
+                    updateStatus('Solution is ready, but its image could not be saved to history.', false);
+                }
+                return aiHistory.saveMessage({
+                    conversationId: history.conversationId,
+                    role: 'assistant',
+                    text: resultText,
+                    metadata: { context: 'image_solution' }
+                });
+            }).catch(historyError => {
+                console.warn('[NeoLens] Assistant history save failed:', historyError.message);
+                updateStatus('Solution ready, but conversation history could not be synced.', false);
+            });
 
         } catch (error) {
             console.error("NeoLens Solve Error:", error);
@@ -761,6 +903,20 @@ document.addEventListener('DOMContentLoaded', () => {
         questionLabel.textContent = 'Q: ';
         userMsgDiv.append(questionLabel, document.createTextNode(userDoubt));
         followUpContent.appendChild(userMsgDiv);
+        const historySave = aiHistory ? (async () => {
+            await aiHistory.startConversation({ title: userDoubt.slice(0, 45) || 'NeoLens follow-up' });
+            const conversationId = aiHistory.conversationId;
+            await aiHistory.saveMessage({
+                conversationId,
+                role: 'user',
+                text: userDoubt,
+                metadata: { context: 'follow_up' }
+            });
+            return conversationId;
+        })().catch(historyError => {
+            console.warn('[NeoLens] Follow-up history save failed:', historyError.message);
+            return null;
+        }) : Promise.resolve(null);
 
         isFollowUpLoading = true;
         sendFollowUpBtn.disabled = true;
@@ -808,6 +964,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             revealContent(aiMsgDiv, formattedResult);
             followUpContent.appendChild(aiMsgDiv);
+            historySave.then(conversationId => {
+                if (!conversationId || !aiHistory) return;
+                return aiHistory.saveMessage({
+                    conversationId,
+                    role: 'assistant',
+                    text: data.reply,
+                    metadata: { context: 'follow_up' }
+                });
+            }).catch(historyError => {
+                console.warn('[NeoLens] Follow-up response could not be synced:', historyError.message);
+                updateStatus('Follow-up ready, but conversation history could not be synced.', false);
+            });
 
         } catch (error) {
             console.error('Follow-up Error:', error);
@@ -827,6 +995,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── ── ── ── ── ── ── ── ── ── ── ── ── ──
     // Quiz Feature
     // ── ── ── ── ── ── ── ── ── ── ── ── ── ──
+
+    async function saveQuizHistory(quiz, context, quizId, details = {}) {
+        if (!aiHistory) return;
+        try {
+            await aiHistory.startConversation({ title: quiz.title || 'NeoLens practice quiz' });
+            const conversationId = aiHistory.conversationId;
+            await aiHistory.saveMessage({
+                conversationId,
+                role: 'user',
+                text: context === 'practice_quiz'
+                    ? 'Create a practice quiz based on my missed questions.'
+                    : 'Create a practice quiz from this image solution.',
+                messageType: 'quiz',
+                metadata: { context, quizId, ...details }
+            });
+            await aiHistory.saveMessage({
+                conversationId,
+                role: 'assistant',
+                text: JSON.stringify(quiz),
+                messageType: 'quiz',
+                metadata: { context, quizId }
+            });
+        } catch (error) {
+            console.warn('[NeoLens] Quiz history save failed:', error.message);
+            updateStatus('Quiz is ready, but conversation history could not be synced.', false);
+        }
+    }
 
     // Create Quiz button handler
     createQuizBtn.addEventListener('click', async () => {
@@ -887,7 +1082,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(data.error || 'Quiz generation failed.');
             }
 
-            renderQuiz(data.quiz);
+            const quizId = crypto.randomUUID();
+            renderQuiz(data.quiz, null, quizId);
+            void saveQuizHistory(data.quiz, 'quiz', quizId);
 
         } catch (error) {
             console.error('Quiz Generation Error:', error);
@@ -915,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Render quiz questions
-    function renderQuiz(quiz) {
+    function renderQuiz(quiz, savedAttempt = null, quizId = null) {
         if (!quiz || !Array.isArray(quiz.questions) || quiz.questions.length === 0) {
             quizContent.innerHTML = `<p style="padding:20px;color:var(--error);">No questions were generated. Please try again.</p>`;
             return;
@@ -988,6 +1185,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 let correctCount = 0;
                 let incorrectIndices = [];
+                const selectedAnswers = [];
 
                 quizContent.querySelectorAll('.quiz-question').forEach(questionEl => {
                     const correctIdx = parseInt(questionEl.dataset.correct, 10);
@@ -999,6 +1197,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const radio = opt.querySelector('input[type="radio"]');
                         if (radio && radio.checked) selectedIdx = idx;
                     });
+                    selectedAnswers.push({ questionIndex: qIdx, selectedIndex: selectedIdx });
 
                     if (selectedIdx === correctIdx) {
                         correctCount++;
@@ -1022,6 +1221,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // --- Display Result Summary ---
                 const totalQs = quiz.questions.length;
+                if (!savedAttempt && aiHistory) {
+                    aiHistory.saveMessage({
+                        role: 'user',
+                        text: `Quiz completed: ${correctCount}/${totalQs} correct.`,
+                        messageType: 'quiz',
+                        metadata: {
+                            context: 'quiz_attempt',
+                            quizId,
+                            correctCount,
+                            totalQuestions: totalQs,
+                            incorrectIndices,
+                            answers: selectedAnswers
+                        }
+                    }).catch(error => {
+                        console.warn('[NeoLens] Quiz attempt history save failed:', error.message);
+                        updateStatus('Quiz score is ready, but conversation history could not be synced.', false);
+                    });
+                }
                 const resultSummary = document.createElement('div');
                 resultSummary.className = 'quiz-result-summary';
                 resultSummary.innerHTML = `
@@ -1104,7 +1321,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
 
                         // Render the NEW quiz in the existing panel
-                        renderQuiz(data.quiz);
+                        const practiceQuizId = crypto.randomUUID();
+                        renderQuiz(data.quiz, null, practiceQuizId);
+                        void saveQuizHistory(data.quiz, 'practice_quiz', practiceQuizId, {
+                            basedOnQuizId: quizId,
+                            incorrectIndices
+                        });
                         
                     } catch (error) {
                         console.error('Practice Generation Error:', error);
@@ -1116,6 +1338,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             });
+        }
+
+        if (savedAttempt && Array.isArray(savedAttempt.answers)) {
+            for (const answer of savedAttempt.answers) {
+                const question = [...quizContent.querySelectorAll('.quiz-question')]
+                    .find(element => Number(element.dataset.qidx) === Number(answer.questionIndex));
+                const option = [...(question?.querySelectorAll('.quiz-option') || [])]
+                    .find(element => Number(element.dataset.oidx) === Number(answer.selectedIndex));
+                const radio = option?.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    option.classList.add('selected');
+                }
+            }
+            checkBtn?.click();
         }
     }
 

@@ -47,16 +47,32 @@ export const uiManager = {
         this.showModal(true);
     },
 
-    appendUserMessage(text) {
+    appendUserMessage(text, attachments = []) {
         const div = document.createElement('div');
         div.className = 'chat-message user';
-        div.textContent = text;
+        const content = document.createElement('div');
+        content.textContent = text;
+        div.appendChild(content);
+        for (const attachment of attachments) {
+            if (typeof attachment?.url !== 'string') continue;
+            const image = document.createElement('img');
+            image.src = attachment.url;
+            image.alt = attachment.name || 'Saved conversation image';
+            image.loading = 'lazy';
+            image.referrerPolicy = 'no-referrer';
+            image.style.cssText = 'display:block;max-width:min(100%,360px);max-height:280px;margin-top:8px;border-radius:8px';
+            div.appendChild(image);
+        }
         DOM.aiResponseContent.appendChild(div);
         this.scrollToBottom();
     },
 
     displayFullResponse(result) {
         DOM.aiResponseContent.innerHTML = '';
+        this.appendFullResponse(result);
+    },
+
+    appendFullResponse(result) {
         const div = document.createElement('div');
         div.className = 'chat-message assistant';
         if (Array.isArray(result.blocks)) {
@@ -67,6 +83,15 @@ export const uiManager = {
         } else {
             div.innerHTML = utils.markdownToHtml(result.explanation || "");
         }
+        DOM.aiResponseContent.appendChild(div);
+        utils.renderMath(div);
+        this.scrollToBottom();
+    },
+
+    appendSavedAssistantMessage(text) {
+        const div = document.createElement('div');
+        div.className = 'chat-message assistant';
+        div.innerHTML = utils.markdownToHtml(text);
         DOM.aiResponseContent.appendChild(div);
         utils.renderMath(div);
         this.scrollToBottom();

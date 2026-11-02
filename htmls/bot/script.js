@@ -1,6 +1,8 @@
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { isGuestUser, auth } from '../../js/auth.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+import { AiHistorySDK } from '/js/ai-history-sdk.js';
 
 // Configure marked for better code highlighting
 marked.setOptions({
@@ -18,6 +20,7 @@ class ChatAssistant {
         this.API_BASE_URL = this.getApiBaseUrl();
         this.genAI = null;
         this.isProcessing = false;
+        this.aiHistory = null;
 
         // DOM Elements
         this.chatInput = document.querySelector('#chat-input');
@@ -33,6 +36,33 @@ class ChatAssistant {
 
         // Setup event listeners
         this.setupEventListeners();
+
+        onAuthStateChanged(auth, user => {
+            if (!user || this.aiHistory) return;
+            this.aiHistory = new AiHistorySDK({
+                feature: 'ai_assistant',
+                getAuthToken: () => auth.currentUser?.getIdToken(),
+                onOpen: messages => {
+                    this.chatHistory = [];
+                    this.chatContainer.replaceChildren();
+                    messages.forEach(message => {
+                        if (message.role === 'user') {
+                            this.addMessage(this.escapeHtml(message.text), 'user', false, message.text);
+                        } else if (message.role === 'assistant') {
+                            this.addMessage(marked.parse(message.text), 'ai', false, message.text);
+                        }
+                    });
+                },
+                onNew: () => {
+                    this.chatHistory = [];
+                    sessionStorage.removeItem('chatHistory');
+                    this.chatContainer.replaceChildren();
+                    this.addWelcomeMessage();
+                },
+                onError: () => this.showHistoryError()
+            });
+            this.aiHistory.mountUI(document.body);
+        });
 
         // Guest restriction check
         if (isGuestUser()) {
@@ -146,6 +176,10 @@ class ChatAssistant {
 
         // Add user message
         this.addMessage(this.escapeHtml(userText), 'user');
+        if (this.aiHistory) {
+            this.aiHistory.saveMessage({ role: 'user', text: userText })
+                .catch(() => this.showHistoryError());
+        }
 
         // Clear input
         this.chatInput.value = '';
@@ -218,6 +252,10 @@ class ChatAssistant {
             if (data.reply) {
                 const formattedResponse = marked.parse(data.reply);
                 this.addMessage(formattedResponse, 'ai', false, data.reply);
+                if (this.aiHistory) {
+                    this.aiHistory.saveMessage({ role: 'assistant', text: data.reply })
+                        .catch(() => this.showHistoryError());
+                }
             } else {
                 this.addMessage('Sorry, I received an empty response. Please try again.', 'ai');
             }
@@ -286,6 +324,25 @@ class ChatAssistant {
                 console.warn('Failed to load chat history');
             }
         }
+    }
+
+    showHistoryError() {
+        this.showToast('Conversation history could not be synced. Your current answer is still available.');
+    }
+
+    showToast(message) {
+        let toast = document.getElementById('ai-history-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'ai-history-toast';
+            toast.setAttribute('role', 'status');
+            toast.style.cssText = 'position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:9100;padding:10px 16px;border-radius:8px;background:#28213d;color:#fff;font-size:13px;box-shadow:0 4px 18px rgba(0,0,0,.3)';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        toast.hidden = false;
+        clearTimeout(this.historyToastTimer);
+        this.historyToastTimer = setTimeout(() => { toast.hidden = true; }, 4000);
     }
 }
 

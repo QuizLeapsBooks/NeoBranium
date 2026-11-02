@@ -91,9 +91,24 @@ service cloud.firestore {
       // No direct client deletes of root profile
       allow delete: if false;
 
-      // Conserve user sub-collections for NeoMentor and NeoBranium features
-      match /{document=**} {
-        allow read, write: if isOwner(userId);
+      // ── AI Conversation History sub-collections ──────────────────────────
+      // All writes go through the server (Admin SDK) so auth, sanitisation,
+      // and soft-delete semantics are enforced centrally.
+      // Clients may only READ their own (non-deleted) conversations & messages.
+      match /conversations/{conversationId} {
+        allow read: if isOwner(userId) && resource.data.isDeleted == false;
+        allow write: if false; // Admin SDK only
+
+        match /messages/{messageId} {
+          allow read: if isOwner(userId) && resource.data.isDeleted == false;
+          allow write: if false; // Admin SDK only
+        }
+      }
+
+      // Preserve existing access to other user sub-collections, but do not let
+      // this broad legacy grant override the stricter conversation rules above.
+      match /{subCollection}/{document=**} {
+        allow read, write: if isOwner(userId) && subCollection != 'conversations';
       }
     }
 

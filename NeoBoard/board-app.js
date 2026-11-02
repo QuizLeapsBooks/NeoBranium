@@ -2,24 +2,90 @@ import {createDocument,validateDocument,BoardEventBus,HistoryManager,BoardPersis
 import {BoardEngine} from './board-engine.js';
 import {recognizeContent,learningSubjectOptions,parseSimpleEquation,solveSimpleEquation,registerRecognitionRule} from './learning-recognition.js';
 import {auth} from '../js/auth.js';
-import {onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
 import {VoiceTeacher} from './voice-teacher.js';
 import {validateVoiceObjects} from './voice-actions.js';
+import {AiHistorySDK} from '../js/ai-history-sdk.js';
 
 const $=s=>document.querySelector(s),canvas=$('#boardCanvas'),frame=$('#canvasFrame'),status=$('#saveStatus'),toastEl=$('#toast');
-let authReadyPromise;
-function getSignedInUser(){if(auth.currentUser)return Promise.resolve(auth.currentUser);if(!authReadyPromise)authReadyPromise=new Promise(resolve=>{let settled=false,unsubscribe=onAuthStateChanged(auth,user=>{if(settled)return;settled=true;unsubscribe();resolve(user);},()=>{if(settled)return;settled=true;unsubscribe();resolve(null);});});return authReadyPromise;}
+async function getSignedInUser(){if(!auth.currentUser)await auth.authStateReady();return auth.currentUser;}
 const bus=new BoardEventBus(),history=new HistoryManager(),persistence=new BoardPersistence(),actions=new BoardActionRegistry(),extensions=new ExtensionRegistry(),strokeManager=new StrokeManager(),objectManager=new ObjectManager(),selection=new SelectionEngine();
-let doc=createDocument(),lastCommitted=clone(doc),tool='pen',color='#f4f2e8',width=4,drawing=null,drag=null,marquee=null,editingId=null,timer,saveTimer,toastTimer,spaceDown=false,recognitionOverride='auto',handwritingRecognition=null,handwritingBusy=false,handwritingRequestKey=null,handwritingConfirmed=false,handwritingError='',handwritingSequence=0,handwritingCorrection=null,learningAnalysis=null,learningBusy=false,learningError='',learningHistory=[],activeLearningResultId=null,erasing=null,activePointers=new Map(),pinchState=null,rafPending=false;
+let doc=createDocument(),lastCommitted=clone(doc),tool='pen',color='#f4f2e8',width=4,drawing=null,drag=null,marquee=null,editingId=null,timer,saveTimer,toastTimer,spaceDown=false,recognitionOverride='auto',handwritingRecognition=null,handwritingBusy=false,handwritingRequestKey=null,handwritingConfirmed=false,handwritingError='',handwritingSequence=0,handwritingCorrection=null,learningAnalysis=null,learningBusy=false,learningError='',learningHistory=[],activeLearningResultId=null,erasing=null,activePointers=new Map(),pinchState=null,rafPending=false,aiHistory=null,voiceHistoryQueue=Promise.resolve();
 const engine=new BoardEngine(canvas,$('#previewCanvas'),frame,()=>doc);engine.selected=selection.ids;engine.onChange=()=>{$('#zoomLabel').textContent=`${Math.round(engine.zoom*100)}%`;};
 if(matchMedia('(max-width:700px)').matches)$('.workspace').classList.add('panel-collapsed');
 const context=new BoardContextProvider(()=>doc,()=>selection.snapshot());
-const voiceTeacher=new VoiceTeacher({auth,context,getViewport:()=>({zoom:engine.zoom,pan:{...engine.pan}}),getRecognition:()=>handwritingRecognition?.result?{...handwritingRecognition.result,studentCorrection:handwritingCorrection,confirmed:handwritingConfirmed}:null,applyObjects:applyVoiceObjects,onStatus:renderVoiceStatus});
+const voiceTeacher=new VoiceTeacher({auth,context,getViewport:()=>({zoom:engine.zoom,pan:{...engine.pan}}),getRecognition:()=>handwritingRecognition?.result?{...handwritingRecognition.result,studentCorrection:handwritingCorrection,confirmed:handwritingConfirmed}:null,applyObjects:applyVoiceObjects,onStatus:renderVoiceStatus,onTranscriptFinal:persistVoiceTurn});
 // Stable extension API: event bus, safe board snapshots/region extraction, action registry,
 // extension registry and provider contract live in board-core.js.
 extensions.initializeAll({events:bus,context,actions,registry:extensions,engine,document:{version:1,types:['text','line','arrow','rect','ellipse','stroke'],customTypes:'metadata.type + engine.registerObjectRenderer(type, renderer)'}});
 function clone(v){return structuredClone(v);}
 function tell(message){toastEl.textContent=message;toastEl.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toastEl.classList.remove('show'),2600);}
+async function getNeoBoardHistory(){
+  const user=await getSignedInUser();
+  if(!user)return null;
+  if(!aiHistory){
+    aiHistory=new AiHistorySDK({
+      feature:'neoboard',
+      getAuthToken:()=>auth.currentUser?.getIdToken(),
+      onOpen:async messages=>{
+        voiceTeacher.end();
+        await voiceHistoryQueue;
+        startNewLearningResponse();
+        for(const message of messages){
+          if(message.role==='assistant'&&message.metadata?.flow==='selection_analysis'){
+            try{addLearningResult(JSON.parse(message.text),'Saved NeoBoard response');}
+            catch(error){console.warn('[NeoBoard] Could not restore saved AI result:',error.message);}
+          }
+        }
+        const voiceMessages=messages
+          .filter(message=>message.metadata?.flow==='voice')
+          .map(message=>({role:message.role==='user'?'You':'Teacher',text:message.text}));
+        voiceTeacher.transcript=voiceMessages.slice(-8);
+        renderVoiceStatus('History loaded',voiceTeacher.transcript);
+        const attachment=messages.flatMap(message=>message.attachments||[]).find(item=>item&&item.url);
+        if(attachment){
+          const image=document.createElement('img');
+          image.src=attachment.url;
+          image.alt=attachment.name||'Saved board image';
+          image.loading='lazy';
+          image.referrerPolicy='no-referrer';
+          image.style.cssText='max-width:min(100%,360px);max-height:240px;border-radius:8px;margin:8px 0';
+          $('#learningResult').prepend(image);
+        }
+      },
+      onNew:async()=>{
+        voiceTeacher.end();
+        await voiceHistoryQueue;
+        startNewLearningResponse();
+        voiceTeacher.transcript=[];
+        voiceTeacher.pendingUserText='';
+        voiceTeacher.pendingTeacherText='';
+        renderVoiceStatus('Ready',[]);
+      },
+      onError:()=>tell('AI conversation history could not be synced.')
+    });
+    aiHistory.mountUI(document.body);
+  }
+  return aiHistory;
+}
+getNeoBoardHistory().catch(error=>console.warn('[NeoBoard] Conversation history initialization failed:',error.message));
+async function makeHistoryImage(dataUrl,name){const match=dataUrl.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);if(!match)throw new Error('Invalid board image for conversation history.');const binary=atob(match[2]),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);return new File([bytes],name,{type:match[1]});}
+async function saveNeoBoardExchange({question,result,imageDataUrl=null,flow='selection_analysis',status='completed'}){
+  const history=await getNeoBoardHistory();
+  if(!history)return;
+  await history.startConversation({title:$('#boardTitle').value||'NeoBoard lesson',metadata:{boardId:doc.id}});
+  const conversationId=history.conversationId;
+  let attachments=[];
+  if(imageDataUrl){
+    try{attachments=[await history.uploadImage(await makeHistoryImage(imageDataUrl,'neoboard-selection.png'))];}
+    catch(error){
+      console.warn('[NeoBoard] Selection image history upload failed:',error.message);
+      tell('AI response is ready, but its selected image could not be saved to history.');
+    }
+  }
+  await history.saveMessage({conversationId,role:'user',text:question,attachments,messageType:attachments.length?'image':'text',metadata:{flow}});
+  await history.saveMessage({conversationId,role:'assistant',text:JSON.stringify(result),status,metadata:{flow}});
+}
+function persistVoiceTurn({userText,assistantText,status='completed'}){const operation=voiceHistoryQueue.then(async()=>{const history=await getNeoBoardHistory();if(!history)return;await history.startConversation({title:$('#boardTitle').value||'NeoBoard voice lesson',metadata:{boardId:doc.id}});const conversationId=history.conversationId;if(userText)await history.saveMessage({conversationId,role:'user',text:userText,metadata:{flow:'voice'}});if(assistantText)await history.saveMessage({conversationId,role:'assistant',text:assistantText,status,metadata:{flow:'voice'}});});voiceHistoryQueue=operation.catch(error=>{console.warn('[NeoBoard] Voice transcript history save failed:',error.message);tell('Voice lesson history could not be synced.');});return voiceHistoryQueue;}
 function learningHistoryKey(){return`neobranium.blackboard.aiResults.${doc.id}`;}
 function saveLearningHistory(){try{localStorage.setItem(learningHistoryKey(),JSON.stringify({activeId:activeLearningResultId,items:learningHistory.slice(0,30)}));}catch{tell('AI response could not be saved. Browser storage may be full.');}}
 function renderLearningHistory(){const select=$('#savedLearningResults');if(!select)return;const active=activeLearningResultId;select.replaceChildren(new Option('Past AI responses',''));for(const item of learningHistory){const date=new Date(item.createdAt),stamp=Number.isNaN(date.getTime())?'':` · ${date.toLocaleString()}`,option=new Option(`${item.title||'AI response'}${stamp}`,item.id);select.add(option);}select.value=active||'';}
@@ -146,7 +212,36 @@ function insertDnaModel(){const data=buildSubjectVisual('biology','dna'),positio
 function appendVisual(host,data){const expr=data.normalizedExpression||data.recognizedText||'',equation=parseSimpleEquation(expr);if(/\bDNA\b|deoxyribonucleic/i.test(`${expr} ${data.visualTitle||''}`)){host.append(renderDnaPreview(data.visualTitle||'DNA · double helix'));return;}if(data.subject==='mathematics'&&equation&&(data.visualType==='graph'||!data.visualType||data.visualType==='none')){const graph={...equation,mode:$('#graphMode').value,title:$('#graphMode').value==='function'?`y = ${expr.split('=').at(0).trim()}`:`${expr} · plot left − right`};if(graph.mode==='function'&&Math.abs(equation.c)>1e-10){graph.mode='equation';graph.title=`${expr} · plot left − right`;}host.append(renderGraphCard(graph));const insert=document.createElement('button');insert.type='button';insert.textContent='Add graph to board';insert.onclick=()=>insertGraphResult(graph);host.append(insert);return;}if(data.visualType==='timeline'&&data.visualItems?.length){host.append(renderTimeline(data.visualTitle,data.visualItems));return;}if(data.visualType==='molecule'&&data.visualItems?.length){host.append(renderMolecule(data.visualTitle,data.visualItems,data.visualBonds||[]));return;}if(data.visualType==='diagram'&&data.visualItems?.length){host.append(renderDiagram(data.visualTitle,data.visualItems));return;}if(data.visualType==='table'&&data.visualItems?.length){host.append(renderDataTable(data.visualTitle,data.visualItems));return;}if(data.subject==='mathematics'&&Array.isArray(data.graphPoints)&&data.graphPoints.length>=2){const card=document.createElement('section'),title=document.createElement('h4'),plot=document.createElement('canvas');card.className='visual-card';title.textContent=data.visualTitle||'Interactive graph';plot.width=720;plot.height=390;plot.setAttribute('aria-label',title.textContent);drawPointGraph(plot,data.graphPoints,data.graphXLabel||'x',data.graphYLabel||'y');card.append(title,plot);host.append(card);}}
 function renderLearningAnalysis(data){const host=$('#learningResult');host.replaceChildren();host.hidden=false;const add=(label,value)=>{if(!value||Array.isArray(value)&&!value.length)return;const block=document.createElement('div'),heading=document.createElement('strong'),body=document.createElement('p');heading.textContent=label;body.textContent=Array.isArray(value)?value.map((x,i)=>`${i+1}. ${x}`).join('\n'):String(value);block.append(heading,body);host.append(block);};const recognized=data.normalizedExpression||data.recognizedText;add('Recognized content',recognized);if(data.recognitionWarnings?.length)add('Recognition warnings',data.recognitionWarnings);add('NeoBoard AI',data.explanation);add('Steps',data.steps);add('Examples',data.examples);add('Equivalent forms',data.equivalentForms);appendVisual(host,data);if(recognized){const insertSelected=document.createElement('button');insertSelected.type='button';insertSelected.textContent='Add recognized text to board';insertSelected.onclick=()=>insertTextResult(recognized);host.append(insertSelected);}const answerText=[recognized,data.explanation,data.steps?.length?`Steps:\n${data.steps.map((step,i)=>`${i+1}. ${step}`).join('\n')}`:'',data.examples?.length?`Examples:\n${data.examples.map((example,i)=>`${i+1}. ${example}`).join('\n')}`:''].filter(Boolean).join('\n\n');if(answerText){const insert=document.createElement('button');insert.type='button';insert.textContent='Add full answer to board';insert.onclick=()=>insertTextResult(answerText);host.append(insert);}if((data.visualType&&['timeline','diagram','molecule','table'].includes(data.visualType)&&data.visualItems?.length)||/\bDNA\b|deoxyribonucleic/i.test(`${recognized||''} ${data.visualTitle||''}`)){const insert=document.createElement('button');insert.type='button';insert.textContent=/\bDNA\b|deoxyribonucleic/i.test(`${recognized||''} ${data.visualTitle||''}`)?'Add DNA double helix to board':'Add visual to board';insert.onclick=()=>insertVisualResult(data);host.append(insert);}if(!host.childElementCount){const msg=document.createElement('p');msg.textContent='NeoBoard AI returned no displayable result. Try a clearer selection.';host.append(msg);}}
 function drawPointGraph(canvas,points,xLabel='x',yLabel='y'){const c=canvas.getContext('2d'),w=canvas.width,h=canvas.height,xs=points.map(p=>p.x),ys=points.map(p=>p.y),xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(0,...ys),ymax=Math.max(0,...ys),dx=xmax-xmin||1,dy=ymax-ymin||1,mapX=x=>30+(x-xmin)/dx*(w-50),mapY=y=>h-28-(y-ymin)/dy*(h-50);c.fillStyle='#17221c';c.fillRect(0,0,w,h);c.strokeStyle='#526653';c.beginPath();c.moveTo(30,mapY(Math.max(ymin,Math.min(ymax,0))));c.lineTo(w-20,mapY(Math.max(ymin,Math.min(ymax,0))));c.moveTo(mapX(Math.max(xmin,Math.min(xmax,0))),10);c.lineTo(mapX(Math.max(xmin,Math.min(xmax,0))),h-28);c.stroke();c.strokeStyle='#bee09a';c.lineWidth=3;c.beginPath();points.forEach((p,i)=>i?c.lineTo(mapX(p.x),mapY(p.y)):c.moveTo(mapX(p.x),mapY(p.y)));c.stroke();c.fillStyle='#d6e4d3';c.font='14px system-ui';c.fillText(xLabel,w-35,h-8);c.fillText(yLabel,8,18);}
-async function analyzeSelectedContent(){const content=selection.selectedContent(doc);if(!content.itemIds.length||learningBusy)return;if(!content.bounds||(!content.strokes.length&&!content.objects.length)){learningError='No readable content is selected.';renderLearningPanel(content);return;}const key=JSON.stringify({ids:content.itemIds,format:$('#requestedFormat').value}),sequence=handwritingSequence;learningBusy=true;learningError='';renderLearningPanel(content);try{const user=await getSignedInUser();if(!user)throw new Error('Sign in to use NeoBoard AI.');const token=await user.getIdToken(),text=content.objects.filter(o=>o.type==='text').map(o=>o.text).join('\n').trim(),body={selectedText:text,subject:$('#contentTypeOverride').value==='auto'?(recognizeContent(content).subject||'unknown'):$('#contentTypeOverride').value,requestedFormat:$('#requestedFormat').value,selection:{id:crypto.randomUUID(),strokeIds:content.strokeIds,objectIds:content.objectIds,bounds:content.bounds,objectTypes:content.objects.map(o=>o.type)}};if(content.strokes.length||content.objects.some(o=>o.type!=='text')||!text){const crop=createHandwritingCrop(content);if(crop.width<1||crop.height<1||crop.width>4096||crop.height>4096||crop.width*crop.height>12_000_000)throw new Error('The selected crop exceeds image limits. Select a smaller region.');const dataUrl=crop.toDataURL('image/png');body.imageBase64=dataUrl.slice(dataUrl.indexOf(',')+1);body.mimeType='image/png';if(body.imageBase64.length>7_000_000)throw new Error('The selected image is too large. Select a smaller region.');}if(!body.selectedText&&!body.imageBase64)throw new Error('Selected content payload is empty. Reselect the handwriting and try again.');const response=await fetch(`${boardApiBase()}/api/blackboard/analyze-selection`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},credentials:'include',cache:'no-store',body:JSON.stringify(body)});let payload={};try{payload=await response.json();}catch{}if(!response.ok)throw new Error(response.status===404?'Blackboard API route not found. Restart the updated backend with `node server.js`.':payload.error||(response.status===429?'AI request limit reached. Try again later.':'NeoBoard AI could not complete this request.'));if(sequence!==handwritingSequence||JSON.stringify({ids:selection.selectedContent(doc).itemIds,format:$('#requestedFormat').value})!==key)return;handwritingRecognition={result:payload.result};handwritingCorrection=payload.result.normalizedExpression||payload.result.recognizedText||'';addLearningResult(payload.result,$('#requestedFormat').selectedOptions[0]?.textContent||'AI response');}catch(error){if(sequence===handwritingSequence)learningError=error instanceof TypeError?'Could not reach the backend. Start the server on port 3000, or set ?apiPort=PORT locally.':error.message||'NeoBoard AI could not complete this request.';}finally{if(sequence===handwritingSequence){learningBusy=false;if(selection.selectedContent(doc).itemIds.length)renderLearningPanel(selection.selectedContent(doc));}}}
+async function analyzeSelectedContent(){
+  const content=selection.selectedContent(doc);
+  if(!content.itemIds.length||learningBusy)return;
+  if(!content.bounds||(!content.strokes.length&&!content.objects.length)){learningError='No readable content is selected.';renderLearningPanel(content);return;}
+  const key=JSON.stringify({ids:content.itemIds,format:$('#requestedFormat').value}),sequence=handwritingSequence;
+  learningBusy=true;learningError='';renderLearningPanel(content);
+  try{
+    const user=await getSignedInUser();
+    if(!user)throw new Error('Sign in to use NeoBoard AI.');
+    const token=await user.getIdToken(),text=content.objects.filter(o=>o.type==='text').map(o=>o.text).join('\n').trim();
+    const body={selectedText:text,subject:$('#contentTypeOverride').value==='auto'?(recognizeContent(content).subject||'unknown'):$('#contentTypeOverride').value,requestedFormat:$('#requestedFormat').value,selection:{id:crypto.randomUUID(),strokeIds:content.strokeIds,objectIds:content.objectIds,bounds:content.bounds,objectTypes:content.objects.map(o=>o.type)}};
+    let imageDataUrl=null;
+    if(content.strokes.length||content.objects.some(o=>o.type!=='text')||!text){
+      const crop=createHandwritingCrop(content);
+      if(crop.width<1||crop.height<1||crop.width>4096||crop.height>4096||crop.width*crop.height>12_000_000)throw new Error('The selected crop exceeds image limits. Select a smaller region.');
+      imageDataUrl=crop.toDataURL('image/png');body.imageBase64=imageDataUrl.slice(imageDataUrl.indexOf(',')+1);body.mimeType='image/png';
+      if(body.imageBase64.length>7_000_000)throw new Error('The selected image is too large. Select a smaller region.');
+    }
+    if(!body.selectedText&&!body.imageBase64)throw new Error('Selected content payload is empty. Reselect the handwriting and try again.');
+    const response=await fetch(`${boardApiBase()}/api/blackboard/analyze-selection`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},credentials:'include',cache:'no-store',body:JSON.stringify(body)});
+    let payload={};try{payload=await response.json();}catch{}
+    if(!response.ok)throw new Error(response.status===404?'Blackboard API route not found. Restart the updated backend with `node server.js`.':payload.error||(response.status===429?'AI request limit reached. Try again later.':'NeoBoard AI could not complete this request.'));
+    if(sequence!==handwritingSequence||JSON.stringify({ids:selection.selectedContent(doc).itemIds,format:$('#requestedFormat').value})!==key)return;
+    handwritingRecognition={result:payload.result};handwritingCorrection=payload.result.normalizedExpression||payload.result.recognizedText||'';
+    addLearningResult(payload.result,$('#requestedFormat').selectedOptions[0]?.textContent||'AI response');
+    const question=text||`Explain the selected handwriting as ${body.requestedFormat}.`;
+    saveNeoBoardExchange({question,result:payload.result,imageDataUrl}).catch(error=>{console.warn('[NeoBoard] Conversation history save failed:',error.message);tell('AI response is ready, but conversation history could not be synced.');});
+  }catch(error){if(sequence===handwritingSequence)learningError=error instanceof TypeError?'Could not reach the backend. Start the server on port 3000, or set ?apiPort=PORT locally.':error.message||'NeoBoard AI could not complete this request.';}
+  finally{if(sequence===handwritingSequence){learningBusy=false;if(selection.selectedContent(doc).itemIds.length)renderLearningPanel(selection.selectedContent(doc));}}
+}
 async function runLearningAction(id,label,content,text,metadata){const host=$('#panelResult');host.hidden=false;host.replaceChildren();const message=document.createElement('span');message.textContent='Working…';host.append(message);try{if(id==='math.graph'&&$('#graphMode').value==='function'&&!/^\s*0+(?:\.0+)?\s*$/.test(String(text).split('=').at(-1)||''))throw new Error('Function mode graphs the left side y = f(x). It is supported here when the equation equals zero; choose equation visualization for a nonzero right side.');const value=await actions.execute(id,{selection:content,metadata,selectedContent:text});if(value?.graph){value.graph.mode=$('#graphMode').value;value.graph.title=value.graph.mode==='function'?`Function y = ${text.split('=').at(0).trim()}`:'Equation visualization: left − right = 0';value.text=value.graph.mode==='function'?`Graphing the function y = ${text.split('=').at(0).trim()}.`:`Graphing the equation by plotting its left side minus right side against y = 0.`;}showActionResult(label,value);}catch(error){showActionResult(label,{error:error.message||'This action could not be completed.'});}}
 function showActionResult(label,value){const host=$('#panelResult');host.replaceChildren();host.hidden=false;const heading=document.createElement('strong');heading.textContent=label;const close=document.createElement('button');close.type='button';close.className='result-close';close.textContent='Close';close.setAttribute('aria-label','Close result');close.addEventListener('click',()=>{host.hidden=true;});const text=document.createElement('p');text.textContent=value?.error?`Could not complete: ${value.error}`:typeof value==='string'?value:value?.text||JSON.stringify(value);host.append(heading,close,text);if(value?.graph){host.append(renderGraphCard(value.graph));const insert=document.createElement('button');insert.type='button';insert.textContent='Add graph to board';insert.addEventListener('click',()=>insertGraphResult(value.graph));host.append(insert);}if(value?.insertable){const insert=document.createElement('button');insert.type='button';insert.textContent='Add result to board';insert.addEventListener('click',()=>insertTextResult(value.text));host.append(insert);}}
 function drawEquationGraph(canvas,coefficients){const c=canvas.getContext('2d'),{a,b,c:constant}=coefficients,w=canvas.width,h=canvas.height,xMin=coefficients.xMin??-10,xMax=coefficients.xMax??10,samples=180,values=Array.from({length:samples+1},(_,i)=>{const x=xMin+(xMax-xMin)*i/samples;return{x,y:a*x*x+b*x+constant};}),vertexX=-b/(2*a),vertexY=a*vertexX*vertexX+b*vertexX+constant,extent=Math.max(5,...values.map(p=>Math.abs(p.y)),Math.abs(vertexY)*1.25),yMin=-extent,yMax=extent,mapX=x=>(x-xMin)/(xMax-xMin)*w,mapY=y=>h-(y-yMin)/(yMax-yMin)*h;c.fillStyle='#17221c';c.fillRect(0,0,w,h);c.strokeStyle='#405243';c.lineWidth=1;const step=(xMax-xMin)/10;for(let x=Math.ceil(xMin/step)*step;x<=xMax;x+=step){c.beginPath();c.moveTo(mapX(x),0);c.lineTo(mapX(x),h);c.stroke();}for(let y=Math.ceil(yMin/step)*step;y<=yMax;y+=step){c.beginPath();c.moveTo(0,mapY(y));c.lineTo(w,mapY(y));c.stroke();}c.strokeStyle='#b7c9b5';c.lineWidth=2;c.beginPath();c.moveTo(mapX(Math.max(xMin,Math.min(xMax,0))),0);c.lineTo(mapX(Math.max(xMin,Math.min(xMax,0))),h);c.moveTo(0,mapY(0));c.lineTo(w,mapY(0));c.stroke();c.strokeStyle='#bee09a';c.lineWidth=3;c.beginPath();values.forEach((p,i)=>i?c.lineTo(mapX(p.x),mapY(p.y)):c.moveTo(mapX(p.x),mapY(p.y)));c.stroke();const disc=b*b-4*a*constant;c.fillStyle='#f2c96d';if(disc>=0){for(const x of [(-b+Math.sqrt(disc))/(2*a),(-b-Math.sqrt(disc))/(2*a)])if(x>=xMin&&x<=xMax){c.beginPath();c.arc(mapX(x),mapY(0),5,0,7);c.fill();c.fillText(`(${Number(x.toFixed(3))}, 0)`,mapX(x)+5,mapY(0)-7);}}if(vertexX>=xMin&&vertexX<=xMax&&vertexY>=yMin&&vertexY<=yMax){c.beginPath();c.arc(mapX(vertexX),mapY(vertexY),5,0,7);c.fill();}c.fillStyle='#d6e4d3';c.font='14px system-ui';c.fillText(coefficients.title||'y = f(x)',10,18);}
@@ -223,7 +318,25 @@ $('#savedLearningResults').addEventListener('change',e=>openLearningResult(e.tar
 $('#contentTypeOverride').addEventListener('change',e=>{recognitionOverride=e.target.value;renderLearningPanel(selection.selectedContent(doc));});
 $('#openSubjectTools').addEventListener('click',openSubjectTools);$('#subjectToolSubject').addEventListener('change',refreshSubjectTools);$('#subjectToolChoice').addEventListener('change',subjectToolOptions);$('#createSubjectVisual').addEventListener('click',createSubjectVisual);refreshSubjectTools();$('#analyzeSelection').addEventListener('click',analyzeSelectedContent);$('#createCompound').addEventListener('click',createCompoundStructure);$('#requestedFormat').addEventListener('change',()=>{learningAnalysis=null;renderLearningPanel(selection.selectedContent(doc));});
 $('#recognizedCorrection').addEventListener('change',e=>{handwritingCorrection=e.target.value.trim().slice(0,1000);handwritingConfirmed=true;learningAnalysis=null;renderContextActions(selection.selectedContent(doc));voiceTeacher.syncBoard();});
-$('#askSelection').addEventListener('click',async()=>{const question=$('#customQuestion').value.trim(),content=selection.selectedContent(doc);if(!content.itemIds.length){$('#questionStatus').textContent='Select content first.';return;}if(!question){$('#questionStatus').textContent='Enter a question about the selection.';return;}const sequence=handwritingSequence;$('#askSelection').disabled=true;$('#questionStatus').textContent='NeoBoard AI is thinking…';try{if(!auth.currentUser)throw new Error('Sign in to ask NeoBoard AI.');const token=await auth.currentUser.getIdToken(),text=content.objects.filter(o=>o.type==='text').map(o=>o.text).join('\n').trim(),body={selectedText:text,subject:handwritingRecognition?.result?.subject||recognizeContent(content).subject||'unknown',requestedFormat:/graph|plot/i.test(question)?'graph':/timeline|chronolog/i.test(question)?'timeline':/diagram|structure|molecule|compound/i.test(question)?'diagram':'explanation',customQuestion:question,selection:{id:crypto.randomUUID(),strokeIds:content.strokeIds,objectIds:content.objectIds,bounds:content.bounds,objectTypes:content.objects.map(o=>o.type)}};if(content.strokes.length||content.objects.some(o=>o.type!=='text')||!text){const crop=createHandwritingCrop(content),url=crop.toDataURL('image/png');body.imageBase64=url.slice(url.indexOf(',')+1);body.mimeType='image/png';}const response=await fetch(`${boardApiBase()}/api/blackboard/analyze-selection`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},credentials:'include',cache:'no-store',body:JSON.stringify(body)}),payload=await response.json();if(!response.ok)throw new Error(payload.error||'Question failed.');if(sequence!==handwritingSequence)return;addLearningResult(payload.result,question);$('#questionStatus').textContent='';}catch(error){if(sequence===handwritingSequence)$('#questionStatus').textContent=error.message||'Could not answer this question.';}finally{$('#askSelection').disabled=false;}});
+$('#askSelection').addEventListener('click',async()=>{
+  const question=$('#customQuestion').value.trim(),content=selection.selectedContent(doc);
+  if(!content.itemIds.length){$('#questionStatus').textContent='Select content first.';return;}
+  if(!question){$('#questionStatus').textContent='Enter a question about the selection.';return;}
+  const sequence=handwritingSequence;$('#askSelection').disabled=true;$('#questionStatus').textContent='NeoBoard AI is thinking…';
+  try{
+    const user=await getSignedInUser();if(!user)throw new Error('Sign in to ask NeoBoard AI.');
+    const token=await user.getIdToken(),text=content.objects.filter(o=>o.type==='text').map(o=>o.text).join('\n').trim();
+    const body={selectedText:text,subject:handwritingRecognition?.result?.subject||recognizeContent(content).subject||'unknown',requestedFormat:/graph|plot/i.test(question)?'graph':/timeline|chronolog/i.test(question)?'timeline':/diagram|structure|molecule|compound/i.test(question)?'diagram':'explanation',customQuestion:question,selection:{id:crypto.randomUUID(),strokeIds:content.strokeIds,objectIds:content.objectIds,bounds:content.bounds,objectTypes:content.objects.map(o=>o.type)}};
+    let imageDataUrl=null;
+    if(content.strokes.length||content.objects.some(o=>o.type!=='text')||!text){const crop=createHandwritingCrop(content);imageDataUrl=crop.toDataURL('image/png');body.imageBase64=imageDataUrl.slice(imageDataUrl.indexOf(',')+1);body.mimeType='image/png';}
+    const response=await fetch(`${boardApiBase()}/api/blackboard/analyze-selection`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},credentials:'include',cache:'no-store',body:JSON.stringify(body)});
+    const payload=await response.json();if(!response.ok)throw new Error(payload.error||'Question failed.');
+    if(sequence!==handwritingSequence)return;
+    addLearningResult(payload.result,question);$('#questionStatus').textContent='';
+    saveNeoBoardExchange({question,result:payload.result,imageDataUrl,flow:'selection_analysis'}).catch(error=>{console.warn('[NeoBoard] Conversation history save failed:',error.message);tell('AI response is ready, but conversation history could not be synced.');});
+  }catch(error){if(sequence===handwritingSequence)$('#questionStatus').textContent=error.message||'Could not answer this question.';}
+  finally{$('#askSelection').disabled=false;}
+});
 $('#exportJson').onclick=()=>download(new Blob([persistence.serialize(doc)],{type:'application/json'}),`${safeName()}-board.json`);$('#importJson').onclick=()=>$('#importFile').click();$('#importFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>10_000_000)throw new Error('Board file is larger than 10 MB.');const next=persistence.restore(await file.text());history.push(doc);applyDocument(next);tell('Board restored.');}catch(err){tell(err.message);}finally{e.target.value='';}});
 function safeName(){return(doc.title||'blackboard').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'blackboard';}
 function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}

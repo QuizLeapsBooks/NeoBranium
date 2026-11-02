@@ -1,9 +1,7 @@
 /**
  * Core AI Engine
  *
- * Fix: extractSpeechText() walks the blocks[] array to build clean speech text,
- * instead of relying on the now-absent result.explanation field.
- * This is the ONLY change — all API calls, streaming, and modal logic are untouched.
+ * Extracts readable AI text for board output, speech, and conversation history.
  */
 import { CONFIG, STATE, DOM } from '../utils/constants.js';
 import { uiManager } from '../ui/uiManager.js';
@@ -11,6 +9,81 @@ import { speechEngine } from '../speech/speechEngine.js';
 import { streamHandler } from './streamHandler.js';
 import { aiWritingEngine } from './aiWritingEngine.js';
 import { boardEngine } from '../board/boardEngine.js';
+import { auth } from '/js/auth.js';
+import { AiHistorySDK } from '/js/ai-history-sdk.js';
+
+let aiHistory = null;
+
+async function getSignedInUser() {
+    if (!auth.currentUser) await auth.authStateReady();
+    return auth.currentUser;
+}
+
+async function getAuthHeaders() {
+    const user = await getSignedInUser();
+    if (!user) throw new Error('Sign in to use AI Board.');
+    return {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${await user.getIdToken()}`
+    };
+}
+
+async function getAiHistory() {
+    const user = await getSignedInUser();
+    if (!user) return null;
+    if (!aiHistory) {
+        aiHistory = new AiHistorySDK({
+            feature: 'ai_board',
+            getAuthToken: () => auth.currentUser?.getIdToken(),
+            onOpen: messages => {
+                STATE.conversationHistory = messages
+                    .filter(message => ['user', 'assistant'].includes(message.role))
+                    .map(message => {
+                        let content = message.text;
+                        if (message.role === 'assistant' && message.metadata?.flow === 'board_analysis') {
+                            try {
+                                content = extractWritingText(JSON.parse(message.text)) || message.text;
+                            } catch {
+                                content = message.text;
+                            }
+                        }
+                        return { role: message.role, content };
+                    });
+                DOM.aiResponseContent.replaceChildren();
+                uiManager.showModal(true);
+                for (const message of messages) {
+                    if (message.role === 'user') {
+                        uiManager.appendUserMessage(message.text, message.attachments);
+                    } else if (message.metadata?.flow === 'board_analysis') {
+                        try {
+                            uiManager.appendFullResponse(JSON.parse(message.text));
+                        } catch {
+                            uiManager.appendSavedAssistantMessage(message.text);
+                        }
+                    } else {
+                        uiManager.appendSavedAssistantMessage(message.text);
+                    }
+                }
+            },
+            onNew: () => {
+                STATE.conversationHistory = [];
+                DOM.aiResponseContent.replaceChildren();
+            },
+            onError: () => uiManager.showError('Your AI response is ready, but conversation history could not be synced.')
+        });
+        aiHistory.mountUI(document.body);
+    }
+    return aiHistory;
+}
+
+function makeBoardImageFile(dataUrl) {
+    const match = dataUrl.match(/^data:(image\/(?:jpeg|png|webp));base64,(.+)$/);
+    if (!match) throw new Error('The board image could not be prepared for history.');
+    const binary = atob(match[2]);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
+    return new File([bytes], 'ai-board.jpg', { type: match[1] });
+}
 
 /**
  * Converts a blocks[] array from the AI response into a single clean string
@@ -83,7 +156,7 @@ export const aiEngine = {
         try {
             const resp = await fetch(`${CONFIG.API_BASE_URL}/api/analyze-board`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await getAuthHeaders(),
                 credentials: 'include',
                 body: JSON.stringify({ base64, mimeType: 'image/jpeg', mode: STATE.mode, isAutoScan })
             });
@@ -125,6 +198,40 @@ export const aiEngine = {
 
                 speechEngine.speakText(speechText);
                 aiWritingEngine.writeExplanation(writingText);
+
+                if (!isAutoScan) {
+                    const historySave = (async () => {
+                        const history = await getAiHistory();
+                        if (!history) return null;
+                        await history.startConversation({ title: 'AI Board analysis' });
+                        const conversationId = history.conversationId;
+                        let attachments = [];
+                        try {
+                            attachments = [await history.uploadImage(makeBoardImageFile(base64))];
+                        } catch (error) {
+                            console.warn('[AI Board] Board image history upload failed:', error.message);
+                            uiManager.showError('Your analysis is ready, but its board image could not be saved to history.');
+                        }
+                        await history.saveMessage({
+                            conversationId,
+                            role: 'user',
+                            text: 'Analyze my AI Board writing.',
+                            attachments,
+                            messageType: attachments.length ? 'image' : 'text',
+                            metadata: { flow: 'board_analysis' }
+                        });
+                        await history.saveMessage({
+                            conversationId,
+                            role: 'assistant',
+                            text: JSON.stringify(result),
+                            metadata: { flow: 'board_analysis' }
+                        });
+                    })();
+                    historySave.catch(error => {
+                        console.warn('[AI Board] Conversation history save failed:', error.message);
+                        uiManager.showError('Your analysis is ready, but conversation history could not be synced.');
+                    });
+                }
             }
 
             if (result.commands) aiWritingEngine.processCommands(result.commands);
@@ -151,11 +258,27 @@ export const aiEngine = {
         uiManager.showModal(true);
         uiManager.appendUserMessage(transcript);
         STATE.conversationHistory.push({ role: 'user', content: transcript });
+        const historySave = (async () => {
+            const history = await getAiHistory();
+            if (!history) return null;
+            await history.startConversation({ title: transcript.slice(0, 45) || 'AI Board conversation' });
+            const conversationId = history.conversationId;
+            await history.saveMessage({
+                conversationId,
+                role: 'user',
+                text: transcript,
+                metadata: { flow: 'voice' }
+            });
+            return { history, conversationId };
+        })().catch(error => {
+            console.warn('[AI Board] User message history save failed:', error.message);
+            return null;
+        });
 
         try {
             const resp = await fetch(`${CONFIG.API_BASE_URL}/api/chat-stream`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: await getAuthHeaders(),
                 credentials: 'include',
                 body: JSON.stringify({ message: transcript, history: STATE.conversationHistory, mode: STATE.mode })
             });
@@ -168,6 +291,18 @@ export const aiEngine = {
                     STATE.conversationHistory.push({ role: 'assistant', content: full });
                     speechEngine.speakText(full);
                     aiWritingEngine.writeExplanation(full);
+                    historySave.then(saved => {
+                        if (!saved) return;
+                        return saved.history.saveMessage({
+                            conversationId: saved.conversationId,
+                            role: 'assistant',
+                            text: full,
+                            metadata: { flow: 'voice' }
+                        });
+                    }).catch(error => {
+                        console.warn('[AI Board] Assistant message history save failed:', error.message);
+                        uiManager.showError('Your answer is ready, but conversation history could not be synced.');
+                    });
                 }
             );
         } catch (e) {
