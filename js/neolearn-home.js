@@ -1,7 +1,7 @@
 import { auth, checkAccess, db } from './auth.js';
 import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 import { getNeoLearnDiscoveryFeed, getNeoLearnFeed, getNeoLearnPeers, toggleLearn } from './neolearn-social-service.js';
-import { renderPostCard } from './neolearn-social-ui.js';
+import { renderPostCard, openPostDetail } from './neolearn-social-ui.js';
 import {
   filterPostsBelowViewLimit,
   mergeImpressionCounts,
@@ -201,6 +201,25 @@ function displayFeedPosts(posts, feedMode, learningCount, isFallback = false) {
     card.dataset.impressionSurfaceId = createFeedSurfaceId();
     grid.append(card);
   });
+
+  const urlParams = new URLSearchParams(location.search);
+  const deepLinkedPostId = urlParams.get('postId') || (location.hash ? location.hash.replace('#post-', '').replace('#', '') : null);
+  if (deepLinkedPostId) {
+    const targetCard = grid.querySelector(`[data-post-id="${deepLinkedPostId}"]`);
+    if (targetCard) {
+      targetCard.classList.add('is-deep-linked');
+      requestAnimationFrame(() => {
+        targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+      setTimeout(() => targetCard.classList.remove('is-deep-linked'), 2800);
+      const postMatch = posts.find((p) => p.postId === deepLinkedPostId);
+      if (postMatch) {
+        setTimeout(() => {
+          openPostDetail(postMatch, postMatch.author, detailDialog);
+        }, 350);
+      }
+    }
+  }
 
   if (!('IntersectionObserver' in window)) {
     Array.from(grid.children).forEach((card) => {

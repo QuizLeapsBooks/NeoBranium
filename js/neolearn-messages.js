@@ -345,7 +345,7 @@ function renderMessages(peerId, snapshot, { preserveScroll = false } = {}) {
   } else {
     const currentUid = auth.currentUser?.uid;
     entries.forEach(([messageId, message]) => {
-      if (typeof message?.text !== 'string') return;
+      if (typeof message?.text !== 'string' && !message?.sharedPost) return;
       const isOwn = message.senderId === currentUid;
       const isUnsent = message.unsent === true;
 
@@ -357,7 +357,7 @@ function renderMessages(peerId, snapshot, { preserveScroll = false } = {}) {
       inner.className = 'nl-message-row-inner';
 
       const bubble = document.createElement('div');
-      bubble.className = `nl-message-bubble${isOwn ? ' is-own' : ''}${isUnsent ? ' is-unsent' : ''}`;
+      bubble.className = `nl-message-bubble${isOwn ? ' is-own' : ''}${isUnsent ? ' is-unsent' : ''}${message.sharedPost ? ' has-shared-post' : ''}`;
 
       if (isUnsent) {
         const unsentIcon = document.createElement('i');
@@ -389,7 +389,75 @@ function renderMessages(peerId, snapshot, { preserveScroll = false } = {}) {
           bubble.append(quoted);
         }
 
-        bubble.append(document.createTextNode(message.text));
+        // Instagram-style shared post card
+        if (message.sharedPost && typeof message.sharedPost === 'object' && message.sharedPost.postId) {
+          const shared = message.sharedPost;
+          const postCard = document.createElement('div');
+          postCard.className = 'nl-msg-shared-post-card';
+
+          const postAuthor = document.createElement('div');
+          postAuthor.className = 'nl-msg-shared-post-header';
+
+          if (shared.authorPhotoUrl) {
+            const authorAvatar = document.createElement('img');
+            authorAvatar.className = 'nl-msg-shared-post-avatar';
+            authorAvatar.src = shared.authorPhotoUrl;
+            authorAvatar.alt = '';
+            authorAvatar.loading = 'lazy';
+            postAuthor.append(authorAvatar);
+          } else {
+            const authorFallback = document.createElement('span');
+            authorFallback.className = 'nl-msg-shared-post-avatar nl-social-avatar-fallback';
+            authorFallback.textContent = (shared.authorName || 'Learner').trim().charAt(0).toUpperCase();
+            postAuthor.append(authorFallback);
+          }
+
+          const authorMeta = document.createElement('div');
+          authorMeta.className = 'nl-msg-shared-post-meta';
+          const nameEl = document.createElement('strong');
+          nameEl.textContent = shared.authorName || 'Learner';
+          const tagEl = document.createElement('span');
+          tagEl.textContent = shared.authorUsername ? `@${shared.authorUsername}` : 'NeoLearn post';
+          authorMeta.append(nameEl, tagEl);
+          postAuthor.append(authorMeta);
+
+          postCard.append(postAuthor);
+
+          if (shared.imageUrl) {
+            const imgWrap = document.createElement('div');
+            imgWrap.className = 'nl-msg-shared-post-img-wrap';
+            const postImg = document.createElement('img');
+            postImg.className = 'nl-msg-shared-post-img';
+            postImg.src = shared.imageUrl;
+            postImg.alt = shared.description || 'Shared learning post';
+            postImg.loading = 'lazy';
+            imgWrap.append(postImg);
+            postCard.append(imgWrap);
+          }
+
+          if (shared.description) {
+            const caption = document.createElement('p');
+            caption.className = 'nl-msg-shared-post-caption';
+            caption.textContent = shared.description;
+            postCard.append(caption);
+          }
+
+          const viewPostLink = document.createElement('a');
+          viewPostLink.className = 'nl-msg-shared-post-link';
+          viewPostLink.href = `/htmls/neolearn/index.html?postId=${encodeURIComponent(shared.postId)}`;
+          viewPostLink.innerHTML = '<i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i> View Post';
+          postCard.append(viewPostLink);
+
+          bubble.append(postCard);
+        }
+
+        const isDefaultSharedText = Boolean(message.sharedPost && message.text === 'Shared a post');
+        if (message.text && !isDefaultSharedText) {
+          const textEl = document.createElement('div');
+          textEl.className = message.sharedPost ? 'nl-msg-shared-post-note' : 'nl-msg-text';
+          textEl.textContent = message.text;
+          bubble.append(textEl);
+        }
 
         // Double-click to ❤️ reaction (Instagram signature!)
         bubble.addEventListener('dblclick', () => {

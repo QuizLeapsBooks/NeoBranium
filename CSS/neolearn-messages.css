@@ -233,3 +233,109 @@ body.nb-neolearn-page .nl-peer-online-dot {
   box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
 }
 
+/* Instagram-style Shared Post Card inside Direct Messages */
+body.nb-neolearn-page .nl-message-bubble.has-shared-post {
+  padding: .45rem;
+  max-width: 340px;
+}
+body.nb-neolearn-page .nl-msg-shared-post-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--account-surface);
+  color: var(--account-text);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--account-border);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+body.nb-neolearn-page .nl-message-bubble.is-own .nl-msg-shared-post-card {
+  background: var(--account-surface);
+  color: var(--account-text);
+}
+body.nb-neolearn-page .nl-msg-shared-post-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: .5rem .65rem;
+}
+body.nb-neolearn-page .nl-msg-shared-post-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  font-size: .75rem;
+  line-height: 26px;
+}
+body.nb-neolearn-page .nl-msg-shared-post-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+body.nb-neolearn-page .nl-msg-shared-post-meta strong {
+  font-size: .8rem;
+  font-weight: 650;
+  color: var(--account-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.nb-neolearn-page .nl-msg-shared-post-meta span {
+  font-size: .68rem;
+  color: var(--account-muted);
+}
+body.nb-neolearn-page .nl-msg-shared-post-img-wrap {
+  width: 100%;
+  max-height: 240px;
+  overflow: hidden;
+  background: var(--account-bg);
+  position: relative;
+}
+body.nb-neolearn-page .nl-msg-shared-post-img {
+  width: 100%;
+  height: auto;
+  max-height: 240px;
+  object-fit: cover;
+  display: block;
+  transition: transform .2s ease;
+}
+body.nb-neolearn-page .nl-msg-shared-post-card:hover .nl-msg-shared-post-img {
+  transform: scale(1.02);
+}
+body.nb-neolearn-page .nl-msg-shared-post-caption {
+  padding: .45rem .65rem;
+  font-size: .78rem;
+  color: var(--account-text);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+}
+body.nb-neolearn-page .nl-msg-shared-post-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: .45rem .65rem;
+  font-size: .78rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--account-accent);
+  background: var(--account-accent-soft);
+  border-top: 1px solid var(--account-border);
+  transition: all .15s ease;
+}
+body.nb-neolearn-page .nl-msg-shared-post-link:hover {
+  background: var(--account-accent);
+  color: #fff;
+}
+body.nb-neolearn-page .nl-msg-shared-post-note {
+  margin-top: .4rem;
+  padding: .2rem .4rem;
+  font-size: .82rem;
+  color: inherit;
+  word-break: break-word;
+}
+

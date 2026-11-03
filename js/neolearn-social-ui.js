@@ -6,7 +6,9 @@ import {
   getNeoLearnPublicProfile,
   deleteNeoLearnPost,
   updateNeoLearnPost,
-  reportNeoLearnPost
+  reportNeoLearnPost,
+  getNeoLearnConnections,
+  sendNeoLearnPostDirect
 } from './neolearn-social-service.js';
 import { auth } from './auth.js';
 import { neoLearnProfileHref } from './neolearn-social-data-client.js';
@@ -736,6 +738,253 @@ if (typeof document !== 'undefined') {
 }
 
 /**
+ * Opens Instagram-style Send Post sheet allowing direct sharing with learners you are learning.
+ */
+export function openSendPostSheet(post, author) {
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    showSocialToast('Please sign in to share posts with learners.');
+    return;
+  }
+
+  let existingDialog = document.getElementById('nlShareSheetDialog');
+  if (existingDialog) {
+    if (existingDialog.open) existingDialog.close();
+    existingDialog.remove();
+  }
+
+  const dialog = document.createElement('dialog');
+  dialog.id = 'nlShareSheetDialog';
+  dialog.className = 'nl-share-sheet';
+  dialog.setAttribute('aria-label', 'Share post with learners');
+
+  const container = document.createElement('div');
+  container.className = 'nl-share-sheet-container';
+
+  // Header
+  const header = document.createElement('header');
+  header.className = 'nl-share-sheet-header';
+
+  const titleWrap = document.createElement('div');
+  titleWrap.className = 'nl-share-sheet-title';
+  titleWrap.innerHTML = '<i class="bi bi-send-fill" aria-hidden="true"></i> <span>Share post</span>';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'nl-share-sheet-close';
+  closeBtn.setAttribute('aria-label', 'Close share dialog');
+  closeBtn.innerHTML = '<i class="bi bi-x-lg" aria-hidden="true"></i>';
+  closeBtn.addEventListener('click', () => dialog.close());
+
+  header.append(titleWrap, closeBtn);
+
+  // Post Preview
+  const preview = document.createElement('div');
+  preview.className = 'nl-share-preview-card';
+
+  const thumb = document.createElement('img');
+  thumb.className = 'nl-share-preview-thumb';
+  thumb.src = post.imageUrl;
+  thumb.alt = 'Post preview';
+  thumb.loading = 'lazy';
+
+  const info = document.createElement('div');
+  info.className = 'nl-share-preview-info';
+  const authorName = document.createElement('strong');
+  authorName.textContent = author?.name || 'Learner';
+  const descSnippet = document.createElement('span');
+  descSnippet.textContent = post.description
+    ? (post.description.length > 70 ? post.description.slice(0, 70) + '…' : post.description)
+    : 'Learning moment';
+  info.append(authorName, descSnippet);
+
+  const quickActions = document.createElement('div');
+  quickActions.className = 'nl-share-quick-actions';
+
+  const postUrl = `${window.location.origin}/htmls/neolearn/index.html?postId=${encodeURIComponent(post.postId)}`;
+
+  const copyBtn = document.createElement('button');
+  copyBtn.type = 'button';
+  copyBtn.className = 'nl-share-quick-btn';
+  copyBtn.title = 'Copy post link';
+  copyBtn.innerHTML = '<i class="bi bi-link-45deg" aria-hidden="true"></i> <span>Copy link</span>';
+  copyBtn.addEventListener('click', () => {
+    navigator.clipboard?.writeText(postUrl).then(() => {
+      showSocialToast('Post link copied to clipboard!');
+      copyBtn.innerHTML = '<i class="bi bi-check2 text-success" aria-hidden="true"></i> <span>Copied!</span>';
+      setTimeout(() => {
+        copyBtn.innerHTML = '<i class="bi bi-link-45deg" aria-hidden="true"></i> <span>Copy link</span>';
+      }, 2000);
+    }).catch(() => {
+      showSocialToast('Link: ' + postUrl);
+    });
+  });
+  quickActions.append(copyBtn);
+
+  if (typeof navigator !== 'undefined' && navigator.share && navigator.canShare && navigator.canShare({ url: postUrl })) {
+    const nativeShareBtn = document.createElement('button');
+    nativeShareBtn.type = 'button';
+    nativeShareBtn.className = 'nl-share-quick-btn';
+    nativeShareBtn.title = 'More options';
+    nativeShareBtn.innerHTML = '<i class="bi bi-share" aria-hidden="true"></i> <span>More</span>';
+    nativeShareBtn.addEventListener('click', async () => {
+      try {
+        await navigator.share({
+          title: `${author?.name || 'Learner'} on NeoLearn`,
+          text: post.description || 'Check out this learning moment on NeoLearn!',
+          url: postUrl
+        });
+      } catch (err) {
+        if (err.name !== 'AbortError') console.warn(err);
+      }
+    });
+    quickActions.append(nativeShareBtn);
+  }
+
+  preview.append(thumb, info, quickActions);
+
+  // Search input
+  const searchWrap = document.createElement('div');
+  searchWrap.className = 'nl-share-search-wrap';
+  searchWrap.innerHTML = '<i class="bi bi-search" aria-hidden="true"></i>';
+  const searchInput = document.createElement('input');
+  searchInput.type = 'search';
+  searchInput.className = 'nl-share-search-input';
+  searchInput.placeholder = 'Search people you are learning…';
+  searchInput.setAttribute('aria-label', 'Search learners you are learning');
+  searchWrap.append(searchInput);
+
+  // Learners list container
+  const peersList = document.createElement('div');
+  peersList.className = 'nl-share-peers-list';
+  peersList.innerHTML = '<div class="nl-share-loading"><span class="nl-typing-dots"><span></span><span></span><span></span></span> <span>Loading learners…</span></div>';
+
+  // Note composer at bottom
+  const noteWrap = document.createElement('div');
+  noteWrap.className = 'nl-share-note-wrap';
+  const noteInput = document.createElement('input');
+  noteInput.type = 'text';
+  noteInput.className = 'nl-share-note-input';
+  noteInput.placeholder = 'Write a message… (optional)';
+  noteInput.maxLength = 500;
+  noteWrap.append(noteInput);
+
+  container.append(header, preview, searchWrap, peersList, noteWrap);
+  dialog.append(container);
+  document.body.append(dialog);
+
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) dialog.close();
+  });
+  dialog.addEventListener('close', () => {
+    dialog.remove();
+  });
+
+  dialog.showModal();
+
+  let cachedLearners = [];
+
+  function renderFilteredLearners(filter = '') {
+    const q = filter.trim().toLowerCase();
+    const filtered = q
+      ? cachedLearners.filter((p) =>
+          (p.name && p.name.toLowerCase().includes(q)) ||
+          (p.username && p.username.toLowerCase().includes(q))
+        )
+      : cachedLearners;
+
+    peersList.replaceChildren();
+
+    if (!filtered.length) {
+      const empty = document.createElement('div');
+      empty.className = 'nl-share-empty';
+      if (!cachedLearners.length) {
+        empty.innerHTML = `
+          <i class="bi bi-people" aria-hidden="true"></i>
+          <p>You are not learning any peers yet.</p>
+          <a href="/htmls/neolearn/peers.html" class="nl-social-button nl-social-button--secondary">Explore Learners</a>
+        `;
+      } else {
+        empty.innerHTML = `
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <p>No learners matching "${filter}".</p>
+        `;
+      }
+      peersList.append(empty);
+      return;
+    }
+
+    filtered.forEach((peer) => {
+      const row = document.createElement('div');
+      row.className = 'nl-share-peer-row';
+
+      const avatar = profileImage(peer.profilePhotoUrl, peer.name, 'nl-social-avatar nl-social-avatar--small');
+
+      const peerInfo = document.createElement('div');
+      peerInfo.className = 'nl-share-peer-info';
+      const pName = document.createElement('strong');
+      pName.textContent = peer.name || 'Learner';
+      const pUsername = document.createElement('span');
+      pUsername.textContent = peer.username ? `@${peer.username}` : '';
+      peerInfo.append(pName, pUsername);
+
+      const sendBtn = document.createElement('button');
+      sendBtn.type = 'button';
+      sendBtn.className = 'nl-social-button nl-share-send-btn';
+      sendBtn.innerHTML = '<span>Send</span>';
+
+      sendBtn.addEventListener('click', async () => {
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+        try {
+          const sharedPayload = {
+            postId: post.postId,
+            authorId: author?.userId || '',
+            authorName: author?.name || 'Learner',
+            authorUsername: author?.username || '',
+            authorPhotoUrl: author?.profilePhotoUrl || '',
+            imageUrl: post.imageUrl,
+            description: post.description || ''
+          };
+          const noteText = noteInput.value.trim();
+          await sendNeoLearnPostDirect(peer.userId, sharedPayload, noteText);
+
+          sendBtn.classList.add('is-sent');
+          sendBtn.innerHTML = '<i class="bi bi-check2" aria-hidden="true"></i> <span>Sent</span>';
+          showSocialToast(`Post sent to ${peer.name || 'learner'}!`);
+        } catch (err) {
+          sendBtn.disabled = false;
+          sendBtn.innerHTML = '<span>Send</span>';
+          showSocialToast(err.message || 'Could not send post.');
+        }
+      });
+
+      row.append(avatar, peerInfo, sendBtn);
+      peersList.append(row);
+    });
+  }
+
+  searchInput.addEventListener('input', () => {
+    renderFilteredLearners(searchInput.value);
+  });
+
+  getNeoLearnConnections(currentUser.uid, 'learning')
+    .then((profiles) => {
+      cachedLearners = Array.isArray(profiles) ? profiles : [];
+      renderFilteredLearners();
+    })
+    .catch((err) => {
+      console.warn('Could not load learning connections:', err);
+      peersList.innerHTML = `
+        <div class="nl-share-empty">
+          <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+          <p>Could not load learners. Check your connection.</p>
+        </div>
+      `;
+    });
+}
+
+/**
  * Renders a post card with realtime Like and Comment counts.
  * card.cleanupRtdb() must be called when the card is removed from the DOM.
  */
@@ -764,6 +1013,18 @@ export function renderPostCard(post, author, detailDialog, { isOwner } = {}) {
       }, 260);
     }
   });
+
+  let lastTouchTapTime = 0;
+  openDetail.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastTouchTapTime < 320 && now - lastTouchTapTime > 0) {
+      e.preventDefault();
+      clearTimeout(clickTimeout);
+      clickTimeout = null;
+      triggerDoubleTapLike(openDetail, post.postId, likeButton);
+    }
+    lastTouchTapTime = now;
+  }, { passive: false });
 
   const body = element('div', 'nl-post-body');
   const authorRow = element('div', 'nl-post-author');
@@ -848,26 +1109,8 @@ export function renderPostCard(post, author, detailDialog, { isOwner } = {}) {
   shareButton.title = 'Share post';
   shareButton.setAttribute('aria-label', 'Share post');
   shareButton.append(element('i', 'bi bi-send', ''), element('span', '', 'Share'));
-  shareButton.addEventListener('click', async () => {
-    const postUrl = `${window.location.origin}/htmls/neolearn/index.html?postId=${encodeURIComponent(post.postId)}`;
-    const shareData = {
-      title: `${author.name || 'Learner'} on NeoLearn`,
-      text: post.description || 'Check out this learning moment on NeoLearn!',
-      url: postUrl
-    };
-    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-      try {
-        await navigator.share(shareData);
-        return;
-      } catch (err) {
-        if (err.name === 'AbortError') return;
-      }
-    }
-    navigator.clipboard?.writeText(postUrl).then(() => {
-      showSocialToast('Post link copied to clipboard!');
-    }).catch(() => {
-      showSocialToast('Link: ' + postUrl);
-    });
+  shareButton.addEventListener('click', () => {
+    openSendPostSheet(post, author);
   });
   actions.append(shareButton);
 
@@ -879,7 +1122,7 @@ export function renderPostCard(post, author, detailDialog, { isOwner } = {}) {
   const saveIcon = element('i', isPostSaved(post.postId) ? 'bi bi-bookmark-fill' : 'bi bi-bookmark', '');
   saveButton.append(saveIcon);
   saveButton.addEventListener('click', () => {
-    toggleSavePost(post.postId, saveButton, saveIcon, post);
+    toggleSavePost(post.postId, saveButton, saveIcon, { ...post, author });
   });
   actions.append(saveButton);
 
@@ -968,6 +1211,16 @@ export function openPostDetail(post, author, dialog, { isOwner } = {}) {
     triggerDoubleTapLike(imageWrap, post.postId, likeButton);
   });
 
+  let lastImageTapTime = 0;
+  imageWrap.addEventListener('touchend', (e) => {
+    const now = Date.now();
+    if (now - lastImageTapTime < 320 && now - lastImageTapTime > 0) {
+      e.preventDefault();
+      triggerDoubleTapLike(imageWrap, post.postId, likeButton);
+    }
+    lastImageTapTime = now;
+  }, { passive: false });
+
   const commentsButton = element('button', 'nl-post-action', '');
   commentsButton.type = 'button';
   commentsButton.setAttribute('aria-expanded', 'false');
@@ -981,26 +1234,8 @@ export function openPostDetail(post, author, dialog, { isOwner } = {}) {
   shareButton.type = 'button';
   shareButton.title = 'Share post';
   shareButton.innerHTML = '<i class="bi bi-send" aria-hidden="true"></i> <span>Share</span>';
-  shareButton.addEventListener('click', async () => {
-    const postUrl = `${window.location.origin}/htmls/neolearn/index.html?postId=${encodeURIComponent(post.postId)}`;
-    const shareData = {
-      title: `${author.name || 'Learner'} on NeoLearn`,
-      text: post.description || 'Check out this learning moment on NeoLearn!',
-      url: postUrl
-    };
-    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-      try {
-        await navigator.share(shareData);
-        return;
-      } catch (err) {
-        if (err.name === 'AbortError') return;
-      }
-    }
-    navigator.clipboard?.writeText(postUrl).then(() => {
-      showSocialToast('Post link copied to clipboard!');
-    }).catch(() => {
-      showSocialToast('Link: ' + postUrl);
-    });
+  shareButton.addEventListener('click', () => {
+    openSendPostSheet(post, author);
   });
   detailActions.append(shareButton);
 
@@ -1011,7 +1246,7 @@ export function openPostDetail(post, author, dialog, { isOwner } = {}) {
   const saveIcon = element('i', isPostSaved(post.postId) ? 'bi bi-bookmark-fill' : 'bi bi-bookmark', '');
   saveButton.append(saveIcon);
   saveButton.addEventListener('click', () => {
-    toggleSavePost(post.postId, saveButton, saveIcon, post);
+    toggleSavePost(post.postId, saveButton, saveIcon, { ...post, author });
   });
   detailActions.append(saveButton);
 

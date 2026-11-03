@@ -50,6 +50,11 @@ NeoLearn is an authenticated peer-learning space for discovering learners, shari
 - Post cards link to the author's profile, show post date and image, and open an expanded post-detail dialog.
 - Owners can edit captions or delete their posts; deletion also attempts Cloudinary image and RTDB interaction cleanup.
 - Non-owners can report a post.
+- **Instagram-Style Post Sharing:** Tap the Share button to open an Instagram-style Send Sheet to search and send the post directly to learners you are Learning, with an optional message note.
+- **Direct Message Post Cards:** Recipient sees a rich shared post card in their chat thread with post author, image thumbnail, caption, and "View Post" button.
+- **Double-Tap to Like:** Double-tapping a post image (both mouse and touch) displays a bouncy Instagram-style heart pop animation and likes the post.
+- **Save / Bookmark Posts:** Save posts to a personal collection with quick bookmark toggle and view them in the "Saved" tab on the profile page.
+- **Deep-Linked Post Viewing:** Navigating to a post via shared URL or chat smoothly scrolls to, highlights, and opens the post detail view.
 
 ## Likes and Comments
 

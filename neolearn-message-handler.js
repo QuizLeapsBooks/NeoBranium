@@ -21,8 +21,11 @@ export function createNeoLearnMessageHandlers({ verifyAuthToken, db, rtdb }) {
         if (!senderId) return;
         if (!db || !rtdb) return res.status(503).json({ success: false, error: 'NeoLearn data is unavailable.' });
 
-        const { targetUserId, text, replyTo } = req.body || {};
-        if (!validUserId(targetUserId) || targetUserId === senderId || typeof text !== 'string' || !text.trim() || text.length > 2000) {
+        const { targetUserId, text = '', replyTo, sharedPost } = req.body || {};
+        const hasText = typeof text === 'string' && text.trim().length > 0;
+        const hasSharedPost = sharedPost && typeof sharedPost === 'object' && typeof sharedPost.postId === 'string' && sharedPost.postId.trim().length > 0;
+
+        if (!validUserId(targetUserId) || targetUserId === senderId || (!hasText && !hasSharedPost) || (typeof text === 'string' && text.length > 2000)) {
             return res.status(400).json({ success: false, error: 'Invalid message data.' });
         }
 
@@ -74,14 +77,30 @@ export function createNeoLearnMessageHandlers({ verifyAuthToken, db, rtdb }) {
                 }
             }
 
+            let sanitizedSharedPost = null;
+            if (hasSharedPost) {
+                sanitizedSharedPost = {
+                    postId: String(sharedPost.postId).trim().slice(0, 128),
+                    authorId: typeof sharedPost.authorId === 'string' ? String(sharedPost.authorId).trim().slice(0, 128) : '',
+                    authorName: typeof sharedPost.authorName === 'string' ? String(sharedPost.authorName).trim().slice(0, 100) : 'Learner',
+                    authorUsername: typeof sharedPost.authorUsername === 'string' ? String(sharedPost.authorUsername).trim().slice(0, 50) : '',
+                    authorPhotoUrl: typeof sharedPost.authorPhotoUrl === 'string' ? String(sharedPost.authorPhotoUrl).trim().slice(0, 1000) : '',
+                    imageUrl: typeof sharedPost.imageUrl === 'string' ? String(sharedPost.imageUrl).trim().slice(0, 1000) : '',
+                    description: typeof sharedPost.description === 'string' ? String(sharedPost.description).trim().slice(0, 1000) : ''
+                };
+            }
+
             const messagePayload = {
                 senderId: senderId,
-                text: text.trim(),
+                text: hasText ? text.trim() : (sanitizedSharedPost ? 'Shared a post' : ''),
                 createdAt: now,
                 readByRecipient: false
             };
             if (sanitizedReplyTo) {
                 messagePayload.replyTo = sanitizedReplyTo;
+            }
+            if (sanitizedSharedPost) {
+                messagePayload.sharedPost = sanitizedSharedPost;
             }
             
             await newMessageRef.set(messagePayload);

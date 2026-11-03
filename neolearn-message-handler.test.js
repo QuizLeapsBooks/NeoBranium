@@ -357,3 +357,121 @@ test('deleteMessageForMe stores hidden message marker for viewer', async () => {
     assert.equal(res2.statusCode, 200);
     assert.equal(res2.body.deletedMessages['peer-uid']['first'], true);
 });
+
+test('message sending attaches sanitized sharedPost data when present', async () => {
+    let savedMessage = null;
+    const db = {
+        collection(name) {
+            return {
+                doc() {
+                    return {
+                        async get() {
+                            if (name === 'neolearn_blocks') return { exists: false };
+                            return { exists: true, data: () => ({ messagePrivacy: 'everyone' }) };
+                        }
+                    };
+                }
+            };
+        }
+    };
+    const rtdb = {
+        ref() {
+            return {
+                push() {
+                    return {
+                        key: 'msg-shared-post-id',
+                        async set(message) { savedMessage = message; }
+                    };
+                }
+            };
+        }
+    };
+    const { sendMessage } = createNeoLearnMessageHandlers({
+        verifyAuthToken: async () => ({ uid: 'viewer-uid' }),
+        db,
+        rtdb
+    });
+    const res = response();
+
+    await sendMessage({
+        body: {
+            targetUserId: 'peer-uid',
+            text: 'Check out this note!',
+            sharedPost: {
+                postId: 'post-123',
+                authorId: 'author-456',
+                authorName: 'Ada Lovelace',
+                authorUsername: 'ada',
+                authorPhotoUrl: 'https://example.com/ada.jpg',
+                imageUrl: 'https://example.com/post.jpg',
+                description: 'Solving math problems together!'
+            }
+        }
+    }, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.success, true);
+    assert.equal(savedMessage.senderId, 'viewer-uid');
+    assert.equal(savedMessage.text, 'Check out this note!');
+    assert.deepEqual(savedMessage.sharedPost, {
+        postId: 'post-123',
+        authorId: 'author-456',
+        authorName: 'Ada Lovelace',
+        authorUsername: 'ada',
+        authorPhotoUrl: 'https://example.com/ada.jpg',
+        imageUrl: 'https://example.com/post.jpg',
+        description: 'Solving math problems together!'
+    });
+});
+
+test('message sending allows empty text when sharedPost is present and provides default text', async () => {
+    let savedMessage = null;
+    const db = {
+        collection(name) {
+            return {
+                doc() {
+                    return {
+                        async get() {
+                            if (name === 'neolearn_blocks') return { exists: false };
+                            return { exists: true, data: () => ({ messagePrivacy: 'everyone' }) };
+                        }
+                    };
+                }
+            };
+        }
+    };
+    const rtdb = {
+        ref() {
+            return {
+                push() {
+                    return {
+                        key: 'msg-shared-post-default-text',
+                        async set(message) { savedMessage = message; }
+                    };
+                }
+            };
+        }
+    };
+    const { sendMessage } = createNeoLearnMessageHandlers({
+        verifyAuthToken: async () => ({ uid: 'viewer-uid' }),
+        db,
+        rtdb
+    });
+    const res = response();
+
+    await sendMessage({
+        body: {
+            targetUserId: 'peer-uid',
+            sharedPost: {
+                postId: 'post-999',
+                imageUrl: 'https://example.com/post.webp'
+            }
+        }
+    }, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.success, true);
+    assert.equal(savedMessage.text, 'Shared a post');
+    assert.equal(savedMessage.sharedPost.postId, 'post-999');
+    assert.equal(savedMessage.sharedPost.authorName, 'Learner');
+});

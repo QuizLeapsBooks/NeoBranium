@@ -275,4 +275,18 @@ export async function getNeoLearnBlockedUsers(user = auth.currentUser) {
   return result.blockedUsers;
 }
 
-export { syncLikeNotification, syncCommentNotification };
+export async function sendNeoLearnPostDirect(targetUserId, sharedPost, text = '', user = auth.currentUser) {
+  requireSocialUser();
+  if (!targetUserId) throw new Error('A recipient learner is required.');
+  if (!sharedPost?.postId) throw new Error('A valid post is required.');
+  return authenticatedRequest(user, '/api/neolearn/messages/send', {
+    method: 'POST',
+    body: {
+      targetUserId,
+      text: typeof text === 'string' && text.trim() ? text.trim() : 'Shared a post',
+      sharedPost
+    }
+  });
+}
+
+export { authenticatedRequest, syncLikeNotification, syncCommentNotification };

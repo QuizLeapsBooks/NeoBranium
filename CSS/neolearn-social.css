@@ -1354,3 +1354,246 @@ body.nb-neolearn-page .nl-profile-tab.is-active {
   color: var(--account-accent);
   border-top-color: var(--account-accent);
 }
+
+/* Instagram-style Send Post Modal (Share Sheet) */
+dialog.nl-share-sheet {
+  padding: 0;
+  border: 1px solid var(--account-border);
+  border-radius: 18px;
+  background: var(--account-surface);
+  color: var(--account-text);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  width: min(480px, calc(100vw - 2rem));
+  max-height: min(650px, calc(100vh - 4rem));
+  overflow: hidden;
+  animation: nlSheetPop .22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+dialog.nl-share-sheet::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+@keyframes nlSheetPop {
+  from { opacity: 0; transform: scale(0.94) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.nl-share-sheet-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: min(650px, calc(100vh - 4rem));
+}
+
+.nl-share-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .85rem 1.15rem;
+  border-bottom: 1px solid var(--account-border);
+}
+.nl-share-sheet-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--account-text);
+}
+.nl-share-sheet-title i {
+  color: var(--account-accent);
+}
+.nl-share-sheet-close {
+  background: transparent;
+  border: 0;
+  color: var(--account-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color .15s ease;
+}
+.nl-share-sheet-close:hover {
+  color: var(--account-text);
+}
+
+/* Post preview strip */
+.nl-share-preview-card {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .75rem 1.15rem;
+  background: var(--account-bg);
+  border-bottom: 1px solid var(--account-border);
+}
+.nl-share-preview-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.nl-share-preview-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.nl-share-preview-info strong {
+  font-size: .84rem;
+  color: var(--account-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nl-share-preview-info span {
+  font-size: .74rem;
+  color: var(--account-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nl-share-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.nl-share-quick-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: .38rem .7rem;
+  font-size: .75rem;
+  font-weight: 600;
+  border-radius: 8px;
+  background: var(--account-surface);
+  border: 1px solid var(--account-border);
+  color: var(--account-text);
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.nl-share-quick-btn:hover {
+  border-color: var(--account-accent);
+  color: var(--account-accent);
+}
+
+/* Search */
+.nl-share-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .65rem 1.15rem;
+  border-bottom: 1px solid var(--account-border);
+  color: var(--account-muted);
+}
+.nl-share-search-input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--account-text);
+  font: inherit;
+  font-size: .86rem;
+}
+
+/* Peers list */
+.nl-share-peers-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: .5rem 0;
+  min-height: 180px;
+  max-height: 280px;
+}
+.nl-share-peer-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .6rem 1.15rem;
+  transition: background .12s ease;
+}
+.nl-share-peer-row:hover {
+  background: var(--account-accent-soft);
+}
+.nl-share-peer-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.nl-share-peer-info strong {
+  font-size: .86rem;
+  color: var(--account-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nl-share-peer-info span {
+  font-size: .75rem;
+  color: var(--account-muted);
+}
+.nl-share-send-btn {
+  padding: .35rem .95rem;
+  font-size: .8rem;
+  font-weight: 600;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: var(--account-accent);
+  color: #fff;
+  border: 0;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.nl-share-send-btn:hover:not(:disabled) {
+  opacity: .9;
+  transform: translateY(-1px);
+}
+.nl-share-send-btn.is-sent {
+  background: #10b981 !important;
+  color: #fff !important;
+  cursor: default;
+}
+
+/* Empty & loading */
+.nl-share-loading,
+.nl-share-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: 2.5rem 1rem;
+  color: var(--account-muted);
+  text-align: center;
+  font-size: .85rem;
+}
+.nl-share-empty i {
+  font-size: 2rem;
+  color: var(--account-muted);
+}
+.nl-share-empty p {
+  margin: 0;
+}
+
+/* Note composer */
+.nl-share-note-wrap {
+  display: flex;
+  align-items: center;
+  padding: .7rem 1.15rem;
+  border-top: 1px solid var(--account-border);
+  background: var(--account-surface);
+}
+.nl-share-note-input {
+  width: 100%;
+  padding: .55rem .85rem;
+  border-radius: 8px;
+  border: 1px solid var(--account-border);
+  background: var(--account-bg);
+  color: var(--account-text);
+  font: inherit;
+  font-size: .84rem;
+  outline: 0;
+}
+.nl-share-note-input:focus {
+  border-color: var(--account-accent);
+}
