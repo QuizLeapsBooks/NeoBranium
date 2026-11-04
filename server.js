@@ -2222,6 +2222,7 @@ app.use((req, res, next) => {
         '/robots.txt',
         '/sitemap.xml',
         '/ads.txt',
+        '/sw.js',
         '/online-graduation_16847316.png',
         '/codebase.png',
         '/favicon.ico'

@@ -339,3 +339,111 @@ body.nb-neolearn-page .nl-msg-shared-post-note {
   word-break: break-word;
 }
 
+/* Clickable URLs and Link Previews in Messages */
+body.nb-neolearn-page .nl-message-link {
+  color: var(--account-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-all;
+  font-weight: 500;
+  transition: opacity .15s ease;
+}
+body.nb-neolearn-page .nl-message-link:hover {
+  opacity: .8;
+}
+body.nb-neolearn-page .nl-message-bubble.is-own .nl-message-link {
+  color: #fff;
+  text-decoration-color: rgba(255, 255, 255, 0.75);
+}
+
+body.nb-neolearn-page .nl-msg-url-preview-card {
+  display: block;
+  margin-top: .55rem;
+  text-decoration: none;
+  background: var(--account-surface);
+  color: var(--account-text) !important;
+  border: 1px solid var(--account-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  max-width: 340px;
+}
+body.nb-neolearn-page .nl-msg-url-preview-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--account-accent);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+body.nb-neolearn-page .nl-msg-url-preview-inner {
+  display: flex;
+  flex-direction: column;
+}
+body.nb-neolearn-page .nl-msg-url-preview-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: .5rem .75rem;
+  background: var(--account-bg);
+  border-bottom: 1px solid var(--account-border);
+}
+body.nb-neolearn-page .nl-msg-url-preview-favicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+body.nb-neolearn-page .nl-msg-url-preview-fallback-icon {
+  font-size: .85rem;
+  color: var(--account-muted);
+}
+body.nb-neolearn-page .nl-msg-url-preview-domain {
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--account-muted);
+  text-transform: lowercase;
+}
+body.nb-neolearn-page .nl-msg-url-preview-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .74rem;
+  font-weight: 700;
+  color: var(--account-accent);
+}
+body.nb-neolearn-page .nl-msg-url-preview-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: .6rem .75rem;
+}
+body.nb-neolearn-page .nl-msg-url-preview-title {
+  font-size: .84rem;
+  font-weight: 650;
+  color: var(--account-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.nb-neolearn-page .nl-msg-url-preview-desc {
+  font-size: .72rem;
+  color: var(--account-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+body.nb-neolearn-page .nl-msg-url-preview-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .4rem .75rem;
+  font-size: .74rem;
+  font-weight: 600;
+  color: var(--account-accent);
+  background: var(--account-accent-soft);
+  border-top: 1px solid var(--account-border);
+}
+body.nb-neolearn-page .nl-msg-url-preview-card:hover .nl-msg-url-preview-action {
+  background: var(--account-accent);
+  color: #fff;
+}
+

@@ -123,6 +123,7 @@ function profileImage(url, name, className = 'nl-social-avatar') {
     image.src = url;
     image.alt = `${name || 'Learner'} profile photo`;
     image.loading = 'lazy';
+    image.decoding = 'async';
     return image;
   }
   const initials = element('span', `${className} nl-social-avatar-fallback`, (name || 'Learner').trim().charAt(0).toUpperCase());
@@ -998,6 +999,7 @@ export function renderPostCard(post, author, detailDialog, { isOwner } = {}) {
   image.src = post.imageUrl;
   image.alt = post.description ? `Learning post: ${post.description}` : `Learning post by ${author.name || 'learner'}`;
   image.loading = 'lazy';
+  image.decoding = 'async';
   openDetail.append(image);
 
   let clickTimeout = null;
@@ -1160,6 +1162,8 @@ export function openPostDetail(post, author, dialog, { isOwner } = {}) {
   const image = element('img', 'nl-post-detail-image');
   image.src = post.imageUrl;
   image.alt = post.description ? `Learning post: ${post.description}` : `Learning post by ${author.name || 'learner'}`;
+  image.loading = 'lazy';
+  image.decoding = 'async';
   imageWrap.append(image);
 
   const details = element('div', 'nl-post-detail-copy');

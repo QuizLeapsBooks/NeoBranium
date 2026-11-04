@@ -4,6 +4,9 @@ import {
   addEarlierMessagePage,
   mergeConversationMessages,
   sortPeersByLatestMessage
+  sortPeersByLatestMessage,
+  extractFirstUrl,
+  URL_REGEX
 } from './js/neolearn-message-history.js';
 
 test('peer list sorts conversations by latest message while keeping empty chats last', () => {
@@ -50,4 +53,31 @@ test('earlier pages report completion when the remaining history fits one page',
 
   assert.deepEqual(Object.keys(result.olderMessages), ['first']);
   assert.equal(result.hasMore, false);
+});
+
+test('extractFirstUrl extracts https URL and strips sentence punctuation', () => {
+  const info = extractFirstUrl('Hey, check this article: https://en.wikipedia.org/wiki/Physics!');
+  assert.ok(info);
+  assert.equal(info.rawUrl, 'https://en.wikipedia.org/wiki/Physics');
+  assert.equal(info.fullUrl, 'https://en.wikipedia.org/wiki/Physics');
+  assert.equal(info.parsed.hostname, 'en.wikipedia.org');
+});
+
+test('extractFirstUrl handles www. URLs by prepending https protocol', () => {
+  const info = extractFirstUrl('Visit www.khanacademy.org/science for study materials.');
+  assert.ok(info);
+  assert.equal(info.fullUrl, 'https://www.khanacademy.org/science');
+  assert.equal(info.parsed.hostname, 'www.khanacademy.org');
+});
+
+test('extractFirstUrl identifies NeoLearn deep links', () => {
+  const info = extractFirstUrl('Look at this post: https://neobranium.com/htmls/neolearn/index.html?postId=post-1234');
+  assert.ok(info);
+  assert.equal(info.parsed.searchParams.get('postId'), 'post-1234');
+});
+
+test('extractFirstUrl returns null for non-URL text or empty inputs', () => {
+  assert.equal(extractFirstUrl('Hello there, how are you?'), null);
+  assert.equal(extractFirstUrl(''), null);
+  assert.equal(extractFirstUrl(null), null);
 });

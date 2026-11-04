@@ -196,11 +196,13 @@ function displayFeedPosts(posts, feedMode, learningCount, isFallback = false) {
   } else {
     subtitle.textContent = 'Posts from profiles you are Learning.';
   }
+  const fragment = document.createDocumentFragment();
   posts.forEach((post) => {
     const card = renderPostCard(post, post.author, detailDialog);
     card.dataset.impressionSurfaceId = createFeedSurfaceId();
-    grid.append(card);
+    fragment.append(card);
   });
+  grid.append(fragment);
 
   const urlParams = new URLSearchParams(location.search);
   const deepLinkedPostId = urlParams.get('postId') || (location.hash ? location.hash.replace('#post-', '').replace('#', '') : null);

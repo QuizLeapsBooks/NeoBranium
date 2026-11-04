@@ -41,7 +41,11 @@ body.nb-neolearn-page .nl-peer-card {
   border-radius: 9px;
   box-shadow: var(--account-shadow);
 }
-body.nb-neolearn-page .nl-post-card { scroll-margin-top: 82px; }
+body.nb-neolearn-page .nl-post-card {
+  scroll-margin-top: 82px;
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
+}
 body.nb-neolearn-page .nl-post-card.is-deep-linked {
   outline: 3px solid color-mix(in srgb, var(--account-cyan) 72%, transparent);
   outline-offset: 3px;

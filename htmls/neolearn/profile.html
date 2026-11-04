@@ -522,11 +522,13 @@
           });
           postsGrid.replaceChildren();
         }
+        const fragment = document.createDocumentFragment();
         (Array.isArray(result.posts) ? result.posts : []).forEach((post) => {
           const card = renderPostCard(post, profile, detailDialog, { isOwner: result.isOwner });
           card.id = `post-${post.postId}`;
-          postsGrid.append(card);
+          fragment.append(card);
         });
+        postsGrid.append(fragment);
         postsOffset = Number.isInteger(result.nextPostOffset) ? result.nextPostOffset : postsGrid.children.length;
         document.getElementById('loadMoreNeoLearnPeerPosts').hidden = result.isBlocked || !result.hasMorePosts;
         const emptyState = document.getElementById('neoLearnPeerPostsEmpty');
@@ -633,11 +635,13 @@
         emptyState.querySelector('p').textContent = 'When you save posts, they will appear here.';
       } else {
         emptyState.hidden = true;
+        const fragment = document.createDocumentFragment();
         savedPosts.forEach((post) => {
-          const card = renderPostCard(post, currentResult?.profile || {}, detailDialog, { isOwner: false });
+          const card = renderPostCard(post, post.author || currentResult?.profile || {}, detailDialog, { isOwner: false });
           card.id = `post-${post.postId}`;
-          postsGrid.append(card);
+          fragment.append(card);
         });
+        postsGrid.append(fragment);
       }
     }
 

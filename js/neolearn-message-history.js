@@ -31,3 +31,23 @@ export function addEarlierMessagePage(olderMessages, latestMessages, page, pageS
     hasMore
   };
 }
+
+export const URL_REGEX = /(https?:\/\/[^\s<>"'{}|\\^`]+|www\.[^\s<>"'{}|\\^`]+)/gi;
+
+export function extractFirstUrl(text, baseOrigin = 'https://neobranium.com') {
+  if (typeof text !== 'string') return null;
+  const match = text.match(URL_REGEX);
+  if (!match || !match[0]) return null;
+  let rawUrl = match[0].replace(/[.,!?:;]+$/, '');
+  let fullUrl = rawUrl;
+  if (/^www\./i.test(fullUrl)) {
+    fullUrl = 'https://' + fullUrl;
+  }
+  try {
+    const parsed = new URL(fullUrl, baseOrigin);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return { rawUrl, fullUrl, parsed };
+    }
+  } catch {}
+  return null;
+}
