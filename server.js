@@ -117,8 +117,8 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com"],
-            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
             scriptSrc: ["'self'", "'unsafe-inline'", "https://esm.run", "https://www.gstatic.com", "https://cdn.jsdelivr.net"],
             connectSrc: [
                 "'self'",
@@ -127,9 +127,12 @@ app.use(helmet({
                 "wss://generativelanguage.googleapis.com",
                 "https://www.gstatic.com",
                 "https://firebase.googleapis.com",
+                "https://firestore.googleapis.com",
                 "https://firebasestorage.googleapis.com",
                 "https://identitytoolkit.googleapis.com",
                 "https://securetoken.googleapis.com",
+                "https://neobranium-default-rtdb.firebaseio.com",
+                "wss://neobranium-default-rtdb.firebaseio.com",
                 "https://neobranium.onrender.com",
                 "wss://neobranium.onrender.com",
                 "ws:",
