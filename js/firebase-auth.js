@@ -46,21 +46,6 @@ async function sendVerificationViaServer(fname) {
 // ==========================================
 // UI State Management & View Toggling
 // ==========================================
-const signupPage = document.getElementById("signup-page");
-const loginPage = document.getElementById("login-page");
-
-document.getElementById("showLoginLink")?.addEventListener("click", (e) => {
-  e.preventDefault();
-  signupPage.classList.add("hidden");
-  loginPage.classList.remove("hidden");
-});
-
-document.getElementById("showSignUpLink")?.addEventListener("click", (e) => {
-  e.preventDefault();
-  loginPage.classList.add("hidden");
-  signupPage.classList.remove("hidden");
-});
-
 // Toggle password visibility
 document.querySelectorAll(".toggle-password").forEach(toggle => {
   toggle.addEventListener("click", function () {
