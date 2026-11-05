@@ -289,6 +289,21 @@ function renderCachedDiscovery(learningCount) {
   }
 }
 
+function getCachedLearningFeed(user) {
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(`neolearnFeedCache_${user.uid}`) || 'null');
+    const selection = selectFeedPosts(cached?.feed, postViewCounts, lastShownAt);
+    if (!selection.posts.length) return null;
+    return {
+      posts: selection.posts,
+      learningCount: cached.learningCount || 0,
+      isFallback: selection.isFallback
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function loadDiscoveryFeed(learningCount) {
   if (!currentUser) return;
   const user = currentUser;
@@ -339,15 +354,18 @@ async function loadFeed() {
   emptyLearning.hidden = true;
   emptyPosts.hidden = true;
   
-  let cachedLearningCount = 0;
-  const cachedStr = sessionStorage.getItem('neolearnFeedCache_' + user.uid);
-  if (cachedStr) {
-    try {
-      const result = JSON.parse(cachedStr);
-      cachedLearningCount = result.learningCount || 0;
-    } catch(e) {}
+  const cachedLearning = getCachedLearningFeed(user);
+  const cachedLearningCount = cachedLearning?.learningCount || 0;
+  let hasRenderedCache = false;
+  let cachedPostIds = null;
+  if (cachedLearning) {
+    cachedPostIds = cachedLearning.posts.map((post) => post.postId);
+    displayFeedPosts(cachedLearning.posts, 'learning', cachedLearning.learningCount, cachedLearning.isFallback);
+    hasRenderedCache = true;
+  } else {
+    hasRenderedCache = renderCachedDiscovery(cachedLearningCount);
   }
-  loading.hidden = false;
+  if (!hasRenderedCache) loading.hidden = false;
 
   try {
     const result = await getNeoLearnFeed(user);
@@ -361,19 +379,16 @@ async function loadFeed() {
     const localSelection = selectFeedPosts(result.feed, postViewCounts, lastShownAt);
     const posts = result.isFallback ? result.feed : localSelection.posts;
     const isFallback = result.isFallback || localSelection.isFallback;
-    if (posts.length) displayFeedPosts(posts, 'learning', result.learningCount, isFallback);
+    if (posts.length) {
+      const unchanged = cachedPostIds
+        && posts.length === cachedPostIds.length
+        && posts.every((post, index) => post.postId === cachedPostIds[index]);
+      if (unchanged) activeLearningCount = result.learningCount;
+      else displayFeedPosts(posts, 'learning', result.learningCount, isFallback);
+    }
     else await loadDiscoveryFeed(result.learningCount);
   } catch (loadError) {
     if (requestGeneration !== feedGeneration || currentUser?.uid !== user.uid) return;
-    let hasRenderedCache = false;
-    try {
-      const cached = JSON.parse(sessionStorage.getItem(`neolearnFeedCache_${user.uid}`) || 'null');
-      const selection = selectFeedPosts(cached?.feed, postViewCounts, lastShownAt);
-      if (selection.posts.length) {
-        displayFeedPosts(selection.posts, 'learning', cached.learningCount || 0, selection.isFallback);
-        hasRenderedCache = true;
-      }
-    } catch {}
     if (!hasRenderedCache) hasRenderedCache = renderCachedDiscovery(cachedLearningCount);
     errorText.textContent = loadError.message || "Couldn't load your Learning feed.";
     error.hidden = false;

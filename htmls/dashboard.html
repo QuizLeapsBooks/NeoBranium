@@ -559,8 +559,6 @@
   <!-- Dashboard: Today Date + Avatar + Thought of the Day -->
   <script type="module">
     import { syncProfilePhoto, isThoughtActive } from '/js/profile-photo-cache.js';
-    import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
-    import { db } from '/js/auth.js';
 
     // Set today's date pill
     const todayEl = document.getElementById('nbTodayDate');
@@ -640,15 +638,9 @@
 
       setThought(userData || {});
 
-      // Check NeoLearn Profile
-      getDoc(doc(db, 'neolearn_profiles', user.uid)).then(neolearnSnap => {
-        if (neolearnSnap.exists()) {
-          const actionLink = document.getElementById('neolearnDashboardAction');
-          if (actionLink) actionLink.classList.remove('d-none');
-          const dropdownLink = document.getElementById('dropdownNeoLearnLink');
-          if (dropdownLink) dropdownLink.classList.remove('d-none');
-        }
-      }).catch(err => console.error('Error checking NeoLearn profile', err));
+      // userLoaded is dispatched only after Firebase Auth resolves a signed-in user.
+      document.getElementById('neolearnDashboardAction')?.classList.remove('d-none');
+      document.getElementById('dropdownNeoLearnLink')?.classList.remove('d-none');
     });
 
     // ═══ SAVED QUESTIONS WIDGET ═════════════════════════════════════════
