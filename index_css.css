@@ -320,7 +320,7 @@ header {
 
 /* Hero Section */
 .hero {
-  padding: 4rem 5%;
+  padding: 2rem 5%;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -359,7 +359,7 @@ header {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
-  margin-bottom: 3rem;
+  margin-bottom: 1.25rem;
 }
 
 .btn {
@@ -426,7 +426,7 @@ header {
 .illustration-placeholder {
   width: 100%;
   max-width: 500px;
-  height: 400px;
+  height: 280px;
   background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(14, 165, 233, 0.1) 100%);
   border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
   display: flex;
@@ -459,14 +459,15 @@ header {
 }
 
 /* Landing page product showcase */
-.ecosystem-section { padding-top: 4.5rem; }
-.ecosystem-intro { max-width: 720px; margin: 0 auto 2.3rem; text-align: center; }
+.ecosystem-section { padding-top: 2rem; padding-bottom: 3rem; }
+.ecosystem-intro { max-width: 720px; margin: 0 auto 1.4rem; text-align: center; }
 .ecosystem-eyebrow, .ecosystem-kicker { color: var(--primary); font-size: .72rem; font-weight: 800; letter-spacing: .12em; }
 .ecosystem-intro h2, .neolens-copy h2, .neolearn-heading h2 { margin: .45rem 0 .65rem; font: 800 clamp(1.8rem, 4vw, 2.55rem)/1.12 'Outfit', 'Inter', sans-serif; letter-spacing: -.035em; }
 .ecosystem-intro p, .neolearn-heading p { max-width: 650px; margin: 0 auto; color: var(--text-dim); font-size: 1.02rem; }
 .ecosystem-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
-.ecosystem-card { display: flex; flex-direction: column; min-height: 300px; padding: 1.45rem; border: 1px solid var(--border-color); border-radius: 20px; background: var(--bg-white); box-shadow: 0 8px 26px rgba(30, 41, 59, .045); transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease; }
+.ecosystem-card { display: flex; flex-direction: column; min-height: 230px; padding: 1.2rem; border: 1px solid var(--border-color); border-radius: 20px; background: var(--bg-white); box-shadow: 0 8px 26px rgba(30, 41, 59, .045); transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease; }
 .ecosystem-card:hover { transform: translateY(-4px); border-color: rgba(37, 99, 235, .42); box-shadow: var(--card-shadow); }
+.ecosystem-card:focus-within { outline: 3px solid rgba(37, 99, 235, .25); outline-offset: 3px; }
 .ecosystem-icon { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 1rem; border-radius: 15px; background: rgba(37, 99, 235, .1); color: var(--primary); font-size: 1.2rem; transition: transform .3s ease, color .3s ease, background .3s ease; }
 .ecosystem-card:hover .ecosystem-icon { transform: translateY(-3px) rotate(-5deg) scale(1.06); }
 .ecosystem-card--questions .ecosystem-icon { color: #d97706; background: rgba(245, 158, 11, .13); }
@@ -480,7 +481,7 @@ header {
 }
 .ecosystem-kicker { font-size: .65rem; }
 .ecosystem-card h3 { margin: .3rem 0 .55rem; font: 700 1.2rem 'Outfit', sans-serif; }
-.ecosystem-card p { color: var(--text-dim); font-size: .91rem; line-height: 1.55; }
+.ecosystem-card p { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 3; color: var(--text-dim); font-size: .91rem; line-height: 1.55; }
 .ecosystem-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin: 1rem 0 1.15rem; }
 .ecosystem-chips span { padding: .28rem .55rem; border-radius: 30px; background: var(--bg-light); color: var(--text-dim); font-size: .7rem; font-weight: 600; }
 .ecosystem-link { display: inline-flex; align-items: center; gap: .5rem; margin-top: auto; color: var(--primary); text-decoration: none; font-size: .85rem; font-weight: 700; }
@@ -546,9 +547,18 @@ header {
   .ecosystem-card:hover, .ecosystem-card:hover .ecosystem-icon, .learning-step:hover { transform: none; }
 }
 @media (max-width: 1024px) { .ecosystem-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 768px) { .ecosystem-section { padding-top: 3rem; } .neolens-feature { grid-template-columns: 1fr; gap: 1.5rem; padding-top: 1.5rem; } .neolearn-heading { align-items: flex-start; flex-direction: column; gap: 1.1rem; } }
+@media (max-width: 768px) { .ecosystem-section { padding-top: 1.5rem; } .neolens-feature { grid-template-columns: 1fr; gap: 1.5rem; padding-top: 1.5rem; } .neolearn-heading { align-items: flex-start; flex-direction: column; gap: 1.1rem; } }
 @media (max-width: 900px) { .learning-path { grid-template-columns: repeat(2, minmax(0,1fr)); } .path-connector { display: none; } }
-@media (max-width: 560px) { .ecosystem-grid, .neolearn-grid, .learning-path { grid-template-columns: 1fr; } .ecosystem-card { min-height: unset; } .ecosystem-intro { text-align: left; } .neolens-visual { padding: .8rem; } .neolearn-foot { flex-direction: column; } .learning-step { min-height: 140px; } }
+@media (max-width: 560px) { .neolearn-grid, .learning-path { grid-template-columns: 1fr; } .ecosystem-intro { text-align: left; } .neolens-visual { padding: .8rem; } .neolearn-foot { flex-direction: column; } .learning-step { min-height: 140px; } }
+@media (max-width: 560px) {
+  .ecosystem-section { padding-top: 1.25rem; padding-bottom: 2rem; }
+  .ecosystem-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+  .ecosystem-card { min-height: 195px; padding: .85rem; border-radius: 15px; }
+  .ecosystem-icon { width: 40px; height: 40px; margin-bottom: .7rem; border-radius: 12px; }
+  .ecosystem-card h3 { font-size: 1rem; }
+  .ecosystem-card p { -webkit-line-clamp: 3; font-size: .8rem; line-height: 1.45; }
+  .ecosystem-link { gap: .35rem; font-size: .76rem; }
+}
 
 .section-header {
   display: flex;
@@ -2607,3 +2617,12 @@ footer {
   }
 }
 
+@media (max-width: 768px) {
+  .hero { padding: 1.25rem 4%; }
+  .hero-text p { margin-bottom: .9rem; }
+  .hero-btns { gap: .6rem; margin-bottom: 1rem; }
+  .ecosystem-section { padding-top: 1rem; }
+  .ecosystem-intro { margin-bottom: 1rem; }
+  .ecosystem-intro h2 { font-size: clamp(1.55rem, 6vw, 2rem); }
+  .ecosystem-intro p { font-size: .9rem; }
+}
