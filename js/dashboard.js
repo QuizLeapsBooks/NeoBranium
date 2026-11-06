@@ -126,10 +126,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Removed fragile document.write loading logic to improve security and reliability.
 // Standard browser navigation and caching should be used instead.
-
-// Service Worker register kar
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js')
-    .then(reg => console.log('Service Worker registered!', reg))
-    .catch(err => console.log('Service Worker registration failed:', err));
-}
