@@ -75,7 +75,7 @@ const modelAnswerLimiter = rateLimit({
 });
 
 // Helper for Gemini fetch
-async function callGeminiAPI(payload, apiKey, modelOverride) {
+async function callGeminiAPI(payload, apiKey, modelOverride, timeoutMs = Number(process.env.PAPER_AI_TIMEOUT_MS) || 60000) {
   const model = modelOverride || getPaperModel();
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
@@ -83,15 +83,29 @@ async function callGeminiAPI(payload, apiKey, modelOverride) {
   payload.generationConfig = payload.generationConfig || {};
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), Number(process.env.PAPER_AI_TIMEOUT_MS) || 60000);
-  let response;
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-    signal: controller.signal
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal
     });
+
+    if (!response.ok) {
+      await response.text();
+      console.error('[PaperRoutes] Gemini API error:', response.status);
+      const err = new Error(`Gemini service error: ${response.status}`);
+      err.status = response.status >= 500 ? 502 : response.status;
+      throw err;
+    }
+
+    const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('').trim();
+    if (!text) {
+      throw new Error('Gemini returned an empty response.');
+    }
+    return text;
   } catch (error) {
     if (error.name === 'AbortError') {
       const timeoutError = new Error('AI request timed out. Please try again.');
@@ -102,21 +116,6 @@ async function callGeminiAPI(payload, apiKey, modelOverride) {
   } finally {
     clearTimeout(timeout);
   }
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('[PaperRoutes] Gemini API error:', response.status);
-    const err = new Error(`Gemini service error: ${response.status}`);
-    err.status = response.status >= 500 ? 502 : response.status;
-    throw err;
-  }
-
-  const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('').trim();
-  if (!text) {
-    throw new Error('Gemini returned an empty response.');
-  }
-  return text;
 }
 
 /**
@@ -610,7 +609,8 @@ Return your evaluation strictly in the following JSON format:
         maxOutputTokens: 5000,
         responseMimeType: 'application/json'
       }
-    }, geminiApiKey, getVisionModel());
+    }, geminiApiKey, getVisionModel(),
+      Number(process.env.PAPER_EVAL_AI_TIMEOUT_MS) || Number(process.env.PAPER_AI_TIMEOUT_MS) || 120000);
 
     let parsedResult;
     try {
