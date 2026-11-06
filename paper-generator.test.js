@@ -17,7 +17,8 @@ import {
   validateCurriculumScope,
   CURRICULUM_DATA,
   EXAM_MODES,
-  SYLLABUS_VERSION
+  SYLLABUS_VERSION,
+  getQuestionDifficultyGuidance
 } from './js/paper-syllabus-data.js';
 import {
   validateImageSignature,
@@ -84,6 +85,18 @@ test('4. Exam Modes: CBSE, School, and Competitive modes have specific grading r
   assert.ok(EXAM_MODES.cbse.evaluationRules.some(r => r.toLowerCase().includes('step-wise')));
   assert.ok(EXAM_MODES.school.evaluationRules.some(r => r.toLowerCase().includes('step marks')));
   assert.ok(EXAM_MODES.competitive.evaluationRules.some(r => r.toLowerCase().includes('accuracy')));
+});
+
+test('4a. Question generation: CBSE and competitive modes use higher-order difficulty guidance', () => {
+  const cbseGuidance = getQuestionDifficultyGuidance('cbse', 'Medium');
+  assert.match(cbseGuidance, /competency-focused/i);
+  assert.match(cbseGuidance, /case\/context-based reasoning/i);
+  assert.match(cbseGuidance, /multi-step reasoning/i);
+
+  const competitiveGuidance = getQuestionDifficultyGuidance('competitive', 'Hard');
+  assert.match(competitiveGuidance, /advanced competitive\/foundation standard/i);
+  assert.match(competitiveGuidance, /non-routine/i);
+  assert.match(competitiveGuidance, /do not introduce methods or concepts from higher grades/i);
 });
 
 // ─── 3. Image Signature and Upload Security ────────────────────────────────────

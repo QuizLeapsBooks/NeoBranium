@@ -26,6 +26,7 @@ import {
   validateCurriculumScope,
   SYLLABUS_VERSION,
   EXAM_MODES,
+  getQuestionDifficultyGuidance,
   getEvaluationRules
 } from '../js/paper-syllabus-data.js';
 import { getPaperModel, getVisionModel } from '../gemini-models.js';
@@ -297,6 +298,7 @@ Generate a comprehensive, curriculum-aligned exam paper for:
 - Chapter/Topic: ${cleanChapter || 'Full Prescribed Syllabus'}
 - Exam Type: ${selectedModeConfig.label} (${selectedModeConfig.description})
 - Difficulty Level: ${cleanDifficulty}
+- Difficulty and question-style guidance: ${getQuestionDifficultyGuidance(cleanExamMode, cleanDifficulty)}
 - Target Total Marks: ${numMarks}
 - Time Allowed: ${numDuration} minutes
 - Required Counts: MCQ: ${numMcq}, Short Answer: ${numShort}, Long Answer: ${numLong}
@@ -306,8 +308,9 @@ Generate a comprehensive, curriculum-aligned exam paper for:
 STRICT SYLLABUS & CLASS BOUNDARY RULES:
 1. ONLY include concepts prescribed for Class ${cleanClass} NCERT syllabus.
 2. STRICTLY FORBIDDEN: Do not introduce methods from higher or lower grades (e.g. no Class 11 calculus/trigonometry identities for Class 10).
-3. Mathematical formulas must be wrapped in standard KaTeX-compatible LaTeX (e.g. $a^2 + b^2 = c^2$).
-4. CRITICAL MANDATORY REQUIREMENT:
+3. Make the question's reasoning, not confusing wording or obscure facts, determine its difficulty. Ensure every question is answerable from the stated class and chapter scope.
+4. Mathematical formulas must be wrapped in standard KaTeX-compatible LaTeX (e.g. $a^2 + b^2 = c^2$).
+5. CRITICAL MANDATORY REQUIREMENT:
    DO NOT GENERATE, APPEND, OR REVEAL ANY ANSWERS, SOLUTIONS, OR ANSWER KEYS.
    THIS IS A QUESTION-ONLY PAPER FOR STUDENTS TO ATTEMPT. UNDER NO CIRCUMSTANCES SHOULD YOU PROVIDE AN ANSWER KEY OR MODEL SOLUTIONS IN THIS RESPONSE.
 

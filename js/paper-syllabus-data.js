@@ -60,6 +60,141 @@ export const EXAM_MODES = {
   }
 };
 
+
+export function getQuestionDifficultyGuidance(examMode, difficulty) {
+  const difficultyGuidance = {
+    Easy: `
+      Use foundational questions, but do not make the paper trivial.
+      Test conceptual clarity, interpretation, basic application, and
+      the ability to connect concepts. Include some questions that
+      require students to think before answering. Avoid excessive
+      definition-based and direct-recall questions.
+    `,
+    Medium: `
+      Set a demanding but balanced standard. Give substantial weight
+      to conceptual application, unfamiliar situations, analytical
+      interpretation, multi-step calculations, and logical reasoning.
+      Questions should require students to apply concepts independently,
+      not merely reproduce memorised examples. Include meaningful HOTS
+      questions throughout the paper.
+    `,
+    Hard: `
+      Set a highly challenging examination standard comparable to
+      demanding recent CBSE board-level questions and above-average
+      school examination papers. Strongly emphasize higher-order
+      thinking, unfamiliar real-world contexts, multi-concept
+      applications, multi-step numerical problems, analytical reasoning,
+      data interpretation, and questions requiring students to justify
+      conclusions. Use challenging but fair variations of familiar
+      concepts. Avoid predictable textbook-repetition questions.
+    `,
+    Mixed: `
+      Create a carefully balanced but challenging paper. Include
+      foundational questions, moderate application questions, and
+      substantial higher-order reasoning questions. The challenging
+      section must contain genuinely non-routine problems, unfamiliar
+      contexts, analytical interpretation, and multi-step applications.
+      Do not let easy direct-recall questions dominate the paper.
+    `
+  }[difficulty] || `
+    Use a challenging balance of conceptual understanding,
+    application, analytical reasoning, and multi-step problem solving.
+  `;
+
+  const modeGuidance = {
+    cbse: `
+      Follow the evolving competency-based standards and question
+      patterns of recent CBSE board examinations. Do not rely on
+      outdated, predominantly memory-based paper patterns.
+
+      PRIORITY QUESTION TYPES:
+      - Competency-based questions requiring application of concepts
+        in unfamiliar but syllabus-relevant situations.
+      - Case-study and source-based questions with meaningful
+        sub-questions that test interpretation and reasoning.
+      - Assertion-reason questions with logically designed statements
+        and scientifically or mathematically valid reasoning.
+      - Multi-step numerical and mathematical problems requiring
+        selection and application of appropriate concepts.
+      - Data, graph, table, diagram, experiment, and observation-based
+        interpretation wherever relevant to the subject.
+      - Questions requiring comparison, inference, evaluation,
+        justification, prediction, and identification of errors.
+      - Questions connecting multiple concepts or chapters when
+        permitted by the prescribed syllabus.
+      - Questions that test whether students can transfer learned
+        concepts to new situations rather than reproduce memorised
+        answers.
+
+      DIFFICULTY STANDARD:
+      Raise the overall intellectual demand of the paper. Even
+      straightforward questions should test actual understanding.
+      Include challenging application and HOTS questions across
+      different sections, not only in the final section.
+      Make case-based questions genuinely analytical rather than
+      converting simple textbook facts into lengthy passages.
+
+      For numerical subjects, use non-routine but solvable problems,
+      multiple reasoning steps, correct units, and realistic data.
+      For science, emphasize experimental reasoning, observations,
+      cause-effect relationships, diagrams, and scientific inference.
+      For mathematics, emphasize conceptual flexibility, unfamiliar
+      problem structures, connected concepts, and multi-step solutions.
+      For social science, emphasize source interpretation, chronology,
+      map/data analysis, evidence-based conclusions, and connections
+      between concepts.
+      For languages, emphasize comprehension, inference, analytical
+      interpretation, and application of grammar and writing skills.
+
+      QUALITY RULES:
+      Every question must remain strictly within the prescribed
+      class-wise CBSE syllabus and current subject curriculum.
+      Do not introduce higher-class concepts merely to increase
+      difficulty. Avoid ambiguous wording, artificial tricks,
+      excessive calculations, obscure facts, and misleading options.
+      Ensure every question has a defensible answer and that marks,
+      expected answer length, and difficulty are proportionate.
+
+      The paper should challenge a well-prepared student while
+      remaining fair and appropriate for the selected class.
+    `,
+
+    competitive: `
+      Set a rigorous competitive-examination and foundation-level
+      standard within the prescribed class syllabus. Emphasize HOTS,
+      non-routine problems, multi-concept connections, mathematical
+      reasoning, conceptual depth, and carefully designed distractors.
+
+      Include problems that require students to discover the correct
+      approach rather than directly apply an obvious formula.
+      Challenge students through reasoning and depth, not tricks,
+      obscure facts, or unnecessarily lengthy calculations.
+
+      Never introduce concepts or methods from higher grades unless
+      explicitly included in the prescribed syllabus.
+    `,
+
+    school: `
+      Create a rigorous school-examination paper that goes beyond
+      basic textbook recall. Test conceptual clarity, application,
+      analytical interpretation, reasoning, and multi-step problem
+      solving. Keep the challenge appropriate to the selected class
+      and difficulty while maintaining clear and fair questions.
+    `,
+
+    practice: `
+      Create a high-quality diagnostic practice paper that identifies
+      conceptual gaps and tests genuine understanding. Include
+      application, unfamiliar contexts, analytical reasoning,
+      multi-step questions, and a meaningful range of difficulty.
+      Avoid repetitive questions and superficial recall-only testing.
+    `
+  }[examMode] || '';
+
+  return `${difficultyGuidance}\n${modeGuidance}`;
+}
+
+
 export function getEvaluationRules(examMode, questions = []) {
   const config = EXAM_MODES[examMode] || EXAM_MODES.cbse;
   if (examMode === 'competitive' && questions.every(question => ['mcq', 'objective'].includes(question.type))) {
