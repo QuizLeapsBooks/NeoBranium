@@ -119,7 +119,7 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://esm.run", "https://www.gstatic.com", "https://cdn.jsdelivr.net"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://esm.run", "https://www.gstatic.com", "https://cdn.jsdelivr.net", "https://pagead2.googlesyndication.com", "https://googleads.g.doubleclick.net"],
             connectSrc: [
                 "'self'",
                 "https://api.groq.com",
@@ -131,6 +131,8 @@ app.use(helmet({
                 "https://firebasestorage.googleapis.com",
                 "https://identitytoolkit.googleapis.com",
                 "https://securetoken.googleapis.com",
+                "https://pagead2.googlesyndication.com",
+                "https://googleads.g.doubleclick.net",
                 "https://neobranium-default-rtdb.firebaseio.com",
                 "wss://neobranium-default-rtdb.firebaseio.com",
                 "https://neobranium.onrender.com",
@@ -138,8 +140,8 @@ app.use(helmet({
                 "ws:",
                 "wss:"
             ],
-            imgSrc: ["'self'", "data:", "blob:", "https://firebasestorage.googleapis.com", "https://www.gstatic.com", "https://res.cloudinary.com"],
-            frameSrc: ["'self'", "https://neobranium.firebaseapp.com"]
+            imgSrc: ["'self'", "data:", "blob:", "https://firebasestorage.googleapis.com", "https://www.gstatic.com", "https://res.cloudinary.com", "https://pagead2.googlesyndication.com", "https://googleads.g.doubleclick.net", "https://tpc.googlesyndication.com"],
+            frameSrc: ["'self'", "https://neobranium.firebaseapp.com", "https://googleads.g.doubleclick.net", "https://tpc.googlesyndication.com", "https://www.google.com"]
         }
     }
 }));
