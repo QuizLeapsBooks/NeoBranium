@@ -10,6 +10,8 @@ const messagesRef = ref(rtdb, "messages");
 
 // Check auth state and get username
 let currentUser = null;
+let unsubscribeMessages = null;
+let initialMessageLoadTimeout = null;
 
 // UI update helper for user info
 function updateUserInfo(username, initial) {
@@ -26,6 +28,7 @@ function updateUserInfo(username, initial) {
 onAuthStateChanged(auth, async (user) => {
     try {
         if (user) {
+            startMessagesListener();
             const userDoc = await getDoc(doc(db, "users", user.uid));
             if (userDoc.exists()) {
                 const userData = userDoc.data();
@@ -41,10 +44,12 @@ onAuthStateChanged(auth, async (user) => {
                 updateUserInfo(currentUser.username, currentUser.username.charAt(0).toUpperCase() || "U");
             }
         } else {
+            stopMessagesListener();
             if (isGuestUser()) {
                 console.log("Guest access active in chat");
                 currentUser = { uid: "guest", username: "Guest" };
                 updateUserInfo("Guest", "G");
+                showMessageStatus("Sign in to load chat messages.");
 
                 // Restriction for guest: Disable chat input
                 const messageInput = document.getElementById("message-input");
@@ -127,8 +132,45 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function showMessageStatus(message, className = "text-gray-400") {
+    const messageList = document.getElementById("message-list");
+    if (messageList) {
+        messageList.innerHTML = `<li class="text-center ${className}">${message}</li>`;
+    }
+}
+
+function stopMessagesListener() {
+    unsubscribeMessages?.();
+    unsubscribeMessages = null;
+    clearTimeout(initialMessageLoadTimeout);
+    initialMessageLoadTimeout = null;
+}
+
+function startMessagesListener() {
+    stopMessagesListener();
+    showMessageStatus("Loading messages...");
+
+    initialMessageLoadTimeout = setTimeout(() => {
+        showMessageStatus("Still waiting for the live chat. Check your connection and refresh the page.");
+    }, 15000);
+
+    unsubscribeMessages = onValue(messagesRef, (snapshot) => {
+        clearTimeout(initialMessageLoadTimeout);
+        initialMessageLoadTimeout = null;
+        renderMessages(snapshot);
+    }, (error) => {
+        clearTimeout(initialMessageLoadTimeout);
+        initialMessageLoadTimeout = null;
+        console.error("Error in onValue listener:", error);
+        const message = error.code === "PERMISSION_DENIED"
+            ? "Your session cannot access the chat. Sign in again and refresh the page."
+            : "Error fetching messages. Check your connection and refresh the page.";
+        showMessageStatus(message, "text-red-400");
+    });
+}
+
 // Display messages in real-time
-onValue(messagesRef, (snapshot) => {
+function renderMessages(snapshot) {
     const messageList = document.getElementById("message-list");
     if (!messageList) return;
     messageList.innerHTML = ""; // Clear existing messages
@@ -203,10 +245,4 @@ onValue(messagesRef, (snapshot) => {
         console.error("Error processing messages:", error);
         messageList.innerHTML = "<li class='text-center text-red-400'>Failed to load messages.</li>";
     }
-}, (error) => {
-    console.error("Error in onValue listener:", error);
-    const messageList = document.getElementById("message-list");
-    if (messageList) {
-        messageList.innerHTML = "<li class='text-center text-red-400'>Error fetching messages. Please refresh the page.</li>";
-    }
-});
+}
