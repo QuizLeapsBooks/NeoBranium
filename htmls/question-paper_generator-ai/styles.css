@@ -75,6 +75,11 @@ body[data-theme="dark"],
   box-sizing: border-box;
 }
 
+html, body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 body {
   margin: 0;
   font-family: var(--font-family);
@@ -83,6 +88,19 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Math formula and code containment on small viewports */
+.katex-display {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 0.35rem 0 !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.katex {
+  max-width: 100%;
 }
 
 /* App Navbar */
@@ -179,6 +197,7 @@ body {
 .header-content {
   max-width: 900px;
   margin: 0 auto;
+  padding-inline: clamp(0.75rem, 3vw, 1.25rem);
 }
 
 .header-badge {
@@ -193,6 +212,10 @@ body {
   font-weight: 600;
   margin-bottom: 0.85rem;
   border: 1px solid rgba(255, 255, 255, 0.25);
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+  line-height: 1.4;
 }
 
 .page-title {
@@ -1136,37 +1159,547 @@ body {
   color: var(--text-secondary);
 }
 
-/* Mobile & Tablet Responsiveness */
-@media (max-width: 768px) {
-  .floating-fab-btn {
-    bottom: max(0.75rem, env(safe-area-inset-bottom));
-    right: max(0.75rem, env(safe-area-inset-right));
-    padding: 0.75rem 1.15rem;
-    font-size: 0.9rem;
+/* ==========================================================================
+   Comprehensive Mobile & Tablet Responsiveness
+   ========================================================================== */
+
+/* 1. Medium Tablets & Small Laptops (<= 900px) */
+@media (max-width: 900px) {
+  .navbar-container {
+    padding-inline: 0.5rem;
   }
-  
-  .results-header {
-    flex-direction: column;
-    align-items: flex-start;
+
+  .main-content {
+    max-width: 100%;
+    padding-inline: clamp(1rem, 3vw, 1.5rem);
   }
-  
-  .results-actions {
-    width: 100%;
-  }
-  
-  .results-actions .btn {
-    flex: 1;
-  }
-  
-  .score-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+
+  .exam-meta-grid {
+    gap: 0.75rem 1.5rem;
   }
 }
 
+/* 2. Tablets & Large Mobile Screens (<= 768px) */
+@media (max-width: 768px) {
+  /* Navigation */
+  .app-navbar {
+    padding: 0.65rem 1rem;
+  }
+
+  .brand-link {
+    font-size: 1.15rem;
+    gap: 0.5rem;
+  }
+
+  .brand-logo {
+    width: 30px;
+    height: 30px;
+  }
+
+  .nav-links {
+    gap: 0.5rem;
+  }
+
+  .nav-link {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.85rem;
+  }
+
+  .theme-toggle-btn {
+    width: 34px;
+    height: 34px;
+    font-size: 1rem;
+  }
+
+  /* Header */
+  .header {
+    padding: 1.75rem 0.85rem;
+  }
+
+  .page-title {
+    font-size: clamp(1.5rem, 5vw, 2.1rem);
+  }
+
+  .page-subtitle {
+    font-size: clamp(0.875rem, 3vw, 1rem);
+  }
+
+  /* Main & Form */
+  .main-content {
+    padding: 1.25rem 0.85rem 5.5rem 0.85rem;
+  }
+
+  .generator-form {
+    padding: clamp(1rem, 3vw, 1.5rem);
+    margin-bottom: 1.5rem;
+    border-radius: var(--radius);
+  }
+
+  .form-section {
+    padding: 1rem 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .section-title {
+    font-size: 1.1rem;
+    gap: 0.5rem;
+  }
+
+  /* Results Header & Actions - Overriding ai-pages.css */
+  body.nb-paper-page .results-header,
+  .results-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    padding: 1rem 1.15rem;
+  }
+
+  body.nb-paper-page .results-actions,
+  .results-actions {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 0.6rem;
+  }
+
+  body.nb-paper-page .results-actions .btn,
+  .results-actions .btn {
+    flex: 1 1 calc(50% - 0.35rem);
+    min-width: 130px;
+    width: auto;
+    justify-content: center;
+    min-height: 44px;
+    font-size: 0.875rem;
+    padding: 0.65rem 0.85rem;
+  }
+
+  /* Evaluation Scorecard */
+  body.nb-paper-page .eval-results-card,
+  .eval-results-card {
+    padding: 1.25rem 1rem;
+    border-left-width: 5px;
+    border-radius: var(--radius);
+  }
+
+  body.nb-paper-page .eval-results-header,
+  .eval-results-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+  }
+
+  .eval-title {
+    font-size: 1.2rem;
+  }
+
+  body.nb-paper-page .score-stats-grid,
+  .score-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+  }
+
+  .stat-box {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .stat-val {
+    font-size: clamp(1.2rem, 4.5vw, 1.65rem);
+    word-break: break-word;
+  }
+
+  .stat-label {
+    font-size: 0.725rem;
+    letter-spacing: 0.02em;
+  }
+
+  /* Exam Paper */
+  body.nb-paper-page .exam-paper,
+  .exam-paper {
+    padding: clamp(1rem, 3.5vw, 1.75rem);
+  }
+
+  body.nb-paper-page .exam-header-premium,
+  .exam-header-premium {
+    padding: 1rem 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  body.nb-paper-page .exam-subject-title,
+  .exam-subject-title {
+    font-size: clamp(1.35rem, 5vw, 1.85rem);
+    word-break: break-word;
+    margin-bottom: 0.75rem;
+  }
+
+  /* Floating Upload FAB */
+  .floating-fab-btn {
+    bottom: max(0.85rem, env(safe-area-inset-bottom));
+    right: max(0.85rem, env(safe-area-inset-right));
+    padding: 0.75rem 1.15rem;
+    font-size: 0.875rem;
+    max-width: calc(100vw - 1.7rem);
+    box-shadow: 0 8px 20px -3px rgba(79, 70, 229, 0.45);
+  }
+
+  /* Modals */
+  body.nb-paper-page .nb-modal-backdrop,
+  .nb-modal-backdrop {
+    padding: clamp(0.5rem, 2.5vw, 1rem);
+  }
+
+  body.nb-paper-page .nb-modal-dialog,
+  .nb-modal-dialog {
+    max-height: calc(100dvh - 1.5rem);
+    width: 100%;
+    border-radius: var(--radius);
+  }
+
+  .modal-header {
+    padding: 0.85rem 1rem;
+  }
+
+  .modal-title {
+    font-size: clamp(0.95rem, 3.5vw, 1.15rem);
+    line-height: 1.35;
+    padding-right: 0.4rem;
+    word-break: break-word;
+  }
+
+  .modal-close-btn {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+  }
+
+  .modal-body {
+    padding: 1rem 0.85rem;
+    overscroll-behavior: contain;
+  }
+
+  .modal-footer {
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* 3. Standard Mobile Phones (<= 640px) */
+@media (max-width: 640px) {
+  /* Form Layout */
+  body.nb-paper-page .form-grid,
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+    flex-wrap: wrap;
+    gap: 0.2rem;
+  }
+
+  /* Prevent iOS zoom on input focus by setting 16px font-size */
+  .form-group input,
+  .form-group select {
+    font-size: 16px;
+    min-height: 44px;
+    padding: 0.65rem 0.85rem;
+  }
+
+  body.nb-paper-page .checkbox-container,
+  .checkbox-container {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  body.nb-paper-page .checkbox-item,
+  .checkbox-item {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.875rem;
+    min-height: 44px;
+    word-break: break-word;
+  }
+
+  .structure-summary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding: 0.75rem 0.85rem;
+    font-size: 0.825rem;
+  }
+
+  .form-actions {
+    width: 100%;
+    margin-top: 1.25rem;
+    justify-content: stretch;
+  }
+
+  .form-actions .btn,
+  #generateBtn {
+    width: 100%;
+    justify-content: center;
+    min-height: 46px;
+    font-size: 1rem;
+  }
+
+  /* Exam Meta Grid */
+  body.nb-paper-page .exam-meta-grid,
+  .exam-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem 0.75rem;
+    font-size: 0.825rem;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .exam-meta-grid > div {
+    word-break: break-word;
+  }
+
+  /* MCQ options stacked cleanly */
+  body.nb-paper-page .mcq-options-container,
+  .mcq-options-container {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  body.nb-paper-page .mcq-option-card,
+  .mcq-option-card {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.875rem;
+    word-break: break-word;
+  }
+
+  /* Modal Footer Stack on mobile */
+  body.nb-paper-page .modal-footer,
+  .modal-footer {
+    flex-direction: column-reverse;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  body.nb-paper-page .modal-footer .btn,
+  .modal-footer .btn {
+    width: 100% !important;
+    justify-content: center;
+    min-height: 44px;
+    margin: 0;
+    flex: 1 1 auto;
+  }
+
+  /* Upload dropzone compact */
+  .upload-dropzone {
+    padding: 1.5rem 0.85rem;
+  }
+
+  .dropzone-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .dropzone-title {
+    font-size: 0.95rem;
+  }
+
+  .dropzone-hint {
+    font-size: 0.75rem;
+    word-break: break-word;
+  }
+
+  .uploaded-pages-grid {
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 0.65rem;
+  }
+
+  .info-notice {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.775rem;
+    word-break: break-word;
+  }
+
+  /* Modal score summary */
+  #modalScoreSummary {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem 0.85rem;
+    font-size: 0.875rem;
+  }
+
+  .eval-q-card {
+    padding: 0.85rem;
+  }
+
+  .eval-q-top {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .eval-q-feedback {
+    font-size: 0.875rem;
+  }
+
+  .eval-q-detail {
+    font-size: 0.8rem;
+    padding: 0.45rem 0.65rem;
+  }
+
+  .model-ans-card {
+    padding: 0.85rem;
+  }
+
+  .model-ans-header {
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    font-size: 0.925rem;
+  }
+
+  .model-ans-body {
+    font-size: 0.875rem;
+    word-break: break-word;
+  }
+
+  .model-step-rubric {
+    font-size: 0.8rem;
+    padding: 0.55rem 0.75rem;
+  }
+}
+
+/* 4. Small Mobile Phones (<= 480px) */
 @media (max-width: 480px) {
-  .floating-fab-btn { max-width: calc(100vw - 1.5rem); }
-  .modal-footer { flex-wrap: wrap; }
-  .modal-footer .btn { flex: 1 1 9rem; }
+  /* Navbar */
+  .app-navbar {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .navbar-container {
+    gap: 0.5rem;
+  }
+
+  .brand-link {
+    font-size: 1.05rem;
+    gap: 0.4rem;
+  }
+
+  .brand-logo {
+    width: 26px;
+    height: 26px;
+  }
+
+  .nav-links {
+    gap: 0.25rem;
+  }
+
+  .nav-link {
+    padding: 0.3rem 0.45rem;
+    font-size: 0.8rem;
+  }
+
+  .theme-toggle-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  /* Header */
+  .header {
+    padding: 1.35rem 0.65rem;
+  }
+
+  .header-badge {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.7rem;
+  }
+
+  .page-title {
+    font-size: 1.45rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.875rem;
+  }
+
+  /* Full vertical stack for result action buttons on phones */
+  body.nb-paper-page .results-actions,
+  .results-actions {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+
+  body.nb-paper-page .results-actions .btn,
+  .results-actions .btn {
+    width: 100% !important;
+    flex: 1 1 auto !important;
+    min-height: 44px;
+    font-size: 0.875rem;
+  }
+
+  /* Scorecard stats */
+  body.nb-paper-page .score-stats-grid,
+  .score-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .stat-val {
+    font-size: 1.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.675rem;
+  }
+
+  /* Exam Paper */
+  .exam-instructions-box {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .question-item {
+    padding: 0.75rem;
+  }
+
+  .question-content {
+    font-size: 0.9rem;
+  }
+
+  /* Floating FAB on small phones */
+  .floating-fab-btn {
+    bottom: max(0.65rem, env(safe-area-inset-bottom));
+    right: max(0.65rem, env(safe-area-inset-right));
+    padding: 0.65rem 0.95rem;
+    font-size: 0.825rem;
+    max-width: calc(100vw - 1.3rem);
+  }
+
+  .fab-icon {
+    font-size: 1.1rem;
+  }
+}
+
+/* 5. Extra Small Devices (<= 360px) */
+@media (max-width: 360px) {
+  .brand-link span {
+    font-size: 0.95rem;
+  }
+
+  .nav-link {
+    padding: 0.25rem 0.35rem;
+    font-size: 0.75rem;
+  }
+
+  .main-content {
+    padding-inline: 0.5rem;
+  }
+
+  .generator-form,
+  body.nb-paper-page .eval-results-card,
+  body.nb-paper-page .exam-paper {
+    padding: 0.75rem;
+  }
+
+  .stat-val {
+    font-size: 1.1rem;
+  }
 }
 
 /* Print Stylesheet */
