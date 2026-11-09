@@ -9,6 +9,7 @@ import { sessionRouter } from './NeoBot/backend/routes/session.js';
 import { setupWebSocketProxy } from './NeoBot/backend/routes/proxy.js';
 import { paperRouter } from './routes/paperRoutes.js';
 import { createLeaderboardRouter } from './routes/leaderboardRoutes.js';
+import { neobookRouter } from './routes/neobookRoutes.js';
 
 import express from 'express';
 import cors from 'cors';
@@ -189,6 +190,7 @@ app.use(cors({
 
 // Strict server-side origin check middleware
 const strictOriginCheck = (req, res, next) => {
+    if (req.method === 'OPTIONS') return next();
     if (!req.path.startsWith('/api/')) return next();
     // Health and keepalive endpoints are public - no origin check needed
     if (req.path === '/api/health' || req.path === '/health') return next();
@@ -216,6 +218,7 @@ app.use(strictOriginCheck);
 
 // Keep large JSON bodies limited to the one endpoint that accepts multi-page
 // answer sheets. Smaller AI image endpoints use a base64-aware limit.
+// NeoBook PDF sources are sent as base64 JSON (up to ~13MB for a 10MB PDF).
 app.use((req, res, next) => {
     const routePath = req.path;
     const paperEvaluation = routePath === '/api/paper/upload-evaluate';
@@ -224,7 +227,10 @@ app.use((req, res, next) => {
         '/api/blackboard/recognize-handwriting', '/api/blackboard/analyze-selection',
         '/api/ai/upload-image'
     ].includes(routePath);
-    const limit = paperEvaluation ? '24mb' : imageAI ? '8mb' : '1mb';
+    // NeoBook PDF uploads: POST /api/neobook/notebooks/:id/sources with pdfBase64
+    const neobookPdfUpload = routePath.startsWith('/api/neobook/notebooks/') &&
+        req.method === 'POST' && routePath.endsWith('/sources');
+    const limit = paperEvaluation ? '24mb' : imageAI ? '8mb' : neobookPdfUpload ? '20mb' : '1mb';
     return express.json({ limit })(req, res, next);
 });
 
@@ -1720,6 +1726,14 @@ app.use('/api/paper', paperRouter);
 // Mount NeoBranium Public Leaderboard & Student Profile router
 app.use('/api', createLeaderboardRouter({ db }));
 
+// Mount NeoBook Research Workspace router
+app.use('/api/neobook', neobookRouter);
+
+// Convenient route alias for NeoBook
+app.get(['/neobook', '/neobook/'], (req, res) => {
+    res.sendFile(path.join(__dirname, 'NeoBook', 'index.html'));
+});
+
 // Convenient route alias for NeoBranium Live AI page
 app.get(['/neobot', '/neobot/'], (req, res) => {
     res.sendFile(path.join(__dirname, 'NeoBot', 'index.html'));
@@ -2200,6 +2214,7 @@ app.use((req, res, next) => {
         pathLower.startsWith('/iq/') ||
         pathLower.startsWith('/screenshot_images/') ||
         pathLower.startsWith('/neobot/') ||
+        pathLower.startsWith('/neobook/') ||
         pathLower.startsWith('/zohoverify/')) {
         const ext = path.extname(pathLower);
         if (['.map', '.md', '.json', '.py', '.cjs', '.mjs', '.log', '.rdb', '.sh', '.yml', '.yaml', '.sql', '.bak'].includes(ext) || 

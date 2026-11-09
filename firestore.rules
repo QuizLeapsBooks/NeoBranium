@@ -385,6 +385,47 @@ service cloud.firestore {
       }
     }
 
+    // ── NeoBook collections (AI Notebook & RAG system) ────────────────────────
+    // Client writes are completely blocked; all creations, updates, deletions,
+    // and quota tracking are performed exclusively via backend Admin SDK.
+
+    // 1. Daily usage tracking (chats & tokens per identityKey/IP/UID) - Admin SDK only
+    match /neobook_usage/{docId} {
+      allow read, write: if false;
+    }
+
+    // 2. Chunks generated from source documents - Admin SDK only
+    match /neobook_chunks/{chunkId} {
+      allow read, write: if false;
+    }
+
+    // 3. Notebook metadata - Authenticated owners can read their own notebooks; writes via Admin SDK only
+    match /neobook_notebooks/{notebookId} {
+      allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow write: if false;
+    }
+
+    // 4. Source documents - Authenticated owners can read their own sources; writes via Admin SDK only
+    match /neobook_sources/{sourceId} {
+      allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow write: if false;
+    }
+
+    // 5. Chat sessions - Authenticated owners can read their own chats; writes via Admin SDK only
+    match /neobook_chats/{chatId} {
+      allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow write: if false;
+    }
+
+    // 6. Chat messages - Authenticated owners can read messages matching their UID or ownerKey; writes via Admin SDK only
+    match /neobook_messages/{messageId} {
+      allow read: if isSignedIn() && (
+        resource.data.uid == request.auth.uid ||
+        resource.data.ownerKey == 'uid_' + request.auth.uid
+      );
+      allow write: if false;
+    }
+
     // ── Default: deny all unmatched paths ────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

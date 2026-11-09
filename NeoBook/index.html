@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NeoBook — AI Research & Study Notebook | NeoBranium</title>
+  <meta name="description" content="NeoBook is an intelligent source-grounded research notebook by NeoBranium. Add websites, YouTube videos, PDFs, and study notes to generate accurate AI answers with citations.">
+  <meta name="backend-url" content="https://neobranium.onrender.com">
+  <link rel="icon" type="image/png" href="/online-graduation_16847316.png">
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="./neobook.css">
+
+  <!-- Firebase Auth Module -->
+  <script type="module" src="/js/auth.js" defer></script>
+</head>
+<body>
+
+  <!-- ── Top Header Navigation ──────────────────────────────────────────────── -->
+  <header class="neobook-header">
+    <div class="header-left">
+      <a href="../index.html" class="neobook-brand" title="Back to NeoBranium Home">
+        <div class="brand-icon">
+          <i class="fas fa-book-bookmark"></i>
+        </div>
+        <div class="brand-title">
+          <span>NeoBook</span>
+          <span class="badge-beta">MVP</span>
+        </div>
+      </a>
+
+      <div class="notebook-selector">
+        <input type="text" id="notebookTitleInput" class="notebook-title-input" value="My Study Notebook" title="Rename Notebook" spellcheck="false">
+      </div>
+    </div>
+
+    <!-- Mobile Segment Control -->
+    <div class="mobile-tabs" id="mobileTabs">
+      <button class="mobile-tab-btn" data-target="sources">
+        <i class="fas fa-layer-group"></i> Sources
+      </button>
+      <button class="mobile-tab-btn active" data-target="chat">
+        <i class="fas fa-comments"></i> Chat
+      </button>
+      <button class="mobile-tab-btn" data-target="studio">
+        <i class="fas fa-wand-magic-sparkles"></i> Studio
+      </button>
+    </div>
+
+    <div class="header-right">
+      <!-- Daily Quota Indicator -->
+      <div class="quota-pill" id="quotaPill" title="Daily NeoBook chat and token budget">
+        <div class="quota-item" id="quotaChatsItem">
+          <i class="fas fa-message" style="color:#818cf8;"></i>
+          <span>New Chats: <strong id="quotaChatsRemaining">5</strong>/5</span>
+        </div>
+        <span class="quota-divider">|</span>
+        <div class="quota-item" id="quotaTokensItem">
+          <i class="fas fa-bolt" style="color:#fbbf24;"></i>
+          <span>Budget: <strong id="quotaTokensRemaining">150k</strong></span>
+        </div>
+      </div>
+
+      <button id="btnNewChatTop" class="btn-icon-text" title="Start a fresh chat (Consumes 1 daily new-chat allowance)">
+        <i class="fas fa-plus"></i>
+        <span>New Chat</span>
+      </button>
+
+      <button id="btnOpenHistory" class="btn-icon-text" title="View past chat sessions">
+        <i class="fas fa-clock-rotate-left"></i>
+        <span>History</span>
+      </button>
+
+      <!-- User Authentication & Profile Zone -->
+      <div class="user-auth-zone" id="userAuthZone"></div>
+
+      <a href="../index.html" class="btn-home" title="Return to NeoBranium home">
+        <i class="fas fa-house"></i>
+      </a>
+    </div>
+  </header>
+
+  <!-- ── 3-Panel Main Workspace ──────────────────────────────────────────────── -->
+  <main class="neobook-workspace" id="neobookWorkspace">
+
+    <!-- ── PANEL 1: SOURCES (LEFT) ─────────────────────────────────────────── -->
+    <section class="panel panel-sources" id="panelSources">
+      <div class="panel-header">
+        <div class="panel-title">
+          <i class="fas fa-layer-group"></i>
+          <span>Sources</span>
+        </div>
+        <span class="panel-badge" id="sourceCountBadge">0 sources</span>
+      </div>
+
+      <div class="panel-body">
+        <button id="btnOpenAddSourceModal" class="btn-add-source">
+          <i class="fas fa-plus-circle"></i>
+          <span>Add Source</span>
+        </button>
+
+        <div class="sources-list" id="sourcesList">
+          <!-- Dynamic sources injected here -->
+          <div class="sources-empty-state" id="sourcesEmptyState">
+            <i class="fas fa-file-circle-plus"></i>
+            <h4>No sources added</h4>
+            <p>Add web pages, YouTube links, PDFs, or paste notes to start asking grounded questions.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PANEL 2: AI CHAT (CENTER) ───────────────────────────────────────── -->
+    <section class="panel panel-chat mobile-active" id="panelChat">
+      <div class="panel-header">
+        <div class="panel-title">
+          <i class="fas fa-robot"></i>
+          <span id="activeChatTitle">Chat with your sources</span>
+        </div>
+        <div class="chat-header-actions">
+          <button id="btnChatNewChat" class="btn-icon-text" style="padding:4px 9px;font-size:0.78rem;">
+            <i class="fas fa-plus"></i> New Chat
+          </button>
+        </div>
+      </div>
+
+      <div class="chat-container">
+        <!-- Messages Area -->
+        <div class="chat-messages" id="chatMessages">
+          <!-- Welcome Empty State -->
+          <div class="chat-welcome" id="chatWelcome">
+            <div class="welcome-icon">
+              <i class="fas fa-brain"></i>
+            </div>
+            <h2>Research with NeoBook</h2>
+            <p>Ask anything about your uploaded sources. NeoBook retrieves relevant paragraphs and answers with precise citations.</p>
+
+            <div class="sample-prompts">
+              <button class="sample-prompt-btn" data-prompt="Summarize the key concepts and main findings across my sources.">
+                <i class="fas fa-wand-magic-sparkles"></i>
+                <span>Summarize the key concepts and main findings across my sources.</span>
+              </button>
+              <button class="sample-prompt-btn" data-prompt="What are the most important formulas, dates, or definitions mentioned?">
+                <i class="fas fa-list-check"></i>
+                <span>What are the most important formulas, dates, or definitions mentioned?</span>
+              </button>
+              <button class="sample-prompt-btn" data-prompt="Explain the core problem discussed in simple, easy-to-understand terms.">
+                <i class="fas fa-lightbulb"></i>
+                <span>Explain the core problem discussed in simple, easy-to-understand terms.</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Input Area -->
+        <div class="chat-input-area">
+          <div class="chat-input-box">
+            <textarea id="chatInputText" class="chat-textarea" placeholder="Ask a question about your sources... (Shift+Enter for new line)" rows="1"></textarea>
+            <div class="chat-input-bottom">
+              <span class="chat-hints" id="chatModelIndicator">
+                <i class="fas fa-shield-halved" style="color:#10b981;"></i> Grounded AI &bull; Anti-Prompt Injection Protected
+              </span>
+              <button id="btnSendMessage" class="btn-send" title="Send Question (Enter)">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PANEL 3: FUTURE STUDIO SPACE (RIGHT) ────────────────────────────── -->
+    <section class="panel panel-studio" id="panelStudio">
+      <div class="panel-header">
+        <div class="panel-title">
+          <i class="fas fa-wand-magic-sparkles"></i>
+          <span>Studio Space</span>
+        </div>
+        <span class="panel-badge">Future</span>
+      </div>
+
+      <div class="panel-body">
+        <div class="studio-intro">
+          <h3>Generated Guides</h3>
+          <p>Upcoming multi-modal synthesis tools generated directly from your active sources.</p>
+        </div>
+
+        <div class="studio-cards-grid">
+          <!-- Card 1: Audio Overview -->
+          <article class="studio-card audio">
+            <div class="studio-card-header">
+              <div class="studio-card-icon">
+                <i class="fas fa-podcast"></i>
+              </div>
+              <span class="badge-coming-soon">Coming Soon</span>
+            </div>
+            <h4>Audio Overview (Deep Dive)</h4>
+            <p>Two AI hosts analyze and summarize your notebook into an engaging conversational podcast audio episode.</p>
+            <div class="studio-card-action">
+              <i class="fas fa-circle-play"></i>
+              <span>Audio Generation Engine</span>
+            </div>
+          </article>
+
+          <!-- Card 2: Study Guide / Data Table -->
+          <article class="studio-card table">
+            <div class="studio-card-header">
+              <div class="studio-card-icon">
+                <i class="fas fa-table-columns"></i>
+              </div>
+              <span class="badge-coming-soon">Coming Soon</span>
+            </div>
+            <h4>Data Table &amp; Study Guide</h4>
+            <p>Automatically extract structured timelines, formulas, comparison tables, and chapter summaries.</p>
+            <div class="studio-card-action">
+              <i class="fas fa-file-lines"></i>
+              <span>Structured Extraction</span>
+            </div>
+          </article>
+
+          <!-- Card 3: Interactive Quiz -->
+          <article class="studio-card quiz">
+            <div class="studio-card-header">
+              <div class="studio-card-icon">
+                <i class="fas fa-brain"></i>
+              </div>
+              <span class="badge-coming-soon">Coming Soon</span>
+            </div>
+            <h4>Interactive Knowledge Quiz</h4>
+            <p>Test your comprehension with practice multiple-choice and conceptual questions with instant feedback.</p>
+            <div class="studio-card-action">
+              <i class="fas fa-check-double"></i>
+              <span>Self-Assessment</span>
+            </div>
+          </article>
+
+          <!-- Card 4: Smart Flashcards -->
+          <article class="studio-card flashcards">
+            <div class="studio-card-header">
+              <div class="studio-card-icon">
+                <i class="fas fa-clone"></i>
+              </div>
+              <span class="badge-coming-soon">Coming Soon</span>
+            </div>
+            <h4>Smart Flashcards</h4>
+            <p>Master complex vocabulary, key formulas, and concepts with spaced-repetition digital study cards.</p>
+            <div class="studio-card-action">
+              <i class="fas fa-layer-group"></i>
+              <span>Active Recall Cards</span>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── MODAL: Add Source ──────────────────────────────────────────────────── -->
+  <div class="modal-overlay" id="addSourceModal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3><i class="fas fa-plus-circle" style="color:var(--nb-primary);"></i> Add Source Material</h3>
+        <button class="modal-close-btn" id="btnCloseAddSourceModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Tabs for 4 Source Types -->
+        <div class="modal-tabs" id="sourceTypeTabs">
+          <button class="modal-tab-btn active" data-type="url">
+            <i class="fas fa-globe"></i> Website
+          </button>
+          <button class="modal-tab-btn" data-type="youtube">
+            <i class="fab fa-youtube"></i> YouTube
+          </button>
+          <button class="modal-tab-btn" data-type="text">
+            <i class="fas fa-align-left"></i> Text Note
+          </button>
+          <button class="modal-tab-btn" data-type="pdf">
+            <i class="fas fa-file-pdf"></i> PDF
+          </button>
+        </div>
+
+        <!-- Tab 1: Website URL -->
+        <div class="source-tab-content" id="tabContentUrl">
+          <div class="form-group">
+            <label for="inputSourceUrl">Website URL</label>
+            <input type="url" id="inputSourceUrl" class="form-input" placeholder="https://example.com/article" autocomplete="off">
+            <span class="form-hint">Fetched securely on the server with SSRF protection against private networks.</span>
+          </div>
+        </div>
+
+        <!-- Tab 2: YouTube Video Link -->
+        <div class="source-tab-content" id="tabContentYoutube" style="display:none;">
+          <div class="form-group">
+            <label for="inputSourceYoutube">YouTube Video Link</label>
+            <input type="url" id="inputSourceYoutube" class="form-input" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+            <span class="form-hint">Extracts closed captions and video transcripts with accurate timestamps. Video must have captions enabled.</span>
+          </div>
+        </div>
+
+        <!-- Tab 3: Text Input / Raw Notes -->
+        <div class="source-tab-content" id="tabContentText" style="display:none;">
+          <div class="form-group">
+            <label for="inputSourceTextTitle">Source Title (Optional)</label>
+            <input type="text" id="inputSourceTextTitle" class="form-input" placeholder="e.g. Chapter 4 Summary Notes">
+          </div>
+          <div class="form-group">
+            <label for="inputSourceTextContent">Source Content</label>
+            <textarea id="inputSourceTextContent" class="form-input form-textarea" placeholder="Paste your study notes, articles, or text excerpts here..."></textarea>
+          </div>
+        </div>
+
+        <!-- Tab 4: PDF Upload -->
+        <div class="source-tab-content" id="tabContentPdf" style="display:none;">
+          <div class="pdf-drop-zone" id="pdfDropZone">
+            <i class="fas fa-file-pdf"></i>
+            <span>Drag &amp; drop your PDF here, or click to browse</span>
+            <small>Max file size: 10 MB &bull; Embedded text extracts page-by-page</small>
+            <input type="file" id="pdfFileInput" accept="application/pdf" style="display:none;">
+          </div>
+          <div id="pdfSelectedFileInfo" style="display:none;margin-top:0.75rem;font-size:0.85rem;color:#cbd5e1;padding:8px 12px;background:var(--nb-card-bg);border-radius:8px;border:1px solid var(--nb-border);"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" id="btnCancelAddSource">Cancel</button>
+        <button class="btn-primary" id="btnSubmitAddSource">
+          <i class="fas fa-check"></i>
+          <span>Process &amp; Add</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DRAWER: Chat History ───────────────────────────────────────────────── -->
+  <aside class="history-drawer" id="historyDrawer">
+    <div class="history-header">
+      <div class="panel-title">
+        <i class="fas fa-clock-rotate-left"></i>
+        <span>Chat History</span>
+      </div>
+      <button class="modal-close-btn" id="btnCloseHistory">&times;</button>
+    </div>
+    <div class="history-list" id="historyList">
+      <!-- Chat history items injected here -->
+      <div style="text-align:center;padding:2rem 1rem;color:var(--nb-text-dim);font-size:0.85rem;">
+        No previous chats recorded yet.
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Toast Notifications ────────────────────────────────────────────────── -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application Script -->
+  <script type="module" src="./neobook-app.js"></script>
+</body>
+</html>

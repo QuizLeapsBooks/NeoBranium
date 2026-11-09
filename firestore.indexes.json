@@ -73,6 +73,66 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "neobook_notebooks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ownerKey", "order": "ASCENDING" },
+        { "fieldPath": "isDeleted", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "neobook_sources",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "notebookId", "order": "ASCENDING" },
+        { "fieldPath": "ownerKey", "order": "ASCENDING" },
+        { "fieldPath": "isDeleted", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "neobook_chats",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "notebookId", "order": "ASCENDING" },
+        { "fieldPath": "ownerKey", "order": "ASCENDING" },
+        { "fieldPath": "isDeleted", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "neobook_chats",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "notebookId", "order": "ASCENDING" },
+        { "fieldPath": "ownerKey", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "neobook_chunks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "notebookId", "order": "ASCENDING" },
+        { "fieldPath": "ownerKey", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "neobook_messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "chatId", "order": "ASCENDING" },
+        { "fieldPath": "timestamp", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "neobook_usage",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "identityKey", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

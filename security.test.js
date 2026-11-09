@@ -575,3 +575,40 @@ test('Criterion 21: Error responses from AI and backend routes do not leak raw u
   assert.doesNotMatch(serverCode, /details:\s*errText/, 'TTS route must not reflect raw errText from ElevenLabs');
   assert.doesNotMatch(serverCode, /res\.status\(500\)\.json\(\{\s*error:\s*'Internal Server Error',\s*message:\s*error\.message\s*\}\)/, 'Queue status must not return raw error.message on 500');
 });
+
+test('Criterion 22: NeoBook collections enforce strict client write blocking and owner-only reads', () => {
+  const rules = fs.readFileSync(path.resolve('firestore.rules'), 'utf-8');
+  assert.ok(rules.includes('match /neobook_usage/{docId}'), 'Must match neobook_usage');
+  assert.ok(rules.includes('match /neobook_chunks/{chunkId}'), 'Must match neobook_chunks');
+  assert.ok(rules.includes('match /neobook_notebooks/{notebookId}'), 'Must match neobook_notebooks');
+  assert.ok(rules.includes('match /neobook_sources/{sourceId}'), 'Must match neobook_sources');
+  assert.ok(rules.includes('match /neobook_chats/{chatId}'), 'Must match neobook_chats');
+  assert.ok(rules.includes('match /neobook_messages/{messageId}'), 'Must match neobook_messages');
+
+  // Usage and chunks: client read/write blocked
+  const usageBlock = rules.split('match /neobook_usage/{docId}')[1].split('}')[0];
+  assert.ok(usageBlock.includes('allow read, write: if false;'), 'neobook_usage must block all client access');
+
+  const chunksBlock = rules.split('match /neobook_chunks/{chunkId}')[1].split('}')[0];
+  assert.ok(chunksBlock.includes('allow read, write: if false;'), 'neobook_chunks must block all client access');
+
+  // Notebooks, sources, chats: owner read only, writes blocked
+  const nbBlock = rules.split('match /neobook_notebooks/{notebookId}')[1].split('}')[0];
+  assert.ok(nbBlock.includes('allow read: if isSignedIn() && resource.data.uid == request.auth.uid;'), 'neobook_notebooks must allow read only by owner');
+  assert.ok(nbBlock.includes('allow write: if false;'), 'neobook_notebooks must block client writes');
+
+  const srcBlock = rules.split('match /neobook_sources/{sourceId}')[1].split('}')[0];
+  assert.ok(srcBlock.includes('allow read: if isSignedIn() && resource.data.uid == request.auth.uid;'), 'neobook_sources must allow read only by owner');
+  assert.ok(srcBlock.includes('allow write: if false;'), 'neobook_sources must block client writes');
+
+  const chatBlock = rules.split('match /neobook_chats/{chatId}')[1].split('}')[0];
+  assert.ok(chatBlock.includes('allow read: if isSignedIn() && resource.data.uid == request.auth.uid;'), 'neobook_chats must allow read only by owner');
+  assert.ok(chatBlock.includes('allow write: if false;'), 'neobook_chats must block client writes');
+
+  // Messages: owner read by uid or ownerKey ('uid_' + uid), writes blocked
+  const msgBlock = rules.split('match /neobook_messages/{messageId}')[1].split('}')[0];
+  assert.ok(msgBlock.includes('allow read: if isSignedIn() && ('), 'neobook_messages must require isSignedIn');
+  assert.ok(msgBlock.includes('resource.data.uid == request.auth.uid'), 'neobook_messages must check uid');
+  assert.ok(msgBlock.includes("resource.data.ownerKey == 'uid_' + request.auth.uid"), 'neobook_messages must check ownerKey prefix');
+  assert.ok(msgBlock.includes('allow write: if false;'), 'neobook_messages must block client writes');
+});

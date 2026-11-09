@@ -23,7 +23,7 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 const rtdb = getDatabase(app);
 
-export { app, auth, db, storage, rtdb, firebaseConfig };
+export { app, auth, db, storage, rtdb, firebaseConfig, onAuthStateChanged, signOut };
 
 export function getEmailVerificationSettings() {
     return {
@@ -213,7 +213,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Single source of truth for Auth State
     onAuthStateChanged(auth, async (user) => {
         const path = window.location.pathname;
-        const isLandingPage = path === "/" || path === "/index.html" || (path.endsWith("/index.html") && !path.includes("/htmls/"));
+        const isNeoApp = path.includes("/NeoBook") || path.includes("/NeoBot");
+        const isLandingPage = (path === "/" || path === "/index.html") && !isNeoApp;
         const isAuthPage = path.includes("sign.html") || path.includes("verify-email.html");
         const isEntryPage = isLandingPage || isAuthPage;
 
@@ -264,9 +265,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-
-            // Only allow entry pages
-            if (!isEntryPage) {
+            // Only allow entry pages or standalone public apps (e.g., NeoBook, NeoBot)
+            if (!isEntryPage && !isNeoApp) {
                 window.location.replace("/index.html");
             } else {
                 document.body.style.opacity = "1";
