@@ -327,8 +327,83 @@ export function formatTimestamp(totalSeconds) {
 }
 
 /**
+ * NotebookLM-style multimodal YouTube Analyzer:
+ * Uses Gemini API to understand public YouTube videos directly (audio & visuals)
+ * to extract themes, high-weightage chapters, topics, formulas, dates, and timestamps.
+ * @param {string} videoId
+ * @param {string} title
+ * @returns {Promise<{ title: string, text: string, videoId: string, segments: Array<{ timestamp: string, text: string }> } | null>}
+ */
+export async function analyzeYouTubeWithGemini(videoId, title) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return null;
+
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const prompt = `Analyze this YouTube video completely and objectively for research and study notes (like Google NotebookLM).
+Produce a comprehensive, deeply informative research document covering:
+1. Core Themes, Central Concepts, and High-Weightage Chapters & Topics.
+2. Step-by-step explanations, key principles, strategies, formulas, dates, or definitions mentioned.
+3. Detailed chronological sections with approximate timestamps [MM:SS] so students can verify citations.
+
+Write in a clear, structured format suitable for study and reference.`;
+
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: prompt },
+            {
+              file_data: {
+                file_uri: `https://www.youtube.com/watch?v=${videoId}`,
+                mime_type: 'video/mp4'
+              }
+            }
+          ]
+        }]
+      })
+    });
+
+    if (!res.ok) {
+      console.warn('[NeoBook] Gemini YouTube analysis status:', res.status);
+      return null;
+    }
+
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text || text.length < 50) return null;
+
+    const segments = [];
+    const lines = text.split('\n');
+    let currentTs = '00:00';
+    for (const line of lines) {
+      const tsMatch = line.match(/\[(\d{1,2}:\d{2}(?::\d{2})?)\]/);
+      if (tsMatch) {
+        currentTs = tsMatch[1];
+      }
+      if (line.trim().length > 10) {
+        segments.push({ timestamp: currentTs, text: line.trim() });
+      }
+    }
+
+    return {
+      title,
+      text: text.trim().slice(0, NEOBOOK_CONFIG.MAX_TEXT_SOURCE_CHARS),
+      videoId,
+      segments: segments.length > 0 ? segments : [{ timestamp: '00:00', text: text.slice(0, 300) }]
+    };
+  } catch (gemErr) {
+    console.warn('[NeoBook] Gemini multimodal YouTube analysis error:', gemErr.message);
+    return null;
+  }
+}
+
+/**
  * Extracts transcripts/captions from a YouTube video URL.
  * Uses official oEmbed for metadata and the YouTube InnerTube API for captions to bypass 429 scraping blocks.
+ * If captions are disabled or unavailable, falls back to Gemini Multimodal Video Analysis (NotebookLM style).
  * @param {string} urlString
  * @returns {Promise<{ title: string, text: string, videoId: string, segments: Array<{ timestamp: string, text: string }> }>}
  */
@@ -340,6 +415,7 @@ export async function extractYouTubeTranscript(urlString) {
 
   // 1. Resolve video title reliably via YouTube oEmbed (avoids 429 block on video page)
   let title = 'YouTube Video';
+  let authorName = '';
   try {
     const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`, {
       headers: {
@@ -352,6 +428,9 @@ export async function extractYouTubeTranscript(urlString) {
       if (oembedData.title) {
         title = oembedData.title.trim();
       }
+      if (oembedData.author_name) {
+        authorName = oembedData.author_name.trim();
+      }
     }
   } catch (oembedErr) {
     console.warn('[NeoBook] oEmbed title lookup deferred:', oembedErr.message);
@@ -359,6 +438,7 @@ export async function extractYouTubeTranscript(urlString) {
 
   // 2. Fetch Caption Tracks via InnerTube Android Client (bypasses datacentre 429 rate limiting)
   let captionTracks = [];
+  let videoDescription = '';
   try {
     const itRes = await fetch('https://www.youtube.com/youtubei/v1/player?prettyPrint=false', {
       method: 'POST',
@@ -380,6 +460,12 @@ export async function extractYouTubeTranscript(urlString) {
     if (itRes.ok) {
       const itData = await itRes.json();
       captionTracks = itData?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+      if (itData?.videoDetails?.shortDescription) {
+        videoDescription = itData.videoDetails.shortDescription;
+      }
+      if (title === 'YouTube Video' && itData?.videoDetails?.title) {
+        title = itData.videoDetails.title;
+      }
     }
   } catch (itErr) {
     console.warn('[NeoBook] InnerTube caption lookup failed:', itErr.message);
@@ -418,91 +504,105 @@ export async function extractYouTubeTranscript(urlString) {
     }
   }
 
-  // If no captions were found after both methods
-  if (!Array.isArray(captionTracks) || captionTracks.length === 0) {
-    throw new Error(
-      `Transcripts or captions are not available for "${title}". NeoBook requires closed captions/subtitles to extract video content. You can paste notes or transcript text as a Text Note instead.`
-    );
-  }
+  // 4. If caption tracks are found, parse them
+  if (Array.isArray(captionTracks) && captionTracks.length > 0) {
+    let selectedTrack = captionTracks.find(t => t.languageCode === 'en' || (t.vssId && t.vssId.includes('.en')));
+    if (!selectedTrack) {
+      selectedTrack = captionTracks.find(t => t.languageCode === 'hi' || (t.vssId && t.vssId.includes('.hi')));
+    }
+    if (!selectedTrack) {
+      selectedTrack = captionTracks[0];
+    }
 
-  // Pick preferred caption track: English first, Hindi second, or first available track
-  let selectedTrack = captionTracks.find(t => t.languageCode === 'en' || (t.vssId && t.vssId.includes('.en')));
-  if (!selectedTrack) {
-    selectedTrack = captionTracks.find(t => t.languageCode === 'hi' || (t.vssId && t.vssId.includes('.hi')));
-  }
-  if (!selectedTrack) {
-    selectedTrack = captionTracks[0];
-  }
+    if (selectedTrack && selectedTrack.baseUrl) {
+      try {
+        const trackUrl = selectedTrack.baseUrl;
+        const trackRes = await fetch(trackUrl);
+        if (trackRes.ok) {
+          const trackXml = await trackRes.text();
+          const segments = [];
+          let fullText = '';
 
-  if (!selectedTrack || !selectedTrack.baseUrl) {
-    throw new Error('Could not locate a valid transcript stream for this video.');
-  }
+          if (trackXml.includes('<p t=')) {
+            const pRegex = /<p\s+t="(\d+)"[^>]*>([\s\S]*?)<\/p>/gi;
+            let match;
+            while ((match = pRegex.exec(trackXml)) !== null) {
+              const ms = parseInt(match[1], 10) || 0;
+              const cleanText = match[2]
+                .replace(/<[^>]+>/g, '')
+                .replace(/&amp;/g, '&')
+                .replace(/&#39;/g, "'")
+                .replace(/&quot;/g, '"')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/\n/g, ' ')
+                .trim();
 
-  // Fetch the transcript track
-  const trackUrl = selectedTrack.baseUrl;
-  const trackRes = await fetch(trackUrl);
-  if (!trackRes.ok) {
-    throw new Error('Unable to download transcript data from YouTube caption service.');
-  }
+              if (cleanText) {
+                const timestamp = formatTimestamp(ms / 1000);
+                segments.push({ timestamp, text: cleanText });
+                fullText += `[${timestamp}] ${cleanText}\n`;
+              }
+            }
+          } else {
+            const textTagRegex = /<text\s+start="([\d.]+)"(?:\s+dur="[\d.]+")?[^>]*>([\s\S]*?)<\/text>/gi;
+            let match;
+            while ((match = textTagRegex.exec(trackXml)) !== null) {
+              const startSec = parseFloat(match[1]) || 0;
+              const cleanText = match[2]
+                .replace(/&amp;/g, '&')
+                .replace(/&#39;/g, "'")
+                .replace(/&quot;/g, '"')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/\n/g, ' ')
+                .trim();
 
-  const trackXml = await trackRes.text();
-  const segments = [];
-  let fullText = '';
+              if (cleanText) {
+                const timestamp = formatTimestamp(startSec);
+                segments.push({ timestamp, text: cleanText });
+                fullText += `[${timestamp}] ${cleanText}\n`;
+              }
+            }
+          }
 
-  // Support both InnerTube format (<p t="80" d="4800">) and standard format (<text start="12.34">)
-  if (trackXml.includes('<p t=')) {
-    const pRegex = /<p\s+t="(\d+)"[^>]*>([\s\S]*?)<\/p>/gi;
-    let match;
-    while ((match = pRegex.exec(trackXml)) !== null) {
-      const ms = parseInt(match[1], 10) || 0;
-      const cleanText = match[2]
-        .replace(/<[^>]+>/g, '')
-        .replace(/&amp;/g, '&')
-        .replace(/&#39;/g, "'")
-        .replace(/&quot;/g, '"')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/\n/g, ' ')
-        .trim();
-
-      if (cleanText) {
-        const timestamp = formatTimestamp(ms / 1000);
-        segments.push({ timestamp, text: cleanText });
-        fullText += `[${timestamp}] ${cleanText}\n`;
+          if (segments.length > 0 && fullText.trim().length > 30) {
+            return {
+              title,
+              text: fullText.trim().slice(0, NEOBOOK_CONFIG.MAX_TEXT_SOURCE_CHARS),
+              videoId,
+              segments
+            };
+          }
+        }
+      } catch (trackErr) {
+        console.warn('[NeoBook] Error parsing caption stream, falling back to multimodal analysis:', trackErr.message);
       }
     }
-  } else {
-    const textTagRegex = /<text\s+start="([\d.]+)"(?:\s+dur="[\d.]+")?[^>]*>([\s\S]*?)<\/text>/gi;
-    let match;
-    while ((match = textTagRegex.exec(trackXml)) !== null) {
-      const startSec = parseFloat(match[1]) || 0;
-      const cleanText = match[2]
-        .replace(/&amp;/g, '&')
-        .replace(/&#39;/g, "'")
-        .replace(/&quot;/g, '"')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/\n/g, ' ')
-        .trim();
-
-      if (cleanText) {
-        const timestamp = formatTimestamp(startSec);
-        segments.push({ timestamp, text: cleanText });
-        fullText += `[${timestamp}] ${cleanText}\n`;
-      }
-    }
   }
 
-  if (segments.length === 0) {
-    throw new Error(`The transcript track for "${title}" is empty or could not be decoded.`);
+  // 5. NOTEBOOKLM MULTIMODAL FALLBACK:
+  // When captions are not available/blocked, use Gemini Multimodal Video API to extract the theme, chapters, and topics!
+  console.log(`[NeoBook] Using NotebookLM-style multimodal AI analysis for video: ${title}`);
+  const geminiResult = await analyzeYouTubeWithGemini(videoId, title);
+  if (geminiResult && geminiResult.text && geminiResult.text.length > 50) {
+    return geminiResult;
   }
 
-  return {
-    title,
-    text: fullText.trim().slice(0, NEOBOOK_CONFIG.MAX_TEXT_SOURCE_CHARS),
-    videoId,
-    segments
-  };
+  // 6. Last Resilient Fallback: Index video metadata and description if all else fails
+  if (videoDescription && videoDescription.length > 20) {
+    const fallbackText = `Video: ${title}\nCreator: ${authorName || 'YouTube Creator'}\n\nDescription & Topics:\n${videoDescription}`;
+    return {
+      title,
+      text: fallbackText.slice(0, NEOBOOK_CONFIG.MAX_TEXT_SOURCE_CHARS),
+      videoId,
+      segments: [{ timestamp: '00:00', text: fallbackText.slice(0, 300) }]
+    };
+  }
+
+  throw new Error(
+    `Could not extract content for "${title}". Please ensure the video is public or paste the notes as a Text Note.`
+  );
 }
 
 // ── PDF Text Extraction ────────────────────────────────────────────────────────
