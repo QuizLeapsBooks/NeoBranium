@@ -30,7 +30,16 @@ if (!admin.apps.length) {
   }
 }
 
-let db = admin.apps.length ? admin.firestore() : null;
+let db = null;
+if (admin.apps.length) {
+  try {
+    const fsInstance = admin.firestore();
+    fsInstance.settings({ ignoreUndefinedProperties: true });
+    db = fsInstance;
+  } catch (err) {
+    db = admin.firestore();
+  }
+}
 let rtdb = admin.apps.length ? admin.database() : null;
 
 /**

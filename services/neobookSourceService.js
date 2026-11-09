@@ -328,7 +328,7 @@ export function formatTimestamp(totalSeconds) {
 
 /**
  * Extracts transcripts/captions from a YouTube video URL.
- * NEVER pretends to watch or hallucinate video content if captions are unavailable.
+ * Uses official oEmbed for metadata and the YouTube InnerTube API for captions to bypass 429 scraping blocks.
  * @param {string} urlString
  * @returns {Promise<{ title: string, text: string, videoId: string, segments: Array<{ timestamp: string, text: string }> }>}
  */
@@ -338,49 +338,98 @@ export async function extractYouTubeTranscript(urlString) {
     throw new Error('Invalid YouTube video link. Please provide a standard YouTube video or Shorts URL.');
   }
 
-  // Fetch the watch page
-  const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  const response = await fetch(watchUrl, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Accept-Language': 'en-US,en;q=0.9'
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to retrieve YouTube video metadata (HTTP ${response.status}).`);
-  }
-
-  const html = await response.text();
-
-  // Extract video title
+  // 1. Resolve video title reliably via YouTube oEmbed (avoids 429 block on video page)
   let title = 'YouTube Video';
-  const titleMatch = html.match(/<title>([\s\S]*?) - YouTube<\/title>/i) || html.match(/<title>([\s\S]*?)<\/title>/i);
-  if (titleMatch && titleMatch[1]) {
-    title = titleMatch[1].trim();
+  try {
+    const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'NeoBook/2.0 Research Notebook'
+      }
+    });
+    if (oembedRes.ok) {
+      const oembedData = await oembedRes.json();
+      if (oembedData.title) {
+        title = oembedData.title.trim();
+      }
+    }
+  } catch (oembedErr) {
+    console.warn('[NeoBook] oEmbed title lookup deferred:', oembedErr.message);
   }
 
-  // Look for caption tracks in ytInitialPlayerResponse
-  const captionTracksMatch = html.match(/"captionTracks":\s*(\[[^\]]+\])/);
-  if (!captionTracksMatch || !captionTracksMatch[1]) {
+  // 2. Fetch Caption Tracks via InnerTube Android Client (bypasses datacentre 429 rate limiting)
+  let captionTracks = [];
+  try {
+    const itRes = await fetch('https://www.youtube.com/youtubei/v1/player?prettyPrint=false', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'com.google.android.youtube/20.10.38 (Linux; U; Android 14)',
+      },
+      body: JSON.stringify({
+        context: {
+          client: {
+            clientName: 'ANDROID',
+            clientVersion: '20.10.38',
+          },
+        },
+        videoId: videoId,
+      }),
+    });
+
+    if (itRes.ok) {
+      const itData = await itRes.json();
+      captionTracks = itData?.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+    }
+  } catch (itErr) {
+    console.warn('[NeoBook] InnerTube caption lookup failed:', itErr.message);
+  }
+
+  // 3. Fallback: HTML scraping of watch page if InnerTube didn't return tracks
+  if (!captionTracks || captionTracks.length === 0) {
+    try {
+      const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
+      const response = await fetch(watchUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9'
+        }
+      });
+
+      if (response.ok) {
+        const html = await response.text();
+        if (title === 'YouTube Video') {
+          const titleMatch = html.match(/<title>([\s\S]*?) - YouTube<\/title>/i) || html.match(/<title>([\s\S]*?)<\/title>/i);
+          if (titleMatch && titleMatch[1]) {
+            title = titleMatch[1].trim();
+          }
+        }
+        const captionTracksMatch = html.match(/"captionTracks":\s*(\[[^\]]+\])/);
+        if (captionTracksMatch && captionTracksMatch[1]) {
+          try {
+            captionTracks = JSON.parse(captionTracksMatch[1]);
+          } catch {
+            // ignore
+          }
+        }
+      }
+    } catch (scrapErr) {
+      console.warn('[NeoBook] Web fallback caption lookup failed:', scrapErr.message);
+    }
+  }
+
+  // If no captions were found after both methods
+  if (!Array.isArray(captionTracks) || captionTracks.length === 0) {
     throw new Error(
-      'Transcripts or captions are not available for this YouTube video. NeoBook requires available transcripts to understand video content.'
+      `Transcripts or captions are not available for "${title}". NeoBook requires closed captions/subtitles to extract video content. You can paste notes or transcript text as a Text Note instead.`
     );
   }
 
-  let captionTracks = [];
-  try {
-    captionTracks = JSON.parse(captionTracksMatch[1]);
-  } catch (parseErr) {
-    throw new Error('Failed to parse YouTube captions tracklist.');
-  }
-
-  if (!Array.isArray(captionTracks) || captionTracks.length === 0) {
-    throw new Error('No transcripts or closed captions were found for this YouTube video.');
-  }
-
-  // Pick preferred caption track: English first, or first available track
+  // Pick preferred caption track: English first, Hindi second, or first available track
   let selectedTrack = captionTracks.find(t => t.languageCode === 'en' || (t.vssId && t.vssId.includes('.en')));
+  if (!selectedTrack) {
+    selectedTrack = captionTracks.find(t => t.languageCode === 'hi' || (t.vssId && t.vssId.includes('.hi')));
+  }
   if (!selectedTrack) {
     selectedTrack = captionTracks[0];
   }
@@ -397,33 +446,55 @@ export async function extractYouTubeTranscript(urlString) {
   }
 
   const trackXml = await trackRes.text();
-
-  // Parse XML text tags <text start="12.34" dur="5.67">...</text>
-  const textTagRegex = /<text\s+start="([\d.]+)"(?:\s+dur="[\d.]+")?[^>]*>([\s\S]*?)<\/text>/gi;
   const segments = [];
-  let match;
   let fullText = '';
 
-  while ((match = textTagRegex.exec(trackXml)) !== null) {
-    const startSec = parseFloat(match[1]) || 0;
-    const cleanText = match[2]
-      .replace(/&amp;/g, '&')
-      .replace(/&#39;/g, "'")
-      .replace(/&quot;/g, '"')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/\n/g, ' ')
-      .trim();
+  // Support both InnerTube format (<p t="80" d="4800">) and standard format (<text start="12.34">)
+  if (trackXml.includes('<p t=')) {
+    const pRegex = /<p\s+t="(\d+)"[^>]*>([\s\S]*?)<\/p>/gi;
+    let match;
+    while ((match = pRegex.exec(trackXml)) !== null) {
+      const ms = parseInt(match[1], 10) || 0;
+      const cleanText = match[2]
+        .replace(/<[^>]+>/g, '')
+        .replace(/&amp;/g, '&')
+        .replace(/&#39;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/\n/g, ' ')
+        .trim();
 
-    if (cleanText) {
-      const timestamp = formatTimestamp(startSec);
-      segments.push({ timestamp, text: cleanText });
-      fullText += `[${timestamp}] ${cleanText}\n`;
+      if (cleanText) {
+        const timestamp = formatTimestamp(ms / 1000);
+        segments.push({ timestamp, text: cleanText });
+        fullText += `[${timestamp}] ${cleanText}\n`;
+      }
+    }
+  } else {
+    const textTagRegex = /<text\s+start="([\d.]+)"(?:\s+dur="[\d.]+")?[^>]*>([\s\S]*?)<\/text>/gi;
+    let match;
+    while ((match = textTagRegex.exec(trackXml)) !== null) {
+      const startSec = parseFloat(match[1]) || 0;
+      const cleanText = match[2]
+        .replace(/&amp;/g, '&')
+        .replace(/&#39;/g, "'")
+        .replace(/&quot;/g, '"')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/\n/g, ' ')
+        .trim();
+
+      if (cleanText) {
+        const timestamp = formatTimestamp(startSec);
+        segments.push({ timestamp, text: cleanText });
+        fullText += `[${timestamp}] ${cleanText}\n`;
+      }
     }
   }
 
   if (segments.length === 0) {
-    throw new Error('The transcript track for this video is empty or unavailable.');
+    throw new Error(`The transcript track for "${title}" is empty or could not be decoded.`);
   }
 
   return {

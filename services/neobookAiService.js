@@ -338,15 +338,18 @@ export async function generateGroundedAnswer({ query, retrievedChunks, conversat
     outputTokens = Math.ceil(answerText.length / 4);
   }
 
-  // Extract structured citations from retrieved chunks
-  const citations = retrievedChunks.map(c => ({
-    sourceId: c.sourceId,
-    title: c.sourceTitle,
-    type: c.sourceType,
-    pageNum: c.metadata?.pageNum,
-    timestamp: c.metadata?.timestamp,
-    url: c.metadata?.url
-  }));
+  // Extract structured citations from retrieved chunks (never set undefined properties for Firestore safety)
+  const citations = retrievedChunks.map(c => {
+    const item = {
+      sourceId: c.sourceId || '',
+      title: c.sourceTitle || 'Source',
+      type: c.sourceType || 'text'
+    };
+    if (c.metadata?.pageNum != null) item.pageNum = c.metadata.pageNum;
+    if (c.metadata?.timestamp != null) item.timestamp = c.metadata.timestamp;
+    if (c.metadata?.url != null) item.url = c.metadata.url;
+    return item;
+  });
 
   const estimatedCost = estimateCostUsd(inputTokens, outputTokens);
 

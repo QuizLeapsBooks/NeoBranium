@@ -40,6 +40,25 @@ import {
 
 export const neobookRouter = express.Router();
 
+/**
+ * Deep sanitization helper: Strips any undefined fields from objects/arrays
+ * before sending to Firestore, ensuring no "Cannot use undefined as a Firestore value" errors.
+ */
+function cleanForFirestore(obj) {
+  if (obj === null || obj === undefined) return null;
+  if (Array.isArray(obj)) return obj.map(cleanForFirestore);
+  if (typeof obj !== 'object' || obj instanceof Date || (obj.constructor && obj.constructor.name === 'Timestamp')) {
+    return obj;
+  }
+  const clean = {};
+  for (const [key, val] of Object.entries(obj)) {
+    if (val !== undefined) {
+      clean[key] = cleanForFirestore(val);
+    }
+  }
+  return clean;
+}
+
 // ── NeoBook-specific rate limiters ───────────────────────────────────────────
 // Source processing (fetch/extract) — heavier operations
 const sourceRateLimiter = rateLimit({
@@ -684,7 +703,7 @@ neobookRouter.post('/notebooks/:notebookId/chats/:chatId/messages', chatRateLimi
 
       // User message
       const userMsgRef = db.collection('neobook_messages').doc(userMsgId);
-      batch.set(userMsgRef, {
+      batch.set(userMsgRef, cleanForFirestore({
         id: userMsgId,
         chatId,
         notebookId,
@@ -693,11 +712,11 @@ neobookRouter.post('/notebooks/:notebookId/chats/:chatId/messages', chatRateLimi
         role: 'user',
         content: cleanQuery,
         timestamp: admin.firestore.Timestamp.fromDate(now)
-      });
+      }));
 
       // Assistant message
       const assistantMsgRef = db.collection('neobook_messages').doc(assistantMsgId);
-      batch.set(assistantMsgRef, {
+      batch.set(assistantMsgRef, cleanForFirestore({
         id: assistantMsgId,
         chatId,
         notebookId,
@@ -705,15 +724,15 @@ neobookRouter.post('/notebooks/:notebookId/chats/:chatId/messages', chatRateLimi
         uid: req.identity.uid,
         role: 'assistant',
         content: aiResult.answer,
-        citations: aiResult.citations,
+        citations: aiResult.citations || [],
         tokenUsage: {
-          inputTokens: aiResult.inputTokens,
-          outputTokens: aiResult.outputTokens,
-          estimatedCostUsd: aiResult.estimatedCostUsd,
-          modelUsed: aiResult.modelUsed
+          inputTokens: aiResult.inputTokens || 0,
+          outputTokens: aiResult.outputTokens || 0,
+          estimatedCostUsd: aiResult.estimatedCostUsd || 0,
+          modelUsed: aiResult.modelUsed || 'default'
         },
         timestamp: admin.firestore.Timestamp.fromDate(new Date(now.getTime() + 100))
-      });
+      }));
 
       // Update chat messageCount and title if it was first message
       const updateChat = {
