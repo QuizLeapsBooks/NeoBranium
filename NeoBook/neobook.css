@@ -30,6 +30,46 @@
   --nb-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Dashboard-aligned NeoBook theme: the workspace keeps its three panels but
+   now uses the same neutral surfaces, typography, borders, and restrained
+   purple accent as the NeoBranium dashboard. */
+:root {
+  --nb-bg-dark: #f1f4f9;
+  --nb-panel-bg: #ffffff;
+  --nb-panel-header: #ffffff;
+  --nb-card-bg: #ffffff;
+  --nb-card-hover: #f8fafc;
+  --nb-border: rgba(0, 0, 0, 0.07);
+  --nb-border-light: rgba(0, 0, 0, 0.07);
+  --nb-primary: #5b21b6;
+  --nb-primary-hover: #4c1d95;
+  --nb-primary-glow: rgba(91, 33, 182, 0.12);
+  --nb-accent: #7c3aed;
+  --nb-accent-glow: rgba(124, 58, 237, 0.1);
+  --nb-text-main: #111827;
+  --nb-text-muted: #6b7280;
+  --nb-text-dim: #6b7280;
+  --nb-success: #16a34a;
+  --nb-success-bg: rgba(22, 163, 74, 0.1);
+  --nb-warning: #d97706;
+  --nb-warning-bg: rgba(217, 119, 6, 0.1);
+  --nb-error: #dc2626;
+  --nb-error-bg: rgba(220, 38, 38, 0.1);
+}
+
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+.neobook-header { background: #fff; border-color: var(--nb-border); box-shadow: var(--nb-shadow, 0 1px 3px rgba(0,0,0,.07)); }
+.brand-icon, .btn-send, .btn-primary, .btn-add-source { background: var(--nb-primary); box-shadow: none; }
+.brand-icon, .btn-send, .btn-primary, .btn-add-source, .mobile-tab-btn.active { background-image: none; }
+.panel, .modal-window { box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+.panel-header { background: #fff; border-color: var(--nb-border); }
+.panel { border-color: var(--nb-border); }
+.studio-card, .sources-empty-state, .chat-input-box, .quota-pill { box-shadow: none; }
+.studio-card:hover, .btn-primary:hover, .btn-add-source:hover { box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.studio-card.quiz.active { background: #fff; border-color: rgba(91, 33, 182, .25); }
+.studio-card.quiz.active:hover { background: #faf8ff; border-color: var(--nb-primary); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.badge-beta, .panel-badge { color: var(--nb-primary); background: rgba(91,33,182,.08); border-color: rgba(91,33,182,.16); }
+
 * {
   margin: 0;
   padding: 0;
@@ -1515,3 +1555,12 @@ body {
     max-width: 95%;
   }
 }
+
+/* Final overrides are deliberately last so legacy component declarations cannot
+   reintroduce the previous neon gradients or glowing shadows. */
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+.brand-icon, .btn-send, .btn-primary, .btn-add-source { background: var(--nb-primary); background-image: none; box-shadow: none; }
+.mobile-tab-btn.active { background: var(--nb-primary); box-shadow: none; }
+.panel, .modal-window { box-shadow: 0 1px 3px rgba(0,0,0,.07); }
+.studio-card, .sources-empty-state, .chat-input-box, .quota-pill { box-shadow: none; }
+.studio-card:hover, .btn-primary:hover, .btn-add-source:hover { box-shadow: 0 4px 12px rgba(0,0,0,.08); }

@@ -10,6 +10,11 @@
   background: linear-gradient(135deg, var(--nb-card-bg), rgba(245, 158, 11, 0.06));
 }
 
+/* Match the dashboard's calm card treatment; feedback colors remain semantic. */
+.studio-card.quiz.active { background: #fff; border-color: rgba(91, 33, 182, .25); }
+.studio-card.quiz.active:hover { background: #faf8ff; border-color: var(--nb-primary); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.badge-quiz-active { color: #5b21b6; background: rgba(91,33,182,.08); border-color: rgba(91,33,182,.16); }
+
 .studio-card.quiz.active:hover {
   border-color: rgba(245, 158, 11, 0.7);
   background: linear-gradient(135deg, var(--nb-card-hover), rgba(245, 158, 11, 0.1));
@@ -1025,4 +1030,9 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* Keep quiz surfaces consistent with dashboard cards. */
+.studio-card.quiz.active { background: #fff; border-color: rgba(91,33,182,.25); }
+.studio-card.quiz.active:hover { background: #faf8ff; border-color: var(--nb-primary); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.badge-quiz-active { color: #5b21b6; background: rgba(91,33,182,.08); border-color: rgba(91,33,182,.16); }
 

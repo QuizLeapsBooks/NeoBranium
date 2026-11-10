@@ -16,7 +16,6 @@ import { NEOBOOK_CONFIG } from './neobookConfig.js';
 import { estimateCostUsd } from './neobookAiService.js';
 
 const geminiApiKey = process.env.GEMINI_API_KEY;
-const groqApiKey = process.env.GROQ_API_KEY;
 
 /**
  * Sanitizes Firestore objects to prevent undefined property errors.
@@ -260,44 +259,8 @@ export async function generateQuizFromSources({
       inputTokens = data.usageMetadata?.promptTokenCount || 0;
       outputTokens = data.usageMetadata?.candidatesTokenCount || 0;
     } catch (apiErr) {
-      console.warn('[NeoBook Quiz] Gemini call failed, trying Groq fallback:', apiErr.message);
-
-      // Secondary Fallback: Groq API
-      if (groqApiKey) {
-        try {
-          const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${groqApiKey}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
-              messages: [
-                { role: 'system', content: systemInstruction + '\nRespond with raw JSON only.' },
-                { role: 'user', content: userContent }
-              ],
-              response_format: { type: 'json_object' },
-              temperature: 0.2,
-              max_tokens: NEOBOOK_CONFIG.MAX_OUTPUT_TOKENS
-            })
-          });
-
-          if (groqRes.ok) {
-            const groqData = await groqRes.json();
-            rawJsonText = groqData.choices?.[0]?.message?.content || '';
-            inputTokens = groqData.usage?.prompt_tokens || 0;
-            outputTokens = groqData.usage?.completion_tokens || 0;
-            modelUsed = `groq/${process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'}`;
-          } else {
-            throw new Error(`Groq returned ${groqRes.status}`);
-          }
-        } catch (groqErr) {
-          throw new Error('AI service is momentarily unavailable for quiz generation. Please retry in a few moments.');
-        }
-      } else {
-        throw new Error('AI quiz generation failed. Please check your network and try again.');
-      }
+      console.warn('[NeoBook Quiz] Gemini call failed:', apiErr.message);
+      throw new Error('Gemini is momentarily unavailable for quiz generation. Please retry in a few moments.');
     } finally {
       clearTimeout(timeout);
     }
@@ -325,6 +288,7 @@ export async function generateQuizFromSources({
   // Validate each question strictly
   const validatedQuestions = [];
   const seenQuestionTexts = new Set();
+  const sourceByTitle = new Map(selectedChunks.filter(c => c.sourceTitle).map(c => [String(c.sourceTitle).trim().toLowerCase(), c]));
 
   for (let i = 0; i < parsed.questions.length; i++) {
     const q = parsed.questions[i];
@@ -354,6 +318,10 @@ export async function generateQuizFromSources({
     if (!citation.title && selectedChunks[0]?.sourceTitle) {
       citation.title = selectedChunks[0].sourceTitle;
     }
+    const citedChunk = sourceByTitle.get(String(citation.title || '').toLowerCase()) || selectedChunks[0];
+    citation.title = citedChunk?.sourceTitle || citation.title || 'Selected source';
+    if (citation.pageNum == null && citedChunk?.metadata?.pageNum != null) citation.pageNum = citedChunk.metadata.pageNum;
+    if (citation.timestamp == null && citedChunk?.metadata?.timestamp != null) citation.timestamp = citedChunk.metadata.timestamp;
 
     validatedQuestions.push({
       id: `q_${i + 1}`,
@@ -373,8 +341,8 @@ export async function generateQuizFromSources({
     }
   }
 
-  if (validatedQuestions.length < 3) {
-    throw new Error('Could not formulate sufficient distinct questions from this source material. Try uploading more detailed content.');
+  if (validatedQuestions.length < config.questionCount) {
+    throw new Error(`Could only validate ${validatedQuestions.length} distinct, source-supported questions. Add more detailed material or choose fewer questions.`);
   }
 
   // Calculate tokens & costs fallback
@@ -461,12 +429,18 @@ export async function recordQuizAttempt({ quizId, notebookId, identity, userAnsw
   }
 
   const quiz = quizSnap.data();
+  if (quiz.notebookId !== notebookId) {
+    throw new Error('Quiz does not belong to this notebook.');
+  }
   const questions = quiz.questions || [];
   let correctCount = 0;
   const topicStats = {};
 
   const evaluatedQuestions = questions.map((q, idx) => {
-    const selected = userAnswers[q.id] != null ? Number(userAnswers[q.id]) : null;
+    const rawSelected = userAnswers[q.id];
+    const selected = Number.isInteger(Number(rawSelected)) && Number(rawSelected) >= 0 && Number(rawSelected) < 4
+      ? Number(rawSelected)
+      : null;
     const isCorrect = selected === q.correctIndex;
     if (isCorrect) correctCount++;
 

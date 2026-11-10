@@ -214,7 +214,7 @@ async function handleGenerateQuiz(appState, apiFn, showToastFn) {
 
   // Collect count
   const activeCount = qs('quizCountGroup')?.querySelector('.quiz-pill-btn.active');
-  const count = parseInt(activeCount?.dataset.count || '5', 10);
+  const questionCount = parseInt(activeCount?.dataset.count || '5', 10);
 
   quizState.isGenerating = true;
 
@@ -224,7 +224,7 @@ async function handleGenerateQuiz(appState, apiFn, showToastFn) {
   try {
     const result = await apiFn(`/api/neobook/notebooks/${notebookId}/quizzes/generate`, {
       method: 'POST',
-      body: JSON.stringify({ sourceIds, difficulty, count })
+      body: JSON.stringify({ sourceIds, difficulty, questionCount })
     });
 
     if (!result.success || !result.quiz) {
@@ -390,9 +390,11 @@ function showFeedback(idx, q) {
   if (explanation) explanation.textContent = q.explanation || 'No explanation provided.';
 
   if (citation && citText) {
-    const srcRef = q.source_title || q.sourceTitle;
+    const srcRef = q.sourceCitation?.title || q.source_title || q.sourceTitle;
     if (srcRef) {
-      citText.textContent = srcRef + (q.timestamp ? ` (${q.timestamp})` : q.pageNum ? ` (p. ${q.pageNum})` : '');
+      const timestamp = q.sourceCitation?.timestamp ?? q.timestamp;
+      const pageNum = q.sourceCitation?.pageNum ?? q.pageNum;
+      citText.textContent = srcRef + (timestamp ? ` (${timestamp})` : pageNum ? ` (p. ${pageNum})` : '');
       citation.style.display = 'inline-flex';
     } else {
       citation.style.display = 'none';
@@ -420,11 +422,7 @@ async function finishQuiz(appState, apiFn, showToastFn, escapeHtmlFn) {
 
   const notebookId = appState.activeNotebook?.id;
 
-  // Build attempt answers array
-  const answers = quiz.questions.map((q, i) => ({
-    questionIndex: i,
-    selectedIndex: quizState.userAnswers[i] ?? null
-  }));
+  const userAnswers = Object.fromEntries(quiz.questions.map((q, i) => [q.id, quizState.userAnswers[i] ?? null]));
 
   // Record attempt on backend
   try {
@@ -433,11 +431,11 @@ async function finishQuiz(appState, apiFn, showToastFn, escapeHtmlFn) {
         `/api/neobook/notebooks/${notebookId}/quizzes/${quiz.id}/attempts`,
         {
           method: 'POST',
-          body: JSON.stringify({ answers })
+          body: JSON.stringify({ userAnswers })
         }
       );
       if (attemptResult.success && attemptResult.attempt) {
-        quizState.currentAttemptId = attemptResult.attempt.id;
+        quizState.currentAttemptId = attemptResult.attempt.attemptId;
       }
     }
   } catch (err) {
@@ -548,7 +546,9 @@ function renderResultsView(quiz, correct, total, pct, escapeHtmlFn) {
 
       const userAnswerText = userAns !== undefined ? (q.options?.[userAns] || '—') : 'Not answered';
       const correctAnswerText = q.options?.[correctIndex] || '—';
-      const srcRef = q.source_title || q.sourceTitle;
+      const srcRef = q.sourceCitation?.title || q.source_title || q.sourceTitle;
+      const citationPage = q.sourceCitation?.pageNum ?? q.pageNum;
+      const citationTimestamp = q.sourceCitation?.timestamp ?? q.timestamp;
 
       return `<div class="quiz-review-item ${isCorrect ? 'review-correct' : 'review-incorrect'}" data-review-idx="${i}">
         <div class="quiz-review-item-header">
@@ -566,7 +566,7 @@ function renderResultsView(quiz, correct, total, pct, escapeHtmlFn) {
             <span class="review-answer-value correct">${keys[correctIndex]}. ${escapeHtmlFn(correctAnswerText)}</span>
           </div>
           <div class="review-explanation">${escapeHtmlFn(q.explanation || 'No explanation provided.')}</div>
-          ${srcRef ? `<span class="review-citation"><i class="fas fa-quote-left"></i> ${escapeHtmlFn(srcRef)}${q.timestamp ? ' (' + q.timestamp + ')' : q.pageNum ? ' (p. ' + q.pageNum + ')' : ''}</span>` : ''}
+          ${srcRef ? `<span class="review-citation"><i class="fas fa-quote-left"></i> ${escapeHtmlFn(srcRef)}${citationTimestamp ? ' (' + citationTimestamp + ')' : citationPage ? ' (p. ' + citationPage + ')' : ''}</span>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -599,8 +599,8 @@ async function loadNotebookQuizzes(appState, apiFn, showToastFn, escapeHtmlFn) {
 
     section.style.display = '';
     list.innerHTML = result.quizzes.slice(0, 5).map(quiz => {
-      const date = quiz.createdAt ? new Date(quiz.createdAt._seconds * 1000).toLocaleDateString() : '';
-      const scoreLabel = quiz.lastScore !== undefined ? `${quiz.lastScore}%` : 'Not taken';
+      const date = quiz.createdAt ? new Date(quiz.createdAt).toLocaleDateString() : '';
+      const scoreLabel = quiz.bestScore !== null && quiz.bestScore !== undefined ? `${quiz.bestScore}/${quiz.questionCount}` : 'Not taken';
       const title = (quiz.title || `Quiz – ${capitalise(quiz.difficulty || 'mixed')}`).slice(0, 40);
 
       return `<div class="studio-quiz-item" data-quiz-id="${quiz.id}">

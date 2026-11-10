@@ -24,7 +24,10 @@ import {
   getClientIdentity,
   getRemainingLimits,
   checkAndConsumeNewChatQuota,
-  recordMessageTokenUsage
+  recordMessageTokenUsage,
+  reserveTokenUsage,
+  settleTokenReservation,
+  cancelTokenReservation
 } from '../services/neobookLimitService.js';
 import {
   fetchWebsiteContent,
@@ -120,6 +123,13 @@ async function attachIdentity(req, res, next) {
 }
 
 neobookRouter.use(attachIdentity);
+
+function requireAuthenticatedQuizUser(req, res, next) {
+  if (!req.identity?.uid) {
+    return res.status(401).json({ success: false, error: 'Please sign in to generate, save, and review NeoBook quizzes.' });
+  }
+  next();
+}
 
 // ── GET /api/neobook/limits ──────────────────────────────────────────────────
 neobookRouter.get('/limits', async (req, res) => {
@@ -1017,7 +1027,9 @@ neobookRouter.delete('/chats/:chatId', async (req, res) => {
 });
 
 // ── POST /api/neobook/notebooks/:notebookId/quizzes/generate ─────────────────
-neobookRouter.post('/notebooks/:notebookId/quizzes/generate', quizRateLimiter, async (req, res) => {
+neobookRouter.post('/notebooks/:notebookId/quizzes/generate', requireAuthenticatedQuizUser, quizRateLimiter, async (req, res) => {
+  let reservationId = null;
+  let generatedQuizId = null;
   try {
     const { notebookId } = req.params;
     const { difficulty, questionCount, sourceIds } = req.body || {};
@@ -1051,6 +1063,19 @@ neobookRouter.post('/notebooks/:notebookId/quizzes/generate', quizRateLimiter, a
       });
     }
 
+    if (Array.isArray(sourceIds) && sourceIds.length > 0) {
+      const indexedSourceIds = new Set(allChunks.map(chunk => chunk.sourceId).filter(Boolean));
+      if (sourceIds.some(sourceId => typeof sourceId !== 'string' || !indexedSourceIds.has(sourceId))) {
+        return res.status(400).json({ success: false, error: 'One or more selected sources are unavailable or not ready.' });
+      }
+    }
+
+    // Reserve the maximum possible request use before contacting Gemini. This
+    // prevents concurrent clicks from spending the same budget twice.
+    const reservation = await reserveTokenUsage(req.identity, NEOBOOK_CONFIG.MAX_INPUT_TOKENS_PER_REQUEST + NEOBOOK_CONFIG.MAX_OUTPUT_TOKENS);
+    if (!reservation.allowed) return res.status(429).json({ success: false, error: reservation.error, code: 'TOKEN_BUDGET_EXHAUSTED', resetAt: reservation.resetAt });
+    reservationId = reservation.reservationId;
+
     // Generate grounded quiz via Gemini API
     const { quiz, tokenUsage } = await generateQuizFromSources({
       notebookId,
@@ -1060,13 +1085,15 @@ neobookRouter.post('/notebooks/:notebookId/quizzes/generate', quizRateLimiter, a
       allChunks,
       identity: req.identity
     });
+    generatedQuizId = quiz.id;
 
-    // Record token usage against user daily budget
-    const usageResult = await recordMessageTokenUsage(req.identity, {
+    // Charge actual provider usage and release the remainder of the reservation.
+    const usageResult = await settleTokenReservation(req.identity, reservationId, {
       inputTokens: tokenUsage.inputTokens,
       outputTokens: tokenUsage.outputTokens,
       estimatedCostUsd: tokenUsage.estimatedCostUsd
     });
+    reservationId = null;
 
     return res.json({
       success: true,
@@ -1078,6 +1105,9 @@ neobookRouter.post('/notebooks/:notebookId/quizzes/generate', quizRateLimiter, a
       }
     });
   } catch (err) {
+    // A quiz must not survive if token settlement fails after generation.
+    if (generatedQuizId && db) await db.collection('neobook_quizzes').doc(generatedQuizId).delete().catch(() => {});
+    if (reservationId) await cancelTokenReservation(req.identity, reservationId).catch(() => {});
     console.error('[NeoBook] Error generating quiz:', err);
     return res.status(500).json({
       success: false,
@@ -1087,7 +1117,7 @@ neobookRouter.post('/notebooks/:notebookId/quizzes/generate', quizRateLimiter, a
 });
 
 // ── GET /api/neobook/notebooks/:notebookId/quizzes ───────────────────────────
-neobookRouter.get('/notebooks/:notebookId/quizzes', async (req, res) => {
+neobookRouter.get('/notebooks/:notebookId/quizzes', requireAuthenticatedQuizUser, async (req, res) => {
   try {
     const { notebookId } = req.params;
     const quizzes = await getNotebookQuizzes({ notebookId, identity: req.identity });
@@ -1099,11 +1129,11 @@ neobookRouter.get('/notebooks/:notebookId/quizzes', async (req, res) => {
 });
 
 // ── GET /api/neobook/notebooks/:notebookId/quizzes/:quizId ────────────────────
-neobookRouter.get('/notebooks/:notebookId/quizzes/:quizId', async (req, res) => {
+neobookRouter.get('/notebooks/:notebookId/quizzes/:quizId', requireAuthenticatedQuizUser, async (req, res) => {
   try {
     const { quizId } = req.params;
     const quiz = await getQuizById({ quizId, identity: req.identity });
-    if (!quiz) {
+    if (!quiz || quiz.notebookId !== req.params.notebookId) {
       return res.status(404).json({ success: false, error: 'Quiz not found.' });
     }
     return res.json({ success: true, quiz });
@@ -1114,7 +1144,7 @@ neobookRouter.get('/notebooks/:notebookId/quizzes/:quizId', async (req, res) => 
 });
 
 // ── POST /api/neobook/notebooks/:notebookId/quizzes/:quizId/attempts ──────────
-neobookRouter.post('/notebooks/:notebookId/quizzes/:quizId/attempts', async (req, res) => {
+neobookRouter.post('/notebooks/:notebookId/quizzes/:quizId/attempts', requireAuthenticatedQuizUser, async (req, res) => {
   try {
     const { notebookId, quizId } = req.params;
     const { userAnswers } = req.body || {};

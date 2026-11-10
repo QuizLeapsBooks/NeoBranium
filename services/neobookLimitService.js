@@ -133,6 +133,7 @@ export async function getRemainingLimits(identity) {
     const data = snap.data();
     const newChatsUsed = Number(data.newChatsCount) || 0;
     const tokensUsed = Number(data.tokensUsed) || 0;
+    const tokensReserved = Number(data.tokensReserved) || 0;
 
     return {
       dailyNewChatsLimit: NEOBOOK_CONFIG.MAX_DAILY_NEW_CHATS,
@@ -140,7 +141,7 @@ export async function getRemainingLimits(identity) {
       newChatsRemaining: Math.max(0, NEOBOOK_CONFIG.MAX_DAILY_NEW_CHATS - newChatsUsed),
       dailyTokenBudget: NEOBOOK_CONFIG.DAILY_TOKEN_BUDGET,
       tokensUsed,
-      tokensRemaining: Math.max(0, NEOBOOK_CONFIG.DAILY_TOKEN_BUDGET - tokensUsed),
+      tokensRemaining: Math.max(0, NEOBOOK_CONFIG.DAILY_TOKEN_BUDGET - tokensUsed - tokensReserved),
       resetAt,
       isGuest: identity.isGuest
     };
@@ -303,5 +304,91 @@ export async function recordMessageTokenUsage(identity, { inputTokens = 0, outpu
     console.error('Firestore transaction failed in recordMessageTokenUsage:', err);
     throw err;
   }
+}
+
+/**
+ * Reserves NeoBook-only tokens before an expensive AI request.  Reservations
+ * make concurrent quiz requests safe; settlement charges actual provider usage
+ * and releases the unused part on success or failure.
+ */
+export async function reserveTokenUsage(identity, estimatedTokens) {
+  const today = getUtcDateString();
+  const resetAt = getUtcResetTimestamp(today);
+  const tokens = Math.max(1, Math.ceil(Number(estimatedTokens) || 0));
+  const reservationId = crypto.randomBytes(12).toString('hex');
+  if (!db) return { allowed: true, reservationId, resetAt };
+
+  const usageRef = db.collection('neobook_usage').doc(`${identity.identityKey}_${today}`);
+  const reservationRef = db.collection('neobook_token_reservations').doc(reservationId);
+  return db.runTransaction(async txn => {
+    const usage = (await txn.get(usageRef)).data() || {};
+    const committed = Number(usage.tokensUsed) || 0;
+    const reserved = Number(usage.tokensReserved) || 0;
+    if (committed + reserved + tokens > NEOBOOK_CONFIG.DAILY_TOKEN_BUDGET) {
+      return { allowed: false, resetAt, error: 'Not enough NeoBook AI budget remains to generate this quiz.' };
+    }
+    txn.set(usageRef, {
+      identityKey: identity.identityKey, uid: identity.uid, ipHash: identity.ipHash,
+      isGuest: identity.isGuest, date: today,
+      tokensReserved: reserved + tokens,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    txn.set(reservationRef, {
+      identityKey: identity.identityKey, date: today, reservedTokens: tokens,
+      status: 'pending', createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    return { allowed: true, reservationId, resetAt };
+  });
+}
+
+/** Settle a reservation exactly once, charging actual usage and releasing it. */
+export async function settleTokenReservation(identity, reservationId, usage = {}) {
+  if (!reservationId || !db) return getRemainingLimits(identity);
+  const reservationRef = db.collection('neobook_token_reservations').doc(reservationId);
+  return db.runTransaction(async txn => {
+    const reservation = await txn.get(reservationRef);
+    if (!reservation.exists || reservation.data().identityKey !== identity.identityKey || reservation.data().status !== 'pending') {
+      throw new Error('Invalid or already settled token reservation.');
+    }
+    const data = reservation.data();
+    const usageRef = db.collection('neobook_usage').doc(`${identity.identityKey}_${data.date}`);
+    const usageSnap = await txn.get(usageRef);
+    const usageData = usageSnap.data() || {};
+    const actualTokens = Math.max(0, Math.ceil(Number(usage.inputTokens || 0) + Number(usage.outputTokens || 0)));
+    const reservedTokens = Number(data.reservedTokens) || 0;
+    const committed = Number(usageData.tokensUsed) || 0;
+    const currentReserved = Number(usageData.tokensReserved) || 0;
+    // Reservation estimates are deliberately the request maximum. This check is
+    // retained as a fail-safe if a provider ever exceeds its advertised limit.
+    if (committed + Math.max(0, currentReserved - reservedTokens) + actualTokens > NEOBOOK_CONFIG.DAILY_TOKEN_BUDGET) {
+      throw new Error('Actual AI usage exceeded the remaining NeoBook budget. No quiz was saved.');
+    }
+    txn.set(usageRef, {
+      tokensReserved: Math.max(0, currentReserved - reservedTokens),
+      tokensUsed: committed + actualTokens,
+      messagesCount: (Number(usageData.messagesCount) || 0) + 1,
+      estimatedCostUsd: Number(((Number(usageData.estimatedCostUsd) || 0) + (Number(usage.estimatedCostUsd) || 0)).toFixed(6)),
+      lastMessageAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    txn.update(reservationRef, { status: 'settled', actualTokens, settledAt: admin.firestore.FieldValue.serverTimestamp() });
+    const remaining = Math.max(0, NEOBOOK_CONFIG.DAILY_TOKEN_BUDGET - committed - actualTokens - Math.max(0, currentReserved - reservedTokens));
+    return { allowed: true, tokensUsed: committed + actualTokens, tokensRemaining: remaining, resetAt: getUtcResetTimestamp(data.date) };
+  });
+}
+
+/** Releases an unused reservation after an AI/provider/validation failure. */
+export async function cancelTokenReservation(identity, reservationId) {
+  if (!reservationId || !db) return;
+  const reservationRef = db.collection('neobook_token_reservations').doc(reservationId);
+  await db.runTransaction(async txn => {
+    const reservation = await txn.get(reservationRef);
+    if (!reservation.exists || reservation.data().identityKey !== identity.identityKey || reservation.data().status !== 'pending') return;
+    const data = reservation.data();
+    const usageRef = db.collection('neobook_usage').doc(`${identity.identityKey}_${data.date}`);
+    const usage = (await txn.get(usageRef)).data() || {};
+    txn.set(usageRef, { tokensReserved: Math.max(0, (Number(usage.tokensReserved) || 0) - (Number(data.reservedTokens) || 0)), updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    txn.update(reservationRef, { status: 'cancelled', cancelledAt: admin.firestore.FieldValue.serverTimestamp() });
+  });
 }
 
