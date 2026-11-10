@@ -255,45 +255,53 @@ async function ensureActiveNotebook() {
   return state.activeNotebook;
 }
 
+let sessionLoadEpoch = 0;
+
 /**
- * Loads (or creates) the user's notebook.
+ * Loads user session, usage limits, and chat history from server/Firebase.
+ * All state is controlled on the server; zero localStorage is used.
  * @param {string|null} uid - The current Firebase UID, or null for guest.
  */
 async function loadNotebooks(uid) {
-  // Guard: skip if a load for the SAME identity is already in-flight
-  // but always allow a reload when the identity (uid) changes.
-  if (state.isInitializing) return;
-  if (state.currentIdentityUid === uid && state.activeNotebook && !state.activeNotebook.isOptimistic) return;
-
-  state.isInitializing = true;
+  const currentEpoch = ++sessionLoadEpoch;
+  state.currentIdentityUid = uid;
 
   try {
-    const res = await apiRequest('/api/neobook/notebooks');
-    if (res.success && res.notebooks?.length > 0) {
-      state.activeNotebook = res.notebooks[0];
-      state.activeNotebook.isOptimistic = false;
-    } else if (res.success) {
-      // No notebooks yet — auto-create a default one so the user can start immediately
-      const created = await apiRequest('/api/neobook/notebooks', {
-        method: 'POST',
-        body: JSON.stringify({ title: 'My Study Notebook' })
-      });
-      if (created.success && created.notebook) {
-        state.activeNotebook = created.notebook;
+    await refreshLimits().catch(() => {});
+    if (currentEpoch !== sessionLoadEpoch) return;
+
+    // Retrieve user chat sessions from server
+    const res = await apiRequest('/api/neobook/chats');
+    if (currentEpoch !== sessionLoadEpoch) return;
+
+    if (res.success && res.chats && res.chats.length > 0) {
+      state.chats = res.chats;
+      renderHistoryList();
+
+      // If no active chat or chat changed, reopen the most recent chat session
+      if (!state.activeChat || !state.chats.some(c => c.id === state.activeChat.id)) {
+        await openChat(state.chats[0].id);
+      }
+    } else {
+      // First-time or empty user: load/create default notebook
+      state.chats = [];
+      renderHistoryList();
+
+      const nbRes = await apiRequest('/api/neobook/notebooks');
+      if (currentEpoch !== sessionLoadEpoch) return;
+
+      if (nbRes.success && nbRes.notebooks?.length > 0) {
+        state.activeNotebook = nbRes.notebooks[0];
         state.activeNotebook.isOptimistic = false;
       }
-    }
+      state.sources = [];
+      renderSourcesList();
+      clearChatMessages();
 
-    // Record which identity we just loaded for
-    state.currentIdentityUid = uid;
-
-    if (state.activeNotebook) {
       const titleInput = document.getElementById('notebookTitleInput');
-      if (titleInput) {
+      if (titleInput && state.activeNotebook) {
         titleInput.value = state.activeNotebook.title || 'My Study Notebook';
       }
-      await loadSources();
-      await loadChats();
     }
   } catch (err) {
     console.warn('[NeoBook] Notebook server sync deferred:', err.message);
@@ -305,8 +313,6 @@ async function loadNotebooks(uid) {
         isOptimistic: true
       };
     }
-  } finally {
-    state.isInitializing = false;
   }
 }
 
@@ -474,39 +480,57 @@ async function handleAddSourceSubmit() {
 // ── Chat & Messaging Operations ───────────────────────────────────────────────
 
 async function loadChats() {
-  if (!state.activeNotebook) return;
+  const listEl = document.getElementById('historyList');
+  if (listEl && (!state.chats || state.chats.length === 0)) {
+    listEl.innerHTML = `
+      <div style="text-align:center;padding:2rem 1rem;color:var(--nb-text-dim);font-size:0.85rem;">
+        <i class="fas fa-spinner fa-spin"></i> Loading chat history...
+      </div>
+    `;
+  }
   try {
-    const res = await apiRequest(`/api/neobook/notebooks/${state.activeNotebook.id}/chats`);
+    const res = await apiRequest('/api/neobook/chats');
     if (res.success) {
       state.chats = res.chats || [];
       renderHistoryList();
 
       if (state.chats.length > 0 && !state.activeChat) {
-        // Reopen most recent chat without consuming new-chat quota
+        // Reopen most recent chat and its sources without consuming new-chat quota
         await openChat(state.chats[0].id);
       }
     }
   } catch (err) {
     console.error('Error loading chats:', err);
+    if (listEl && (!state.chats || state.chats.length === 0)) {
+      listEl.innerHTML = `
+        <div style="text-align:center;padding:2rem 1rem;color:#f87171;font-size:0.85rem;">
+          <i class="fas fa-circle-exclamation"></i> Could not load history. Click history to retry.
+        </div>
+      `;
+    }
   }
 }
 
 /**
  * Starts a brand new chat.
- * Consumes 1 new-chat daily allowance (maximum 5 per day).
+ * Removes previous chat sources immediately and isolates materials per session.
+ * Consumes 1 new-chat daily allowance (maximum 5 per day) enforced on the server in Firestore.
  */
 async function startNewChat() {
-  await ensureActiveNotebook();
-  if (!state.activeNotebook) return;
   try {
-    const res = await apiRequest(`/api/neobook/notebooks/${state.activeNotebook.id}/chats`, {
+    const res = await apiRequest('/api/neobook/chats', {
       method: 'POST',
       body: JSON.stringify({ title: 'New Chat' })
     });
 
     if (res.success) {
+      state.activeNotebook = res.notebook;
       state.activeChat = res.chat;
       state.chats.unshift(res.chat);
+
+      // OLD CHAT SOURCES REMOVED: Fresh, clean state
+      state.sources = [];
+      renderSourcesList();
 
       if (res.quota) {
         state.limits.newChatsRemaining = res.quota.newChatsRemaining;
@@ -519,6 +543,11 @@ async function startNewChat() {
       renderHistoryList();
       closeHistoryDrawer();
 
+      const titleInput = document.getElementById('notebookTitleInput');
+      if (titleInput && res.notebook?.title) {
+        titleInput.value = res.notebook.title;
+      }
+
       // On mobile, switch to chat tab
       switchToMobilePanel('chat');
     }
@@ -527,34 +556,40 @@ async function startNewChat() {
       showToast(err.message || 'Daily limit reached: Maximum 5 new chats per day. You can reopen your existing chats anytime!', 'error');
       openHistoryDrawer();
     } else {
-      console.warn('[NeoBook] Server chat creation deferred:', err.message);
-      const fallbackChat = {
-        id: `chat_${Date.now()}`,
-        notebookId: state.activeNotebook.id,
-        title: 'New Chat',
-        messageCount: 0
-      };
-      state.activeChat = fallbackChat;
-      state.chats.unshift(fallbackChat);
-      updateChatHeader();
-      clearChatMessages();
-      renderHistoryList();
-      closeHistoryDrawer();
-      switchToMobilePanel('chat');
+      showToast('Could not start new chat: ' + (err.message || 'Server error'), 'error');
     }
   }
 }
 
 /**
  * Reopens an existing chat.
+ * Loads that specific chat's conversation AND that chat's specific sources from Firestore.
  * Reopening an existing chat does NOT consume a new-chat allowance!
  */
 async function openChat(chatId) {
-  if (!state.activeNotebook) return;
   try {
-    const res = await apiRequest(`/api/neobook/notebooks/${state.activeNotebook.id}/chats/${chatId}`);
+    const targetChat = state.chats.find(c => c.id === chatId);
+    const notebookId = targetChat?.notebookId || state.activeNotebook?.id;
+    if (!notebookId) return;
+
+    const res = await apiRequest(`/api/neobook/notebooks/${notebookId}/chats/${chatId}`);
     if (res.success) {
+      state.activeNotebook = {
+        id: notebookId,
+        title: targetChat?.title || res.chat?.title || 'My Study Notebook',
+        isOptimistic: false
+      };
       state.activeChat = res.chat;
+
+      // Update notebook title input
+      const titleInput = document.getElementById('notebookTitleInput');
+      if (titleInput) {
+        titleInput.value = state.activeNotebook.title;
+      }
+
+      // Load THAT session's sources from Firebase Firestore
+      await loadSources();
+
       updateChatHeader();
       renderChatMessages(res.messages || []);
       renderHistoryList();
@@ -803,11 +838,56 @@ function renderHistoryList() {
         <div class="history-item-title">${escapeHtml(chat.title || 'Untitled Chat')}</div>
         <div class="history-item-date">${dateStr} &bull; ${chat.messageCount || 0} msgs</div>
       </div>
-      <i class="fas fa-chevron-right" style="font-size:0.75rem;color:var(--nb-text-dim);"></i>
+      <div class="history-item-actions">
+        <button class="btn-delete-history" title="Delete chat" type="button">
+          <i class="fas fa-trash-can"></i>
+        </button>
+        <i class="fas fa-chevron-right" style="font-size:0.75rem;color:var(--nb-text-dim);margin-left:4px;"></i>
+      </div>
     `;
 
-    item.addEventListener('click', () => openChat(chat.id));
+    const deleteBtn = item.querySelector('.btn-delete-history');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', (e) => deleteChat(chat.id, e));
+    }
+
+    item.addEventListener('click', (e) => {
+      if (e.target.closest('.btn-delete-history')) return;
+      openChat(chat.id);
+    });
     listEl.appendChild(item);
+  }
+}
+
+async function deleteChat(chatId, e) {
+  if (e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+  if (!confirm('Are you sure you want to delete this chat session?')) return;
+  try {
+    const res = await apiRequest(`/api/neobook/chats/${chatId}`, {
+      method: 'DELETE'
+    });
+    if (res.success) {
+      showToast('Chat session deleted.', 'info');
+      state.chats = state.chats.filter(c => c.id !== chatId);
+      renderHistoryList();
+
+      if (state.activeChat && state.activeChat.id === chatId) {
+        if (state.chats.length > 0) {
+          await openChat(state.chats[0].id);
+        } else {
+          state.activeChat = null;
+          state.sources = [];
+          renderSourcesList();
+          clearChatMessages();
+          updateChatHeader();
+        }
+      }
+    }
+  } catch (err) {
+    showToast('Failed to delete chat: ' + err.message, 'error');
   }
 }
 
@@ -839,9 +919,10 @@ function closeAddSourceModal() {
   }
 }
 
-function openHistoryDrawer() {
+async function openHistoryDrawer() {
   const drawer = document.getElementById('historyDrawer');
   if (drawer) drawer.classList.add('open');
+  await loadChats();
 }
 
 function closeHistoryDrawer() {
@@ -1157,6 +1238,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Bind initial sample prompt buttons
   bindSamplePrompts();
+
+  // Rename notebook title and synchronize with server / Firebase Firestore
+  const titleInput = document.getElementById('notebookTitleInput');
+  if (titleInput) {
+    titleInput.addEventListener('change', async () => {
+      const newTitle = titleInput.value.trim();
+      if (!newTitle || !state.activeNotebook) return;
+      try {
+        await apiRequest(`/api/neobook/notebooks/${state.activeNotebook.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ title: newTitle })
+        });
+        state.activeNotebook.title = newTitle;
+        if (state.activeChat) {
+          state.activeChat.title = newTitle;
+          const current = state.chats.find(c => c.id === state.activeChat.id);
+          if (current) current.title = newTitle;
+          updateChatHeader();
+          renderHistoryList();
+        }
+      } catch (err) {
+        console.warn('[NeoBook] Could not update title on server:', err.message);
+      }
+    });
+  }
 
   // Listen to Auth State Changes & Synchronize User Session.
   //

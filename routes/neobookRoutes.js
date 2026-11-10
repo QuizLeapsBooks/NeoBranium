@@ -230,6 +230,34 @@ neobookRouter.post('/notebooks', async (req, res) => {
   }
 });
 
+// ── PATCH /api/neobook/notebooks/:notebookId (RENAME NOTEBOOK) ───────────────
+neobookRouter.patch('/notebooks/:notebookId', async (req, res) => {
+  try {
+    const { notebookId } = req.params;
+    const { title } = req.body || {};
+    if (!title || typeof title !== 'string' || !title.trim()) {
+      return res.status(400).json({ success: false, error: 'A valid title is required.' });
+    }
+    const cleanTitle = title.trim().slice(0, 100);
+
+    if (db) {
+      const nbRef = db.collection('neobook_notebooks').doc(notebookId);
+      const snap = await nbRef.get();
+      if (snap.exists && snap.data().ownerKey === req.identity.identityKey) {
+        await nbRef.update({
+          title: cleanTitle,
+          updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    }
+
+    return res.json({ success: true, title: cleanTitle });
+  } catch (err) {
+    console.error('[NeoBook] Error renaming notebook:', err);
+    return res.status(500).json({ success: false, error: 'Could not rename notebook.' });
+  }
+});
+
 // ── GET /api/neobook/notebooks/:notebookId/sources ───────────────────────────
 neobookRouter.get('/notebooks/:notebookId/sources', async (req, res) => {
   try {
@@ -462,6 +490,155 @@ neobookRouter.delete('/notebooks/:notebookId/sources/:sourceId', async (req, res
   } catch (err) {
     console.error('[NeoBook] Error deleting source:', err);
     return res.status(500).json({ success: false, error: 'Failed to delete source.' });
+  }
+});
+
+// ── GET /api/neobook/chats (GET ALL USER CHATS ACROSS SESSIONS) ─────────────
+neobookRouter.get('/chats', async (req, res) => {
+  try {
+    if (!db) {
+      return res.json({ success: true, chats: [] });
+    }
+
+    const docs = [];
+
+    // Query by UID if authenticated
+    if (req.identity?.uid) {
+      try {
+        const uidSnap = await db.collection('neobook_chats')
+          .where('uid', '==', req.identity.uid)
+          .get();
+        uidSnap.forEach(d => docs.push(d));
+      } catch (err) {
+        console.warn('[NeoBook] Error querying chats by uid:', err.message);
+      }
+    }
+
+    // Query by ownerKey (handles both guest IP and authenticated identityKey)
+    if (req.identity?.identityKey) {
+      try {
+        const ownerSnap = await db.collection('neobook_chats')
+          .where('ownerKey', '==', req.identity.identityKey)
+          .get();
+        ownerSnap.forEach(d => docs.push(d));
+      } catch (err) {
+        console.warn('[NeoBook] Error querying chats by ownerKey:', err.message);
+      }
+    }
+
+    const seenIds = new Set();
+    const chats = [];
+    for (const doc of docs) {
+      if (seenIds.has(doc.id)) continue;
+      seenIds.add(doc.id);
+
+      const data = doc.data();
+      if (data.isDeleted !== true) {
+        chats.push({
+          id: doc.id,
+          notebookId: data.notebookId,
+          title: data.title || 'Chat',
+          messageCount: data.messageCount || 0,
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
+          updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt
+        });
+      }
+    }
+
+    // Sort newest first
+    chats.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+
+    return res.json({ success: true, chats });
+  } catch (err) {
+    console.error('[NeoBook] Error listing all chats:', err);
+    return res.status(500).json({ success: false, error: 'Could not load chat sessions.' });
+  }
+});
+
+// ── POST /api/neobook/chats (START FRESH CHAT WITH DEDICATED CLEAN NOTEBOOK) ─
+neobookRouter.post('/chats', async (req, res) => {
+  try {
+    const title = typeof req.body?.title === 'string' && req.body.title.trim()
+      ? req.body.title.trim().slice(0, 100)
+      : 'New Chat';
+
+    // ── Enforce 5 New Chats Per Day Limit in Firestore ──
+    const quotaResult = await checkAndConsumeNewChatQuota(req.identity);
+    if (!quotaResult.allowed) {
+      return res.status(429).json({
+        success: false,
+        error: quotaResult.error,
+        code: 'DAILY_NEW_CHATS_LIMIT_REACHED',
+        newChatsRemaining: 0,
+        resetAt: quotaResult.resetAt
+      });
+    }
+
+    const notebookId = `nb_${crypto.randomBytes(8).toString('hex')}`;
+    const chatId = `chat_${crypto.randomBytes(8).toString('hex')}`;
+    const nbTitle = title === 'New Chat' ? 'My Study Notebook' : title;
+
+    if (db) {
+      const batch = db.batch();
+
+      // Create new notebook container with 0 sources
+      const nbRef = db.collection('neobook_notebooks').doc(notebookId);
+      batch.set(nbRef, {
+        id: notebookId,
+        ownerKey: req.identity.identityKey,
+        uid: req.identity.uid,
+        ipHash: req.identity.ipHash,
+        title: nbTitle,
+        sourceCount: 0,
+        isDeleted: false,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      // Create new chat linked to this clean notebook
+      const chatRef = db.collection('neobook_chats').doc(chatId);
+      batch.set(chatRef, {
+        id: chatId,
+        notebookId,
+        ownerKey: req.identity.identityKey,
+        uid: req.identity.uid,
+        ipHash: req.identity.ipHash,
+        title,
+        messageCount: 0,
+        isDeleted: false,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+
+      await batch.commit();
+    }
+
+    return res.json({
+      success: true,
+      notebook: {
+        id: notebookId,
+        title: nbTitle,
+        sourceCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      chat: {
+        id: chatId,
+        notebookId,
+        title,
+        messageCount: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      quota: {
+        newChatsUsed: quotaResult.newChatsUsed,
+        newChatsRemaining: quotaResult.newChatsRemaining,
+        resetAt: quotaResult.resetAt
+      }
+    });
+  } catch (err) {
+    console.error('[NeoBook] Error creating new chat session:', err);
+    return res.status(500).json({ success: false, error: 'Could not create new chat session.' });
   }
 });
 
@@ -777,6 +954,30 @@ neobookRouter.post('/notebooks/:notebookId/chats/:chatId/messages', chatRateLimi
 
 // ── DELETE /api/neobook/notebooks/:notebookId/chats/:chatId ──────────────────
 neobookRouter.delete('/notebooks/:notebookId/chats/:chatId', async (req, res) => {
+  try {
+    const { chatId } = req.params;
+    if (db) {
+      const chatRef = db.collection('neobook_chats').doc(chatId);
+      const chatSnap = await chatRef.get();
+      if (!chatSnap.exists || chatSnap.data().ownerKey !== req.identity.identityKey) {
+        return res.status(404).json({ success: false, error: 'Chat not found.' });
+      }
+
+      await chatRef.update({
+        isDeleted: true,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    return res.json({ success: true, message: 'Chat deleted.' });
+  } catch (err) {
+    console.error('[NeoBook] Error deleting chat:', err);
+    return res.status(500).json({ success: false, error: 'Could not delete chat.' });
+  }
+});
+
+// ── DELETE /api/neobook/chats/:chatId ─────────────────────────────────────────
+neobookRouter.delete('/chats/:chatId', async (req, res) => {
   try {
     const { chatId } = req.params;
     if (db) {

@@ -1437,6 +1437,30 @@ body {
   color: var(--nb-text-dim);
 }
 
+.history-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-delete-history {
+  background: transparent;
+  border: none;
+  color: var(--nb-text-dim);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  transition: var(--nb-transition);
+  opacity: 0.6;
+}
+
+.btn-delete-history:hover {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.12);
+  opacity: 1;
+}
+
 /* ── Mobile & Responsive Rules ───────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .neobook-workspace {
