@@ -16,6 +16,7 @@
   
   <!-- Stylesheet -->
   <link rel="stylesheet" href="./neobook.css">
+  <link rel="stylesheet" href="./neobook-quiz.css">
 
   <!-- KaTeX for crisp mathematical formulas -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -228,18 +229,18 @@
           </article>
 
           <!-- Card 3: Interactive Quiz -->
-          <article class="studio-card quiz">
+          <article class="studio-card quiz active" id="btnOpenQuizModal" role="button" tabindex="0">
             <div class="studio-card-header">
               <div class="studio-card-icon">
                 <i class="fas fa-brain"></i>
               </div>
-              <span class="badge-coming-soon">Coming Soon</span>
+              <span class="badge-quiz-active"><i class="fas fa-play"></i> Start Quiz</span>
             </div>
             <h4>Interactive Knowledge Quiz</h4>
             <p>Test your comprehension with practice multiple-choice and conceptual questions with instant feedback.</p>
             <div class="studio-card-action">
-              <i class="fas fa-check-double"></i>
-              <span>Self-Assessment</span>
+              <i class="fas fa-wand-magic-sparkles"></i>
+              <span>Generate Grounded Quiz</span>
             </div>
           </article>
 
@@ -259,10 +260,249 @@
             </div>
           </article>
         </div>
+
+        <!-- Recent Quizzes List in Studio Space -->
+        <div class="studio-quizzes-section" id="studioQuizzesSection" style="display:none;margin-top:1.5rem;">
+          <div class="studio-section-title">
+            <i class="fas fa-clock-rotate-left"></i>
+            <span>Recent Quizzes</span>
+          </div>
+          <div class="studio-quizzes-list" id="studioQuizzesList">
+            <!-- Dynamically populated quiz cards -->
+          </div>
+        </div>
       </div>
     </section>
 
   </main>
+
+  <!-- ── MODAL: Interactive Knowledge Quiz ──────────────────────────────────── -->
+  <div class="modal-overlay quiz-modal-overlay" id="quizModal">
+    <div class="modal-window quiz-modal-window">
+      <!-- 1. Quiz Config State -->
+      <div id="quizConfigView" class="quiz-view-step">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <div class="modal-title-icon"><i class="fas fa-brain"></i></div>
+            <div>
+              <h3>Interactive Knowledge Quiz</h3>
+              <p class="modal-subtitle">Generate grounded practice questions directly from your active sources.</p>
+            </div>
+          </div>
+          <button class="modal-close-btn" id="btnCloseQuizModal" type="button">&times;</button>
+        </div>
+
+        <div class="modal-body quiz-modal-body">
+          <!-- Source Selection Section -->
+          <div class="quiz-form-section">
+            <div class="quiz-section-label">
+              <label><i class="fas fa-layer-group"></i> Select Sources for Quiz</label>
+              <span class="quiz-section-hint">Choose which materials to generate questions from</span>
+            </div>
+            <div class="quiz-source-selector" id="quizSourceSelector">
+              <!-- Dynamically populated checkboxes for ready sources -->
+            </div>
+          </div>
+
+          <!-- Difficulty Selection -->
+          <div class="quiz-form-section">
+            <div class="quiz-section-label">
+              <label><i class="fas fa-gauge-high"></i> Difficulty Level</label>
+              <span class="quiz-section-hint">Select the cognitive challenge of the assessment</span>
+            </div>
+            <div class="quiz-pill-group" id="quizDifficultyGroup">
+              <button type="button" class="quiz-pill-btn" data-difficulty="easy">
+                <strong>Easy</strong>
+                <span>Definitions &amp; Key Facts</span>
+              </button>
+              <button type="button" class="quiz-pill-btn active" data-difficulty="medium">
+                <strong>Medium</strong>
+                <span>Conceptual &amp; Relations</span>
+              </button>
+              <button type="button" class="quiz-pill-btn" data-difficulty="hard">
+                <strong>Hard</strong>
+                <span>Analysis &amp; Deduction</span>
+              </button>
+              <button type="button" class="quiz-pill-btn" data-difficulty="mixed">
+                <strong>Mixed</strong>
+                <span>Balanced Blend</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Question Count Selection -->
+          <div class="quiz-form-section">
+            <div class="quiz-section-label">
+              <label><i class="fas fa-list-ol"></i> Number of Questions</label>
+              <span class="quiz-section-hint">Standard multiple choice questions (MCQ)</span>
+            </div>
+            <div class="quiz-pill-group" id="quizCountGroup">
+              <button type="button" class="quiz-pill-btn active" data-count="5">
+                <strong>5 Questions</strong>
+                <span>Quick Check (~3 mins)</span>
+              </button>
+              <button type="button" class="quiz-pill-btn" data-count="10">
+                <strong>10 Questions</strong>
+                <span>Standard Quiz (~7 mins)</span>
+              </button>
+              <button type="button" class="quiz-pill-btn" data-count="15">
+                <strong>15 Questions</strong>
+                <span>Deep Drill (~12 mins)</span>
+              </button>
+              <button type="button" class="quiz-pill-btn" data-count="20">
+                <strong>20 Questions</strong>
+                <span>Comprehensive (~18 mins)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Token & Quota Notice -->
+          <div class="quiz-quota-notice">
+            <i class="fas fa-shield-halved"></i>
+            <span>Grounded 100% in your sources. Consumes routine NeoBook daily token quota only.</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" id="btnCancelQuizConfig">Cancel</button>
+          <button type="button" class="btn-primary" id="btnStartGenerateQuiz">
+            <i class="fas fa-wand-magic-sparkles"></i>
+            <span>Generate Quiz</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. Quiz Loading State -->
+      <div id="quizLoadingView" class="quiz-view-step" style="display:none;">
+        <div class="quiz-loading-card">
+          <div class="quiz-spinner">
+            <i class="fas fa-brain fa-pulse"></i>
+          </div>
+          <h4>Analyzing Sources &amp; Formulating Questions...</h4>
+          <p>Extracting key concepts, validating answer keys, and constructing source citations.</p>
+          <div class="quiz-loading-tips">
+            <span><i class="fas fa-check"></i> Strictly grounded in your uploaded documents</span>
+            <span><i class="fas fa-check"></i> Verified 4-option multiple choice format</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Active Quiz Question View -->
+      <div id="quizActiveView" class="quiz-view-step" style="display:none;">
+        <div class="quiz-active-header">
+          <div class="quiz-active-info">
+            <span class="quiz-difficulty-tag" id="activeQuizDifficultyTag">Medium</span>
+            <h4 id="activeQuizTitle">Knowledge Quiz</h4>
+          </div>
+          <div class="quiz-active-meta">
+            <span class="quiz-progress-text" id="quizProgressText">Question 1 of 5</span>
+            <button class="modal-close-btn" id="btnCloseActiveQuiz" type="button" title="Exit Quiz">&times;</button>
+          </div>
+        </div>
+
+        <div class="quiz-progress-bar-wrap">
+          <div class="quiz-progress-bar-fill" id="quizProgressBarFill" style="width: 20%;"></div>
+        </div>
+
+        <div class="quiz-card-body">
+          <div class="quiz-question-meta">
+            <span class="quiz-topic-tag" id="quizQuestionTopic">General</span>
+          </div>
+          <h3 class="quiz-question-title" id="quizQuestionTitle">Question title...</h3>
+
+          <div class="quiz-options-list" id="quizOptionsList">
+            <!-- Dynamically injected option buttons -->
+          </div>
+
+          <!-- Instant Feedback Panel -->
+          <div class="quiz-feedback-box" id="quizFeedbackBox" style="display:none;">
+            <div class="quiz-feedback-header" id="quizFeedbackHeader">
+              <i class="fas fa-check-circle"></i>
+              <span id="quizFeedbackResult">Correct!</span>
+            </div>
+            <p class="quiz-explanation-text" id="quizExplanationText"></p>
+            <div class="quiz-citation-badge" id="quizCitationBadge" style="display:none;">
+              <i class="fas fa-quote-left"></i>
+              <span id="quizCitationText"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="quiz-footer-nav">
+          <button type="button" class="btn-quiz-nav" id="btnQuizPrev" disabled>
+            <i class="fas fa-arrow-left"></i> Previous
+          </button>
+          <button type="button" class="btn-primary btn-quiz-action" id="btnQuizSubmit" disabled>
+            <span>Submit Answer</span>
+          </button>
+          <button type="button" class="btn-quiz-nav" id="btnQuizNext" style="display:none;">
+            Next <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 4. Quiz Results & Comprehensive Review View -->
+      <div id="quizResultsView" class="quiz-view-step" style="display:none;">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <div class="modal-title-icon"><i class="fas fa-trophy"></i></div>
+            <div>
+              <h3>Quiz Results &amp; Knowledge Review</h3>
+              <p class="modal-subtitle" id="quizResultsSubtitle">Assessment completed</p>
+            </div>
+          </div>
+          <button class="modal-close-btn" id="btnCloseQuizResults" type="button">&times;</button>
+        </div>
+
+        <div class="modal-body quiz-results-body">
+          <!-- Score Summary Card -->
+          <div class="quiz-score-card">
+            <div class="score-circle-wrap">
+              <div class="score-circle" id="scoreCircle">
+                <span class="score-number" id="scorePercentage">0%</span>
+                <span class="score-label">Score</span>
+              </div>
+            </div>
+            <div class="score-details-wrap">
+              <div class="score-badge" id="scoreBadge">Completed</div>
+              <h4 id="scoreStatsText">You answered 0 out of 0 questions correctly.</h4>
+              <p class="score-encouragement" id="scoreEncouragement">
+                Review your answers below to strengthen your understanding.
+              </p>
+            </div>
+          </div>
+
+          <!-- Topic Breakdown Section -->
+          <div class="quiz-topics-card" id="quizTopicsCard" style="display:none;">
+            <h5><i class="fas fa-chart-pie"></i> Topic Mastery</h5>
+            <div class="quiz-topics-grid" id="quizTopicsGrid">
+              <!-- Dynamically rendered topic performance bars -->
+            </div>
+          </div>
+
+          <!-- Detailed Question Review Section -->
+          <div class="quiz-review-section">
+            <div class="quiz-review-header">
+              <h5><i class="fas fa-clipboard-check"></i> Question-by-Question Review</h5>
+              <span class="review-count-badge" id="reviewCountBadge">Review</span>
+            </div>
+            <div class="quiz-review-list" id="quizReviewList">
+              <!-- Dynamically populated review cards -->
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" id="btnRetakeQuiz">
+            <i class="fas fa-rotate-left"></i> Retake Quiz
+          </button>
+          <button type="button" class="btn-primary" id="btnNewQuizFromResults">
+            <i class="fas fa-plus"></i> New Quiz
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- ── MODAL: Add Source ──────────────────────────────────────────────────── -->
   <div class="modal-overlay" id="addSourceModal">

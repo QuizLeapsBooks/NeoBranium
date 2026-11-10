@@ -37,6 +37,12 @@ import {
   retrieveRelevantChunks,
   generateGroundedAnswer
 } from '../services/neobookAiService.js';
+import {
+  generateQuizFromSources,
+  recordQuizAttempt,
+  getNotebookQuizzes,
+  getQuizById
+} from '../services/neobookQuizService.js';
 
 export const neobookRouter = express.Router();
 
@@ -77,7 +83,17 @@ const chatRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: 'Too many AI requests. Please wait and try again.' },
-  keyGenerator: (req) => req.identity || req.ip,
+  keyGenerator: (req) => req.identity?.identityKey || req.ip,
+});
+
+// AI quiz generation
+const quizRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many quiz generation requests. Please wait a few moments before generating another quiz.' },
+  keyGenerator: (req) => req.identity?.identityKey || req.ip,
 });
 
 /**
@@ -997,5 +1013,126 @@ neobookRouter.delete('/chats/:chatId', async (req, res) => {
   } catch (err) {
     console.error('[NeoBook] Error deleting chat:', err);
     return res.status(500).json({ success: false, error: 'Could not delete chat.' });
+  }
+});
+
+// ── POST /api/neobook/notebooks/:notebookId/quizzes/generate ─────────────────
+neobookRouter.post('/notebooks/:notebookId/quizzes/generate', quizRateLimiter, async (req, res) => {
+  try {
+    const { notebookId } = req.params;
+    const { difficulty, questionCount, sourceIds } = req.body || {};
+
+    // Check remaining daily token budget
+    const limits = await getRemainingLimits(req.identity);
+    if (limits.tokensRemaining <= 0) {
+      return res.status(429).json({
+        success: false,
+        error: 'Daily AI token budget exhausted. Limit resets at midnight UTC.',
+        code: 'TOKEN_BUDGET_EXHAUSTED',
+        resetAt: limits.resetAt
+      });
+    }
+
+    // Load available source chunks for this notebook
+    let allChunks = [];
+    if (db) {
+      const chunksSnap = await db.collection('neobook_chunks')
+        .where('notebookId', '==', notebookId)
+        .where('ownerKey', '==', req.identity.identityKey)
+        .get();
+
+      chunksSnap.forEach(doc => allChunks.push(doc.data()));
+    }
+
+    if (allChunks.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No source documents are indexed in this notebook yet. Please add and index at least one source (PDF, YouTube, Website, or Notes) before generating a quiz.'
+      });
+    }
+
+    // Generate grounded quiz via Gemini API
+    const { quiz, tokenUsage } = await generateQuizFromSources({
+      notebookId,
+      sourceIds: Array.isArray(sourceIds) ? sourceIds : null,
+      difficulty,
+      questionCount,
+      allChunks,
+      identity: req.identity
+    });
+
+    // Record token usage against user daily budget
+    const usageResult = await recordMessageTokenUsage(req.identity, {
+      inputTokens: tokenUsage.inputTokens,
+      outputTokens: tokenUsage.outputTokens,
+      estimatedCostUsd: tokenUsage.estimatedCostUsd
+    });
+
+    return res.json({
+      success: true,
+      quiz,
+      quota: {
+        tokensUsed: usageResult.tokensUsed,
+        tokensRemaining: usageResult.tokensRemaining,
+        resetAt: usageResult.resetAt
+      }
+    });
+  } catch (err) {
+    console.error('[NeoBook] Error generating quiz:', err);
+    return res.status(500).json({
+      success: false,
+      error: err.message || 'Failed to generate knowledge quiz.'
+    });
+  }
+});
+
+// ── GET /api/neobook/notebooks/:notebookId/quizzes ───────────────────────────
+neobookRouter.get('/notebooks/:notebookId/quizzes', async (req, res) => {
+  try {
+    const { notebookId } = req.params;
+    const quizzes = await getNotebookQuizzes({ notebookId, identity: req.identity });
+    return res.json({ success: true, quizzes });
+  } catch (err) {
+    console.error('[NeoBook] Error listing quizzes:', err);
+    return res.status(500).json({ success: false, error: 'Could not load quizzes.' });
+  }
+});
+
+// ── GET /api/neobook/notebooks/:notebookId/quizzes/:quizId ────────────────────
+neobookRouter.get('/notebooks/:notebookId/quizzes/:quizId', async (req, res) => {
+  try {
+    const { quizId } = req.params;
+    const quiz = await getQuizById({ quizId, identity: req.identity });
+    if (!quiz) {
+      return res.status(404).json({ success: false, error: 'Quiz not found.' });
+    }
+    return res.json({ success: true, quiz });
+  } catch (err) {
+    console.error('[NeoBook] Error fetching quiz:', err);
+    return res.status(500).json({ success: false, error: 'Could not retrieve quiz.' });
+  }
+});
+
+// ── POST /api/neobook/notebooks/:notebookId/quizzes/:quizId/attempts ──────────
+neobookRouter.post('/notebooks/:notebookId/quizzes/:quizId/attempts', async (req, res) => {
+  try {
+    const { notebookId, quizId } = req.params;
+    const { userAnswers } = req.body || {};
+
+    if (!userAnswers || typeof userAnswers !== 'object') {
+      return res.status(400).json({ success: false, error: 'User answers object is required.' });
+    }
+
+    const result = await recordQuizAttempt({
+      quizId,
+      notebookId,
+      identity: req.identity,
+      userAnswers
+    });
+
+    return res.json({ success: true, attempt: result });
+  } catch (err) {
+    console.error('[NeoBook] Error saving quiz attempt:', err);
+    return res.status(500).json({ success: false, error: err.message || 'Could not record quiz attempt.' });
   }
 });

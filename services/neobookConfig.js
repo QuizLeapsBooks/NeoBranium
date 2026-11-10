@@ -37,6 +37,12 @@ export const NEOBOOK_CONFIG = {
   CHUNK_OVERLAP_CHARS: 150,
   TOP_K_CHUNKS: 5,
   
+  // Quiz parameters
+  ALLOWED_QUIZ_COUNTS: [5, 10, 15, 20],
+  ALLOWED_QUIZ_DIFFICULTIES: ['easy', 'medium', 'hard', 'mixed'],
+  MAX_QUIZ_CHUNKS: 25,
+  QUIZ_AI_TIMEOUT_MS: 45_000,
+
   // Timeouts
   FETCH_TIMEOUT_MS: 10_000,
   AI_TIMEOUT_MS: 30_000,

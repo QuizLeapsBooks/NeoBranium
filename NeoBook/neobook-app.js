@@ -4,6 +4,7 @@
  */
 
 import { auth, onAuthStateChanged, signOut } from '/js/auth.js';
+import { initQuizFeature } from './neobook-quiz.js';
 
 // Application State
 const DEFAULT_NOTEBOOK_ID = 'nb_default';
@@ -1238,6 +1239,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Bind initial sample prompt buttons
   bindSamplePrompts();
+
+  // ── Initialise Quiz Feature ───────────────────────────────────────────────
+  initQuizFeature(state, apiRequest, escapeHtml, showToast);
 
   // Rename notebook title and synchronize with server / Firebase Firestore
   const titleInput = document.getElementById('notebookTitleInput');
