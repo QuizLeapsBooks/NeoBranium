@@ -124,6 +124,16 @@ async function attachIdentity(req, res, next) {
 
 neobookRouter.use(attachIdentity);
 
+/** Ensures every source operation is bound to an owned chat in its notebook. */
+async function getOwnedChat(notebookId, chatId, identity) {
+  if (!chatId || typeof chatId !== 'string') return null;
+  if (!db) return {};
+  const snap = await db.collection('neobook_chats').doc(chatId).get();
+  if (!snap.exists) return null;
+  const chat = snap.data();
+  return chat.ownerKey === identity.identityKey && chat.notebookId === notebookId && !chat.isDeleted ? chat : null;
+}
+
 function requireAuthenticatedQuizUser(req, res, next) {
   if (!req.identity?.uid) {
     return res.status(401).json({ success: false, error: 'Please sign in to generate, save, and review NeoBook quizzes.' });
@@ -288,6 +298,10 @@ neobookRouter.patch('/notebooks/:notebookId', async (req, res) => {
 neobookRouter.get('/notebooks/:notebookId/sources', async (req, res) => {
   try {
     const { notebookId } = req.params;
+    const chatId = typeof req.query.chatId === 'string' ? req.query.chatId : '';
+    if (!await getOwnedChat(notebookId, chatId, req.identity)) {
+      return res.status(404).json({ success: false, error: 'Chat session not found.' });
+    }
     if (!db) {
       return res.json({ success: true, sources: [] });
     }
@@ -305,8 +319,14 @@ neobookRouter.get('/notebooks/:notebookId/sources', async (req, res) => {
       );
 
     const sources = [];
+    const legacySourceIds = [];
     snap.forEach(doc => {
       const data = doc.data();
+      if (data.isDeleted) return;
+      // Legacy sources without a chatId remain available only to the single
+      // original notebook chat. All newly created sources are strictly scoped.
+      if (data.chatId && data.chatId !== chatId) return;
+      if (!data.chatId) legacySourceIds.push(doc.id);
       sources.push({
         id: doc.id,
         notebookId: data.notebookId,
@@ -321,6 +341,22 @@ neobookRouter.get('/notebooks/:notebookId/sources', async (req, res) => {
       });
     });
 
+    // One-time, lazy migration for sources created before chat-level scoping.
+    // A legacy notebook represented one chat, so assigning it on first open
+    // preserves its materials while preventing later cross-chat sharing.
+    for (const sourceId of legacySourceIds) {
+      await db.collection('neobook_sources').doc(sourceId).update({ chatId, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+      const legacyChunks = await db.collection('neobook_chunks').where('sourceId', '==', sourceId).get();
+      let batch = db.batch();
+      let writes = 0;
+      for (const chunkDoc of legacyChunks.docs) {
+        batch.update(chunkDoc.ref, { chatId });
+        writes++;
+        if (writes === 450) { await batch.commit(); batch = db.batch(); writes = 0; }
+      }
+      if (writes) await batch.commit();
+    }
+
     return res.json({ success: true, sources });
   } catch (err) {
     console.error('[NeoBook] Error listing sources:', err);
@@ -332,7 +368,11 @@ neobookRouter.get('/notebooks/:notebookId/sources', async (req, res) => {
 neobookRouter.post('/notebooks/:notebookId/sources', sourceRateLimiter, async (req, res) => {
   try {
     const { notebookId } = req.params;
-    const { type, url, text, title: userTitle, pdfBase64 } = req.body || {};
+    const { type, url, text, title: userTitle, pdfBase64, chatId } = req.body || {};
+
+    if (!await getOwnedChat(notebookId, chatId, req.identity)) {
+      return res.status(404).json({ success: false, error: 'Open a valid chat before adding sources.' });
+    }
 
     if (!['url', 'youtube', 'text', 'pdf'].includes(type)) {
       return res.status(400).json({ success: false, error: 'Unsupported source type. Valid types are: url, youtube, text, pdf.' });
@@ -343,6 +383,7 @@ neobookRouter.post('/notebooks/:notebookId/sources', sourceRateLimiter, async (r
       const existingSourcesSnap = await db.collection('neobook_sources')
         .where('notebookId', '==', notebookId)
         .where('ownerKey', '==', req.identity.identityKey)
+        .where('chatId', '==', chatId)
         .where('isDeleted', '==', false)
         .get();
 
@@ -402,6 +443,7 @@ neobookRouter.post('/notebooks/:notebookId/sources', sourceRateLimiter, async (r
     const sourceDoc = {
       id: sourceId,
       notebookId,
+      chatId,
       ownerKey: req.identity.identityKey,
       uid: req.identity.uid,
       ipHash: req.identity.ipHash,
@@ -429,6 +471,7 @@ neobookRouter.post('/notebooks/:notebookId/sources', sourceRateLimiter, async (r
           batch.set(chunkRef, {
             ...chunk,
             notebookId,
+            chatId,
             ownerKey: req.identity.identityKey,
             createdAt: admin.firestore.FieldValue.serverTimestamp()
           });
@@ -480,11 +523,15 @@ neobookRouter.post('/notebooks/:notebookId/sources', sourceRateLimiter, async (r
 neobookRouter.delete('/notebooks/:notebookId/sources/:sourceId', async (req, res) => {
   try {
     const { notebookId, sourceId } = req.params;
+    const chatId = typeof req.query.chatId === 'string' ? req.query.chatId : '';
+    if (!await getOwnedChat(notebookId, chatId, req.identity)) {
+      return res.status(404).json({ success: false, error: 'Chat session not found.' });
+    }
     if (db) {
       const sourceRef = db.collection('neobook_sources').doc(sourceId);
       const sourceSnap = await sourceRef.get();
 
-      if (!sourceSnap.exists || sourceSnap.data().ownerKey !== req.identity.identityKey) {
+      if (!sourceSnap.exists || sourceSnap.data().ownerKey !== req.identity.identityKey || sourceSnap.data().notebookId !== notebookId || sourceSnap.data().chatId !== chatId) {
         return res.status(404).json({ success: false, error: 'Source not found.' });
       }
 
@@ -503,6 +550,7 @@ neobookRouter.delete('/notebooks/:notebookId/sources/:sourceId', async (req, res
       // Clean up chunks
       const chunksSnap = await db.collection('neobook_chunks')
         .where('sourceId', '==', sourceId)
+        .where('chatId', '==', chatId)
         .get();
 
       if (!chunksSnap.empty) {
@@ -853,12 +901,17 @@ neobookRouter.post('/notebooks/:notebookId/chats/:chatId/messages', chatRateLimi
       chatData = chatSnap.data();
     }
 
-    // Load available source chunks for this notebook
+    if (chatData?.notebookId !== notebookId) {
+      return res.status(404).json({ success: false, error: 'Chat session does not belong to this notebook.' });
+    }
+
+    // Load only source chunks attached to this chat session.
     let allChunks = [];
     if (db) {
       const chunksSnap = await db.collection('neobook_chunks')
         .where('notebookId', '==', notebookId)
         .where('ownerKey', '==', req.identity.identityKey)
+        .where('chatId', '==', chatId)
         .get();
 
       chunksSnap.forEach(doc => allChunks.push(doc.data()));

@@ -320,9 +320,13 @@ async function loadNotebooks(uid) {
 // ── Sources Operations ────────────────────────────────────────────────────────
 
 async function loadSources() {
-  if (!state.activeNotebook) return;
+  if (!state.activeNotebook || !state.activeChat?.id) {
+    state.sources = [];
+    renderSourcesList();
+    return;
+  }
   try {
-    const res = await apiRequest(`/api/neobook/notebooks/${state.activeNotebook.id}/sources`);
+    const res = await apiRequest(`/api/neobook/notebooks/${state.activeNotebook.id}/sources?chatId=${encodeURIComponent(state.activeChat.id)}`);
     if (res.success) {
       state.sources = res.sources || [];
       renderSourcesList();
@@ -411,7 +415,7 @@ async function removeSource(sourceId) {
   if (!confirm('Are you sure you want to remove this source?')) return;
   if (!state.activeNotebook?.id) return;
   try {
-    await apiRequest(`/api/neobook/notebooks/${state.activeNotebook.id}/sources/${sourceId}`, {
+    await apiRequest(`/api/neobook/notebooks/${state.activeNotebook.id}/sources/${sourceId}?chatId=${encodeURIComponent(state.activeChat?.id || '')}`, {
       method: 'DELETE'
     });
     showToast('Source removed.', 'success');
@@ -429,12 +433,14 @@ async function handleAddSourceSubmit() {
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
   }
 
-  // Ensure active notebook is ready
-  await ensureActiveNotebook();
-
   let body = { type };
 
   try {
+    await ensureActiveNotebook();
+    if (!state.activeChat?.id) {
+      throw new Error('Start a new chat before adding sources. Sources are kept private to each chat.');
+    }
+    body.chatId = state.activeChat.id;
     if (type === 'url') {
       const url = document.getElementById('inputSourceUrl')?.value?.trim();
       if (!url) throw new Error('Please enter a website URL.');
