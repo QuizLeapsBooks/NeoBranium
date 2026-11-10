@@ -1507,6 +1507,23 @@ body {
   opacity: 1;
 }
 
+/* Chat Library controls inherit the dashboard's quiet card treatment. */
+.history-drawer { width: 340px; box-shadow: 4px 0 16px rgba(0,0,0,.12); }
+.library-tools { padding: .75rem; border-bottom: 1px solid var(--nb-border); display: grid; gap: .5rem; }
+.library-tools input, .library-tools select { width: 100%; border: 1px solid var(--nb-border); border-radius: 7px; padding: .5rem .6rem; background: #fff; color: var(--nb-text-main); font: inherit; font-size: .78rem; }
+.library-actions, .library-bulk { display: flex; gap: .45rem; align-items: center; }
+.library-btn, .library-bulk button, .btn-library-action, .btn-folder-menu { border: 1px solid var(--nb-border); background: #fff; color: var(--nb-text-muted); border-radius: 6px; cursor: pointer; padding: .35rem .5rem; font-size: .72rem; }
+.library-btn:hover, .library-bulk button:hover, .btn-library-action:hover, .btn-folder-menu:hover { border-color: var(--nb-primary); color: var(--nb-primary); }
+.library-folders { padding: .5rem .75rem; border-bottom: 1px solid var(--nb-border); max-height: 180px; overflow-y: auto; }
+.library-folder-row { display: flex; align-items: center; gap: .25rem; }
+.library-folder { border: 0; background: transparent; color: var(--nb-text-muted); cursor: pointer; display: flex; align-items: center; gap: .45rem; padding: .4rem; text-align: left; flex: 1; border-radius: 6px; font-size: .76rem; }
+.library-folder:hover, .library-folder.active { background: rgba(91,33,182,.08); color: var(--nb-primary); }
+.library-folder span { margin-left: auto; font-size: .67rem; color: var(--nb-text-dim); }
+.library-bulk { padding: .5rem .75rem; border-bottom: 1px solid var(--nb-border); font-size: .72rem; color: var(--nb-text-muted); }
+.library-chat-select { accent-color: var(--nb-primary); flex: 0 0 auto; }
+.btn-library-action { padding: 3px 5px; border-color: transparent; }
+@media (max-width: 480px) { .history-drawer { width: min(94vw, 340px); } }
+
 /* ── Mobile & Responsive Rules ───────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .neobook-workspace {

@@ -141,6 +141,11 @@ function requireAuthenticatedQuizUser(req, res, next) {
   next();
 }
 
+function requireAuthenticatedLibraryUser(req, res, next) {
+  if (!req.identity?.uid) return res.status(401).json({ success: false, error: 'Please sign in to use the Chat Library.' });
+  next();
+}
+
 // ── GET /api/neobook/limits ──────────────────────────────────────────────────
 neobookRouter.get('/limits', async (req, res) => {
   try {
@@ -613,6 +618,9 @@ neobookRouter.get('/chats', async (req, res) => {
           notebookId: data.notebookId,
           title: data.title || 'Chat',
           messageCount: data.messageCount || 0,
+          folderId: data.folderId || null,
+          isPinned: data.isPinned === true,
+          isArchived: data.isArchived === true,
           createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt,
           updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate().toISOString() : data.updatedAt
         });
@@ -627,6 +635,78 @@ neobookRouter.get('/chats', async (req, res) => {
     console.error('[NeoBook] Error listing all chats:', err);
     return res.status(500).json({ success: false, error: 'Could not load chat sessions.' });
   }
+});
+
+// ── Chat Library: folders and metadata (all write operations stay server-side) ─
+neobookRouter.get('/library', requireAuthenticatedLibraryUser, async (req, res) => {
+  try {
+    const search = String(req.query.search || '').trim().toLowerCase().slice(0, 100);
+    const sort = ['newest', 'oldest', 'updated'].includes(req.query.sort) ? req.query.sort : 'updated';
+    const archive = String(req.query.archive || 'active');
+    const chatsSnap = await db.collection('neobook_chats').where('uid', '==', req.identity.uid).get();
+    const foldersSnap = await db.collection('neobook_folders').where('uid', '==', req.identity.uid).get();
+    const chats = [];
+    const folderCounts = new Map();
+    chatsSnap.forEach(doc => {
+      const data = doc.data();
+      if (data.isDeleted || (archive === 'active' && data.isArchived) || (archive === 'archived' && !data.isArchived)) return;
+      if (data.folderId) folderCounts.set(data.folderId, (folderCounts.get(data.folderId) || 0) + 1);
+      const searchable = `${data.title || ''} ${data.searchText || ''}`.toLowerCase();
+      if (search && !searchable.includes(search)) return;
+      chats.push({ id: doc.id, notebookId: data.notebookId, title: data.title || 'Untitled Chat', messageCount: data.messageCount || 0, folderId: data.folderId || null, isPinned: data.isPinned === true, isArchived: data.isArchived === true, createdAt: data.createdAt?.toDate?.().toISOString() || data.createdAt, updatedAt: data.updatedAt?.toDate?.().toISOString() || data.updatedAt });
+    });
+    chats.sort((a, b) => (b.isPinned - a.isPinned) || (sort === 'oldest' ? new Date(a.createdAt) - new Date(b.createdAt) : sort === 'newest' ? new Date(b.createdAt) - new Date(a.createdAt) : new Date(b.updatedAt) - new Date(a.updatedAt)));
+    const folders = [];
+    foldersSnap.forEach(doc => { const d = doc.data(); folders.push({ id: doc.id, name: d.name, createdAt: d.createdAt?.toDate?.().toISOString() || d.createdAt, updatedAt: d.updatedAt?.toDate?.().toISOString() || d.updatedAt, chatCount: folderCounts.get(doc.id) || 0 }); });
+    folders.sort((a, b) => a.name.localeCompare(b.name));
+    return res.json({ success: true, chats, folders });
+  } catch (err) { console.error('[NeoBook] Library fetch failed:', err); return res.status(500).json({ success: false, error: 'Could not load your chat library.' }); }
+});
+
+neobookRouter.post('/library/folders', requireAuthenticatedLibraryUser, async (req, res) => {
+  const name = typeof req.body?.name === 'string' ? req.body.name.trim().slice(0, 60) : '';
+  if (!name) return res.status(400).json({ success: false, error: 'Folder name is required.' });
+  const existing = await db.collection('neobook_folders').where('uid', '==', req.identity.uid).where('name', '==', name).get();
+  if (!existing.empty) return res.status(409).json({ success: false, error: 'A folder with that name already exists.' });
+  const id = `fld_${crypto.randomBytes(8).toString('hex')}`;
+  await db.collection('neobook_folders').doc(id).set({ id, uid: req.identity.uid, ownerKey: req.identity.identityKey, name, createdAt: admin.firestore.FieldValue.serverTimestamp(), updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+  return res.json({ success: true, folder: { id, name } });
+});
+
+neobookRouter.patch('/library/folders/:folderId', requireAuthenticatedLibraryUser, async (req, res) => {
+  const name = typeof req.body?.name === 'string' ? req.body.name.trim().slice(0, 60) : '';
+  const ref = db.collection('neobook_folders').doc(req.params.folderId); const snap = await ref.get();
+  if (!snap.exists || snap.data().uid !== req.identity.uid) return res.status(404).json({ success: false, error: 'Folder not found.' });
+  if (!name) return res.status(400).json({ success: false, error: 'Folder name is required.' });
+  await ref.update({ name, updatedAt: admin.firestore.FieldValue.serverTimestamp() }); return res.json({ success: true });
+});
+
+neobookRouter.delete('/library/folders/:folderId', requireAuthenticatedLibraryUser, async (req, res) => {
+  const mode = req.query.mode === 'delete-chats' ? 'delete-chats' : 'unorganize'; const folderRef = db.collection('neobook_folders').doc(req.params.folderId); const folder = await folderRef.get();
+  if (!folder.exists || folder.data().uid !== req.identity.uid) return res.status(404).json({ success: false, error: 'Folder not found.' });
+  const chats = await db.collection('neobook_chats').where('uid', '==', req.identity.uid).where('folderId', '==', req.params.folderId).get();
+  let batch = db.batch(), writes = 0;
+  for (const doc of chats.docs) { batch.update(doc.ref, mode === 'delete-chats' ? { isDeleted: true, deletedAt: admin.firestore.FieldValue.serverTimestamp() } : { folderId: null, updatedAt: admin.firestore.FieldValue.serverTimestamp() }); if (++writes === 450) { await batch.commit(); batch = db.batch(); writes = 0; } }
+  batch.delete(folderRef); writes++; if (writes) await batch.commit(); return res.json({ success: true });
+});
+
+neobookRouter.patch('/library/chats', requireAuthenticatedLibraryUser, async (req, res) => {
+  const chatIds = Array.isArray(req.body?.chatIds) ? [...new Set(req.body.chatIds.filter(id => typeof id === 'string'))].slice(0, 100) : [];
+  const action = req.body?.action; const folderId = req.body?.folderId === null ? null : req.body?.folderId;
+  if (!chatIds.length || !['move', 'pin', 'archive', 'restore'].includes(action)) return res.status(400).json({ success: false, error: 'Invalid library update.' });
+  if (action === 'move' && folderId) { const folder = await db.collection('neobook_folders').doc(folderId).get(); if (!folder.exists || folder.data().uid !== req.identity.uid) return res.status(400).json({ success: false, error: 'Folder not found.' }); }
+  const batch = db.batch();
+  for (const id of chatIds) { const ref = db.collection('neobook_chats').doc(id); const snap = await ref.get(); if (!snap.exists || snap.data().uid !== req.identity.uid) return res.status(404).json({ success: false, error: 'Chat not found.' }); const update = action === 'move' ? { folderId: folderId || null } : action === 'pin' ? { isPinned: !snap.data().isPinned } : action === 'archive' ? { isArchived: true } : { isArchived: false }; batch.update(ref, { ...update, updatedAt: admin.firestore.FieldValue.serverTimestamp() }); }
+  await batch.commit(); return res.json({ success: true });
+});
+
+neobookRouter.patch('/library/chats/:chatId', requireAuthenticatedLibraryUser, async (req, res) => {
+  const title = typeof req.body?.title === 'string' ? req.body.title.trim().slice(0, 100) : '';
+  if (!title) return res.status(400).json({ success: false, error: 'Conversation title is required.' });
+  const ref = db.collection('neobook_chats').doc(req.params.chatId); const snap = await ref.get();
+  if (!snap.exists || snap.data().uid !== req.identity.uid) return res.status(404).json({ success: false, error: 'Chat not found.' });
+  await ref.update({ title, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+  return res.json({ success: true, title });
 });
 
 // ── POST /api/neobook/chats (START FRESH CHAT WITH DEDICATED CLEAN NOTEBOOK) ─
@@ -679,6 +759,10 @@ neobookRouter.post('/chats', async (req, res) => {
         ipHash: req.identity.ipHash,
         title,
         messageCount: 0,
+        folderId: null,
+        isPinned: false,
+        isArchived: false,
+        searchText: '',
         isDeleted: false,
         createdAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
@@ -788,6 +872,10 @@ neobookRouter.post('/notebooks/:notebookId/chats', async (req, res) => {
       ipHash: req.identity.ipHash,
       title,
       messageCount: 0,
+      folderId: null,
+      isPinned: false,
+      isArchived: false,
+      searchText: '',
       isDeleted: false,
       createdAt: admin?.firestore ? admin.firestore.FieldValue.serverTimestamp() : new Date().toISOString(),
       updatedAt: admin?.firestore ? admin.firestore.FieldValue.serverTimestamp() : new Date().toISOString()
@@ -993,6 +1081,7 @@ neobookRouter.post('/notebooks/:notebookId/chats/:chatId/messages', chatRateLimi
       // Update chat messageCount and title if it was first message
       const updateChat = {
         messageCount: admin.firestore.FieldValue.increment(2),
+        searchText: `${chatData?.searchText || ''} ${cleanQuery}`.slice(-4000),
         updatedAt: admin.firestore.FieldValue.serverTimestamp()
       };
       if (!chatData?.title || chatData.title === 'New Chat') {

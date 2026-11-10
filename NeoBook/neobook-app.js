@@ -19,6 +19,10 @@ const state = {
   activeChat: null,
   sources: [],
   chats: [],
+  libraryFolders: [],
+  libraryFolderFilter: 'all',
+  libraryShowingArchived: false,
+  librarySelectedChatIds: new Set(),
   limits: {
     dailyNewChatsLimit: 5,
     newChatsRemaining: 5,
@@ -823,7 +827,8 @@ function renderHistoryList() {
   const listEl = document.getElementById('historyList');
   if (!listEl) return;
 
-  if (!state.chats || state.chats.length === 0) {
+  const visibleChats = (state.chats || []).filter(chat => state.libraryFolderFilter === 'all' || state.libraryFolderFilter === 'unorganized' ? (state.libraryFolderFilter === 'all' || !chat.folderId) : chat.folderId === state.libraryFolderFilter);
+  if (visibleChats.length === 0) {
     listEl.innerHTML = `
       <div style="text-align:center;padding:2rem 1rem;color:var(--nb-text-dim);font-size:0.85rem;">
         No previous chats recorded yet.
@@ -833,19 +838,24 @@ function renderHistoryList() {
   }
 
   listEl.innerHTML = '';
-  for (const chat of state.chats) {
+  for (const chat of visibleChats) {
     const item = document.createElement('div');
     const isActive = state.activeChat && state.activeChat.id === chat.id;
     item.className = `history-item ${isActive ? 'active' : ''}`;
 
     const dateStr = chat.updatedAt ? new Date(chat.updatedAt).toLocaleDateString() : '';
 
+    const folder = state.libraryFolders.find(folder => folder.id === chat.folderId);
     item.innerHTML = `
+      <input class="library-chat-select" type="checkbox" aria-label="Select ${escapeHtml(chat.title || 'chat')}" ${state.librarySelectedChatIds.has(chat.id) ? 'checked' : ''}>
       <div class="history-item-info">
         <div class="history-item-title">${escapeHtml(chat.title || 'Untitled Chat')}</div>
-        <div class="history-item-date">${dateStr} &bull; ${chat.messageCount || 0} msgs</div>
+        <div class="history-item-date">${chat.isPinned ? '📌 ' : ''}${dateStr} &bull; ${chat.messageCount || 0} msgs${folder ? ` &bull; ${escapeHtml(folder.name)}` : ''}</div>
       </div>
       <div class="history-item-actions">
+        <button class="btn-library-action btn-pin-chat" title="${chat.isPinned ? 'Unpin' : 'Pin'}" type="button"><i class="fas fa-thumbtack"></i></button>
+        <button class="btn-library-action btn-rename-chat" title="Rename" type="button"><i class="fas fa-pen"></i></button>
+        <button class="btn-library-action btn-archive-chat" title="${chat.isArchived ? 'Restore' : 'Archive'}" type="button"><i class="fas fa-${chat.isArchived ? 'box-open' : 'box-archive'}"></i></button>
         <button class="btn-delete-history" title="Delete chat" type="button">
           <i class="fas fa-trash-can"></i>
         </button>
@@ -857,6 +867,10 @@ function renderHistoryList() {
     if (deleteBtn) {
       deleteBtn.addEventListener('click', (e) => deleteChat(chat.id, e));
     }
+    item.querySelector('.library-chat-select')?.addEventListener('click', e => { e.stopPropagation(); e.target.checked ? state.librarySelectedChatIds.add(chat.id) : state.librarySelectedChatIds.delete(chat.id); renderLibraryBulk(); });
+    item.querySelector('.btn-pin-chat')?.addEventListener('click', e => { e.stopPropagation(); updateLibraryChats([chat.id], 'pin'); });
+    item.querySelector('.btn-rename-chat')?.addEventListener('click', e => { e.stopPropagation(); renameLibraryChat(chat); });
+    item.querySelector('.btn-archive-chat')?.addEventListener('click', e => { e.stopPropagation(); updateLibraryChats([chat.id], chat.isArchived ? 'restore' : 'archive'); });
 
     item.addEventListener('click', (e) => {
       if (e.target.closest('.btn-delete-history')) return;
@@ -865,6 +879,39 @@ function renderHistoryList() {
     listEl.appendChild(item);
   }
 }
+
+async function loadChatLibrary() {
+  const search = document.getElementById('librarySearch')?.value?.trim() || '';
+  const sort = document.getElementById('librarySort')?.value || 'updated';
+  try {
+    const result = await apiRequest(`/api/neobook/library?archive=${state.libraryShowingArchived ? 'archived' : 'active'}&sort=${encodeURIComponent(sort)}&search=${encodeURIComponent(search)}`);
+    state.chats = result.chats || [];
+    state.libraryFolders = result.folders || [];
+    state.librarySelectedChatIds.clear();
+    renderLibraryFolders(); renderHistoryList(); renderLibraryBulk();
+  } catch (err) { showToast(err.message || 'Could not load Chat Library.', 'error'); }
+}
+
+function renderLibraryFolders() {
+  const el = document.getElementById('libraryFolders'); if (!el) return;
+  const active = state.libraryFolderFilter;
+  const allCount = state.chats.length, unorganized = state.chats.filter(c => !c.folderId).length;
+  el.innerHTML = `<button class="library-folder ${active === 'all' ? 'active' : ''}" data-folder="all"><i class="fas fa-comments"></i> All Chats <span>${allCount}</span></button><button class="library-folder ${active === 'unorganized' ? 'active' : ''}" data-folder="unorganized"><i class="fas fa-inbox"></i> Unorganized <span>${unorganized}</span></button>${state.libraryFolders.map(folder => `<div class="library-folder-row"><button class="library-folder ${active === folder.id ? 'active' : ''}" data-folder="${folder.id}"><i class="fas fa-folder"></i> ${escapeHtml(folder.name)} <span>${folder.chatCount || 0}</span></button><button class="btn-folder-menu" data-folder-id="${folder.id}" title="Folder actions"><i class="fas fa-ellipsis"></i></button></div>`).join('')}`;
+  el.querySelectorAll('.library-folder[data-folder]').forEach(btn => btn.addEventListener('click', () => { state.libraryFolderFilter = btn.dataset.folder; renderLibraryFolders(); renderHistoryList(); }));
+  el.querySelectorAll('.btn-folder-menu').forEach(btn => btn.addEventListener('click', () => folderMenu(btn.dataset.folderId)));
+}
+
+function renderLibraryBulk() { const el = document.getElementById('libraryBulk'); const count = state.librarySelectedChatIds.size; if (el) el.hidden = !count; const label = document.getElementById('librarySelectedCount'); if (label) label.textContent = `${count} selected`; }
+
+async function updateLibraryChats(chatIds, action, folderId = null) {
+  try { await apiRequest('/api/neobook/library/chats', { method: 'PATCH', body: JSON.stringify({ chatIds, action, folderId }) }); await loadChatLibrary(); } catch (err) { showToast(err.message || 'Could not update chats.', 'error'); }
+}
+
+async function renameLibraryChat(chat) { const title = prompt('Conversation title:', chat.title); if (!title?.trim()) return; try { await apiRequest(`/api/neobook/library/chats/${chat.id}`, { method: 'PATCH', body: JSON.stringify({ title }) }); if (state.activeChat?.id === chat.id) { state.activeChat.title = title.trim(); updateChatHeader(); } await loadChatLibrary(); } catch (err) { showToast(err.message || 'Could not rename conversation.', 'error'); } }
+
+async function createFolder() { const name = prompt('Folder name:'); if (!name?.trim()) return; try { await apiRequest('/api/neobook/library/folders', { method: 'POST', body: JSON.stringify({ name }) }); await loadChatLibrary(); } catch (err) { showToast(err.message, 'error'); } }
+async function folderMenu(folderId) { const folder = state.libraryFolders.find(item => item.id === folderId); const action = prompt(`Folder “${folder?.name}”: type RENAME or DELETE`); if (action?.toUpperCase() === 'RENAME') { const name = prompt('New folder name:', folder.name); if (name?.trim()) await apiRequest(`/api/neobook/library/folders/${folderId}`, { method: 'PATCH', body: JSON.stringify({ name }) }); } else if (action?.toUpperCase() === 'DELETE') { const deleteChats = confirm('Delete chats in this folder permanently? Click Cancel to move them to Unorganized.'); if (confirm(`Delete folder “${folder?.name}”?`)) await apiRequest(`/api/neobook/library/folders/${folderId}?mode=${deleteChats ? 'delete-chats' : 'unorganize'}`, { method: 'DELETE' }); } else return; await loadChatLibrary(); }
+async function moveSelectedChats() { if (!state.librarySelectedChatIds.size) return; const choices = ['Unorganized', ...state.libraryFolders.map(folder => folder.name)].join('\n'); const selection = prompt(`Move selected chats to:\n${choices}`); if (selection === null) return; const folder = state.libraryFolders.find(item => item.name.toLowerCase() === selection.trim().toLowerCase()); if (selection.trim() && !folder && selection.trim().toLowerCase() !== 'unorganized') return showToast('Folder not found.', 'error'); await updateLibraryChats([...state.librarySelectedChatIds], 'move', folder?.id || null); }
 
 async function deleteChat(chatId, e) {
   if (e) {
@@ -929,7 +976,8 @@ function closeAddSourceModal() {
 async function openHistoryDrawer() {
   const drawer = document.getElementById('historyDrawer');
   if (drawer) drawer.classList.add('open');
-  await loadChats();
+  state.libraryFolderFilter = 'all';
+  await loadChatLibrary();
 }
 
 function closeHistoryDrawer() {
@@ -1168,6 +1216,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // History Drawer openers & closers
   document.getElementById('btnOpenHistory')?.addEventListener('click', openHistoryDrawer);
   document.getElementById('btnCloseHistory')?.addEventListener('click', closeHistoryDrawer);
+  document.getElementById('btnCreateFolder')?.addEventListener('click', createFolder);
+  document.getElementById('btnShowArchived')?.addEventListener('click', async () => { state.libraryShowingArchived = !state.libraryShowingArchived; document.getElementById('btnShowArchived').innerHTML = state.libraryShowingArchived ? '<i class="fas fa-comments"></i> Active' : '<i class="fas fa-box-archive"></i> Archived'; await loadChatLibrary(); });
+  document.getElementById('librarySort')?.addEventListener('change', loadChatLibrary);
+  let librarySearchTimer;
+  document.getElementById('librarySearch')?.addEventListener('input', () => { clearTimeout(librarySearchTimer); librarySearchTimer = setTimeout(loadChatLibrary, 250); });
+  document.getElementById('btnBulkMove')?.addEventListener('click', moveSelectedChats);
+  document.getElementById('btnBulkArchive')?.addEventListener('click', () => updateLibraryChats([...state.librarySelectedChatIds], 'archive'));
 
   // New Chat buttons
   document.getElementById('btnNewChatTop')?.addEventListener('click', startNewChat);

@@ -76,9 +76,9 @@
         <span>New Chat</span>
       </button>
 
-      <button id="btnOpenHistory" class="btn-icon-text" title="View past chat sessions">
-        <i class="fas fa-clock-rotate-left"></i>
-        <span>History</span>
+      <button id="btnOpenHistory" class="btn-icon-text" title="Open Chat Library">
+        <i class="fas fa-folder-open"></i>
+        <span>Library</span>
       </button>
 
       <!-- User Authentication & Profile Zone -->
@@ -581,15 +581,22 @@
     </div>
   </div>
 
-  <!-- ── DRAWER: Chat History ───────────────────────────────────────────────── -->
+  <!-- ── DRAWER: Chat Library ───────────────────────────────────────────────── -->
   <aside class="history-drawer" id="historyDrawer">
     <div class="history-header">
       <div class="panel-title">
-        <i class="fas fa-clock-rotate-left"></i>
-        <span>Chat History</span>
+        <i class="fas fa-folder-open"></i>
+        <span>Chat Library</span>
       </div>
       <button class="modal-close-btn" id="btnCloseHistory">&times;</button>
     </div>
+    <div class="library-tools">
+      <input id="librarySearch" type="search" placeholder="Search chats and messages">
+      <select id="librarySort" aria-label="Sort chats"><option value="updated">Recently updated</option><option value="newest">Newest</option><option value="oldest">Oldest</option></select>
+      <div class="library-actions"><button id="btnCreateFolder" class="library-btn"><i class="fas fa-folder-plus"></i> Folder</button><button id="btnShowArchived" class="library-btn"><i class="fas fa-box-archive"></i> Archived</button></div>
+    </div>
+    <div class="library-folders" id="libraryFolders"></div>
+    <div class="library-bulk" id="libraryBulk" hidden><span id="librarySelectedCount">0 selected</span><button id="btnBulkMove">Move</button><button id="btnBulkArchive">Archive</button></div>
     <div class="history-list" id="historyList">
       <!-- Chat history items injected here -->
       <div style="text-align:center;padding:2rem 1rem;color:var(--nb-text-dim);font-size:0.85rem;">
