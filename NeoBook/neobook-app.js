@@ -985,6 +985,37 @@ function closeHistoryDrawer() {
   if (drawer) drawer.classList.remove('open');
 }
 
+let flashcardState = { set: null, index: 0, revealed: false, generating: false };
+function openFlashcards() { document.getElementById('flashcardModal')?.classList.add('open'); }
+function closeFlashcards() { document.getElementById('flashcardModal')?.classList.remove('open'); }
+async function generateFlashcards() {
+  if (flashcardState.generating) return;
+  if (!state.activeNotebook?.id || !state.activeChat?.id) return showToast('Open a chat with ready sources first.', 'error');
+  const sourceIds = state.sources.filter(source => source.status === 'ready').map(source => source.id);
+  if (!sourceIds.length) return showToast('Add a ready source before generating flashcards.', 'error');
+  const button = document.getElementById('btnGenerateFlashcards'); flashcardState.generating = true; button.disabled = true; button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating…';
+  try {
+    const count = Number(document.getElementById('flashcardCount')?.value || 10);
+    const result = await apiRequest(`/api/neobook/notebooks/${state.activeNotebook.id}/flashcards/generate`, { method: 'POST', body: JSON.stringify({ chatId: state.activeChat.id, sourceIds, count }) });
+    flashcardState = { set: result.set, index: 0, revealed: false, generating: false };
+    if (result.quota) { state.limits.tokensRemaining = result.quota.tokensRemaining; updateLimitsUI(); }
+    document.getElementById('flashcardConfig').style.display = 'none'; document.getElementById('flashcardStudy').style.display = ''; document.getElementById('flashcardFooter').style.display = 'none'; renderFlashcard();
+  } catch (err) { flashcardState.generating = false; showToast(err.message || 'Could not generate flashcards.', 'error'); }
+  finally { button.disabled = false; button.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Generate Cards'; }
+}
+function renderFlashcard() {
+  const card = flashcardState.set?.cards?.[flashcardState.index]; if (!card) return;
+  document.getElementById('flashcardProgress').textContent = `Card ${flashcardState.index + 1} of ${flashcardState.set.cards.length}`;
+  document.getElementById('flashcardFront').textContent = card.front; document.getElementById('flashcardBack').textContent = card.back;
+  document.getElementById('flashcardCitation').textContent = card.sourceCitation?.title ? `${card.sourceCitation.title}${card.sourceCitation.pageNum ? ` · p. ${card.sourceCitation.pageNum}` : ''}${card.sourceCitation.timestamp ? ` · ${card.sourceCitation.timestamp}` : ''}` : '';
+  document.getElementById('flashcardBack').hidden = !flashcardState.revealed; document.getElementById('flashcardRating').hidden = !flashcardState.revealed; document.querySelector('#flashcardCard .flashcard-label').textContent = flashcardState.revealed ? 'Answer' : 'Tap to reveal';
+}
+async function reviewFlashcard(rating) {
+  const card = flashcardState.set?.cards?.[flashcardState.index]; if (!card) return;
+  try { const result = await apiRequest(`/api/neobook/flashcards/${flashcardState.set.id}/cards/${card.id}/review`, { method: 'POST', body: JSON.stringify({ rating }) }); Object.assign(card, result.card); if (++flashcardState.index >= flashcardState.set.cards.length) { showToast('Study session complete. Review dates were saved.', 'success'); closeFlashcards(); return; } flashcardState.revealed = false; renderFlashcard(); }
+  catch (err) { showToast(err.message || 'Could not save review.', 'error'); }
+}
+
 // ── Mobile Responsive Panel Switcher ──────────────────────────────────────────
 
 function switchToMobilePanel(panelName) {
@@ -1216,6 +1247,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // History Drawer openers & closers
   document.getElementById('btnOpenHistory')?.addEventListener('click', openHistoryDrawer);
   document.getElementById('btnCloseHistory')?.addEventListener('click', closeHistoryDrawer);
+  document.getElementById('btnOpenFlashcards')?.addEventListener('click', openFlashcards);
+  document.getElementById('btnOpenFlashcards')?.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') openFlashcards(); });
+  document.getElementById('btnCloseFlashcards')?.addEventListener('click', closeFlashcards);
+  document.getElementById('btnCancelFlashcards')?.addEventListener('click', closeFlashcards);
+  document.getElementById('btnGenerateFlashcards')?.addEventListener('click', generateFlashcards);
+  document.getElementById('flashcardCard')?.addEventListener('click', () => { flashcardState.revealed = true; renderFlashcard(); });
+  document.querySelectorAll('#flashcardRating [data-rating]').forEach(button => button.addEventListener('click', () => reviewFlashcard(button.dataset.rating)));
   document.getElementById('btnCreateFolder')?.addEventListener('click', createFolder);
   document.getElementById('btnShowArchived')?.addEventListener('click', async () => { state.libraryShowingArchived = !state.libraryShowingArchived; document.getElementById('btnShowArchived').innerHTML = state.libraryShowingArchived ? '<i class="fas fa-comments"></i> Active' : '<i class="fas fa-box-archive"></i> Archived'; await loadChatLibrary(); });
   document.getElementById('librarySort')?.addEventListener('change', loadChatLibrary);

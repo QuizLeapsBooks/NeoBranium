@@ -1522,6 +1522,13 @@ body {
 .library-bulk { padding: .5rem .75rem; border-bottom: 1px solid var(--nb-border); font-size: .72rem; color: var(--nb-text-muted); }
 .library-chat-select { accent-color: var(--nb-primary); flex: 0 0 auto; }
 .btn-library-action { padding: 3px 5px; border-color: transparent; }
+.flashcard-modal-window { max-width: 560px; }
+.flashcard-study { text-align: center; display: grid; gap: 1rem; }
+#flashcardProgress { color: var(--nb-text-muted); font-size: .82rem; }
+.flashcard-card { min-height: 250px; width: 100%; padding: 1.5rem; border: 1px solid var(--nb-border); border-radius: 12px; background: #fff; color: var(--nb-text-main); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .9rem; font: inherit; }
+.flashcard-card:hover { border-color: var(--nb-primary); background: #faf8ff; }
+.flashcard-card strong { font-size: 1.15rem; line-height: 1.5; }.flashcard-card span:not(.flashcard-label) { font-size: 1rem; line-height: 1.55; }.flashcard-label, .flashcard-card small { color: var(--nb-text-muted); font-size: .78rem; }
+.flashcard-rating { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; }.flashcard-rating button { border: 1px solid var(--nb-border); border-radius: 7px; padding: .55rem; background: #fff; color: var(--nb-text-main); cursor: pointer; }.flashcard-rating button:hover { border-color: var(--nb-primary); color: var(--nb-primary); }
 @media (max-width: 480px) { .history-drawer { width: min(94vw, 340px); } }
 
 /* ── Mobile & Responsive Rules ───────────────────────────────────────────────── */

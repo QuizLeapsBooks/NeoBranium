@@ -46,6 +46,7 @@ import {
   getNotebookQuizzes,
   getQuizById
 } from '../services/neobookQuizService.js';
+import { generateFlashcards, reviewFlashcard } from '../services/neobookFlashcardService.js';
 
 export const neobookRouter = express.Router();
 
@@ -1256,6 +1257,33 @@ neobookRouter.post('/notebooks/:notebookId/quizzes/generate', requireAuthenticat
       error: err.message || 'Failed to generate knowledge quiz.'
     });
   }
+});
+
+// ── Smart Flashcards: Gemini generation + the same NeoBook token reservation ──
+neobookRouter.post('/notebooks/:notebookId/flashcards/generate', requireAuthenticatedQuizUser, quizRateLimiter, async (req, res) => {
+  let reservationId = null; let setId = null;
+  try {
+    const { notebookId } = req.params; const { chatId, sourceIds, count } = req.body || {};
+    if (!await getOwnedChat(notebookId, chatId, req.identity)) return res.status(404).json({ success: false, error: 'Chat session not found.' });
+    const chunksSnap = await db.collection('neobook_chunks').where('notebookId', '==', notebookId).where('ownerKey', '==', req.identity.identityKey).where('chatId', '==', chatId).get();
+    const chunks = chunksSnap.docs.map(doc => doc.data()).filter(chunk => !Array.isArray(sourceIds) || sourceIds.length === 0 || sourceIds.includes(chunk.sourceId));
+    if (!chunks.length) return res.status(400).json({ success: false, error: 'No selected ready sources are available.' });
+    const reservation = await reserveTokenUsage(req.identity, NEOBOOK_CONFIG.MAX_INPUT_TOKENS_PER_REQUEST + NEOBOOK_CONFIG.MAX_OUTPUT_TOKENS);
+    if (!reservation.allowed) return res.status(429).json({ success: false, error: reservation.error, code: 'TOKEN_BUDGET_EXHAUSTED' });
+    reservationId = reservation.reservationId;
+    const { set, tokenUsage } = await generateFlashcards({ notebookId, chatId, identity: req.identity, chunks, count }); setId = set.id;
+    const quota = await settleTokenReservation(req.identity, reservationId, tokenUsage); reservationId = null;
+    return res.json({ success: true, set, quota: { tokensUsed: quota.tokensUsed, tokensRemaining: quota.tokensRemaining, resetAt: quota.resetAt } });
+  } catch (err) {
+    if (setId && db) await db.collection('neobook_flashcard_sets').doc(setId).delete().catch(() => {});
+    if (reservationId) await cancelTokenReservation(req.identity, reservationId).catch(() => {});
+    return res.status(500).json({ success: false, error: err.message || 'Failed to generate flashcards.' });
+  }
+});
+
+neobookRouter.post('/flashcards/:setId/cards/:cardId/review', requireAuthenticatedQuizUser, async (req, res) => {
+  try { const result = await reviewFlashcard({ setId: req.params.setId, cardId: req.params.cardId, rating: req.body?.rating, identity: req.identity }); return res.json({ success: true, ...result }); }
+  catch (err) { return res.status(400).json({ success: false, error: err.message || 'Could not save review.' }); }
 });
 
 // ── GET /api/neobook/notebooks/:notebookId/quizzes ───────────────────────────
