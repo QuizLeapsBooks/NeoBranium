@@ -748,6 +748,29 @@ body {
   border-top-left-radius: 4px;
 }
 
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.message-content h4 {
+  color: #f8fafc;
+  font-weight: 700;
+  margin-top: 0.85rem;
+  margin-bottom: 0.45rem;
+  line-height: 1.35;
+}
+
+.message-content h1:first-child,
+.message-content h2:first-child,
+.message-content h3:first-child,
+.message-content h4:first-child {
+  margin-top: 0;
+}
+
+.message-content h1 { font-size: 1.18rem; }
+.message-content h2 { font-size: 1.08rem; }
+.message-content h3 { font-size: 0.98rem; }
+.message-content h4 { font-size: 0.92rem; }
+
 .message-content p {
   margin-bottom: 0.65rem;
 }
@@ -757,12 +780,45 @@ body {
 }
 
 .message-content ul, .message-content ol {
-  margin-left: 1.25rem;
+  margin-left: 1.35rem;
   margin-bottom: 0.65rem;
+}
+
+.message-content li {
+  margin-bottom: 0.3rem;
+}
+
+.message-content li:last-child {
+  margin-bottom: 0;
 }
 
 .message-content strong {
   color: #fff;
+}
+
+.message-content blockquote {
+  border-left: 3px solid var(--nb-primary);
+  background: rgba(99, 102, 241, 0.08);
+  padding: 0.45rem 0.85rem;
+  margin: 0.6rem 0;
+  border-radius: 0 6px 6px 0;
+  font-style: italic;
+  color: var(--nb-text-muted);
+}
+
+.inline-citation {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  background: rgba(99, 102, 241, 0.16);
+  border: 1px solid rgba(99, 102, 241, 0.38);
+  color: #c4b5fd;
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 1px 7px;
+  border-radius: 5px;
+  margin: 0 3px;
+  vertical-align: middle;
 }
 
 /* Citations and Reference Chips */

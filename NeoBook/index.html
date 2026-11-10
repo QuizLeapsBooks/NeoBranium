@@ -17,6 +17,9 @@
   <!-- Stylesheet -->
   <link rel="stylesheet" href="./neobook.css">
 
+  <!-- KaTeX for crisp mathematical formulas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
   <!-- Firebase Auth Module -->
   <script type="module" src="/js/auth.js" defer></script>
 </head>
@@ -357,6 +360,10 @@
 
   <!-- ── Toast Notifications ────────────────────────────────────────────────── -->
   <div class="toast-container" id="toastContainer"></div>
+
+  <!-- KaTeX Math Renderer -->
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
   <!-- Application Script -->
   <script type="module" src="./neobook-app.js"></script>

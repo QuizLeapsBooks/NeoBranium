@@ -635,22 +635,31 @@ function appendMessageBubble(role, content, citations = [], tokenUsage = null) {
   // Format content with simple markdown
   const formattedHtml = formatMarkdown(content);
 
-  // Citations footer for assistant messages
+  // Citations footer for assistant messages (deduplicated)
   let citationsHtml = '';
   if (role === 'assistant' && Array.isArray(citations) && citations.length > 0) {
-    const chips = citations.map(c => {
+    const seenChips = new Set();
+    const chips = [];
+    for (const c of citations) {
+      if (!c) continue;
       let label = escapeHtml(c.title || 'Source');
       if (c.pageNum) label += ` (p. ${c.pageNum})`;
       else if (c.timestamp) label += ` (${c.timestamp})`;
-      return `<span class="citation-chip" title="Referenced from: ${escapeHtml(c.title)}"><i class="fas fa-quote-left"></i> ${label}</span>`;
-    }).join(' ');
 
-    citationsHtml = `
-      <div class="citations-footer">
-        <span class="citations-label">Sources:</span>
-        ${chips}
-      </div>
-    `;
+      if (!seenChips.has(label)) {
+        seenChips.add(label);
+        chips.push(`<span class="citation-chip" title="Referenced from: ${escapeHtml(c.title || 'Source')}"><i class="fas fa-quote-left"></i> ${label}</span>`);
+      }
+    }
+
+    if (chips.length > 0) {
+      citationsHtml = `
+        <div class="citations-footer">
+          <span class="citations-label">Sources:</span>
+          ${chips.join(' ')}
+        </div>
+      `;
+    }
   }
 
   let metaHtml = '';
@@ -676,6 +685,7 @@ function appendMessageBubble(role, content, citations = [], tokenUsage = null) {
   `;
 
   container.appendChild(bubble);
+  renderMathIfAvailable(bubble);
   scrollChatToBottom();
 }
 
@@ -856,30 +866,158 @@ function switchToMobilePanel(panelName) {
   if (pStudio) pStudio.classList.toggle('mobile-active', panelName === 'studio');
 }
 
+// ── Math & KaTeX Rendering Helper ─────────────────────────────────────────────
+
+function renderMathIfAvailable(element) {
+  if (!element) return;
+  const render = () => {
+    if (typeof window.renderMathInElement === 'function') {
+      try {
+        window.renderMathInElement(element, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+            { left: '\\(', right: '\\)', display: false },
+            { left: '\\[', right: '\\]', display: true }
+          ],
+          throwOnError: false
+        });
+      } catch (err) {
+        console.warn('[NeoBook] KaTeX auto-render error:', err);
+      }
+    }
+  };
+
+  if (typeof window.renderMathInElement === 'function') {
+    render();
+  } else {
+    // KaTeX scripts are loaded with defer; schedule render as fallback
+    window.addEventListener('DOMContentLoaded', render, { once: true });
+    window.addEventListener('load', render, { once: true });
+    setTimeout(render, 400);
+  }
+}
+
 // ── Markdown Formatting Helper ────────────────────────────────────────────────
 
 function formatMarkdown(text) {
   if (!text) return '';
-  let html = escapeHtml(text);
+
+  const lines = text.split('\n');
+  const output = [];
+  let inUl = false;
+  let inOl = false;
+
+  function closeLists() {
+    if (inUl) {
+      output.push('</ul>');
+      inUl = false;
+    }
+    if (inOl) {
+      output.push('</ol>');
+      inOl = false;
+    }
+  }
+
+  for (let rawLine of lines) {
+    const trimmed = rawLine.trim();
+
+    if (!trimmed) {
+      closeLists();
+      continue;
+    }
+
+    // Headers
+    const h4Match = trimmed.match(/^####\s+(.*)$/);
+    if (h4Match) {
+      closeLists();
+      output.push(`<h4>${formatInline(h4Match[1])}</h4>`);
+      continue;
+    }
+    const h3Match = trimmed.match(/^###\s+(.*)$/);
+    if (h3Match) {
+      closeLists();
+      output.push(`<h3>${formatInline(h3Match[1])}</h3>`);
+      continue;
+    }
+    const h2Match = trimmed.match(/^##\s+(.*)$/);
+    if (h2Match) {
+      closeLists();
+      output.push(`<h2>${formatInline(h2Match[1])}</h2>`);
+      continue;
+    }
+    const h1Match = trimmed.match(/^#\s+(.*)$/);
+    if (h1Match) {
+      closeLists();
+      output.push(`<h1>${formatInline(h1Match[1])}</h1>`);
+      continue;
+    }
+
+    // Blockquote
+    const bqMatch = trimmed.match(/^>\s+(.*)$/);
+    if (bqMatch) {
+      closeLists();
+      output.push(`<blockquote>${formatInline(bqMatch[1])}</blockquote>`);
+      continue;
+    }
+
+    // Unordered list item: starting with * or - followed by a space
+    const ulMatch = trimmed.match(/^[\*\-]\s+(.*)$/);
+    if (ulMatch) {
+      if (inOl) {
+        output.push('</ol>');
+        inOl = false;
+      }
+      if (!inUl) {
+        output.push('<ul>');
+        inUl = true;
+      }
+      output.push(`<li>${formatInline(ulMatch[1])}</li>`);
+      continue;
+    }
+
+    // Ordered list item: starting with digit(s). followed by a space
+    const olMatch = trimmed.match(/^\d+\.\s+(.*)$/);
+    if (olMatch) {
+      if (inUl) {
+        output.push('</ul>');
+        inUl = false;
+      }
+      if (!inOl) {
+        output.push('<ol>');
+        inOl = true;
+      }
+      output.push(`<li>${formatInline(olMatch[1])}</li>`);
+      continue;
+    }
+
+    // Regular paragraph or statement line
+    closeLists();
+    output.push(`<p>${formatInline(trimmed)}</p>`);
+  }
+
+  closeLists();
+  return output.join('');
+}
+
+function formatInline(str) {
+  if (!str) return '';
+  let s = escapeHtml(str);
+
+  // Inline citations: [Source: Title, timestamp/page]
+  s = s.replace(/\[Source:\s*([^\]]+)\]/gi, '<span class="inline-citation"><i class="fas fa-quote-left"></i> $1</span>');
 
   // Bold **text**
-  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+  // Italic *text* or _text_ (when not part of bold)
+  s = s.replace(/(^|[^\*])\*([^\*\s][^\*]*?[^\*\s]?)\*([^\*]|$)/g, '$1<em>$2</em>$3');
+  s = s.replace(/(^|[^_])_([^_]+?)_([^_]|$)/g, '$1<em>$2</em>$3');
 
   // Inline code `code`
-  html = html.replace(/`([^`]+)`/g, '<code style="background:rgba(148,163,184,0.2);padding:2px 5px;border-radius:4px;font-family:monospace;font-size:0.85em;">$1</code>');
+  s = s.replace(/`([^`]+)`/g, '<code style="background:rgba(148,163,184,0.18);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.86em;color:#e2e8f0;">$1</code>');
 
-  // Bullet points
-  html = html.replace(/^\s*-\s+(.*)$/gm, '<li>$1</li>');
-  html = html.replace(/(<li>.*<\/li>)/s, '<ul style="margin-left:1.2rem;margin-bottom:0.5rem;">$1</ul>');
-
-  // Numbered lists
-  html = html.replace(/^\s*\d+\.\s+(.*)$/gm, '<li>$1</li>');
-
-  // Paragraph breaks
-  html = html.replace(/\n\n+/g, '</p><p>');
-  html = `<p>${html.replace(/\n/g, '<br>')}</p>`;
-
-  return html;
+  return s;
 }
 
 function escapeHtml(str) {

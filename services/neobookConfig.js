@@ -16,7 +16,7 @@ export const NEOBOOK_CONFIG = {
   MAX_SOURCE_SIZE_BYTES: Number(process.env.NEOBOOK_MAX_SOURCE_SIZE_BYTES) || 10 * 1024 * 1024, // 10MB
   MAX_TEXT_SOURCE_CHARS: Number(process.env.NEOBOOK_MAX_TEXT_SOURCE_CHARS) || 200_000, // ~50k words
   MAX_INPUT_TOKENS_PER_REQUEST: Number(process.env.NEOBOOK_MAX_INPUT_TOKENS) || 16_000,
-  MAX_OUTPUT_TOKENS: Number(process.env.NEOBOOK_MAX_OUTPUT_TOKENS) || 2_048,
+  MAX_OUTPUT_TOKENS: Number(process.env.NEOBOOK_MAX_OUTPUT_TOKENS) || 8_192,
   DAILY_TOKEN_BUDGET: Number(process.env.NEOBOOK_DAILY_TOKEN_BUDGET) || 150_000, // independent daily token budget
   
   // Rate limiting
