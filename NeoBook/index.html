@@ -59,7 +59,7 @@
 
     <div class="header-right">
       <!-- Daily Quota Indicator -->
-      <div class="quota-pill" id="quotaPill" title="Daily NeoBook chat and token budget">
+      <button class="quota-pill" id="quotaPill" type="button" aria-expanded="false" aria-controls="quotaPopover" title="View remaining NeoBook AI usage">
         <div class="quota-item" id="quotaChatsItem">
           <i class="fas fa-message" style="color:#818cf8;"></i>
           <span>New Chats: <strong id="quotaChatsRemaining">5</strong>/5</span>
@@ -69,6 +69,12 @@
           <i class="fas fa-bolt" style="color:#fbbf24;"></i>
           <span>Budget: <strong id="quotaTokensRemaining">150k</strong></span>
         </div>
+      </button>
+      <div class="quota-popover" id="quotaPopover" role="status" hidden>
+        <strong>NeoBook AI usage</strong>
+        <span id="quotaPopoverChats"></span>
+        <span id="quotaPopoverTokens"></span>
+        <small id="quotaPopoverReset"></small>
       </div>
 
       <button id="btnNewChatTop" class="btn-icon-text" title="Start a fresh chat (Consumes 1 daily new-chat allowance)">

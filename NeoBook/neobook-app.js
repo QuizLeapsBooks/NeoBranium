@@ -37,6 +37,7 @@ const state = {
   isInitializing: false,       // true while loadNotebooks() is in-flight
   currentIdentityUid: undefined // tracks last loaded identity: undefined=never, null=guest, string=uid
 };
+let lowQuotaNoticeShown = false;
 
 // ── Backend URL Resolver ───────────────────────────────────────────────────────
 export function getBackendBaseUrl() {
@@ -219,7 +220,28 @@ function updateLimitsUI() {
     const tokensK = Math.round(state.limits.tokensRemaining / 1000);
     tokensEl.textContent = `${tokensK}k`;
   }
+  updateQuotaPopover();
+  const lowTokenThreshold = Math.max(2_000, Math.round((state.limits.dailyTokenBudget || 150000) * 0.1));
+  if (state.limits.tokensRemaining <= lowTokenThreshold && !lowQuotaNoticeShown) {
+    lowQuotaNoticeShown = true;
+    showToast(`NeoBook AI budget is running low: ${formatTokenCount(state.limits.tokensRemaining)} remaining.`, 'info');
+    showQuotaPopover();
+  }
 }
+
+function formatTokenCount(tokens) { return new Intl.NumberFormat().format(Math.max(0, Number(tokens) || 0)); }
+function updateQuotaPopover() {
+  const chats = document.getElementById('quotaPopoverChats'); const tokens = document.getElementById('quotaPopoverTokens'); const reset = document.getElementById('quotaPopoverReset');
+  if (chats) chats.textContent = `${state.limits.newChatsRemaining} of ${state.limits.dailyNewChatsLimit} new chats remaining today`;
+  if (tokens) tokens.textContent = `${formatTokenCount(state.limits.tokensRemaining)} AI tokens remaining`;
+  if (reset) reset.textContent = state.limits.resetAt ? `Resets ${new Date(state.limits.resetAt).toLocaleString()}` : 'Usage resets daily';
+}
+function showQuotaPopover(autoClose = true) {
+  const popover = document.getElementById('quotaPopover'); const button = document.getElementById('quotaPill'); if (!popover || !button) return;
+  updateQuotaPopover(); popover.hidden = false; button.setAttribute('aria-expanded', 'true');
+  if (autoClose) { clearTimeout(showQuotaPopover.timer); showQuotaPopover.timer = setTimeout(hideQuotaPopover, 7000); }
+}
+function hideQuotaPopover() { const popover = document.getElementById('quotaPopover'); const button = document.getElementById('quotaPill'); if (popover) popover.hidden = true; if (button) button.setAttribute('aria-expanded', 'false'); }
 
 // ── Notebook Operations ───────────────────────────────────────────────────────
 
@@ -545,10 +567,12 @@ async function startNewChat() {
 
       if (res.quota) {
         state.limits.newChatsRemaining = res.quota.newChatsRemaining;
+        state.limits.resetAt = res.quota.resetAt || state.limits.resetAt;
         updateLimitsUI();
       }
 
-      showToast('Started new chat session.', 'success');
+      showToast(`New chat started. ${state.limits.newChatsRemaining} new chat${state.limits.newChatsRemaining === 1 ? '' : 's'} remaining today.`, 'success');
+      showQuotaPopover();
       updateChatHeader();
       clearChatMessages();
       renderHistoryList();
@@ -1266,6 +1290,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // History Drawer openers & closers
   document.getElementById('btnOpenHistory')?.addEventListener('click', openHistoryDrawer);
   document.getElementById('btnCloseHistory')?.addEventListener('click', closeHistoryDrawer);
+  document.getElementById('quotaPill')?.addEventListener('click', () => document.getElementById('quotaPopover')?.hidden ? showQuotaPopover(false) : hideQuotaPopover());
+  document.addEventListener('click', event => { if (!event.target.closest('#quotaPill, #quotaPopover')) hideQuotaPopover(); });
   document.getElementById('btnOpenFlashcards')?.addEventListener('click', openFlashcards);
   document.getElementById('btnOpenFlashcards')?.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') openFlashcards(); });
   document.getElementById('btnCloseFlashcards')?.addEventListener('click', closeFlashcards);

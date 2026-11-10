@@ -235,6 +235,10 @@ body {
   color: #cbd5e1;
 }
 
+.quota-pill { cursor: pointer; font-family: inherit; position: relative; }
+.quota-popover { position: fixed; z-index: 80; top: 54px; right: 11.5rem; width: 245px; padding: .75rem; display: flex; flex-direction: column; gap: .32rem; background: #fff; border: 1px solid var(--nb-border); border-radius: 9px; box-shadow: 0 6px 18px rgba(0,0,0,.12); color: var(--nb-text-main); font-size: .78rem; }
+.quota-popover strong { font-size: .84rem; }.quota-popover span { color: var(--nb-text-muted); }.quota-popover small { color: var(--nb-text-dim); border-top: 1px solid var(--nb-border); padding-top: .45rem; margin-top: .12rem; }
+
 .quota-item {
   display: flex;
   align-items: center;
