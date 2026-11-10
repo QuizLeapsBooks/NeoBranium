@@ -1016,6 +1016,25 @@ async function reviewFlashcard(rating) {
   catch (err) { showToast(err.message || 'Could not save review.', 'error'); }
 }
 
+function openStudyGuide() { document.getElementById('studyGuideModal')?.classList.add('open'); }
+function closeStudyGuide() { document.getElementById('studyGuideModal')?.classList.remove('open'); }
+function guideCitation(citation = {}) { return citation.title ? `<small class="guide-citation"><i class="fas fa-quote-left"></i> ${escapeHtml(citation.title)}${citation.pageNum ? ` · p. ${escapeHtml(citation.pageNum)}` : ''}${citation.timestamp ? ` · ${escapeHtml(citation.timestamp)}` : ''}</small>` : ''; }
+function renderStudyGuide(guide) {
+  const data = guide.guide || {}; const output = document.getElementById('studyGuideOutput'); if (!output) return;
+  const chapters = (data.chapters || []).map(chapter => `<section class="guide-section"><h4>${escapeHtml(chapter.title || 'Topic')}</h4><p>${escapeHtml(chapter.summary || '')}</p>${chapter.keyPoints?.length ? `<ul>${chapter.keyPoints.map(point => `<li>${escapeHtml(point)}</li>`).join('')}</ul>` : ''}${guideCitation(chapter.sourceCitation)}</section>`).join('');
+  const timeline = data.timeline?.length ? `<section class="guide-section"><h4>Timeline</h4><div class="guide-table">${data.timeline.map(item => `<div><strong>${escapeHtml(item.dateOrOrder || 'Key point')}</strong><span>${escapeHtml(item.event || '')}</span>${guideCitation(item.sourceCitation)}</div>`).join('')}</div></section>` : '';
+  const formulas = data.formulas?.length ? `<section class="guide-section"><h4>Formulas &amp; Key Terms</h4>${data.formulas.map(item => `<div class="guide-formula"><strong>${escapeHtml(item.name || '')}</strong><code>${escapeHtml(item.formula || '')}</code><p>${escapeHtml(item.meaning || '')}</p>${guideCitation(item.sourceCitation)}</div>`).join('')}</section>` : '';
+  const comparisons = (data.comparisons || []).map(table => `<section class="guide-section"><h4>${escapeHtml(table.title || 'Comparison')}</h4><div class="guide-table-scroll"><table><thead><tr>${(table.columns || []).map(cell => `<th>${escapeHtml(cell)}</th>`).join('')}</tr></thead><tbody>${(table.rows || []).map(row => `<tr>${row.map(cell => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>${guideCitation(table.sourceCitation)}</section>`).join('');
+  output.innerHTML = `<h3>${escapeHtml(guide.title || data.title || 'Study Guide')}</h3><p class="guide-summary">${escapeHtml(data.summary || '')}</p>${chapters}${timeline}${formulas}${comparisons}`;
+}
+async function generateStudyGuide() {
+  if (!state.activeNotebook?.id || !state.activeChat?.id) return showToast('Open a chat with ready sources first.', 'error');
+  const sourceIds = state.sources.filter(source => source.status === 'ready').map(source => source.id); if (!sourceIds.length) return showToast('Add a ready source before generating a guide.', 'error');
+  const button = document.getElementById('btnGenerateStudyGuide'); button.disabled = true; button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Extracting…';
+  try { const result = await apiRequest(`/api/neobook/notebooks/${state.activeNotebook.id}/study-guides/generate`, { method: 'POST', body: JSON.stringify({ chatId: state.activeChat.id, sourceIds }) }); if (result.quota) { state.limits.tokensRemaining = result.quota.tokensRemaining; updateLimitsUI(); } document.getElementById('studyGuideConfig').style.display = 'none'; document.getElementById('studyGuideFooter').style.display = 'none'; document.getElementById('studyGuideOutput').style.display = ''; renderStudyGuide(result.guide); }
+  catch (err) { showToast(err.message || 'Could not generate study guide.', 'error'); } finally { button.disabled = false; button.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Generate Guide'; }
+}
+
 // ── Mobile Responsive Panel Switcher ──────────────────────────────────────────
 
 function switchToMobilePanel(panelName) {
@@ -1254,6 +1273,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btnGenerateFlashcards')?.addEventListener('click', generateFlashcards);
   document.getElementById('flashcardCard')?.addEventListener('click', () => { flashcardState.revealed = true; renderFlashcard(); });
   document.querySelectorAll('#flashcardRating [data-rating]').forEach(button => button.addEventListener('click', () => reviewFlashcard(button.dataset.rating)));
+  document.getElementById('btnOpenStudyGuide')?.addEventListener('click', openStudyGuide);
+  document.getElementById('btnOpenStudyGuide')?.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') openStudyGuide(); });
+  document.getElementById('btnCloseStudyGuide')?.addEventListener('click', closeStudyGuide);
+  document.getElementById('btnCancelStudyGuide')?.addEventListener('click', closeStudyGuide);
+  document.getElementById('btnGenerateStudyGuide')?.addEventListener('click', generateStudyGuide);
   document.getElementById('btnCreateFolder')?.addEventListener('click', createFolder);
   document.getElementById('btnShowArchived')?.addEventListener('click', async () => { state.libraryShowingArchived = !state.libraryShowingArchived; document.getElementById('btnShowArchived').innerHTML = state.libraryShowingArchived ? '<i class="fas fa-comments"></i> Active' : '<i class="fas fa-box-archive"></i> Archived'; await loadChatLibrary(); });
   document.getElementById('librarySort')?.addEventListener('change', loadChatLibrary);
