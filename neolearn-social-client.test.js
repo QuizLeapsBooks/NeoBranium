@@ -62,6 +62,21 @@ test('public profile resolver expires cached public data and omits private/viewe
   assert.equal(calls, 2);
 });
 
+test('public profile resolver bounds retained cache entries', async () => {
+  let calls = 0;
+  const resolve = createNeoLearnPublicProfileResolver(async userId => {
+    calls += 1;
+    return { profile: { userId, name: userId } };
+  }, { maxEntries: 2 });
+  await resolve('a');
+  await resolve('b');
+  await resolve('a');
+  await resolve('c');
+  await resolve('a');
+  await resolve('b');
+  assert.equal(calls, 4);
+});
+
 test('missing and failed public profile lookups reject and are not cached', async () => {
   let calls = 0;
   const resolve = createNeoLearnPublicProfileResolver(async () => {

@@ -11,6 +11,11 @@ import { aiWritingEngine } from './aiWritingEngine.js';
 import { boardEngine } from '../board/boardEngine.js';
 import { auth } from '/js/auth.js';
 import { AiHistorySDK } from '/js/ai-history-sdk.js';
+import {
+    appendBoundedHistory,
+    MAX_AI_BOARD_CONVERSATION_MESSAGES,
+    MAX_AI_BOARD_HISTORY_MESSAGE_CHARS
+} from '../utils/conversationHistory.js';
 
 let aiHistory = null;
 
@@ -47,8 +52,9 @@ async function getAiHistory() {
                                 content = message.text;
                             }
                         }
-                        return { role: message.role, content };
-                    });
+                        return { role: message.role, content: content.slice(0, MAX_AI_BOARD_HISTORY_MESSAGE_CHARS) };
+                    })
+                    .slice(-MAX_AI_BOARD_CONVERSATION_MESSAGES);
                 DOM.aiResponseContent.replaceChildren();
                 uiManager.showModal(true);
                 for (const message of messages) {
@@ -257,7 +263,7 @@ export const aiEngine = {
 
         uiManager.showModal(true);
         uiManager.appendUserMessage(transcript);
-        STATE.conversationHistory.push({ role: 'user', content: transcript });
+        STATE.conversationHistory = appendBoundedHistory(STATE.conversationHistory, { role: 'user', content: transcript });
         const historySave = (async () => {
             const history = await getAiHistory();
             if (!history) return null;
@@ -288,7 +294,7 @@ export const aiEngine = {
             await streamHandler.handleStream(resp,
                 (content) => uiManager.updateStreamingBlock(streamBlock, content),
                 (full) => {
-                    STATE.conversationHistory.push({ role: 'assistant', content: full });
+                    STATE.conversationHistory = appendBoundedHistory(STATE.conversationHistory, { role: 'assistant', content: full });
                     speechEngine.speakText(full);
                     aiWritingEngine.writeExplanation(full);
                     historySave.then(saved => {

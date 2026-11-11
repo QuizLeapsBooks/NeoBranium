@@ -1,4 +1,6 @@
 import { getNeoLearnBlockedUserIds, learningRelationshipId, safeSocialCount } from './neolearn-social-data.js';
+import { mapWithConcurrency } from './utils/mapWithConcurrency.js';
+import { createResponseAbortSignal } from './utils/requestCancellation.js';
 
 const NEOLEARN_PEER_PAGE_SIZE = 25;
 
@@ -42,9 +44,7 @@ function publicPost(postId, raw = {}) {
     };
 }
 
-export async function loadPublicProfile(db, userId, profileData, viewerId = userId) {
-    const userSnapshot = await db.collection('users').doc(userId).get();
-    const userData = userSnapshot.exists ? userSnapshot.data() : {};
+function formatPublicProfile(userId, profileData, userData, viewerId, relationshipSnapshots) {
     const profile = publicProfile(userId, {
         ...profileData,
         ...userData,
@@ -60,12 +60,6 @@ export async function loadPublicProfile(db, userId, profileData, viewerId = user
         showLastSeen: userData.showLastSeen !== false,
         readReceipts: userData.readReceipts !== false
     });
-    const relationshipSnapshots = viewerId === userId
-        ? [{ exists: false }, { exists: false }]
-        : await Promise.all([
-            db.collection('neolearn_learning').doc(learningRelationshipId(viewerId, userId)).get(),
-            db.collection('neolearn_learning').doc(learningRelationshipId(userId, viewerId)).get()
-        ]);
     if (viewerId === userId) {
         profile.score = Number.isFinite(userData.score) ? userData.score : 0;
         profile.highScore = Number.isFinite(userData.highScore) ? userData.highScore : 0;
@@ -76,6 +70,52 @@ export async function loadPublicProfile(db, userId, profileData, viewerId = user
         isLearning: relationshipSnapshots[0].exists,
         isLearnedByViewer: relationshipSnapshots[1].exists
     };
+}
+
+export async function loadPublicProfile(db, userId, profileData, viewerId = userId) {
+    const userSnapshot = await db.collection('users').doc(userId).get();
+    const relationshipSnapshots = viewerId === userId
+        ? [{ exists: false }, { exists: false }]
+        : await Promise.all([
+            db.collection('neolearn_learning').doc(learningRelationshipId(viewerId, userId)).get(),
+            db.collection('neolearn_learning').doc(learningRelationshipId(userId, viewerId)).get()
+        ]);
+    return formatPublicProfile(
+        userId,
+        profileData,
+        userSnapshot.exists ? userSnapshot.data() : {},
+        viewerId,
+        relationshipSnapshots
+    );
+}
+
+export async function loadPublicProfiles(db, profiles, viewerId, signal) {
+    if (!profiles.length) return [];
+    if (typeof db.getAll !== 'function') {
+        return mapWithConcurrency(profiles, 5, profile =>
+            loadPublicProfile(db, profile.id, profile.data(), viewerId), signal);
+    }
+
+    const batches = [];
+    for (let index = 0; index < profiles.length; index += 100) {
+        batches.push(profiles.slice(index, index + 100));
+    }
+    return (await mapWithConcurrency(batches, 2, async (batch) => {
+        const userRefs = batch.map((profile) => db.collection('users').doc(profile.id));
+        const relationshipRefs = batch.flatMap((profile) => [
+            db.collection('neolearn_learning').doc(learningRelationshipId(viewerId, profile.id)),
+            db.collection('neolearn_learning').doc(learningRelationshipId(profile.id, viewerId))
+        ]);
+        const snapshots = await db.getAll(...userRefs, ...relationshipRefs);
+        const count = batch.length;
+        return batch.map((profileDoc, index) => formatPublicProfile(
+            profileDoc.id,
+            profileDoc.data(),
+            snapshots[index].exists ? snapshots[index].data() : {},
+            viewerId,
+            [snapshots[count + index * 2], snapshots[count + index * 2 + 1]]
+        ));
+    }, signal)).flat();
 }
 
 export function createNeoLearnDirectoryHandlers({ verifyAuthToken, db }) {
@@ -105,6 +145,7 @@ export function createNeoLearnDirectoryHandlers({ verifyAuthToken, db }) {
         if (!viewerId) return;
         if (!db) return res.status(503).json({ success: false, error: 'NeoLearn data is unavailable.' });
 
+        const requestCancellation = createResponseAbortSignal(req, res);
         try {
             const cursor = req.query?.cursor;
             if (cursor !== undefined && (typeof cursor !== 'string' || !cursor || cursor.length > 128 || cursor.includes('/'))) {
@@ -123,15 +164,20 @@ export function createNeoLearnDirectoryHandlers({ verifyAuthToken, db }) {
             const nextCursor = hasMore ? pageProfiles.at(-1)?.id || null : null;
             const blockedUserIds = await getNeoLearnBlockedUserIds(db, viewerId);
             const availableProfiles = pageProfiles.filter((profile) => profile.id !== viewerId && !blockedUserIds.has(profile.id));
-            const peers = await Promise.all(availableProfiles.map(async (profileDoc) => {
-                const profile = await loadPublicProfile(db, profileDoc.id, profileDoc.data(), viewerId);
-                profile.postsCount = await loadPostCount(profileDoc.id);
-                return profile;
-            }));
+            let peers = await loadPublicProfiles(db, availableProfiles, viewerId, requestCancellation.signal);
+            if (req.query?.includePostCounts !== 'false') {
+                peers = await mapWithConcurrency(peers, 5, async (profile) => ({
+                    ...profile,
+                    postsCount: await loadPostCount(profile.userId)
+                }), requestCancellation.signal);
+            }
             return res.json({ success: true, peers, nextCursor });
         } catch (error) {
+            if (requestCancellation.signal.aborted) return;
             console.error('NeoLearn peers read failed:', error.message);
             return res.status(503).json({ success: false, error: 'NeoLearn peers could not be loaded.' });
+        } finally {
+            requestCancellation.dispose();
         }
     }
 

@@ -28,6 +28,7 @@
  */
 
 export const MAX_POST_VIEWS = 3;
+export const MAX_LOCAL_IMPRESSION_ENTRIES = 500;
 
 // ─── Pure helpers (no side-effects, fully testable) ──────────────────────────
 
@@ -115,6 +116,28 @@ export function mergeImpressionCounts(localCounts, remoteCounts) {
     merged[postId] = Math.max(merged[postId] || 0, safeRemote);
   }
   return merged;
+}
+
+export function pruneImpressionHistory(viewCounts, lastShownAt, maxEntries = MAX_LOCAL_IMPRESSION_ENTRIES) {
+  const capacity = Number.isInteger(maxEntries) && maxEntries >= 0
+    ? maxEntries
+    : MAX_LOCAL_IMPRESSION_ENTRIES;
+  const postIds = new Set([
+    ...Object.keys(viewCounts || {}),
+    ...Object.keys(lastShownAt || {})
+  ]);
+  const retainedIds = [...postIds]
+    .sort((first, second) => (lastShownAt?.[second] || 0) - (lastShownAt?.[first] || 0))
+    .slice(0, capacity);
+
+  return {
+    viewCounts: Object.fromEntries(retainedIds
+      .filter((postId) => Object.hasOwn(viewCounts || {}, postId))
+      .map((postId) => [postId, viewCounts[postId]])),
+    lastShownAt: Object.fromEntries(retainedIds
+      .filter((postId) => Object.hasOwn(lastShownAt || {}, postId))
+      .map((postId) => [postId, lastShownAt[postId]]))
+  };
 }
 
 /**

@@ -11,7 +11,7 @@ function createResponse() {
     return { statusCode: 200, body: null, status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; } };
 }
 
-function createHarness({ learnedUserIds = ['owner'], followerUserIds = [] } = {}) {
+function createHarness({ learnedUserIds = ['owner'], followerUserIds = [], readDelayMs = 0 } = {}) {
     const moments = new Map();
     const likes = new Map();
     const views = new Map();
@@ -28,19 +28,28 @@ function createHarness({ learnedUserIds = ['owner'], followerUserIds = [] } = {}
                     const store = name === 'neolearn_moments' ? moments : profiles;
                     return {
                         id,
-                        async get() { const value = store.get(id); return { exists: Boolean(value), data: () => value }; },
+                        async get() { const value = store.get(id); return { id, exists: Boolean(value), data: () => value }; },
                         async create(value) { if (moments.has(id)) throw new Error('exists'); moments.set(id, value); }
                     };
                 },
                 where(_field, _operator, expiry) {
                     const query = {
                         maximum: Infinity,
+                        cursorId: null,
                         orderBy() { return query; },
+                        startAfter(snapshot) { query.cursorId = snapshot.id; return query; },
                         limit(maximum) { query.maximum = maximum; return query; },
                         async get() {
                             const expiryTime = expiry.toMillis();
-                            return { docs: [...moments]
+                            const allMoments = [...moments]
                                 .filter(([, data]) => data.expiresAt.toMillis() > expiryTime)
+                                .sort(([firstId, first], [secondId, second]) =>
+                                    first.expiresAt.toMillis() - second.expiresAt.toMillis() || firstId.localeCompare(secondId));
+                            const cursorIndex = query.cursorId
+                                ? allMoments.findIndex(([id]) => id === query.cursorId) + 1
+                                : 0;
+                            return { docs: allMoments
+                                .slice(cursorIndex)
                                 .slice(0, query.maximum)
                                 .map(([id, data]) => ({ id, data: () => data })) };
                         }
@@ -69,10 +78,16 @@ function createHarness({ learnedUserIds = ['owner'], followerUserIds = [] } = {}
             throw new Error(`Unexpected collection ${name}`);
         }
     };
+    let activeReads = 0;
+    let peakReads = 0;
     const rtdb = {
         ref(path) {
             return {
                 async get() {
+                    activeReads += 1;
+                    peakReads = Math.max(peakReads, activeReads);
+                    if (readDelayMs) await new Promise(resolve => setTimeout(resolve, readDelayMs));
+                    activeReads -= 1;
                     const parts = path.split('/');
                     const momentId = parts[2];
                     const store = parts[1] === 'moment_likes' ? likes : views;
@@ -108,7 +123,7 @@ function createHarness({ learnedUserIds = ['owner'], followerUserIds = [] } = {}
         cloudinary: { uploader: { async upload(_data, options) { cloudinaryUploads.push(options); return { secure_url: 'https://images.example/moment.webp', public_id: 'moment-id' }; } } },
         isCloudinaryConfigured: () => true
     });
-    return { handlers, moments, likes, views, notifications, cloudinaryUploads };
+    return { handlers, moments, likes, views, notifications, cloudinaryUploads, getPeakReads: () => peakReads };
 }
 
 test('creates a 24-hour Moment with validated audience and image', async () => {
@@ -141,6 +156,7 @@ test('lists only unexpired Moments from profiles the viewer learns', async () =>
     const response = createResponse();
     await handlers.getMoments({}, response);
     assert.deepEqual(response.body.moments.map((moment) => moment.momentId), ['public-moment']);
+    assert.deepEqual(Object.keys(response.body).sort(), ['moments', 'success']);
 });
 
 test('mutual-learner Moments require the author to learn the viewer too', async () => {
@@ -150,6 +166,57 @@ test('mutual-learner Moments require the author to learn the viewer too', async 
     const response = createResponse();
     await handlers.getMoments({}, response);
     assert.deepEqual(response.body.moments.map((moment) => moment.momentId), ['mutual-moment']);
+});
+
+test('Moment pagination returns a cursor and advances without repeating records', async () => {
+    const { handlers, moments } = createHarness();
+    const expiresAt = { toMillis: () => Date.now() + 60_000 };
+    for (const id of ['moment-a', 'moment-b', 'moment-c']) {
+        moments.set(id, {
+            userId: 'owner',
+            audience: 'everyone',
+            createdAt: expiresAt,
+            expiresAt,
+            imageUrl: `https://images.example/${id}.webp`
+        });
+    }
+
+    const firstPage = createResponse();
+    await handlers.getMoments({ query: { limit: '2' } }, firstPage);
+    assert.equal(firstPage.statusCode, 200);
+    assert.equal(firstPage.body.moments.length, 2);
+    assert.ok(firstPage.body.nextCursor);
+
+    const secondPage = createResponse();
+    await handlers.getMoments({ query: { limit: '2', cursor: firstPage.body.nextCursor } }, secondPage);
+    assert.equal(secondPage.body.moments.length, 1);
+    assert.equal(secondPage.body.nextCursor, null);
+    assert.equal(new Set([...firstPage.body.moments, ...secondPage.body.moments].map(moment => moment.momentId)).size, 3);
+});
+
+test('Moment pagination rejects an invalid page size', async () => {
+    const { handlers } = createHarness();
+    const response = createResponse();
+    await handlers.getMoments({ query: { limit: '41' } }, response);
+    assert.equal(response.statusCode, 400);
+});
+
+test('Moment social reads stay within the configured concurrency bound', async () => {
+    const { handlers, moments, getPeakReads } = createHarness({ readDelayMs: 2 });
+    const expiry = { toMillis: () => Date.now() + 60_000 };
+    for (let index = 0; index < 20; index += 1) {
+        moments.set(`moment-${index}`, {
+            userId: 'owner',
+            audience: 'everyone',
+            createdAt: expiry,
+            expiresAt: expiry,
+            imageUrl: 'https://images.example/moment.webp'
+        });
+    }
+    const response = createResponse();
+    await handlers.getMoments({ query: { limit: '40' } }, response);
+    assert.equal(response.body.moments.length, 20);
+    assert.ok(getPeakReads() <= 6);
 });
 
 test('a viewer cannot like a Moment from a profile they do not learn', async () => {

@@ -20,6 +20,8 @@ function createHarness({ viewerId = 'viewer-uid', unauthorized = false, extraPos
     }
     const relationships = new Map([[learningRelationshipId(viewerId, 'peer-uid'), { learnerUserId: viewerId, targetUserId: 'peer-uid' }]]);
     const blocks = new Map(initialBlocks);
+    let getAllCalls = 0;
+    let postCountReads = 0;
     const userData = new Map([
         ['viewer-uid', { email: 'private@example.com', username: 'current', bio: 'Current bio', score: 14, highScore: 18, rank: 3 }],
         ['peer-uid', { email: 'peer-private@example.com', username: 'peer', bio: 'Learning science', profilePhotoUrl: 'https://img.example/current-peer.webp', thoughtOfTheDay: 'User thought wins', thoughtOfTheDayExpiresAt: new Date(now + 120000), learnCount: 999, learningCount: 999 }]
@@ -36,6 +38,15 @@ function createHarness({ viewerId = 'viewer-uid', unauthorized = false, extraPos
         });
     }
 
+    const reference = (collectionName, id) => ({
+        id,
+        async get() {
+            const records = collectionName === 'neolearn_profiles' ? profileData
+                : collectionName === 'users' ? userData
+                    : collectionName === 'neolearn_learning' ? relationships : blocks;
+            return makeSnapshot(id, records.get(id));
+        }
+    });
     const db = {
         collection(name) {
             if (name === 'neolearn_profiles') {
@@ -58,15 +69,15 @@ function createHarness({ viewerId = 'viewer-uid', unauthorized = false, extraPos
                         return query;
                     },
                     doc(id) {
-                        return { async get() { return makeSnapshot(id, profileData.get(id)); } };
+                        return reference(name, id);
                     }
                 };
             }
             if (name === 'users') {
-                return { doc(id) { return { async get() { return makeSnapshot(id, userData.get(id)); } }; } };
+                return { doc(id) { return reference(name, id); } };
             }
             if (name === 'neolearn_learning') {
-                return { doc(id) { return { async get() { return makeSnapshot(id, relationships.get(id)); } }; } };
+                return { doc(id) { return reference(name, id); } };
             }
             if (name === 'neolearn_blocks') {
                 return {
@@ -96,6 +107,7 @@ function createHarness({ viewerId = 'viewer-uid', unauthorized = false, extraPos
                             offset(value) { offset = value; return query; },
                             limit(value) { limit = value; return query; },
                             count() {
+                                postCountReads += 1;
                                 const total = postData.filter((post) => post.data.userId === value).length;
                                 return { async get() { return { data: () => ({ count: total }) }; } };
                             },
@@ -110,16 +122,24 @@ function createHarness({ viewerId = 'viewer-uid', unauthorized = false, extraPos
                 };
             }
             throw new Error(`Unexpected collection: ${name}`);
+        },
+        async getAll(...refs) {
+            getAllCalls += 1;
+            return Promise.all(refs.map((ref) => ref.get()));
         }
     };
 
-    return createNeoLearnDirectoryHandlers({
+    return {
+        ...createNeoLearnDirectoryHandlers({
         verifyAuthToken: async () => {
             if (unauthorized) throw new Error('Unauthorized: Invalid token');
             return { uid: viewerId };
         },
         db
-    });
+        }),
+        getAllCalls: () => getAllCalls,
+        postCountReads: () => postCountReads
+    };
 }
 
 function response() {
@@ -131,8 +151,8 @@ function response() {
     };
 }
 
-test('peers returns actual profiles, excludes the authenticated viewer, and strips private user data', async () => {
-    const { getPeers } = createHarness();
+test('peers returns actual profiles, batches metadata reads, and strips private user data', async () => {
+    const { getPeers, getAllCalls } = createHarness();
     const res = response();
 
     await getPeers({ headers: { authorization: 'Bearer valid' } }, res);
@@ -150,6 +170,32 @@ test('peers returns actual profiles, excludes the authenticated viewer, and stri
     assert.equal(res.body.peers[0].isLearnedByViewer, false);
     assert.equal(res.body.peers[0].thoughtOfTheDay, 'User thought wins');
     assert.equal(Object.hasOwn(res.body.peers[0], 'email'), false);
+    assert.equal(getAllCalls(), 1);
+});
+
+test('peers cursor pages remain bounded and do not repeat profiles', async () => {
+    const { getPeers } = createHarness({ extraPeers: 30 });
+    const firstPage = response();
+    await getPeers({ query: {} }, firstPage);
+    assert.equal(firstPage.body.peers.length, 24);
+    assert.ok(firstPage.body.nextCursor);
+
+    const secondPage = response();
+    await getPeers({ query: { cursor: firstPage.body.nextCursor } }, secondPage);
+    const firstIds = firstPage.body.peers.map((peer) => peer.userId);
+    const secondIds = secondPage.body.peers.map((peer) => peer.userId);
+    assert.ok(secondIds.length <= 25);
+    assert.equal(new Set([...firstIds, ...secondIds]).size, firstIds.length + secondIds.length);
+    assert.ok(!secondIds.includes('viewer-uid'));
+});
+
+test('peer suggestions skip post-count queries when counts are not requested', async () => {
+    const { getPeers, postCountReads } = createHarness();
+    const res = response();
+    await getPeers({ query: { includePostCounts: 'false' } }, res);
+    assert.equal(res.statusCode, 200);
+    assert.equal(postCountReads(), 0);
+    assert.equal(Object.hasOwn(res.body.peers[0], 'postsCount'), false);
 });
 
 test('profile response contains only allow-listed fields and only that profile posts', async () => {

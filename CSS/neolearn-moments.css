@@ -92,3 +92,18 @@ body.nb-neolearn-page :is(.nl-moment-add,.nl-moment-person,.nl-moment-icon-butto
   body.nb-neolearn-page .nl-moment-viewer-frame { border-radius: 0; }
   body.nb-neolearn-page .nl-moments-rail { gap: .65rem; }
 }
+body.nb-neolearn-page .nl-moments-load-more {
+  display: block;
+  margin: 0.75rem auto 0;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  color: var(--account-text);
+  background: var(--account-surface-raised);
+  cursor: pointer;
+}
+
+body.nb-neolearn-page .nl-moments-load-more:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}

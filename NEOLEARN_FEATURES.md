@@ -19,6 +19,13 @@ NeoLearn is an authenticated peer-learning space for discovering learners, shari
 - Post visibility counts are stored per user in local storage; a post is dismissed from the current feed after being viewed three times.
 - Separate empty states explain when there are no followed profiles or no available posts.
 - Feed cards clean up realtime listeners when removed.
+- Local feed impression history is capped to the most recently shown posts.
+- Profile photo caching reuses one IndexedDB connection and limits cached photos and active object URLs.
+
+## Moments
+
+- Moments load in bounded pages, with a control to load older unexpired items.
+- Moment profile and social-state reads are batched or concurrency-limited.
 
 ## Peers and Learning Relationships
 

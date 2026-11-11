@@ -9,12 +9,24 @@ export function parseLikeSnapshot(snapshot, userId) {
   };
 }
 
-export function createNeoLearnPublicProfileResolver(loadProfile, { cacheTtlMs = 5 * 60 * 1000, now = Date.now } = {}) {
+export function createNeoLearnPublicProfileResolver(loadProfile, {
+  cacheTtlMs = 5 * 60 * 1000,
+  maxEntries = 100,
+  now = Date.now
+} = {}) {
   const cache = new Map();
+  const cacheLimit = Number.isInteger(maxEntries) && maxEntries > 0 ? maxEntries : 100;
   const resolve = function getNeoLearnPublicProfile(userId, context) {
     if (!userId || userId.includes('/')) return Promise.reject(new Error('Invalid NeoLearn profile.'));
+    for (const [cachedUserId, entry] of cache) {
+      if (entry.expiresAt <= now()) cache.delete(cachedUserId);
+    }
     const cached = cache.get(userId);
-    if (cached && cached.expiresAt > now()) return cached.request;
+    if (cached) {
+      cache.delete(userId);
+      cache.set(userId, cached);
+      return cached.request;
+    }
     const request = Promise.resolve().then(() => loadProfile(userId, context)).then((response) => {
       const profile = response?.profile;
       if (!profile || profile.userId !== userId) throw new Error('NeoLearn profile not found.');
@@ -34,6 +46,9 @@ export function createNeoLearnPublicProfileResolver(loadProfile, { cacheTtlMs = 
       throw error;
     });
     cache.set(userId, { request, expiresAt: now() + cacheTtlMs });
+    while (cache.size > cacheLimit) {
+      cache.delete(cache.keys().next().value);
+    }
     return request;
   };
   resolve.invalidate = (userId) => cache.delete(userId);

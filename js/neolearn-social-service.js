@@ -42,17 +42,21 @@ async function authenticatedRequest(user, path, { method = 'GET', body } = {}) {
   return result;
 }
 
-export async function getNeoLearnPeersPage(user = auth.currentUser, cursor = null, type = null) {
+export async function getNeoLearnPeersPage(user = auth.currentUser, cursor = null, type = null, options = {}) {
   if (type === 'learning') {
     const result = await authenticatedRequest(user, `/api/neolearn/social/connections/${user.uid}?type=learning`);
     return { peers: result.profiles || [], nextCursor: null };
   }
-  const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : '';
+  const params = new URLSearchParams();
+  if (cursor) params.set('cursor', cursor);
+  if (options.includePostCounts === false) params.set('includePostCounts', 'false');
+  const queryString = params.toString();
+  const query = queryString ? `?${queryString}` : '';
   return authenticatedRequest(user, `/api/neolearn/peers${query}`);
 }
 
 export async function getNeoLearnPeers(user = auth.currentUser) {
-  const result = await getNeoLearnPeersPage(user);
+  const result = await getNeoLearnPeersPage(user, null, null, { includePostCounts: false });
   return result.peers;
 }
 

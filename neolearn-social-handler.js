@@ -1,4 +1,6 @@
 import { getNeoLearnBlockedUserIds, learningRelationshipId, safeSocialCount } from './neolearn-social-data.js';
+import { mapWithConcurrency } from './utils/mapWithConcurrency.js';
+import { createResponseAbortSignal } from './utils/requestCancellation.js';
 
 const MAX_FEED_POSTS_PER_QUERY = 60;
 const MAX_IN_QUERY_UIDS = 30;
@@ -31,7 +33,7 @@ function validUserId(userId) {
     return typeof userId === 'string' && userId.length > 0 && userId.length <= 128 && !userId.includes('/');
 }
 
-export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadPublicProfile }) {
+export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadPublicProfile, loadPublicProfiles }) {
     async function authenticate(req, res) {
         try {
             const decodedToken = await verifyAuthToken(req);
@@ -97,6 +99,7 @@ export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadP
             return res.status(400).json({ success: false, error: 'Invalid NeoLearn connections request.' });
         }
 
+        const requestCancellation = createResponseAbortSignal(req, res);
         try {
             const profileSnapshot = await db.collection('neolearn_profiles').doc(targetUserId).get();
             if (!profileSnapshot.exists) return res.status(404).json({ success: false, error: 'NeoLearn profile not found.' });
@@ -113,15 +116,36 @@ export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadP
                     ? relationship.data().learnerUserId
                     : relationship.data().targetUserId)
                 .filter((userId) => validUserId(userId) && userId !== targetUserId && !blockedUserIds.has(userId));
-            const profiles = await Promise.all(userIds.map(async (userId) => {
-                const snapshot = await db.collection('neolearn_profiles').doc(userId).get();
-                if (!snapshot.exists) return null;
-                return loadPublicProfile(db, userId, snapshot.data(), viewerId);
-            }));
+            const userIdBatches = [];
+            for (let index = 0; index < userIds.length; index += 100) {
+                userIdBatches.push(userIds.slice(index, index + 100));
+            }
+            const profileDocs = (await mapWithConcurrency(userIdBatches, 2, async (batch) => {
+                const snapshots = typeof loadPublicProfiles === 'function' && typeof db.getAll === 'function'
+                    ? await db.getAll(...batch.map((userId) => db.collection('neolearn_profiles').doc(userId)))
+                    : await Promise.all(batch.map((userId) => db.collection('neolearn_profiles').doc(userId).get()));
+                return snapshots
+                    .map((snapshot, index) => snapshot.exists
+                        ? { id: batch[index], data: () => snapshot.data() }
+                        : null)
+                    .filter(Boolean);
+            }, requestCancellation.signal)).flat();
+            const availableProfileDocs = profileDocs;
+            const profiles = typeof loadPublicProfiles === 'function'
+                ? await loadPublicProfiles(db, availableProfileDocs, viewerId, requestCancellation.signal)
+                : await mapWithConcurrency(
+                    availableProfileDocs,
+                    5,
+                    profile => loadPublicProfile(db, profile.id, profile.data(), viewerId),
+                    requestCancellation.signal
+                );
             return res.json({ success: true, profiles: profiles.filter(Boolean) });
         } catch (error) {
+            if (requestCancellation.signal.aborted) return;
             console.error('NeoLearn connections read failed:', error.message);
             return res.status(503).json({ success: false, error: 'NeoLearn connections could not be loaded.' });
+        } finally {
+            requestCancellation.dispose();
         }
     }
 

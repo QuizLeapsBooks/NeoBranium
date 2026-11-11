@@ -24,6 +24,7 @@ const viewersDialog = document.getElementById('nlMomentViewersDialog');
 const viewersList = document.getElementById('nlMomentViewersList');
 const viewersStatus = document.getElementById('nlMomentViewersStatus');
 const viewersCount = document.getElementById('nlMomentViewersCount');
+const loadMoreButton = document.getElementById('nlMomentsLoadMore');
 let moments = [];
 let momentGroups = [];
 let activeGroupIndex = -1;
@@ -31,14 +32,21 @@ let activeMomentIndex = -1;
 let viewerTimer = null;
 let selectedFile = null;
 let busy = false;
+let nextMomentsCursor = null;
+let momentLoadGeneration = 0;
+let momentLoadController = null;
+let isLoadingMoreMoments = false;
+let previewObjectUrl = null;
 
-async function request(path, { method = 'GET', body } = {}) {
+async function request(path, options = {}) {
+  const { method = 'GET', body, signal } = options;
   const user = auth.currentUser;
   if (!user) throw new Error('Please sign in to use Moments.');
   const token = await user.getIdToken();
   const response = await fetch(`${getBackendBaseUrl()}${path}`, {
     method,
     headers: { Authorization: `Bearer ${token}`, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    signal,
     ...(body ? { body: JSON.stringify(body) } : {})
   });
   const result = await response.json().catch(() => ({}));
@@ -94,12 +102,34 @@ function renderRail() {
   });
 }
 
-async function loadMoments() {
-  loading.hidden = false;
+async function loadMoments({ append = false } = {}) {
+  if (append && (!nextMomentsCursor || isLoadingMoreMoments)) return;
+  if (!append) {
+    momentLoadController?.abort();
+    momentLoadGeneration += 1;
+    nextMomentsCursor = null;
+    loadMoreButton.hidden = true;
+  }
+  const generation = momentLoadGeneration;
+  const cursor = append ? nextMomentsCursor : null;
+  const controller = new AbortController();
+  momentLoadController = controller;
+  isLoadingMoreMoments = append;
+  loadMoreButton.disabled = append;
+  if (!append) loading.hidden = false;
   status.textContent = '';
+  const query = new URLSearchParams({ limit: '40' });
+  if (cursor) query.set('cursor', cursor);
   try {
-    const result = await request('/api/neolearn/moments');
-    moments = Array.isArray(result.moments) ? result.moments : [];
+    const result = await request(`/api/neolearn/moments?${query}`, { signal: controller.signal });
+    if (generation !== momentLoadGeneration) return;
+    const loadedMoments = Array.isArray(result.moments) ? result.moments : [];
+    moments = append
+      ? [...new Map([...moments, ...loadedMoments].map((moment) => [moment.momentId, moment])).values()]
+      : loadedMoments;
+    moments.sort((first, second) => second.createdAt - first.createdAt);
+    nextMomentsCursor = result.nextCursor || null;
+    loadMoreButton.hidden = !nextMomentsCursor;
     renderRail();
     loading.hidden = true;
     if (window.location.hash.startsWith('#moment-')) {
@@ -109,8 +139,15 @@ async function loadMoments() {
       if (groupIndex >= 0 && momentIndex >= 0) openMoment(groupIndex, momentIndex);
     }
   } catch (error) {
+    if (controller.signal.aborted || generation !== momentLoadGeneration) return;
     loading.hidden = true;
     status.textContent = error.message || 'Moments could not be loaded.';
+  } finally {
+    if (generation === momentLoadGeneration) {
+      isLoadingMoreMoments = false;
+      loadMoreButton.disabled = false;
+      momentLoadController = null;
+    }
   }
 }
 
@@ -201,6 +238,8 @@ function openCreateDialog() {
 }
 
 function resetCreateDialog() {
+  if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
+  previewObjectUrl = null;
   selectedFile = null;
   imageInput.value = '';
   preview.removeAttribute('src');
@@ -222,8 +261,10 @@ imageInput.addEventListener('change', () => {
     imageInput.value = '';
     return;
   }
+  if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
   selectedFile = file;
-  preview.src = URL.createObjectURL(file);
+  previewObjectUrl = URL.createObjectURL(file);
+  preview.src = previewObjectUrl;
   preview.hidden = false;
   imageLabel.textContent = file.name;
   shareButton.disabled = false;
@@ -241,6 +282,7 @@ createForm.addEventListener('submit', async (event) => {
     const image = await new Promise((resolve, reject) => {
       const imageElement = new Image();
       imageElement.onload = () => {
+        URL.revokeObjectURL(sourceUrl);
         const scale = Math.min(1, 1080 / imageElement.naturalWidth, 1920 / imageElement.naturalHeight);
         const canvas = document.createElement('canvas');
         canvas.width = Math.round(imageElement.naturalWidth * scale);
@@ -254,8 +296,12 @@ createForm.addEventListener('submit', async (event) => {
           reader.readAsDataURL(blob);
         }, 'image/webp', 0.86);
       };
-      imageElement.onerror = () => reject(new Error('This photo could not be opened.'));
-      imageElement.src = URL.createObjectURL(selectedFile);
+      imageElement.onerror = () => {
+        URL.revokeObjectURL(sourceUrl);
+        reject(new Error('This photo could not be opened.'));
+      };
+      const sourceUrl = URL.createObjectURL(selectedFile);
+      imageElement.src = sourceUrl;
     });
     const result = await request('/api/neolearn/moments', {
       method: 'POST',
@@ -335,6 +381,7 @@ viewersButton.addEventListener('click', async () => {
 });
 
 document.getElementById('addNeoLearnMoment').addEventListener('click', openCreateDialog);
+loadMoreButton.addEventListener('click', () => loadMoments({ append: true }));
 document.getElementById('closeMomentCreate').addEventListener('click', () => createDialog.close());
 document.getElementById('closeMomentViewer').addEventListener('click', closeViewer);
 document.getElementById('closeMomentViewers').addEventListener('click', () => viewersDialog.close());
@@ -351,10 +398,16 @@ document.addEventListener('keydown', (event) => {
 
 const authObserver = await import('https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js');
 authObserver.onAuthStateChanged(auth, (user) => {
+  momentLoadGeneration += 1;
+  momentLoadController?.abort();
+  momentLoadController = null;
+  isLoadingMoreMoments = false;
+  loadMoreButton.hidden = true;
   if (user) loadMoments();
   else {
     moments = [];
     momentGroups = [];
+    nextMomentsCursor = null;
     renderRail();
     loading.hidden = true;
   }

@@ -31,7 +31,7 @@ import { getRoutineTextModel, getVisionModel, getHandwritingModel, getLiveModel,
 import { v2 as cloudinary } from 'cloudinary';
 import { createNeoLearnUploadHandler } from './neolearn-upload-handler.js';
 import { createNeoLearnMomentHandlers } from './neolearn-moment-handler.js';
-import { createNeoLearnDirectoryHandlers, loadPublicProfile } from './neolearn-directory-handler.js';
+import { createNeoLearnDirectoryHandlers, loadPublicProfile, loadPublicProfiles } from './neolearn-directory-handler.js';
 import { createNeoLearnSocialHandlers } from './neolearn-social-handler.js';
 import { createNeoLearnNotificationHandlers } from './neolearn-notification-handler.js';
 import { createNeoLearnModerationHandlers } from './neolearn-moderation-handler.js';
@@ -47,6 +47,7 @@ import {
     pipeWebStreamToResponse,
     sharedAiConcurrency
 } from './utils/backendRequestProtection.js';
+import { createUserMemoryStore } from './utils/userMemoryStore.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -281,62 +282,14 @@ const handwritingInFlight = new Set();
 const handwritingRateLimit = rateLimit({windowMs:15*60*1000,max:20,standardHeaders:true,legacyHeaders:false,keyGenerator:req=>req.uid||req.ip,message:{error:'NeoBoard AI is receiving requests too quickly. Please wait a few minutes and try again.',code:'RATE_LIMITED'}});
 
 
-// In-memory fallback if Redis is down
-const fallbackMemory = new Map();
+const userMemoryStore = createUserMemoryStore({ redisClient });
+const getUserMemory = userMemoryStore.getUserMemory;
+const saveUserMemory = userMemoryStore.saveUserMemory;
 
-// Helper to get memory (Redis preferred)
-async function getUserMemory(userId) {
-    if (redisClient.isReady) {
-        try {
-            const data = await redisClient.hGet('user_memory', userId);
-            if (data) {
-                const parsed = JSON.parse(data);
-                // Convert stringified dates back to Date objects
-                parsed.sessionStart = new Date(parsed.sessionStart);
-                return parsed;
-            }
-        } catch (e) {
-            console.error('Redis memory fetch failed:', e);
-        }
-    }
-    // Fallback
-    return fallbackMemory.get(userId);
-}
-
-// Helper to save memory (Redis preferred)
-async function saveUserMemory(userId, memoryData) {
-    if (redisClient.isReady) {
-        try {
-            // Redis hashes take strings, so JSON.stringify the object
-            // Use 'topics' as an Array because Set doesn't stringify well
-            await redisClient.hSet('user_memory', userId, JSON.stringify(memoryData));
-            // Expire memory after 1 hour of inactivity
-            await redisClient.expire('user_memory', 3600);
-            return;
-        } catch (e) {
-            console.error('Redis memory save failed:', e);
-        }
-    }
-    // Fallback: use Map
-    fallbackMemory.set(userId, memoryData);
-}
-
-// Cleanup fallback memory every 10 minutes (not on every save — avoids O(n) per request)
-setInterval(() => {
-    const now = Date.now();
-    const maxAge = 60 * 60 * 1000; // 1 hour
-    for (const [id, mem] of fallbackMemory) {
-        if (!mem || !mem.sessionStart || !(mem.sessionStart instanceof Date) ||
-            now - mem.sessionStart.getTime() > maxAge) {
-            fallbackMemory.delete(id);
-        }
-    }
-    if (fallbackMemory.size > 1000) {
-        const entries = Array.from(fallbackMemory.entries())
-            .sort((a, b) => a[1].sessionStart - b[1].sessionStart);
-        entries.slice(0, entries.length - 500).forEach(([id]) => fallbackMemory.delete(id));
-    }
+const userMemoryCleanupTimer = setInterval(() => {
+    userMemoryStore.cleanup().catch(error => console.error('User memory cleanup failed:', error));
 }, 10 * 60 * 1000);
+userMemoryCleanupTimer.unref?.();
 
 const textAiConcurrency = createConcurrencyLimiter({
     name: 'Text AI',
@@ -1793,38 +1746,7 @@ app.get('/api/stats', async (req, res) => {
         return res.status(403).json({ error: 'Unauthorized' });
     }
     try {
-        let activeUsers = 0;
-        let totalMessages = 0;
-        const topicMap = new Map();
-
-        let allMemories = [];
-
-        if (redisClient.isReady) {
-            // Fetch from Redis
-            const allRedisData = await redisClient.hGetAll('user_memory');
-            allMemories = Object.values(allRedisData).map(val => JSON.parse(val));
-        } else {
-            // Fetch from fallback Map
-            allMemories = Array.from(fallbackMemory.values());
-        }
-
-        activeUsers = allMemories.length;
-
-        for (const memory of allMemories) {
-            totalMessages += memory.messageCount || 0;
-            const topics = memory.topics || [];
-            for (const topic of topics) {
-                topicMap.set(topic, (topicMap.get(topic) || 0) + 1);
-            }
-        }
-
-        const stats = {
-            activeUsers,
-            totalMessages,
-            topicDistribution: Object.fromEntries(topicMap)
-        };
-
-        res.json(stats);
+        res.json(await userMemoryStore.getSummary());
     } catch (error) {
         console.error("Stats processing error:", error);
         res.status(500).json({ error: "Failed to load stats" });
@@ -2016,7 +1938,7 @@ app.post('/api/neolearn/settings', async (req, res) => {
     }
 });
 
-const neoLearnSocialHandlers = createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadPublicProfile });
+const neoLearnSocialHandlers = createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadPublicProfile, loadPublicProfiles });
 app.get('/api/neolearn/social/summary/:userId', neoLearnSocialHandlers.getSummary);
 app.get('/api/neolearn/social/connections/:userId', neoLearnSocialHandlers.getConnections);
 app.post('/api/neolearn/social/learning', neoLearnSocialHandlers.setLearning);

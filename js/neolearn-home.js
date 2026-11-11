@@ -5,6 +5,7 @@ import { renderPostCard, openPostDetail } from './neolearn-social-ui.js';
 import {
   filterPostsBelowViewLimit,
   mergeImpressionCounts,
+  pruneImpressionHistory,
   recordPostView,
   selectFeedPosts
 } from './neolearn-feed-history.js';
@@ -176,6 +177,7 @@ function clearFeedCards() {
 function savePostViewCounts() {
   if (!currentUser) return;
   try {
+    ({ viewCounts: postViewCounts, lastShownAt } = pruneImpressionHistory(postViewCounts, lastShownAt));
     localStorage.setItem(`neolearnPostViews_${currentUser.uid}`, JSON.stringify(postViewCounts));
     localStorage.setItem(`neolearnLastShownAt_${currentUser.uid}`, JSON.stringify(lastShownAt));
   } catch {}
@@ -321,6 +323,7 @@ async function loadDiscoveryFeed(learningCount) {
       console.warn('[NeoLearn] Feed impression filtering is temporarily unavailable.');
     }
     postViewCounts = mergeImpressionCounts(postViewCounts, result.impressionCounts);
+    ({ viewCounts: postViewCounts, lastShownAt } = pruneImpressionHistory(postViewCounts, lastShownAt));
     savePostViewCounts();
     sessionStorage.setItem(`neolearnDiscoveryCache_${user.uid}`, JSON.stringify(result));
     const localSelection = selectFeedPosts(result.feed, postViewCounts, lastShownAt);
@@ -374,6 +377,7 @@ async function loadFeed() {
       console.warn('[NeoLearn] Feed impression filtering is temporarily unavailable.');
     }
     postViewCounts = mergeImpressionCounts(postViewCounts, result.impressionCounts);
+    ({ viewCounts: postViewCounts, lastShownAt } = pruneImpressionHistory(postViewCounts, lastShownAt));
     savePostViewCounts();
     sessionStorage.setItem('neolearnFeedCache_' + user.uid, JSON.stringify(result));
     const localSelection = selectFeedPosts(result.feed, postViewCounts, lastShownAt);
@@ -427,6 +431,7 @@ async function handleUser(user) {
   } catch {
     lastShownAt = {};
   }
+  ({ viewCounts: postViewCounts, lastShownAt } = pruneImpressionHistory(postViewCounts, lastShownAt));
 
   const accessPromise = checkAccess(true);
   const profilePromise = getDoc(doc(db, 'neolearn_profiles', user.uid));

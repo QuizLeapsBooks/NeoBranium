@@ -16,6 +16,7 @@ import {
   filterPostsBelowViewLimit,
   MAX_POST_VIEWS,
   mergeImpressionCounts,
+  pruneImpressionHistory,
   recordPostView,
   selectFeedPosts,
   sortByFreshness,
@@ -328,6 +329,28 @@ test('buildFallbackFeed — orders by oldest lastShownAt', () => {
   const lastShownAt = { old: 1000, recent: 3000, mid: 2000 };
   const fallback = buildFallbackFeed(posts, lastShownAt, 10);
   assert.deepEqual(fallback.map(p => p.postId), ['old', 'mid', 'recent']);
+});
+
+test('pruneImpressionHistory retains only the most recently shown entries', () => {
+  const result = pruneImpressionHistory(
+    { old: 3, recent: 1, missingTime: 2 },
+    { old: 100, recent: 300 },
+    2
+  );
+  assert.deepEqual(result, {
+    viewCounts: { recent: 1, old: 3 },
+    lastShownAt: { recent: 300, old: 100 }
+  });
+  assert.deepEqual(pruneImpressionHistory({ a: 1 }, {}, 0), { viewCounts: {}, lastShownAt: {} });
+});
+
+test('default local impression history capacity remains bounded', () => {
+  const views = Object.fromEntries(Array.from({ length: 600 }, (_, index) => [`post-${index}`, 1]));
+  const shown = Object.fromEntries(Array.from({ length: 600 }, (_, index) => [`post-${index}`, index]));
+  const result = pruneImpressionHistory(views, shown);
+  assert.equal(Object.keys(result.viewCounts).length, 500);
+  assert.equal(Object.keys(result.lastShownAt).length, 500);
+  assert.equal(result.lastShownAt['post-599'], 599);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

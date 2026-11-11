@@ -1,3 +1,6 @@
+import { retainBoundedObjectUrl } from './utils/boundedObjectUrlCache.js';
+import { readBlobWithLimit } from './utils/readBlobWithLimit.js';
+
 /**
  * Profile Photo Cache & Storage Manager
  * Uses IndexedDB to store image blobs locally for instant rendering on repeat visits.
@@ -7,19 +10,29 @@
 const DB_NAME = 'neobranium_profile_cache';
 const DB_VERSION = 1;
 const STORE_NAME = 'photos';
+const MAX_ACTIVE_PROFILE_OBJECT_URLS = 50;
+const MAX_CACHED_PROFILE_PHOTOS = 50;
+const MAX_PROFILE_PHOTO_CACHE_BYTES = 1024 * 1024;
 
 // In-memory cache of created object URLs to revoke them when no longer needed
 const activeObjectUrls = new Map();
+let photoDbPromise = null;
+
+function retainObjectUrl(userId, objectUrl) {
+  retainBoundedObjectUrl(activeObjectUrls, userId, objectUrl, MAX_ACTIVE_PROFILE_OBJECT_URLS, URL.revokeObjectURL.bind(URL));
+}
 
 /**
  * Opens or initializes the IndexedDB database.
  * @returns {Promise<IDBDatabase>}
  */
 function openPhotoDb() {
-  return new Promise((resolve, reject) => {
-    if (typeof window === 'undefined' || !window.indexedDB) {
-      return reject(new Error('IndexedDB is not supported in this environment'));
-    }
+  if (typeof window === 'undefined' || !window.indexedDB) {
+    return Promise.reject(new Error('IndexedDB is not supported in this environment'));
+  }
+  if (photoDbPromise) return photoDbPromise;
+
+  photoDbPromise = new Promise((resolve, reject) => {
     const request = window.indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onupgradeneeded = (event) => {
@@ -29,9 +42,20 @@ function openPhotoDb() {
       }
     };
 
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      db.onversionchange = () => {
+        db.close();
+        photoDbPromise = null;
+      };
+      resolve(db);
+    };
+    request.onerror = () => {
+      photoDbPromise = null;
+      reject(request.error);
+    };
   });
+  return photoDbPromise;
 }
 /**
  * Retrieves a cached profile photo blob and returns an object URL.
@@ -52,12 +76,8 @@ export async function getCachedProfilePhoto(userId) {
         if (!record || !record.blob) {
           return resolve(null);
         }
-        // Revoke previously created URL for this user if existing to prevent memory leak
-        if (activeObjectUrls.has(userId)) {
-          try { URL.revokeObjectURL(activeObjectUrls.get(userId)); } catch (e) {}
-        }
         const objectUrl = URL.createObjectURL(record.blob);
-        activeObjectUrls.set(userId, objectUrl);
+        retainObjectUrl(userId, objectUrl);
 
         resolve({
           url: record.url,
@@ -94,8 +114,26 @@ export async function saveProfilePhotoToCache(userId, url, blob) {
         cachedAt: Date.now()
       };
       const req = store.put(record);
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error);
+      req.onsuccess = () => {
+        const countRequest = store.count();
+        countRequest.onsuccess = () => {
+          let excess = countRequest.result - MAX_CACHED_PROFILE_PHOTOS;
+          if (excess <= 0) return;
+          const cursorRequest = store.openCursor();
+          cursorRequest.onsuccess = () => {
+            const cursor = cursorRequest.result;
+            if (!cursor || excess <= 0) return;
+            if (cursor.key !== userId) {
+              cursor.delete();
+              excess -= 1;
+            }
+            cursor.continue();
+          };
+        };
+      };
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
     });
   } catch (err) {
     console.warn('Could not save to IndexedDB profile photo cache:', err);
@@ -137,14 +175,11 @@ export async function fetchAndCacheProfilePhoto(userId, url) {
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`HTTP status ${res.status}`);
-    const blob = await res.blob();
+    const blob = await readBlobWithLimit(res, MAX_PROFILE_PHOTO_CACHE_BYTES);
     await saveProfilePhotoToCache(userId, url, blob);
 
-    if (activeObjectUrls.has(userId)) {
-      try { URL.revokeObjectURL(activeObjectUrls.get(userId)); } catch (e) {}
-    }
     const objectUrl = URL.createObjectURL(blob);
-    activeObjectUrls.set(userId, objectUrl);
+    retainObjectUrl(userId, objectUrl);
     return objectUrl;
   } catch (err) {
     console.warn('Could not fetch and cache remote profile photo:', err);

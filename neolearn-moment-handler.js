@@ -1,8 +1,12 @@
 import { getNeoLearnBlockedUserIds, learningRelationshipId } from './neolearn-social-data.js';
+import { mapWithConcurrency } from './utils/mapWithConcurrency.js';
+import { createResponseAbortSignal } from './utils/requestCancellation.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const MAX_MOMENTS = 300;
+const MAX_MOMENTS_PER_PAGE = 40;
+const MOMENT_READ_CONCURRENCY = 6;
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 function validId(value) {
@@ -111,34 +115,66 @@ export function createNeoLearnMomentHandlers({ verifyAuthToken, db, rtdb, admin,
         if (!viewerId) return;
         if (!db || !rtdb) return res.status(503).json({ success: false, error: 'Moment storage is unavailable.' });
 
+        const requestCancellation = createResponseAbortSignal(req, res);
+        const requestedLimit = req.query?.limit;
+        const pageSize = requestedLimit === undefined ? MAX_MOMENTS : Number(requestedLimit);
+        const cursor = req.query?.cursor;
+        if (!Number.isInteger(pageSize) || pageSize < 1
+            || (requestedLimit !== undefined
+                && (typeof requestedLimit !== 'string' || !/^\d+$/.test(requestedLimit) || pageSize > MAX_MOMENTS_PER_PAGE))
+            || (cursor !== undefined && (typeof cursor !== 'string' || !cursor || cursor.length > 128 || cursor.includes('/')))) {
+            requestCancellation.dispose();
+            return res.status(400).json({ success: false, error: 'Invalid Moments page.' });
+        }
+
         try {
+            const momentsCollection = db.collection('neolearn_moments');
+            let momentsQuery = momentsCollection
+                .where('expiresAt', '>', admin.firestore.Timestamp.fromMillis(Date.now()))
+                .orderBy('expiresAt', 'asc');
+            if (cursor) {
+                const cursorSnapshot = await momentsCollection.doc(cursor).get();
+                if (!cursorSnapshot.exists) return res.status(400).json({ success: false, error: 'Invalid Moments page.' });
+                momentsQuery = momentsQuery.startAfter(cursorSnapshot);
+            }
             const [snapshot, learningSnapshot, followerSnapshot, blockedUserIds] = await Promise.all([
-                db.collection('neolearn_moments')
-                    .where('expiresAt', '>', admin.firestore.Timestamp.fromMillis(Date.now()))
-                    .orderBy('expiresAt', 'asc')
-                    .limit(MAX_MOMENTS)
-                    .get(),
+                momentsQuery.limit(pageSize + (requestedLimit === undefined ? 0 : 1)).get(),
                 db.collection('neolearn_learning').where('learnerUserId', '==', viewerId).get(),
                 db.collection('neolearn_learning').where('targetUserId', '==', viewerId).get(),
                 getNeoLearnBlockedUserIds(db, viewerId)
             ]);
+            if (requestCancellation.signal.aborted) return;
+            const pageDocs = snapshot.docs.slice(0, pageSize);
+            const nextCursor = requestedLimit !== undefined && snapshot.docs.length > pageSize
+                ? pageDocs.at(-1)?.id || null
+                : null;
             const learningIds = new Set(learningSnapshot.docs.map((doc) => doc.data().targetUserId));
             const followerIds = new Set(followerSnapshot.docs.map((doc) => doc.data().learnerUserId));
-            const eligible = snapshot.docs.map((doc) => ({ momentId: doc.id, ...doc.data() }))
-                .filter((moment) => timestampMillis(moment.expiresAt) > Date.now()
+            const now = Date.now();
+            const eligible = pageDocs.map((doc) => ({ momentId: doc.id, ...doc.data() }))
+                .filter((moment) => timestampMillis(moment.expiresAt) > now
                     && validId(moment.userId)
                     && !blockedUserIds.has(moment.userId)
                     && (moment.userId === viewerId || (learningIds.has(moment.userId)
                         && (moment.audience === 'everyone'
                             || (moment.audience === 'learning' && followerIds.has(moment.userId))))))
                 .sort((first, second) => timestampMillis(second.createdAt) - timestampMillis(first.createdAt));
-            const moments = await Promise.all(eligible.map(async (moment) => {
-                const [profileSnapshot, likeSnapshot, viewSnapshot] = await Promise.all([
-                    db.collection('neolearn_profiles').doc(moment.userId).get(),
-                    rtdb.ref(`neolearn_realtime/moment_likes/${moment.momentId}`).get(),
-                    rtdb.ref(`neolearn_realtime/moment_views/${moment.momentId}`).get()
-                ]);
-                const profile = profileSnapshot.exists ? profileSnapshot.data() : {};
+            const authorIds = [...new Set(eligible.map((moment) => moment.userId))];
+            const authorSnapshots = authorIds.length && typeof db.getAll === 'function'
+                ? await db.getAll(...authorIds.map((userId) => db.collection('neolearn_profiles').doc(userId)))
+                : await mapWithConcurrency(authorIds, MOMENT_READ_CONCURRENCY, userId =>
+                    db.collection('neolearn_profiles').doc(userId).get(), requestCancellation.signal);
+            if (requestCancellation.signal.aborted) return;
+            const profiles = new Map(authorIds.map((userId, index) => [
+                userId,
+                authorSnapshots[index].exists ? authorSnapshots[index].data() : {}
+            ]));
+            const moments = await mapWithConcurrency(eligible, MOMENT_READ_CONCURRENCY, async (moment) => {
+                const likeSnapshot = await rtdb.ref(`neolearn_realtime/moment_likes/${moment.momentId}`).get();
+                const viewSnapshot = moment.userId === viewerId
+                    ? await rtdb.ref(`neolearn_realtime/moment_views/${moment.momentId}`).get()
+                    : { val: () => null };
+                const profile = profiles.get(moment.userId) || {};
                 const likes = likeSnapshot.val() || {};
                 const views = viewSnapshot.val() || {};
                 return {
@@ -154,11 +190,17 @@ export function createNeoLearnMomentHandlers({ verifyAuthToken, db, rtdb, admin,
                     isLiked: likes[viewerId] === true,
                     viewCount: moment.userId === viewerId ? Object.keys(views).length : null
                 };
-            }));
-            return res.json({ success: true, moments });
+            }, requestCancellation.signal);
+            if (requestCancellation.signal.aborted) return;
+            return requestedLimit === undefined
+                ? res.json({ success: true, moments })
+                : res.json({ success: true, moments, nextCursor });
         } catch (error) {
+            if (requestCancellation.signal.aborted) return;
             console.error('[NeoLearn Moments] Load failed:', error.message);
             return res.status(503).json({ success: false, error: 'Moments could not be loaded.' });
+        } finally {
+            requestCancellation.dispose();
         }
     }
 

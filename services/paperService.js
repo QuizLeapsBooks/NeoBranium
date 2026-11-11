@@ -7,8 +7,10 @@
 
 import crypto from 'crypto';
 import { db } from '../firebaseAdmin.js';
+import { getAndRefresh, setBoundedMapEntry } from '../utils/boundedMap.js';
 
-// In-memory paper registry (keyed by paperId)
+const MAX_CACHED_PAPER_RECORDS = 500;
+
 const memoryPaperStore = new Map();
 const memoryModelAnswerStore = new Map();
 const memoryEvaluationStore = new Map();
@@ -57,13 +59,7 @@ export async function savePaperRecord(paper) {
     savedAt: new Date().toISOString()
   };
 
-  memoryPaperStore.set(paper.paperId, record);
-
-  // Clean memory store if it grows too large (keep last 500)
-  if (memoryPaperStore.size > 500) {
-    const oldestKey = memoryPaperStore.keys().next().value;
-    memoryPaperStore.delete(oldestKey);
-  }
+  setBoundedMapEntry(memoryPaperStore, paper.paperId, record, MAX_CACHED_PAPER_RECORDS);
 
   // Persist to Firestore if available
   if (db) {
@@ -90,14 +86,14 @@ export async function savePaperRecord(paper) {
 export async function getPaperRecord(paperId, requesterUid, clientSessionId = null, ipHash = null) {
   if (!paperId) throw new Error('paperId is required.');
 
-  let record = memoryPaperStore.get(paperId);
+  let record = getAndRefresh(memoryPaperStore, paperId);
 
   if (!record && db) {
     try {
       const snap = await db.collection('exam_papers').doc(paperId).get();
       if (snap.exists) {
         record = snap.data();
-        memoryPaperStore.set(paperId, record);
+        setBoundedMapEntry(memoryPaperStore, paperId, record, MAX_CACHED_PAPER_RECORDS);
       }
     } catch (err) {
       console.warn('[PaperService] Firestore fetch error:', err.message);
@@ -142,7 +138,7 @@ export async function saveModelAnswersRecord(paperId, ownerUid, modelAnswers) {
     generatedAt: new Date().toISOString()
   };
 
-  memoryModelAnswerStore.set(paperId, record);
+  setBoundedMapEntry(memoryModelAnswerStore, paperId, record, MAX_CACHED_PAPER_RECORDS);
 
   if (db) {
     try {
@@ -162,13 +158,13 @@ export async function getModelAnswersRecord(paperId, requesterUid, clientSession
   // Paper must be owned by requester
   await getPaperRecord(paperId, requesterUid, clientSessionId, ipHash);
 
-  let record = memoryModelAnswerStore.get(paperId);
+  let record = getAndRefresh(memoryModelAnswerStore, paperId);
   if (!record && db) {
     try {
       const snap = await db.collection('paper_model_answers').doc(paperId).get();
       if (snap.exists) {
         record = snap.data();
-        memoryModelAnswerStore.set(paperId, record);
+        setBoundedMapEntry(memoryModelAnswerStore, paperId, record, MAX_CACHED_PAPER_RECORDS);
       }
     } catch (err) {
       console.warn('[PaperService] Firestore model answers fetch error:', err.message);
@@ -189,7 +185,7 @@ export async function saveEvaluationRecord(paperId, ownerUid, evaluationData) {
     evaluatedAt: new Date().toISOString()
   };
 
-  memoryEvaluationStore.set(paperId, record);
+  setBoundedMapEntry(memoryEvaluationStore, paperId, record, MAX_CACHED_PAPER_RECORDS);
 
   if (db) {
     try {
@@ -208,13 +204,13 @@ export async function saveEvaluationRecord(paperId, ownerUid, evaluationData) {
 export async function getEvaluationRecord(paperId, requesterUid, clientSessionId = null, ipHash = null) {
   await getPaperRecord(paperId, requesterUid, clientSessionId, ipHash);
 
-  let record = memoryEvaluationStore.get(paperId);
+  let record = getAndRefresh(memoryEvaluationStore, paperId);
   if (!record && db) {
     try {
       const snap = await db.collection('paper_evaluations').doc(paperId).get();
       if (snap.exists) {
         record = snap.data();
-        memoryEvaluationStore.set(paperId, record);
+        setBoundedMapEntry(memoryEvaluationStore, paperId, record, MAX_CACHED_PAPER_RECORDS);
       }
     } catch (err) {
       console.warn('[PaperService] Firestore evaluation fetch error:', err.message);
