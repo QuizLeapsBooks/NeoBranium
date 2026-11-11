@@ -6,7 +6,7 @@
     "node": "24.22.1"
   },
   "scripts": {
-    "test": "node --test *.test.js NeoBoard/*.test.js",
+    "test": "node --test *.test.js services/*.test.js NeoBoard/*.test.js",
     "test:live-ai": "node NeoBot/test-frontend.js && node NeoBot/test-server.js",
     "start": "node server.js",
     "dev": "nodemon server.js",

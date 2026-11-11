@@ -5,6 +5,7 @@
 
 import { auth, onAuthStateChanged, signOut } from '/js/auth.js';
 import { initQuizFeature } from './neobook-quiz.js';
+import { initMindMapFeature } from './neobook-mindmap.js';
 
 // Application State
 const DEFAULT_NOTEBOOK_ID = 'nb_default';
@@ -1387,6 +1388,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── Initialise Quiz Feature ───────────────────────────────────────────────
   initQuizFeature(state, apiRequest, escapeHtml, showToast);
+  initMindMapFeature(state, apiRequest, escapeHtml, showToast);
 
   // Rename notebook title and synchronize with server / Firebase Firestore
   const titleInput = document.getElementById('notebookTitleInput');
@@ -1430,6 +1432,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (uid !== state.currentIdentityUid) {
         // Identity changed (guest→user, user→guest, or first load).
         // Reset notebook state so we reload under the new identity.
+        document.dispatchEvent(new Event('neobook:identity-change'));
         state.activeNotebook = null;
         state.activeChat = null;
         state.sources = [];

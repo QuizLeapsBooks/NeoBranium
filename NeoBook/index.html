@@ -17,6 +17,7 @@
   <!-- Stylesheet -->
   <link rel="stylesheet" href="./neobook.css">
   <link rel="stylesheet" href="./neobook-quiz.css">
+  <link rel="stylesheet" href="./neobook-mindmap.css">
 
   <!-- KaTeX for crisp mathematical formulas -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -186,13 +187,13 @@
           <i class="fas fa-wand-magic-sparkles"></i>
           <span>Studio Space</span>
         </div>
-        <span class="panel-badge">Future</span>
+        <span class="panel-badge">AI Tools</span>
       </div>
 
       <div class="panel-body">
         <div class="studio-intro">
-          <h3>Generated Guides</h3>
-          <p>Upcoming multi-modal synthesis tools generated directly from your active sources.</p>
+          <h3>Study Studio</h3>
+          <p>Explore source-grounded study tools generated from the active materials in this chat.</p>
         </div>
 
         <div class="studio-cards-grid">
@@ -209,6 +210,20 @@
             <div class="studio-card-action">
               <i class="fas fa-circle-play"></i>
               <span>Audio Generation Engine</span>
+            </div>
+          </article>
+
+          <!-- Interactive source-grounded mind map -->
+          <article class="studio-card mindmap active" id="btnOpenMindMap" role="button" tabindex="0">
+            <div class="studio-card-header">
+              <div class="studio-card-icon"><i class="fas fa-diagram-project"></i></div>
+              <span class="badge-quiz-active"><i class="fas fa-play"></i> Explore</span>
+            </div>
+            <h4>Interactive Mind Map</h4>
+            <p>Explore source-grounded topics and relationships in an expandable, navigable concept map.</p>
+            <div class="studio-card-action">
+              <i class="fas fa-share-nodes"></i>
+              <span>Generate &amp; Explore</span>
             </div>
           </article>
 
@@ -275,6 +290,103 @@
     </section>
 
   </main>
+
+  <!-- ── MODAL: Mind Map source selection and saved maps ──────────────────── -->
+  <div class="modal-overlay" id="mindMapSetupModal" aria-hidden="true">
+    <section class="modal-window mindmap-setup-window" role="dialog" aria-modal="true" aria-labelledby="mindMapSetupTitle">
+      <header class="modal-header">
+        <div>
+          <h3 id="mindMapSetupTitle">Interactive Mind Map</h3>
+          <p class="modal-subtitle">Build a visual overview from the active sources in this chat.</p>
+        </div>
+        <button class="modal-close-btn" id="btnCloseMindMapSetup" type="button" aria-label="Close mind map setup">&times;</button>
+      </header>
+      <div class="modal-body mindmap-setup-body">
+        <section>
+          <div class="mindmap-section-heading">
+            <strong>Saved maps</strong>
+            <span>Reopen a previous map from this chat</span>
+          </div>
+          <div id="mindMapSavedList" class="mindmap-saved-list"></div>
+        </section>
+        <section>
+          <div class="mindmap-section-heading">
+            <strong>Sources</strong>
+            <span>Only ready sources from the current chat are available</span>
+          </div>
+          <fieldset class="mindmap-source-mode">
+            <label><input type="radio" name="mindMapSourceMode" value="all" checked> All active sources</label>
+            <label><input type="radio" name="mindMapSourceMode" value="selected"> Selected sources</label>
+          </fieldset>
+          <div id="mindMapSourceList" class="mindmap-source-list"></div>
+        </section>
+      </div>
+      <footer class="modal-footer mindmap-setup-footer">
+        <button class="btn-cancel" id="btnCancelMindMapSetup" type="button">Return to workspace</button>
+        <button class="btn-primary" id="btnGenerateMindMap" type="button">
+          <i class="fas fa-diagram-project"></i><span>Generate Mind Map</span>
+        </button>
+      </footer>
+    </section>
+  </div>
+
+  <!-- ── Interactive Mind Map workspace ───────────────────────────────────── -->
+  <section class="mindmap-workspace" id="mindMapWorkspace" aria-label="Interactive mind map" hidden>
+    <header class="mindmap-toolbar">
+      <div class="mindmap-toolbar-left">
+        <button class="mindmap-tool-button" id="btnMindMapBack" type="button" title="Return to NeoBook workspace">
+          <i class="fas fa-arrow-left"></i><span>NeoBook</span>
+        </button>
+        <div class="mindmap-heading">
+          <strong id="mindMapTitle">Mind Map</strong>
+          <span id="mindMapSourceSummary"></span>
+        </div>
+      </div>
+      <div class="mindmap-toolbar-actions">
+        <button class="mindmap-tool-button" id="btnMindMapZoomOut" type="button" title="Zoom out" aria-label="Zoom out"><i class="fas fa-minus"></i></button>
+        <button class="mindmap-tool-button" id="btnMindMapZoomIn" type="button" title="Zoom in" aria-label="Zoom in"><i class="fas fa-plus"></i></button>
+        <button class="mindmap-tool-button" id="btnMindMapFit" type="button" title="Fit map to screen"><i class="fas fa-expand"></i><span>Fit</span></button>
+        <button class="mindmap-tool-button" id="btnMindMapExpandAll" type="button" title="Expand all topics"><i class="fas fa-angles-down"></i><span>Expand all</span></button>
+        <button class="mindmap-tool-button" id="btnMindMapCollapseAll" type="button" title="Collapse all topics"><i class="fas fa-angles-up"></i><span>Collapse</span></button>
+        <button class="mindmap-tool-button" id="btnMindMapReset" type="button" title="Reset map layout"><i class="fas fa-arrow-rotate-left"></i><span>Reset</span></button>
+        <button class="mindmap-tool-button" id="btnMindMapExport" type="button" title="Download the mind map"><i class="fas fa-download"></i><span>Export</span></button>
+        <button class="mindmap-tool-button" id="btnMindMapRegenerate" type="button" title="Generate a fresh map from sources"><i class="fas fa-arrows-rotate"></i><span>Regenerate</span></button>
+      </div>
+    </header>
+    <div class="mindmap-content">
+      <div class="mindmap-canvas-wrap" id="mindMapCanvasWrap">
+        <div class="mindmap-loading" id="mindMapLoading" hidden>
+          <span class="mindmap-spinner" aria-hidden="true"></span>
+          <strong>Building your source-grounded map…</strong>
+          <span id="mindMapLoadingMessage">Finding themes and relationships in your sources.</span>
+        </div>
+        <div class="mindmap-empty" id="mindMapEmpty" hidden></div>
+        <svg id="mindMapSvg" role="img" aria-label="Interactive source-grounded mind map"></svg>
+        <div class="mindmap-canvas-hint"><i class="fas fa-hand"></i> Drag to pan · Scroll to zoom · Drag a topic to reposition</div>
+      </div>
+      <aside class="mindmap-details" id="mindMapDetails" aria-live="polite">
+        <div class="mindmap-details-empty">
+          <i class="fas fa-circle-nodes"></i>
+          <strong>Explore a topic</strong>
+          <span>Select a node to see its summary, source references, and AI actions.</span>
+        </div>
+        <div class="mindmap-node-details" id="mindMapNodeDetails" hidden>
+          <div class="mindmap-node-kicker">Selected topic</div>
+          <h2 id="mindMapNodeTitle"></h2>
+          <p id="mindMapNodeSummary"></p>
+          <div class="mindmap-node-actions">
+            <button type="button" class="btn-primary" id="btnMindMapExplain"><i class="fas fa-lightbulb"></i><span>Explain with AI</span></button>
+            <button type="button" class="mindmap-secondary-button" id="btnMindMapExpand"><i class="fas fa-code-branch"></i><span>Generate subtopics</span></button>
+          </div>
+          <div class="mindmap-answer" id="mindMapAnswer" hidden></div>
+          <div class="mindmap-citations">
+            <strong><i class="fas fa-book-open"></i> Source references</strong>
+            <div id="mindMapCitationList"></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
 
   <!-- ── MODAL: Interactive Knowledge Quiz ──────────────────────────────────── -->
   <div class="modal-overlay quiz-modal-overlay" id="quizModal">

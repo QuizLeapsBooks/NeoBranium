@@ -432,6 +432,10 @@ service cloud.firestore {
       allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
       allow write: if false;
     }
+    match /neobook_mindmaps/{mapId} {
+      allow read: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow write: if false;
+    }
 
     // 6. Chat messages - Authenticated owners can read messages matching their UID or ownerKey; writes via Admin SDK only
     match /neobook_messages/{messageId} {
