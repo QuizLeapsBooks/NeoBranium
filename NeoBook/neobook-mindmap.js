@@ -1,5 +1,35 @@
-const D3_URL = 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+const D3_URL = 'https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js';
 const MAX_VISIBLE_NODES = 300;
+const MAX_FULL_GRAPH_ANIMATION_NODES = 120;
+const MAX_ANIMATED_BATCH_SIZE = 24;
+const MAX_ANIMATED_MOVED_NODES = 40;
+let d3LoadPromise = null;
+
+function loadD3() {
+  if (globalThis.d3) return Promise.resolve(globalThis.d3);
+  if (d3LoadPromise) return d3LoadPromise;
+  d3LoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = D3_URL;
+    script.async = true;
+    script.onload = () => {
+      if (globalThis.d3) resolve(globalThis.d3);
+      else {
+        script.remove();
+        reject(new Error('D3 loaded without exposing its API.'));
+      }
+    };
+    script.onerror = () => {
+      script.remove();
+      reject(new Error('D3 could not be downloaded.'));
+    };
+    document.head.appendChild(script);
+  }).catch(error => {
+    d3LoadPromise = null;
+    throw error;
+  });
+  return d3LoadPromise;
+}
 
 export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
   const setup = document.getElementById('mindMapSetupModal');
@@ -23,23 +53,48 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
     width: 0,
     height: 0,
     visibleNodes: [],
+    visibleNodeById: new Map(),
+    nodeById: new Map(),
+    nodeElements: new Map(),
+    linkElements: new Map(),
+    pathNodeIds: new Set(),
+    pathLinkKeys: new Set(),
     saveTimer: null,
     saveInFlight: false,
     savePending: false,
     resizeObserver: null,
+    resizeFrame: 0,
+    dragFrame: 0,
+    pendingDrag: null,
+    dragIndex: null,
+    dragBehavior: null,
+    d3Promise: null,
+    pendingFit: false,
+    savedMapsController: null,
+    savedMapsPromise: null,
+    savedMapsKey: null,
+    mapController: null,
+    aiController: null,
+    generatingNodeId: null,
     isGenerating: false,
-    identityEpoch: 0
+    identityEpoch: 0,
+    operationEpoch: 0
   };
 
   const readySources = () => (state.sources || []).filter(source => source.status === 'ready');
-  const nodeIndex = () => {
+  const nodeIndex = () => view.nodeById;
+
+  function indexNodes(tree) {
     const index = new Map();
-    const visit = node => {
-      if (!node || index.size >= MAX_VISIBLE_NODES) return;
+    const stack = tree ? [tree] : [];
+    while (stack.length && index.size < MAX_VISIBLE_NODES) {
+      const node = stack.pop();
+      if (!node || index.has(node.id)) continue;
       index.set(node.id, node);
-      (node.children || []).forEach(visit);
-    };
-    visit(view.map?.tree);
+      for (let childIndex = (node.children || []).length - 1; childIndex >= 0; childIndex--) {
+        stack.push(node.children[childIndex]);
+      }
+    }
     return index;
   };
 
@@ -89,23 +144,45 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
       if (list) list.innerHTML = '<div class="mindmap-list-empty">Open a chat to view its saved maps.</div>';
       return;
     }
-    list.innerHTML = '<div class="mindmap-list-empty"><i class="fas fa-spinner fa-spin"></i> Loading saved maps…</div>';
-    try {
-      const response = await apiRequest(`/api/neobook/notebooks/${encodeURIComponent(state.activeNotebook.id)}/chats/${encodeURIComponent(state.activeChat.id)}/mindmaps`);
-      const maps = response.maps || [];
-      list.innerHTML = maps.length ? '' : '<div class="mindmap-list-empty">No saved maps in this chat yet.</div>';
-      maps.forEach(map => {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'mindmap-saved-item';
-        button.innerHTML = `<span class="mindmap-saved-icon"><i class="fas fa-diagram-project"></i></span><span class="mindmap-saved-text"><strong>${escapeHtml(map.title || 'Mind Map')}</strong><small>${map.nodeCount || 0} topics · ${map.sourceCount || 0} sources</small></span><i class="fas fa-chevron-right"></i>`;
-        button.addEventListener('click', () => loadMap(map.id));
-        list.appendChild(button);
-      });
-    } catch (error) {
-      list.innerHTML = '<div class="mindmap-list-empty">Saved maps could not be loaded.</div>';
-      showToast(error.message || 'Could not load saved mind maps.', 'error');
+    const requestKey = `${state.activeNotebook.id}:${state.activeChat.id}:${view.identityEpoch}`;
+    if (view.savedMapsKey === requestKey && view.savedMapsPromise) {
+      await view.savedMapsPromise;
+      return;
     }
+    view.savedMapsController?.abort();
+    const controller = new AbortController();
+    view.savedMapsController = controller;
+    view.savedMapsKey = requestKey;
+    list.innerHTML = '<div class="mindmap-list-empty"><i class="fas fa-spinner fa-spin"></i> Loading saved maps…</div>';
+    const request = (async () => {
+      try {
+        const response = await apiRequest(`/api/neobook/notebooks/${encodeURIComponent(state.activeNotebook.id)}/chats/${encodeURIComponent(state.activeChat.id)}/mindmaps`, {
+          signal: controller.signal
+        });
+        if (requestKey !== view.savedMapsKey) return;
+        const maps = response.maps || [];
+        list.innerHTML = maps.length ? '' : '<div class="mindmap-list-empty">No saved maps in this chat yet.</div>';
+        maps.forEach(map => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'mindmap-saved-item';
+          button.innerHTML = `<span class="mindmap-saved-icon"><i class="fas fa-diagram-project"></i></span><span class="mindmap-saved-text"><strong>${escapeHtml(map.title || 'Mind Map')}</strong><small>${map.nodeCount || 0} topics · ${map.sourceCount || 0} sources</small></span><i class="fas fa-chevron-right"></i>`;
+          button.addEventListener('click', () => loadMap(map.id));
+          list.appendChild(button);
+        });
+      } catch (error) {
+        if (controller.signal.aborted || requestKey !== view.savedMapsKey) return;
+        list.innerHTML = '<div class="mindmap-list-empty">Saved maps could not be loaded.</div>';
+        showToast(error.message || 'Could not load saved mind maps.', 'error');
+      } finally {
+        if (view.savedMapsKey === requestKey) {
+          view.savedMapsPromise = null;
+          view.savedMapsController = null;
+        }
+      }
+    })();
+    view.savedMapsPromise = request;
+    await request;
   }
 
   async function openSetup() {
@@ -123,11 +200,23 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
   }
 
   function setCurrentMap(map, { fit = false } = {}) {
+    cancelExpandAll();
     view.map = map;
+    view.nodeById = indexNodes(map.tree);
     view.hasRestoredViewport = false;
     view.selectedNodeId = map.uiState?.selectedNodeId || map.tree?.id || null;
     view.collapsedNodeIds = new Set(map.uiState?.collapsedNodeIds || []);
     view.positions = map.uiState?.positions || {};
+    view.visibleNodes = [];
+    view.nodeElements.clear();
+    view.linkElements.clear();
+    view.pathNodeIds.clear();
+    view.pathLinkKeys.clear();
+    const answer = document.getElementById('mindMapAnswer');
+    if (answer) {
+      answer.hidden = true;
+      answer.textContent = '';
+    }
     view.viewport = map.uiState?.viewport || { x: 0, y: 0, k: 1 };
     const title = document.getElementById('mindMapTitle');
     const sourceSummary = document.getElementById('mindMapSourceSummary');
@@ -143,26 +232,51 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
 
   async function loadMap(mapId) {
     const identityEpoch = view.identityEpoch;
+    const operationEpoch = view.operationEpoch;
+    view.mapController?.abort();
+    const controller = new AbortController();
+    view.mapController = controller;
     setModalOpen(false);
     showLoading(true, 'Reopening your saved map.');
     workspace.hidden = false;
     document.body.classList.add('mindmap-open');
     try {
-      const response = await apiRequest(`/api/neobook/mindmaps/${encodeURIComponent(mapId)}`);
-      if (identityEpoch !== view.identityEpoch) return;
+      const response = await apiRequest(`/api/neobook/mindmaps/${encodeURIComponent(mapId)}`, {
+        signal: controller.signal
+      });
+      if (identityEpoch !== view.identityEpoch || operationEpoch !== view.operationEpoch) return;
       setCurrentMap(response.map);
     } catch (error) {
-      if (identityEpoch !== view.identityEpoch) return;
+      if (identityEpoch !== view.identityEpoch || operationEpoch !== view.operationEpoch || controller.signal.aborted) return;
       showLoading(false);
       workspace.hidden = true;
       document.body.classList.remove('mindmap-open');
       showToast(error.message || 'Could not reopen this mind map.', 'error');
+    } finally {
+      if (view.mapController === controller) view.mapController = null;
     }
   }
 
   function selectedSourceIds() {
     if (sourceMode() === 'all') return readySources().map(source => source.id);
     return [...document.querySelectorAll('#mindMapSourceList input[type="checkbox"]:checked')].map(input => input.value);
+  }
+
+  function getProgressivelyCollapsedIds(tree) {
+    return (tree?.children || [])
+      .filter(node => node.children?.length)
+      .map(node => node.id);
+  }
+
+  function cancelAiRequest() {
+    view.operationEpoch++;
+    view.aiController?.abort();
+    view.aiController = null;
+    if (view.generatingNodeId) {
+      setNodeGeneratingState(view.generatingNodeId, false);
+      view.generatingNodeId = null;
+    }
+    view.isGenerating = false;
   }
 
   async function generate(sourceIds = selectedSourceIds()) {
@@ -177,25 +291,40 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
     }
     view.isGenerating = true;
     const identityEpoch = view.identityEpoch;
+    const operationEpoch = view.operationEpoch;
+    const controller = new AbortController();
+    view.aiController = controller;
     setModalOpen(false);
     workspace.hidden = false;
     document.body.classList.add('mindmap-open');
     showLoading(true, 'Finding themes and relationships in your sources.');
-    document.getElementById('mindMapSvg').replaceChildren();
     try {
       const response = await apiRequest(`/api/neobook/notebooks/${encodeURIComponent(state.activeNotebook.id)}/mindmaps/generate`, {
         method: 'POST',
+        signal: controller.signal,
         body: JSON.stringify({
           chatId: state.activeChat.id,
           sourceIds,
           subject: state.activeNotebook.title || ''
         })
       });
-      if (identityEpoch !== view.identityEpoch) return;
-      setCurrentMap(response.map, { fit: true });
+      if (identityEpoch !== view.identityEpoch || operationEpoch !== view.operationEpoch) return;
+      const generatedMap = response.map;
+      const progressivelyCollapsedIds = generatedMap.nodeCount > MAX_FULL_GRAPH_ANIMATION_NODES
+        && !generatedMap.uiState?.collapsedNodeIds?.length
+        ? getProgressivelyCollapsedIds(generatedMap.tree)
+        : [];
+      if (progressivelyCollapsedIds.length) {
+        generatedMap.uiState = {
+          ...generatedMap.uiState,
+          collapsedNodeIds: progressivelyCollapsedIds
+        };
+      }
+      setCurrentMap(generatedMap, { fit: true });
+      if (progressivelyCollapsedIds.length) scheduleSave();
       showToast('Your mind map is ready to explore.', 'success');
     } catch (error) {
-      if (identityEpoch !== view.identityEpoch) return;
+      if (identityEpoch !== view.identityEpoch || operationEpoch !== view.operationEpoch) return;
       showLoading(false);
       const empty = document.getElementById('mindMapEmpty');
       if (empty) {
@@ -204,7 +333,8 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
       }
       showToast(error.message || 'Could not generate the mind map.', 'error');
     } finally {
-      if (identityEpoch === view.identityEpoch) view.isGenerating = false;
+      if (view.aiController === controller) view.aiController = null;
+      if (identityEpoch === view.identityEpoch && operationEpoch === view.operationEpoch) view.isGenerating = false;
     }
   }
 
@@ -244,11 +374,119 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
     return lines.slice(0, 2);
   }
 
+  function linkKey(link) {
+    return `${link.source.data.id}:${link.target.data.id}`;
+  }
+
+  function pathForEdge(link) {
+    return view.linkPath({
+      source: { x: link.source.y + 226, y: link.source.x },
+      target: { x: link.target.y, y: link.target.x }
+    });
+  }
+
+  function updateSelectionHighlight() {
+    const selected = view.visibleNodeById.get(view.selectedNodeId);
+    const nextPathNodeIds = new Set();
+    const nextPathLinkKeys = new Set();
+    selected?.ancestors().forEach(node => {
+      nextPathNodeIds.add(node.data.id);
+      if (node.parent) nextPathLinkKeys.add(`${node.parent.data.id}:${node.data.id}`);
+    });
+
+    const changedNodeIds = new Set([...view.pathNodeIds, ...nextPathNodeIds]);
+    changedNodeIds.forEach(id => {
+      const element = view.nodeElements.get(id);
+      if (!element) return;
+      element.classList.toggle('is-selected', id === view.selectedNodeId);
+      element.classList.toggle('is-on-path', nextPathNodeIds.has(id) && id !== view.selectedNodeId);
+    });
+
+    const changedLinkKeys = new Set([...view.pathLinkKeys, ...nextPathLinkKeys]);
+    changedLinkKeys.forEach(key => {
+      const element = view.linkElements.get(key);
+      if (element) element.classList.toggle('is-on-path', nextPathLinkKeys.has(key));
+    });
+    view.pathNodeIds = nextPathNodeIds;
+    view.pathLinkKeys = nextPathLinkKeys;
+  }
+
+  function selectNode(nodeId) {
+    if (view.selectedNodeId === nodeId) return;
+    view.selectedNodeId = nodeId;
+    const answer = document.getElementById('mindMapAnswer');
+    answer.hidden = true;
+    answer.textContent = '';
+    updateSelectedDetails();
+    updateSelectionHighlight();
+    scheduleSave();
+  }
+
+  function toggleNode(node) {
+    if (node.data.isGenerating) return;
+    if (node.data.children?.length) {
+      if (view.collapsedNodeIds.has(node.data.id)) view.collapsedNodeIds.delete(node.data.id);
+      else view.collapsedNodeIds.add(node.data.id);
+      renderGraph();
+      scheduleSave();
+    } else {
+      void expandNode(node.data.id);
+    }
+  }
+
+  function setNodeGeneratingState(nodeId, isGenerating) {
+    const node = nodeIndex().get(nodeId);
+    if (node) node.isGenerating = isGenerating;
+    const element = view.nodeElements.get(nodeId);
+    if (!element || !node) return;
+    element.classList.toggle('is-generating', isGenerating);
+    const label = element.querySelector('.mindmap-node-toggle-label');
+    if (label) {
+      label.textContent = isGenerating
+        ? '…'
+        : (node.children?.length ? (view.collapsedNodeIds.has(nodeId) ? '+' : '−') : '+');
+    }
+  }
+
+  function cancelExpandAll() {
+    if (!view.expandAllFrame) return;
+    cancelAnimationFrame(view.expandAllFrame);
+    view.expandAllFrame = 0;
+  }
+
+  function expandAllProgressively() {
+    cancelExpandAll();
+    const revealNextBatch = () => {
+      view.expandAllFrame = 0;
+      const expandable = view.visibleNodes.filter(node =>
+        view.collapsedNodeIds.has(node.data.id) && node.data.children?.length
+      );
+      if (!expandable.length) {
+        scheduleSave();
+        return;
+      }
+
+      const batch = [];
+      let revealedNodeCount = 0;
+      for (const node of expandable) {
+        const childCount = node.data.children.length;
+        if (batch.length && revealedNodeCount + childCount > MAX_ANIMATED_MOVED_NODES) continue;
+        batch.push(node.data.id);
+        revealedNodeCount += childCount;
+      }
+      batch.forEach(nodeId => view.collapsedNodeIds.delete(nodeId));
+      renderGraph();
+      view.expandAllFrame = requestAnimationFrame(revealNextBatch);
+    };
+    view.expandAllFrame = requestAnimationFrame(revealNextBatch);
+  }
+
   function renderGraph({ fit = false } = {}) {
     if (!view.map?.tree || !view.d3 || !view.world) return;
     const d3 = view.d3;
     const root = visibleTree();
     if (!root) return;
+    view.linkPath ||= d3.linkHorizontal().x(point => point.x).y(point => point.y);
     const layout = d3.tree().nodeSize([108, 270]);
     layout(root);
     root.each(node => {
@@ -261,180 +499,291 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
     const nodes = root.descendants().slice(0, MAX_VISIBLE_NODES);
     preventNodeOverlaps(nodes);
     view.visibleNodes = nodes;
-    const links = root.links().filter(link => nodes.includes(link.target));
-    const linkPath = link => d3.linkHorizontal().x(point => point.x).y(point => point.y)({
-      source: { x: link.source.y + 226, y: link.source.x },
-      target: { x: link.target.y, y: link.target.x }
-    });
+    view.visibleNodeById = new Map(nodes.map(node => [node.data.id, node]));
+    const visibleNodeSet = new Set(nodes);
+    const links = root.links().filter(link => visibleNodeSet.has(link.target));
     const pathIds = new Set();
+    const pathLinkKeys = new Set();
     const selected = nodes.find(node => node.data.id === view.selectedNodeId);
-    selected?.ancestors().forEach(node => pathIds.add(node.data.id));
+    selected?.ancestors().forEach(node => {
+      pathIds.add(node.data.id);
+      if (node.parent) pathLinkKeys.add(`${node.parent.data.id}:${node.data.id}`);
+    });
 
     const linkSelection = view.linksLayer.selectAll('path.mindmap-link')
-      .data(links, link => `${link.source.data.id}:${link.target.data.id}`);
-    linkSelection.exit().transition().duration(140).style('opacity', 0).remove();
-    linkSelection.enter().append('path')
+      .data(links, linkKey);
+    const exitingLinks = linkSelection.exit();
+    const enteringLinks = linkSelection.enter().append('path')
       .attr('class', 'mindmap-link')
-      .attr('d', link => linkPath({ source: link.source, target: link.source }))
-      .merge(linkSelection)
-      .classed('is-on-path', link => pathIds.has(link.source.data.id) && pathIds.has(link.target.data.id))
-      .transition().duration(220)
-      .attr('d', linkPath);
+      .attr('d', link => pathForEdge({ source: link.source, target: link.source }));
+    const mergedLinks = enteringLinks.merge(linkSelection);
 
     const nodeSelection = view.nodesLayer.selectAll('g.mindmap-node')
       .data(nodes, node => node.data.id);
-    nodeSelection.exit().transition().duration(140).style('opacity', 0).remove();
+    const exitingNodes = nodeSelection.exit();
     const enter = nodeSelection.enter().append('g')
       .attr('class', 'mindmap-node')
       .attr('transform', node => `translate(${node.y},${node.x})`)
       .style('opacity', 0);
-    enter.append('rect').attr('class', 'mindmap-node-card');
+    const largeGraphChange = nodes.length > MAX_FULL_GRAPH_ANIMATION_NODES
+      && enter.size() + exitingNodes.size() > MAX_ANIMATED_BATCH_SIZE;
+
+    mergedLinks.classed('is-on-path', link => pathLinkKeys.has(linkKey(link)));
+    if (largeGraphChange) {
+      exitingLinks.remove();
+      mergedLinks.attr('d', pathForEdge).style('opacity', 1);
+    } else {
+      if (exitingLinks.size() <= MAX_ANIMATED_BATCH_SIZE) {
+        exitingLinks.transition().duration(140).style('opacity', 0).remove();
+      } else {
+        exitingLinks.remove();
+      }
+      if (nodes.length <= MAX_FULL_GRAPH_ANIMATION_NODES) {
+        mergedLinks.transition().duration(220).attr('d', pathForEdge);
+      } else {
+        const changedLinks = linkSelection.filter(function(link) {
+          return this.getAttribute('d') !== pathForEdge(link);
+        });
+        if (changedLinks.size() <= MAX_ANIMATED_MOVED_NODES) {
+          changedLinks.transition().duration(180).attr('d', pathForEdge);
+        } else {
+          changedLinks.attr('d', pathForEdge);
+        }
+        enteringLinks.transition().duration(180).attr('d', pathForEdge);
+      }
+    }
+    const linkElements = new Map();
+    mergedLinks.each(function(link) {
+      linkElements.set(linkKey(link), this);
+    });
+    view.linkElements = linkElements;
+
+    enter.append('rect').attr('class', 'mindmap-node-card')
+      .attr('x', 0).attr('y', -42).attr('width', 226).attr('height', 84).attr('rx', 12);
     enter.append('text').attr('class', 'mindmap-node-title');
     enter.append('text').attr('class', 'mindmap-node-summary');
-    enter.append('circle').attr('class', 'mindmap-node-toggle').attr('r', 9);
-    enter.append('text').attr('class', 'mindmap-node-toggle-label');
+    enter.append('circle').attr('class', 'mindmap-node-toggle').attr('r', 9).attr('cx', 210).attr('cy', 0);
+    enter.append('text').attr('class', 'mindmap-node-toggle-label').attr('x', 210).attr('y', 4);
     enter.append('title');
-    const merged = enter.merge(nodeSelection)
-      .attr('class', node => nodeClass(node, pathIds))
-      .attr('aria-label', node => `${node.data.title}. ${node.data.summary}`)
-      .attr('role', 'button')
-      .attr('tabindex', 0)
-      .attr('aria-expanded', node => String(Boolean(node.data.children?.length) && !view.collapsedNodeIds.has(node.data.id)))
-      .attr('transform', node => `translate(${node.y},${node.x})`)
-      .on('click', (event, node) => {
-        event.stopPropagation();
-        view.selectedNodeId = node.data.id;
-        updateSelectedDetails();
-        renderGraph();
-        scheduleSave();
-      })
-      .on('keydown', (event, node) => {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-        event.preventDefault();
-        view.selectedNodeId = node.data.id;
-        updateSelectedDetails();
-        renderGraph();
-        scheduleSave();
-      });
-    merged.select('title').text(node => `${node.data.title}\n${node.data.summary}`);
-    merged.select('rect.mindmap-node-card')
-      .attr('x', 0).attr('y', -42).attr('width', 226).attr('height', 84).attr('rx', 12);
-    merged.select('text.mindmap-node-title').each(function(node) {
-      const text = d3.select(this);
-      text.selectAll('tspan').remove();
-      wrapTitle(node.data.title).forEach((line, index) => {
-        text.append('tspan').attr('x', 14).attr('y', wrapTitle(node.data.title).length > 1 ? -12 + index * 16 : -3)
-          .text(line);
-      });
+    enter.attr('role', 'button').attr('tabindex', 0);
+    enter.on('click', (event, node) => {
+      event.stopPropagation();
+      selectNode(node.data.id);
+    }).on('keydown', (event, node) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      selectNode(node.data.id);
     });
-    merged.select('text.mindmap-node-summary')
-      .attr('x', 14).attr('y', 18)
-      .text(node => String(node.data.summary || '').slice(0, 55));
-    merged.select('circle.mindmap-node-toggle')
-      .attr('cx', 210).attr('cy', 0)
-      .on('click', (event, node) => {
-        event.stopPropagation();
-        if (node.data.isGenerating) return;
-        if (node.data.children?.length) {
-          if (view.collapsedNodeIds.has(node.data.id)) view.collapsedNodeIds.delete(node.data.id);
-          else view.collapsedNodeIds.add(node.data.id);
-          renderGraph();
-          scheduleSave();
-        } else {
-          void expandNode(node.data.id);
-        }
+    enter.select('circle.mindmap-node-toggle').on('click', (event, node) => {
+      event.stopPropagation();
+      toggleNode(node);
+    });
+    enter.select('text.mindmap-node-toggle-label').on('click', (event, node) => {
+      event.stopPropagation();
+      toggleNode(node);
+    });
+    const merged = enter.merge(nodeSelection);
+    const nodeElements = new Map();
+    merged.each(function(node) {
+      nodeElements.set(node.data.id, this);
+      const classValue = nodeClass(node, pathIds);
+      if (this.getAttribute('class') !== classValue) this.setAttribute('class', classValue);
+      const accessibleLabel = `${node.data.title}. ${node.data.summary}`;
+      if (this.getAttribute('aria-label') !== accessibleLabel) this.setAttribute('aria-label', accessibleLabel);
+      const expandedValue = String(Boolean(node.data.children?.length) && !view.collapsedNodeIds.has(node.data.id));
+      if (this.getAttribute('aria-expanded') !== expandedValue) this.setAttribute('aria-expanded', expandedValue);
+      const tooltip = this.querySelector('title');
+      const tooltipValue = `${node.data.title}\n${node.data.summary}`;
+      if (tooltip.dataset.renderedText !== tooltipValue) {
+        tooltip.textContent = tooltipValue;
+        tooltip.dataset.renderedText = tooltipValue;
+      }
+      const title = this.querySelector('text.mindmap-node-title');
+      const titleValue = String(node.data.title || '');
+      if (title.dataset.renderedTitle !== titleValue) {
+        const lines = wrapTitle(titleValue);
+        title.replaceChildren();
+        lines.forEach((line, index) => {
+          const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+          tspan.setAttribute('x', '14');
+          tspan.setAttribute('y', lines.length > 1 ? String(-12 + index * 16) : '-3');
+          tspan.textContent = line;
+          title.appendChild(tspan);
+        });
+        title.dataset.renderedTitle = titleValue;
+      }
+      const summary = this.querySelector('text.mindmap-node-summary');
+      const summaryValue = String(node.data.summary || '').slice(0, 55);
+      if (summary.dataset.renderedSummary !== summaryValue) {
+        summary.setAttribute('x', '14');
+        summary.setAttribute('y', '18');
+        summary.textContent = summaryValue;
+        summary.dataset.renderedSummary = summaryValue;
+      }
+      const toggleLabel = this.querySelector('text.mindmap-node-toggle-label');
+      const toggleValue = node.data.isGenerating
+        ? '…'
+        : (node.data.children?.length ? (view.collapsedNodeIds.has(node.data.id) ? '+' : '−') : '+');
+      if (toggleLabel.textContent !== toggleValue) toggleLabel.textContent = toggleValue;
+    });
+    view.nodeElements = nodeElements;
+    view.pathNodeIds = pathIds;
+    view.pathLinkKeys = pathLinkKeys;
+    const nodeTransform = node => `translate(${node.y},${node.x})`;
+    if (largeGraphChange) {
+      exitingNodes.remove();
+      merged.attr('transform', nodeTransform).style('opacity', 1);
+    } else if (nodes.length <= MAX_FULL_GRAPH_ANIMATION_NODES) {
+      exitingNodes.transition().duration(140).style('opacity', 0).remove();
+      merged.transition().duration(220).attr('transform', nodeTransform).style('opacity', 1);
+    } else {
+      if (exitingNodes.size() <= MAX_ANIMATED_BATCH_SIZE) {
+        exitingNodes.transition().duration(140).style('opacity', 0).remove();
+      } else {
+        exitingNodes.remove();
+      }
+      const movedNodes = nodeSelection.filter(function(node) {
+        return this.getAttribute('transform') !== nodeTransform(node);
       });
-    merged.select('text.mindmap-node-toggle-label')
-      .attr('x', 210).attr('y', 4)
-      .text(node => node.data.children?.length
-        ? (view.collapsedNodeIds.has(node.data.id) ? '+' : '−')
-        : (node.data.isGenerating ? '…' : '+'))
-      .on('click', (event, node) => {
-        event.stopPropagation();
-        if (node.data.isGenerating) return;
-        if (node.data.children?.length) {
-          if (view.collapsedNodeIds.has(node.data.id)) view.collapsedNodeIds.delete(node.data.id);
-          else view.collapsedNodeIds.add(node.data.id);
-          renderGraph();
-          scheduleSave();
-        } else {
-          void expandNode(node.data.id);
-        }
-      });
-    merged.transition().duration(180).style('opacity', 1);
+      if (movedNodes.size() <= MAX_ANIMATED_MOVED_NODES) {
+        movedNodes.transition().duration(180).attr('transform', nodeTransform);
+      } else {
+        movedNodes.attr('transform', nodeTransform);
+      }
+      if (enter.size() <= MAX_ANIMATED_BATCH_SIZE) {
+        enter.transition().duration(180).attr('transform', nodeTransform).style('opacity', 1);
+      } else {
+        enter.attr('transform', nodeTransform).style('opacity', 1);
+      }
+    }
     bindNodeDrag(merged);
     if (fit) fitToScreen();
   }
 
-  function preventNodeOverlaps(nodes) {
-    for (let index = 0; index < nodes.length; index++) {
-      const node = nodes[index];
-      for (let pass = 0; pass < 8; pass++) {
-        let adjusted = false;
-        for (let otherIndex = 0; otherIndex < index; otherIndex++) {
-          const other = nodes[otherIndex];
-          if (Math.abs(node.y - other.y) >= 242 || Math.abs(node.x - other.x) >= 100) continue;
-          const nodeIsPinned = Boolean(view.positions[node.data.id]);
-          const otherIsPinned = Boolean(view.positions[other.data.id]);
-          const movable = nodeIsPinned && !otherIsPinned ? other : node;
-          const fixed = movable === node ? other : node;
-          movable.x = movable.x >= fixed.x ? fixed.x + 102 : fixed.x - 102;
-          adjusted = true;
+  function createSpatialIndex(nodes = []) {
+    const cellHeight = 100;
+    const cellWidth = 242;
+    const cells = new Map();
+    const cellKey = (x, y) => `${Math.floor(y / cellWidth)}:${Math.floor(x / cellHeight)}`;
+    const add = node => {
+      const key = cellKey(node.x, node.y);
+      if (!cells.has(key)) cells.set(key, new Set());
+      cells.get(key).add(node);
+    };
+    const remove = node => {
+      const key = cellKey(node.x, node.y);
+      const bucket = cells.get(key);
+      bucket?.delete(node);
+      if (bucket?.size === 0) cells.delete(key);
+    };
+    const nearby = (x, y) => {
+      const column = Math.floor(y / cellWidth);
+      const row = Math.floor(x / cellHeight);
+      const result = [];
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const bucket = cells.get(`${column + dy}:${row + dx}`);
+          if (bucket) result.push(...bucket);
         }
-        if (!adjusted) break;
       }
+      return result;
+    };
+    nodes.forEach(add);
+    return { add, remove, nearby };
+  }
+
+  function preventNodeOverlaps(nodes) {
+    const spatialIndex = createSpatialIndex();
+    for (const node of nodes) {
+      for (let pass = 0; pass < 8; pass++) {
+        const other = spatialIndex.nearby(node.x, node.y)
+          .find(candidate => Math.abs(node.y - candidate.y) < 242 && Math.abs(node.x - candidate.x) < 100);
+        if (!other) break;
+        const nodeIsPinned = Boolean(view.positions[node.data.id]);
+        const otherIsPinned = Boolean(view.positions[other.data.id]);
+        const movable = nodeIsPinned && !otherIsPinned ? other : node;
+        const fixed = movable === node ? other : node;
+        if (movable !== node) spatialIndex.remove(movable);
+        movable.x = movable.x >= fixed.x ? fixed.x + 102 : fixed.x - 102;
+        if (movable !== node) spatialIndex.add(movable);
+      }
+      spatialIndex.add(node);
     }
   }
 
   function bindNodeDrag(selection) {
     const d3 = view.d3;
-    selection.call(d3.drag()
-      .on('start', function() { d3.select(this).raise().classed('is-dragging', true); })
-      .on('drag', function(event, node) {
-        let nextX = event.y;
-        const nextY = event.x;
-        for (let pass = 0; pass < 12; pass++) {
-          let collided = false;
-          for (const other of view.visibleNodes) {
-            if (other.data.id === node.data.id) continue;
-            if (Math.abs(nextY - other.y) < 242 && Math.abs(nextX - other.x) < 100) {
-              nextX = nextX >= other.x ? other.x + 100 : other.x - 100;
-              collided = true;
-            }
+    if (!view.dragBehavior) {
+      view.dragBehavior = d3.drag()
+        .on('start', function(event, node) {
+          d3.select(this).raise().classed('is-dragging', true);
+          view.dragIndex = createSpatialIndex(view.visibleNodes.filter(item => item !== node));
+        })
+        .on('drag', function(event, node) {
+          view.pendingDrag = { event, node, element: this };
+          if (!view.dragFrame) view.dragFrame = requestAnimationFrame(flushDrag);
+        })
+        .on('end', function() {
+          if (view.dragFrame) {
+            cancelAnimationFrame(view.dragFrame);
+            view.dragFrame = 0;
           }
-          if (!collided) break;
-        }
-        node.y = nextY;
-        node.x = nextX;
-        view.positions[node.data.id] = { x: node.x, y: node.y };
-        d3.select(this).attr('transform', `translate(${node.y},${node.x})`);
-        view.linksLayer.selectAll('path.mindmap-link')
-          .attr('d', link => d3.linkHorizontal().x(point => point.x).y(point => point.y)({
-            source: { x: link.source.y + 226, y: link.source.x },
-            target: { x: link.target.y, y: link.target.x }
-          }));
-      })
-      .on('end', function() {
-        d3.select(this).classed('is-dragging', false);
-        scheduleSave();
-      }));
+          flushDrag();
+          view.dragIndex = null;
+          d3.select(this).classed('is-dragging', false);
+          scheduleSave();
+        });
+    }
+    selection.call(view.dragBehavior);
+  }
+
+  function flushDrag() {
+    const pending = view.pendingDrag;
+    view.pendingDrag = null;
+    if (!pending) return;
+    const { event, node, element } = pending;
+    let nextX = event.y;
+    const nextY = event.x;
+    for (let pass = 0; pass < 12; pass++) {
+      const other = view.dragIndex?.nearby(nextX, nextY)
+        .find(candidate => Math.abs(nextY - candidate.y) < 242 && Math.abs(nextX - candidate.x) < 100);
+      if (!other) break;
+      nextX = nextX >= other.x ? other.x + 100 : other.x - 100;
+    }
+    node.y = nextY;
+    node.x = nextX;
+    view.positions[node.data.id] = { x: node.x, y: node.y };
+    view.d3.select(element).attr('transform', `translate(${node.y},${node.x})`);
+    const related = [];
+    if (node.parent) related.push(`${node.parent.data.id}:${node.data.id}`);
+    for (const child of node.children || []) related.push(`${node.data.id}:${child.data.id}`);
+    for (const key of related) {
+      const link = view.linkElements.get(key);
+      if (link) view.d3.select(link).attr('d', pathForEdge);
+    }
   }
 
   function initializeGraph({ fit = false } = {}) {
     if (!view.map?.tree || view.map.tree.children == null) return;
     if (!view.d3) {
-      void import(D3_URL).then(d3 => {
-        view.d3 = d3;
-        initializeGraph({ fit });
-      }).catch(error => {
-        showLoading(false);
-        const empty = document.getElementById('mindMapEmpty');
-        if (empty) {
-          empty.textContent = 'The map viewer could not load. Check your connection and try again.';
-          empty.hidden = false;
-        }
-        console.error('[NeoBook Mind Map] Could not load D3:', error);
-      });
+      view.pendingFit ||= fit;
+      if (!view.d3Promise) {
+        view.d3Promise = loadD3().then(d3 => {
+          view.d3 = d3;
+          const shouldFit = view.pendingFit;
+          view.pendingFit = false;
+          if (view.map?.tree) initializeGraph({ fit: shouldFit });
+        }).catch(error => {
+          view.d3Promise = null;
+          showLoading(false);
+          const empty = document.getElementById('mindMapEmpty');
+          if (empty) {
+            empty.textContent = 'The map viewer could not load. Check your connection and try again.';
+            empty.hidden = false;
+          }
+          console.error('[NeoBook Mind Map] Could not load D3:', error);
+        });
+      }
       return;
     }
     const d3 = view.d3;
@@ -451,18 +800,31 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
         .on('zoom', event => {
           view.world.attr('transform', event.transform);
           view.viewport = { x: event.transform.x, y: event.transform.y, k: event.transform.k };
+        })
+        .on('end', () => {
           scheduleSave();
         });
       view.svg.call(view.zoom).on('dblclick.zoom', null);
-      view.resizeObserver = new ResizeObserver(() => initializeGraph());
+      view.resizeObserver = new ResizeObserver(() => {
+        if (view.resizeFrame) return;
+        view.resizeFrame = requestAnimationFrame(() => {
+          view.resizeFrame = 0;
+          const resized = canvasWrap.getBoundingClientRect();
+          if (Math.max(320, resized.width) !== view.width || Math.max(360, resized.height) !== view.height) {
+            initializeGraph();
+          }
+        });
+      });
       view.resizeObserver.observe(canvasWrap);
     }
-    renderGraph({ fit });
+    renderGraph();
     if (!view.hasRestoredViewport) {
       const initial = view.viewport;
       view.svg.call(view.zoom.transform, d3.zoomIdentity.translate(initial.x || 0, initial.y || 0).scale(initial.k || 1));
       view.hasRestoredViewport = true;
       if (fit || (initial.x === 0 && initial.y === 0 && initial.k === 1)) fitToScreen();
+    } else if (fit) {
+      fitToScreen();
     }
     showLoading(false);
     document.body.classList.add('mindmap-open');
@@ -470,15 +832,8 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
 
   function fitToScreen() {
     if (!view.d3 || !view.svg || !view.zoom || !view.map) return;
-    const root = visibleTree();
-    if (!root) return;
-    view.d3.tree().nodeSize([108, 270])(root);
-    root.each(node => {
-      const saved = view.positions[node.data.id];
-      if (saved) { node.x = saved.x; node.y = saved.y; }
-    });
-    const nodes = root.descendants();
-    preventNodeOverlaps(nodes);
+    const nodes = view.visibleNodes;
+    if (!nodes.length) return;
     const xMin = Math.min(...nodes.map(node => node.y)) - 40;
     const xMax = Math.max(...nodes.map(node => node.y)) + 266;
     const yMin = Math.min(...nodes.map(node => node.x)) - 70;
@@ -504,9 +859,6 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
     details.hidden = false;
     document.getElementById('mindMapNodeTitle').textContent = node.title || 'Topic';
     document.getElementById('mindMapNodeSummary').textContent = node.summary || '';
-    const answer = document.getElementById('mindMapAnswer');
-    answer.hidden = true;
-    answer.textContent = '';
     const citations = document.getElementById('mindMapCitationList');
     citations.replaceChildren();
     if (!node.citations?.length) {
@@ -574,32 +926,39 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
     if (!node) return;
     view.isGenerating = true;
     const identityEpoch = view.identityEpoch;
-    node.isGenerating = true;
-    renderGraph();
+    const operationEpoch = view.operationEpoch;
+    const controller = new AbortController();
+    view.aiController = controller;
+    view.generatingNodeId = nodeId;
+    setNodeGeneratingState(nodeId, true);
     updateSelectedDetails();
+    let expanded = false;
     try {
       const response = await apiRequest(`/api/neobook/mindmaps/${encodeURIComponent(view.map.id)}/nodes/${encodeURIComponent(nodeId)}/expand`, {
         method: 'POST',
+        signal: controller.signal,
         body: JSON.stringify({})
       });
-      if (identityEpoch !== view.identityEpoch) return;
+      if (identityEpoch !== view.identityEpoch || operationEpoch !== view.operationEpoch) return;
       node.children = [...(node.children || []), ...(response.children || [])];
+      view.nodeById = indexNodes(view.map.tree);
       node.hasBeenExpanded = true;
       view.collapsedNodeIds.delete(nodeId);
       view.map.nodeCount = response.nodeCount;
       const summary = document.getElementById('mindMapSourceSummary');
       if (summary) summary.textContent = `${(view.map.sourceIds || []).length} source${view.map.sourceIds?.length === 1 ? '' : 's'} · ${view.map.nodeCount} topics`;
-      renderGraph();
-      updateSelectedDetails();
+      expanded = true;
       showToast('Source-supported subtopics added.', 'success');
     } catch (error) {
-      if (identityEpoch !== view.identityEpoch) return;
+      if (identityEpoch !== view.identityEpoch || operationEpoch !== view.operationEpoch) return;
       showToast(error.message || 'Could not generate subtopics for this topic.', 'error');
     } finally {
-      if (identityEpoch === view.identityEpoch) {
-        node.isGenerating = false;
+      if (view.aiController === controller) view.aiController = null;
+      if (identityEpoch === view.identityEpoch && operationEpoch === view.operationEpoch) {
+        view.generatingNodeId = null;
+        setNodeGeneratingState(nodeId, false);
         view.isGenerating = false;
-        renderGraph();
+        if (expanded) renderGraph();
         updateSelectedDetails();
       }
     }
@@ -610,6 +969,9 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
     if (!view.map?.id || !nodeId || view.isGenerating) return;
     view.isGenerating = true;
     const identityEpoch = view.identityEpoch;
+    const operationEpoch = view.operationEpoch;
+    const controller = new AbortController();
+    view.aiController = controller;
     updateSelectedDetails();
     const button = document.getElementById('btnMindMapExplain');
     const answer = document.getElementById('mindMapAnswer');
@@ -619,9 +981,10 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
     try {
       const response = await apiRequest(`/api/neobook/mindmaps/${encodeURIComponent(view.map.id)}/nodes/${encodeURIComponent(nodeId)}/explain`, {
         method: 'POST',
+        signal: controller.signal,
         body: JSON.stringify({})
       });
-      if (identityEpoch !== view.identityEpoch) return;
+      if (identityEpoch !== view.identityEpoch || operationEpoch !== view.operationEpoch) return;
       answer.textContent = response.explanation || 'No explanation was returned.';
       if (response.citations?.length) {
         const label = document.createElement('strong');
@@ -636,11 +999,12 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
         });
       }
     } catch (error) {
-      if (identityEpoch !== view.identityEpoch) return;
+      if (identityEpoch !== view.identityEpoch || operationEpoch !== view.operationEpoch) return;
       answer.textContent = error.message || 'Could not explain this topic.';
       showToast(error.message || 'Could not explain this topic.', 'error');
     } finally {
-      if (identityEpoch === view.identityEpoch) {
+      if (view.aiController === controller) view.aiController = null;
+      if (identityEpoch === view.identityEpoch && operationEpoch === view.operationEpoch) {
         button.innerHTML = '<i class="fas fa-lightbulb"></i><span>Explain with AI</span>';
         view.isGenerating = false;
         updateSelectedDetails();
@@ -649,6 +1013,11 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
   }
 
   function setCollapsed(allCollapsed) {
+    if (!allCollapsed && view.map?.nodeCount > MAX_FULL_GRAPH_ANIMATION_NODES) {
+      expandAllProgressively();
+      return;
+    }
+    cancelExpandAll();
     const expandableIds = [];
     const visit = (node, isRoot = false) => {
       if (!node) return;
@@ -683,18 +1052,40 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
   function closeWorkspace() {
     workspace.hidden = true;
     document.body.classList.remove('mindmap-open');
+    cancelExpandAll();
     clearTimeout(view.saveTimer);
     void saveState();
+    cancelAiRequest();
+    view.mapController?.abort();
   }
 
   function clearForIdentityChange() {
     clearTimeout(view.saveTimer);
+    cancelExpandAll();
     view.identityEpoch++;
     view.savePending = false;
-    view.isGenerating = false;
+    cancelAiRequest();
+    view.savedMapsController?.abort();
+    view.savedMapsKey = null;
+    view.savedMapsPromise = null;
+    view.mapController?.abort();
     view.resizeObserver?.disconnect();
     view.resizeObserver = null;
+    if (view.resizeFrame) cancelAnimationFrame(view.resizeFrame);
+    if (view.dragFrame) cancelAnimationFrame(view.dragFrame);
+    view.svg?.selectAll('*').interrupt();
+    view.resizeFrame = 0;
+    view.dragFrame = 0;
+    view.pendingDrag = null;
+    view.dragIndex = null;
     view.map = null;
+    view.nodeById.clear();
+    view.visibleNodeById.clear();
+    view.visibleNodes = [];
+    view.nodeElements.clear();
+    view.linkElements.clear();
+    view.pathNodeIds.clear();
+    view.pathLinkKeys.clear();
     view.collapsedNodeIds.clear();
     view.positions = {};
     view.selectedNodeId = null;
@@ -707,6 +1098,8 @@ export function initMindMapFeature(state, apiRequest, escapeHtml, showToast) {
     view.linksLayer = null;
     view.nodesLayer = null;
     view.zoom = null;
+    view.dragBehavior = null;
+    view.linkPath = null;
   }
 
   document.addEventListener('neobook:identity-change', clearForIdentityChange);

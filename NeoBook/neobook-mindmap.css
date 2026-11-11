@@ -293,7 +293,6 @@
   fill: #fff;
   stroke: #dce2eb;
   stroke-width: 1.2px;
-  filter: drop-shadow(0 2px 3px rgba(15, 23, 42, .05));
   transition: fill .16s ease, stroke .16s ease, stroke-width .16s ease;
 }
 
@@ -571,8 +570,12 @@ a.mindmap-citation:hover {
 }
 
 @media (max-width: 760px) {
+  body.mindmap-open .neobook-header {
+    display: none;
+  }
+
   .mindmap-workspace {
-    inset: 60px 0 0;
+    inset: 0;
   }
 
   .mindmap-content {

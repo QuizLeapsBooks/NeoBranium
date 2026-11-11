@@ -4,6 +4,7 @@ import {
   normalizeGeneratedChildren,
   normalizeGeneratedMindMap
 } from './neobookMindMapService.js';
+import { retrieveRelevantChunks } from './neobookAiService.js';
 
 const references = new Map([
   ['R1', { sourceId: 'source-1', title: 'Cell Biology', type: 'text', pageNum: 2 }],
@@ -86,3 +87,13 @@ test('rejects an expansion when all model references are unknown', () => {
     children: [{ title: 'Unsupported', summary: 'No citation.', references: ['R99'] }]
   }, references), /no source-supported subtopics/i);
 });
+
+  test('retrieves exact phrase matches ahead of capped repeated terms', () => {
+    const chunks = [
+      { id: 'repeated-cell', text: 'cell cell cell cell cell cell', sourceTitle: 'Biology' },
+      { id: 'repeated-structure', text: 'structure structure structure structure structure structure', sourceTitle: 'Biology' },
+      { id: 'exact-phrase', text: 'cell structure describes the membrane', sourceTitle: 'Biology' }
+    ];
+
+    assert.equal(retrieveRelevantChunks(chunks, 'cell structure', 1)[0].id, 'exact-phrase');
+  });

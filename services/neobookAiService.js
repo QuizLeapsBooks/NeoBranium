@@ -50,6 +50,7 @@ export function retrieveRelevantChunks(allChunks, query, topK = NEOBOOK_CONFIG.T
   if (allChunks.length <= topK) return allChunks;
 
   const queryTerms = extractKeywords(query);
+  const termPatterns = queryTerms.map(term => new RegExp(`\\b${term}\\b`, 'g'));
   const normalizedQuery = query.toLowerCase().trim();
 
   const scored = allChunks.map(chunk => {
@@ -63,13 +64,15 @@ export function retrieveRelevantChunks(allChunks, query, topK = NEOBOOK_CONFIG.T
     }
 
     // Keyword matching
-    for (const term of queryTerms) {
-      // Chunk body term frequency
-      const occurrences = (chunkText.match(new RegExp(`\\b${term}\\b`, 'g')) || []).length;
-      score += Math.min(occurrences, 5) * 2;
+    for (let index = 0; index < queryTerms.length; index++) {
+      const pattern = termPatterns[index];
+      pattern.lastIndex = 0;
+      let occurrences = 0;
+      while (occurrences < 5 && pattern.exec(chunkText)) occurrences++;
+      score += occurrences * 2;
 
       // Title match bonus
-      if (titleText.includes(term)) {
+      if (titleText.includes(queryTerms[index])) {
         score += 3;
       }
     }
@@ -90,7 +93,8 @@ export function retrieveRelevantChunks(allChunks, query, topK = NEOBOOK_CONFIG.T
  * @param {{
  *   query: string,
  *   retrievedChunks: Array<object>,
- *   conversationHistory?: Array<{ role: 'user'|'assistant', content: string }>
+ *   conversationHistory?: Array<{ role: 'user'|'assistant', content: string }>,
+ *   signal?: AbortSignal
  * }} params
  * @returns {{ systemInstruction: string, contents: Array<object> }}
  */
@@ -199,7 +203,7 @@ export function estimateCostUsd(inputTokens, outputTokens) {
  *   modelUsed: string
  * }>}
  */
-export async function generateGroundedAnswer({ query, retrievedChunks, conversationHistory = [] }) {
+export async function generateGroundedAnswer({ query, retrievedChunks, conversationHistory = [], signal }) {
   if (!query || typeof query !== 'string' || !query.trim()) {
     throw new Error('A valid question is required.');
   }
@@ -221,6 +225,7 @@ export async function generateGroundedAnswer({ query, retrievedChunks, conversat
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), NEOBOOK_CONFIG.AI_TIMEOUT_MS);
+    const requestSignal = signal ? AbortSignal.any([controller.signal, signal]) : controller.signal;
 
     try {
       const response = await fetch(endpoint, {
@@ -234,7 +239,7 @@ export async function generateGroundedAnswer({ query, retrievedChunks, conversat
             maxOutputTokens: NEOBOOK_CONFIG.MAX_OUTPUT_TOKENS
           }
         }),
-        signal: controller.signal
+        signal: requestSignal
       });
 
       if (!response.ok) {
@@ -250,6 +255,7 @@ export async function generateGroundedAnswer({ query, retrievedChunks, conversat
         outputTokens = data.usageMetadata.candidatesTokenCount || 0;
       }
     } catch (geminiErr) {
+      if (signal?.aborted) throw geminiErr;
       console.warn(`[NeoBook AI] Gemini primary model failed (${geminiErr.message}). Attempting fallback.`);
 
       // Secondary: Try Groq fallback if available
@@ -274,7 +280,8 @@ export async function generateGroundedAnswer({ query, retrievedChunks, conversat
               messages: groqMessages,
               temperature: 0.3,
               max_tokens: NEOBOOK_CONFIG.MAX_OUTPUT_TOKENS
-            })
+            }),
+            signal
           });
 
           if (groqRes.ok) {
@@ -287,6 +294,7 @@ export async function generateGroundedAnswer({ query, retrievedChunks, conversat
             throw new Error(`Groq fallback failed with status ${groqRes.status}`);
           }
         } catch (groqErr) {
+          if (signal?.aborted) throw groqErr;
           throw new Error('NeoBook AI service is currently unavailable. Please check your network and try again.');
         }
       } else {
@@ -316,7 +324,8 @@ export async function generateGroundedAnswer({ query, retrievedChunks, conversat
         messages: groqMessages,
         temperature: 0.3,
         max_tokens: NEOBOOK_CONFIG.MAX_OUTPUT_TOKENS
-      })
+      }),
+      signal
     });
 
     if (!groqRes.ok) {
@@ -383,4 +392,3 @@ export async function generateGroundedAnswer({ query, retrievedChunks, conversat
     modelUsed
   };
 }
-

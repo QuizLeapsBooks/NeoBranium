@@ -119,6 +119,16 @@
       ]
     },
     {
+      "collectionGroup": "neobook_chunks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "notebookId", "order": "ASCENDING" },
+        { "fieldPath": "ownerKey", "order": "ASCENDING" },
+        { "fieldPath": "chatId", "order": "ASCENDING" },
+        { "fieldPath": "sourceId", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "neobook_messages",
       "queryScope": "COLLECTION",
       "fields": [
