@@ -58,20 +58,14 @@
     </div>
 
     <div class="header-right">
-      <!-- Daily Quota Indicator -->
-      <button class="quota-pill" id="quotaPill" type="button" aria-expanded="false" aria-controls="quotaPopover" title="View remaining NeoBook AI usage">
-        <div class="quota-item" id="quotaChatsItem">
-          <i class="fas fa-message" style="color:#818cf8;"></i>
-          <span>New Chats: <strong id="quotaChatsRemaining">5</strong>/5</span>
-        </div>
-        <span class="quota-divider">|</span>
-        <div class="quota-item" id="quotaTokensItem">
-          <i class="fas fa-bolt" style="color:#fbbf24;"></i>
-          <span>Budget: <strong id="quotaTokensRemaining">150k</strong></span>
-        </div>
-      </button>
+      <!-- Daily quota warning, shown only when usage is nearly exhausted -->
       <div class="quota-popover" id="quotaPopover" role="status" hidden>
-        <strong>NeoBook AI usage</strong>
+        <div class="quota-notice-header">
+          <strong>NeoBook AI usage is running low</strong>
+          <button class="quota-notice-close" id="btnCloseQuotaNotice" type="button" aria-label="Dismiss usage warning">
+            <i class="fas fa-xmark" aria-hidden="true"></i>
+          </button>
+        </div>
         <span id="quotaPopoverChats"></span>
         <span id="quotaPopoverTokens"></span>
         <small id="quotaPopoverReset"></small>
