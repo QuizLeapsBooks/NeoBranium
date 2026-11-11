@@ -187,6 +187,15 @@ async function requestStructuredJson({ prompt, schema, signal }) {
         estimatedCostUsd: estimateCostUsd(inputTokens, outputTokens)
       }
     };
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    if (controller.signal.aborted) {
+      throw Object.assign(new Error('Mind map generation timed out. Please try again.'), {
+        status: 504,
+        code: 'UPSTREAM_TIMEOUT'
+      });
+    }
+    throw error;
   } finally {
     clearTimeout(timer);
   }

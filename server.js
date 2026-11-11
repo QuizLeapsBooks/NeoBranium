@@ -40,6 +40,13 @@ import { createNeoLearnImpressionHandlers } from './neolearn-impression-handler.
 import { validateAIImage } from './utils/paperSecurity.js';
 import { createAiConversationHandler } from './ai-conversation-handler.js';
 import { createAiUploadHandler } from './ai-upload-handler.js';
+import {
+    createConcurrencyLimiter,
+    createRequestDeadline,
+    fetchWithRetry,
+    pipeWebStreamToResponse,
+    sharedAiConcurrency
+} from './utils/backendRequestProtection.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -331,32 +338,51 @@ setInterval(() => {
     }
 }, 10 * 60 * 1000);
 
-// --- Retry Helper ---
-const fetchWithRetry = async (url, options, maxRetries = 3) => {
-    let lastError;
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            const response = await fetch(url, options);
-
-            // If success or a non-transient error, return immediately
-            if (response.ok || !([429, 500, 502, 503, 504].includes(response.status))) {
-                return response;
-            }
-            
-            lastError = new Error(`HTTP ${response.status} ${response.statusText}`);
-            console.warn(`[AI] Request to ${new URL(url).hostname} failed with ${response.status}. Attempt ${attempt}/${maxRetries}.`);
-        } catch (error) {
-            lastError = error;
-            console.warn(`[AI] Network error to ${new URL(url).hostname}: ${error.message}. Attempt ${attempt}/${maxRetries}.`);
-        }
-        
-        if (attempt < maxRetries) {
-            const delay = Math.pow(2, attempt) * 500 + Math.random() * 500; // Exponential backoff with jitter
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
-    }
-    throw lastError;
-};
+const textAiConcurrency = createConcurrencyLimiter({
+    name: 'Text AI',
+    maxConcurrent: Number(process.env.AI_TEXT_MAX_CONCURRENT) || 12
+});
+const visionAiConcurrency = createConcurrencyLimiter({
+    name: 'Vision AI',
+    maxConcurrent: Number(process.env.AI_VISION_MAX_CONCURRENT) || 8
+});
+const streamConcurrency = createConcurrencyLimiter({
+    name: 'AI streaming',
+    maxConcurrent: Number(process.env.AI_STREAM_MAX_CONCURRENT) || 6
+});
+const ttsConcurrency = createConcurrencyLimiter({
+    name: 'Text-to-speech',
+    maxConcurrent: Number(process.env.TTS_MAX_CONCURRENT) || 4
+});
+const standardAiDeadline = createRequestDeadline({
+    timeoutMs: Number(process.env.AI_REQUEST_DEADLINE_MS) || 120_000
+});
+const chatDeadline = createRequestDeadline({
+      timeoutMs: Number(process.env.AI_REQUEST_DEADLINE_MS) || 120_000,
+      timeoutBody: { reply: 'AI request timed out' }
+});
+const streamAiDeadline = createRequestDeadline({
+      timeoutMs: Number(process.env.AI_STREAM_DEADLINE_MS) || 180_000,
+      onTimeout: (_req, res) => {
+          if (res.headersSent) {
+              if (!res.writableEnded && !res.destroyed) {
+                  res.write(`data: ${JSON.stringify({ error: 'AI stream timed out' })}\n\n`);
+                  res.write('data: [DONE]\n\n');
+                  res.end();
+              }
+          } else {
+              res.status(504).json({ error: 'AI stream timed out' });
+          }
+      }
+});
+const handwritingDeadline = createRequestDeadline({
+      timeoutMs: Number(process.env.AI_REQUEST_DEADLINE_MS) || 120_000,
+      timeoutBody: { error: 'AI request timed out', code: 'REQUEST_TIMEOUT' }
+});
+const ttsDeadline = createRequestDeadline({
+      timeoutMs: Number(process.env.TTS_REQUEST_DEADLINE_MS) || 180_000,
+      timeoutBody: { error: 'Text-to-speech request timed out' }
+});
 
 // Helper functions
 const detectQueryType = (text) => {
@@ -411,7 +437,7 @@ function sanitizeAIInput(message) {
 }
 
 // Main chat endpoint — requires Firebase auth and per-UID daily quota
-app.post('/api/chat', requireAuth, chatQuota, async (req, res) => {
+app.post('/api/chat', requireAuth, chatQuota, sharedAiConcurrency, textAiConcurrency, chatDeadline, async (req, res) => {
     const isProd = process.env.NODE_ENV === 'production';
     // req.uid is set by requireAuth (verified server-side); body uid is ignored
 
@@ -596,11 +622,15 @@ IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and st
                         temperature: 0.7,
                         maxOutputTokens: task === 'paper_generation' ? 6000 : 1600
                     }
-                })
+                }),
+                signal: req.backendSignal
             });
         } catch (fetchError) {
+            if (res.headersSent || req.backendSignal.aborted) return;
             console.error('[AI] Gemini fetch error:', fetchError);
-            return res.status(502).json({ reply: 'Gemini AI request failed after retries' });
+            return res.status(fetchError.status || 502).json({
+                reply: fetchError.code === 'UPSTREAM_TIMEOUT' ? 'AI request timed out' : 'Gemini AI request failed after retries'
+            });
         }
 
         if (!geminiResponse.ok) {
@@ -636,6 +666,7 @@ IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and st
         });
 
     } catch (error) {
+        if (res.headersSent || req.backendSignal.aborted) return;
         console.error('❌ Chat request failed:', error);
         res.status(500).json({
             reply: 'AI request failed'
@@ -644,7 +675,7 @@ IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and st
 });
 
 // Streaming Chat Endpoint for Live Tutor
-app.post('/api/chat-stream', requireAuth, boardQuota, boardRateLimit, async (req, res) => {
+app.post('/api/chat-stream', requireAuth, boardQuota, boardRateLimit, sharedAiConcurrency, streamConcurrency, streamAiDeadline, async (req, res) => {
     // Set headers for SSE
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -737,13 +768,6 @@ RULES:
             return res.end();
         }
 
-        const controller = new AbortController();
-        req.on('close', () => {
-            if (!res.writableEnded) {
-                controller.abort();
-            }
-        });
-
         let groqResponse;
         try {
             groqResponse = await fetchWithRetry('https://api.groq.com/openai/v1/chat/completions', {
@@ -753,14 +777,15 @@ RULES:
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(requestBody),
-                signal: controller.signal
+                signal: req.backendSignal
             });
         } catch (fetchError) {
-            if (fetchError.name === 'AbortError') {
+            if (req.backendSignal.aborted || fetchError.name === 'AbortError') {
                 return res.end();
             }
+            if (res.headersSent || req.backendSignal.aborted) return;
             console.error("[AI] Groq Stream Fetch Error:", fetchError);
-            res.write(`data: ${JSON.stringify({ error: 'AI stream failed' })}\n\n`);
+            res.write(`data: ${JSON.stringify({ error: fetchError.code === 'UPSTREAM_TIMEOUT' ? 'AI stream timed out' : 'AI stream failed' })}\n\n`);
             return res.end();
         }
 
@@ -771,57 +796,56 @@ RULES:
         }
 
         // Process SSE stream from Groq
-        const reader = groqResponse.body.getReader();
         const decoder = new TextDecoder("utf-8");
         let buffer = "";
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) {
-                if (buffer.trim()) {
-                    // Process any remaining buffer
-                    const line = buffer.trim();
-                    if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                        try {
-                            const data = JSON.parse(line.slice(6));
-                            if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
-                                res.write(`data: ${JSON.stringify({ content: data.choices[0].delta.content })}\n\n`);
-                            }
-                        } catch (e) {
-                            console.error('Error parsing final SSE chunk:', e);
-                        }
-                    }
-                }
-                res.write('data: [DONE]\n\n');
-                res.end();
-                break;
-            }
-
-            buffer += decoder.decode(value, { stream: true });
+        const transformSseChunk = chunk => {
+            buffer += decoder.decode(chunk, { stream: true });
             const lines = buffer.split('\n');
-            buffer = lines.pop(); // Keep the last incomplete line in the buffer
-
+            buffer = lines.pop();
+            let output = '';
             for (const line of lines) {
                 const trimmed = line.trim();
                 if (!trimmed || !trimmed.startsWith('data: ') || trimmed === 'data: [DONE]') continue;
-
                 try {
-                    const jsonStr = trimmed.slice(6);
-                    if (!jsonStr.endsWith('}') && !jsonStr.endsWith(']')) continue; // Basic incomplete JSON check
-
-                    const data = JSON.parse(jsonStr);
-                    if (data.choices && data.choices[0].delta && data.choices[0].delta.content) {
-                        res.write(`data: ${JSON.stringify({ content: data.choices[0].delta.content })}\n\n`);
-                    }
-                } catch (e) {
-                    // Only log real errors, not common incomplete chunks
-                    if (trimmed.length > 50) {
-                        console.warn('Skipping incomplete SSE chunk');
-                    }
+                    const data = JSON.parse(trimmed.slice(6));
+                    const content = data.choices?.[0]?.delta?.content;
+                    if (content) output += `data: ${JSON.stringify({ content })}\n\n`;
+                } catch (error) {
+                    if (trimmed.length > 50) console.warn('[AI] Skipping malformed upstream stream event.');
                 }
             }
+            return output;
+        };
+        const flushSseChunk = () => {
+            const tail = decoder.decode();
+            if (tail) buffer += tail;
+            const line = buffer.trim();
+            buffer = '';
+            if (!line.startsWith('data: ') || line === 'data: [DONE]') return '';
+            try {
+                const data = JSON.parse(line.slice(6));
+                const content = data.choices?.[0]?.delta?.content;
+                return content ? `data: ${JSON.stringify({ content })}\n\n` : '';
+            } catch {
+                return '';
+            }
+        };
+        try {
+            await pipeWebStreamToResponse(groqResponse.body, res, {
+                signal: req.backendSignal,
+                transformChunk: transformSseChunk,
+                flushChunk: flushSseChunk
+            });
+            if (!req.backendSignal.aborted && !res.writableEnded) {
+                res.write('data: [DONE]\n\n');
+                res.end();
+            }
+        } catch (streamError) {
+            if (!req.backendSignal.aborted) throw streamError;
         }
     } catch (error) {
+        if (res.destroyed || res.writableEnded || req.backendSignal.aborted) return;
+        if (res.destroyed || res.writableEnded || req.backendSignal.aborted) return;
         console.error('❌ Stream request failed:', error);
         res.write(`data: ${JSON.stringify({ error: 'Internal Server Error' })}\n\n`);
         res.end();
@@ -830,37 +854,39 @@ RULES:
 
 
 // Blackboard handwriting recognition: explicit, authenticated image request.
-app.post('/api/blackboard/recognize-handwriting', requireAuth, handwritingQuota, handwritingRateLimit, async (req, res) => {
+app.post('/api/blackboard/recognize-handwriting', requireAuth, handwritingQuota, handwritingRateLimit, sharedAiConcurrency, visionAiConcurrency, handwritingDeadline, async (req, res) => {
     const uid = req.uid;
     if (handwritingInFlight.has(uid)) return res.status(429).json({error:'A recognition request is already running for this account.',code:'REQUEST_IN_PROGRESS'});
     if (!process.env.GEMINI_API_KEY && !groqApiKey) return res.status(503).json({error:'NeoBoard AI is not configured on the server.',code:'AI_NOT_CONFIGURED'});
     handwritingInFlight.add(uid);
     try {
-        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS,fallbackApiKey:groqApiKey,fallbackModel:GROQ_MODEL,fallbackVisionModel:process.env.GROQ_VISION_MODEL||'qwen/qwen3.8-27b'});
+        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS,fallbackApiKey:groqApiKey,fallbackModel:GROQ_MODEL,fallbackVisionModel:process.env.GROQ_VISION_MODEL||'qwen/qwen3.8-27b',signal:req.backendSignal});
         res.json({success:true,result});
     } catch (error) {
+        if (res.headersSent || req.backendSignal.aborted) return;
         const status = [400,413,415,429,502,503,504].includes(error.status) ? error.status : 502;
         res.status(status).json({error:error.message||'Handwriting recognition failed.',code:error.code||'RECOGNITION_FAILED'});
     } finally { handwritingInFlight.delete(uid); }
 });
 
-app.post('/api/blackboard/analyze-selection', requireAuth, handwritingQuota, handwritingRateLimit, async (req, res) => {
+app.post('/api/blackboard/analyze-selection', requireAuth, handwritingQuota, handwritingRateLimit, sharedAiConcurrency, visionAiConcurrency, handwritingDeadline, async (req, res) => {
     const uid = req.uid;
     if (handwritingInFlight.has(uid)) return res.status(429).json({error:'A learning request is already running for this account.',code:'REQUEST_IN_PROGRESS'});
     if (!process.env.GEMINI_API_KEY && !groqApiKey) return res.status(503).json({error:'NeoBoard AI is not configured on the server.',code:'AI_NOT_CONFIGURED'});
     handwritingInFlight.add(uid);
     try {
         validateSelectionMetadata(req.body?.selection);
-        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,selectedText:req.body?.selectedText,subject:req.body?.subject,requestedFormat:req.body?.requestedFormat,customQuestion:req.body?.customQuestion,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS,fallbackApiKey:groqApiKey,fallbackModel:GROQ_MODEL,fallbackVisionModel:process.env.GROQ_VISION_MODEL||'qwen/qwen3.8-27b'});
+        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,selectedText:req.body?.selectedText,subject:req.body?.subject,requestedFormat:req.body?.requestedFormat,customQuestion:req.body?.customQuestion,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS,fallbackApiKey:groqApiKey,fallbackModel:GROQ_MODEL,fallbackVisionModel:process.env.GROQ_VISION_MODEL||'qwen/qwen3.8-27b',signal:req.backendSignal});
         res.json({success:true,result});
     } catch (error) {
+        if (res.headersSent || req.backendSignal.aborted) return;
         const status = [400,413,415,429,502,503,504].includes(error.status) ? error.status : 502;
         res.status(status).json({error:error.message||'Gemini learning analysis failed.',code:error.code||'ANALYSIS_FAILED'});
     } finally { handwritingInFlight.delete(uid); }
 });
 
 // Gemini Image Solving API — requires Firebase auth + UID-keyed daily quota
-app.post('/api/gemini-solve', requireAuth, solverQuota, async (req, res) => {
+app.post('/api/gemini-solve', requireAuth, solverQuota, sharedAiConcurrency, visionAiConcurrency, standardAiDeadline, async (req, res) => {
     try {
         let { base64, mimeType } = req.body;
         const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -898,11 +924,13 @@ app.post('/api/gemini-solve', requireAuth, solverQuota, async (req, res) => {
                         ]
                     }],
                     generationConfig: { maxOutputTokens: 1800, temperature: 0.2 }
-                })
+                }),
+                signal: req.backendSignal
             });
         } catch (fetchError) {
+            if (res.headersSent || req.backendSignal.aborted) return;
             console.error('[AI] Gemini API Failure:', fetchError);
-            return res.status(502).json({ success: false, error: 'Gemini API request failed after retries' });
+            return res.status(fetchError.status || 502).json({ success: false, error: 'Gemini API request failed after retries' });
         }
 
         const data = await response.json();
@@ -925,6 +953,7 @@ app.post('/api/gemini-solve', requireAuth, solverQuota, async (req, res) => {
         });
 
     } catch (error) {
+        if (res.headersSent || req.backendSignal.aborted) return;
         console.error('❌ Gemini Solve Route Error:', error);
         res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
@@ -934,7 +963,7 @@ app.post('/api/gemini-solve', requireAuth, solverQuota, async (req, res) => {
 // NeoLens Quiz Generation API — requires auth + UID-keyed daily quota
 // POST /api/tutor/create-quiz
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-app.post('/api/tutor/create-quiz', requireAuth, solverQuota, async (req, res) => {
+app.post('/api/tutor/create-quiz', requireAuth, solverQuota, sharedAiConcurrency, visionAiConcurrency, standardAiDeadline, async (req, res) => {
     try {
         let { base64, mimeType, aiSolution } = req.body;
         const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -1011,12 +1040,14 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
                             temperature: 0.6,
                             maxOutputTokens: 1800
                         }
-                    })
+                    }),
+                    signal: req.backendSignal
                 }
             );
         } catch (fetchError) {
+            if (res.headersSent || req.backendSignal.aborted) return;
             console.error('[AI] Gemini Quiz API fetch error:', fetchError);
-            return res.status(502).json({ success: false, error: 'AI quiz generation failed after retries.' });
+            return res.status(fetchError.status || 502).json({ success: false, error: 'AI quiz generation failed after retries.' });
         }
 
         if (!geminiResponse.ok) {
@@ -1077,6 +1108,7 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
         });
 
     } catch (error) {
+        if (res.headersSent || req.backendSignal.aborted) return;
         console.error('❌ Quiz Route Error:', error);
         return res.status(500).json({ success: false, error: 'Internal Server Error. Please try again.' });
     }
@@ -1086,7 +1118,7 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
 // NeoLens Practice Similar Questions API
 // POST /api/tutor/practice-similar
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-app.post('/api/tutor/practice-similar', requireAuth, solverQuota, async (req, res) => {
+app.post('/api/tutor/practice-similar', requireAuth, solverQuota, sharedAiConcurrency, visionAiConcurrency, standardAiDeadline, async (req, res) => {
     try {
         let { base64, mimeType, aiSolution, previousQuiz, incorrectIndices } = req.body;
         const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -1164,12 +1196,14 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
                     body: JSON.stringify({
                         contents: [{ parts }],
                         generationConfig: { temperature: 0.6, maxOutputTokens: 1600 }
-                    })
+                    }),
+                    signal: req.backendSignal
                 }
             );
         } catch (fetchError) {
+            if (res.headersSent || req.backendSignal.aborted) return;
             console.error('[AI] Gemini Practice API fetch error:', fetchError);
-            return res.status(502).json({ success: false, error: 'AI practice generation failed after retries.' });
+            return res.status(fetchError.status || 502).json({ success: false, error: 'AI practice generation failed after retries.' });
         }
 
         if (!geminiResponse.ok) {
@@ -1210,6 +1244,7 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
         });
 
     } catch (error) {
+        if (res.headersSent || req.backendSignal.aborted) return;
         console.error('❌ Practice Route Error:', error);
         return res.status(500).json({ success: false, error: 'Internal Server Error. Please try again.' });
     }
@@ -1266,7 +1301,7 @@ function safeParseGeminiJSON(rawText) {
 }
 
 // AI Board Analysis API
-app.post('/api/analyze-board', requireAuth, boardQuota, boardRateLimit, async (req, res) => {
+app.post('/api/analyze-board', requireAuth, boardQuota, boardRateLimit, sharedAiConcurrency, visionAiConcurrency, standardAiDeadline, async (req, res) => {
     try {
         let { base64, mimeType, mode = 'hinglish', isAutoScan = false } = req.body;
         const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -1392,11 +1427,13 @@ Explanation Guidelines:
                         ]
                     }],
                     generationConfig: { maxOutputTokens: 1000, temperature: 0.2 }
-                })
+                }),
+                signal: req.backendSignal
             });
         } catch (fetchError) {
+            if (res.headersSent || req.backendSignal.aborted) return;
             console.error('[AI] Analyze Board API fetch error:', fetchError);
-            return res.status(502).json({ success: false, error: 'AI Analysis failed after retries' });
+            return res.status(fetchError.status || 502).json({ success: false, error: 'AI Analysis failed after retries' });
         }
 
         const data = await response.json();
@@ -1453,13 +1490,14 @@ Explanation Guidelines:
         });
 
     } catch (error) {
+        if (res.headersSent || req.backendSignal.aborted) return;
         console.error('❌ Analyze Board Error:', error);
         res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
 });
 
 // Rephrase API for AI Board Modes
-app.post('/api/rephrase-board', requireAuth, boardQuota, boardRateLimit, async (req, res) => {
+app.post('/api/rephrase-board', requireAuth, boardQuota, boardRateLimit, sharedAiConcurrency, textAiConcurrency, standardAiDeadline, async (req, res) => {
     try {
         const { text, mode } = req.body;
         const groqApiKey = process.env.GROQ_API_KEY;
@@ -1515,11 +1553,13 @@ ${text}`;
                     'Authorization': `Bearer ${groqApiKey}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify(requestBody),
+                signal: req.backendSignal
             });
         } catch (fetchError) {
+            if (res.headersSent || req.backendSignal.aborted) return;
             console.error('[AI] Rephrase API fetch error:', fetchError);
-            return res.status(502).json({ success: false, error: 'Rephrase failed after retries' });
+            return res.status(fetchError.status || 502).json({ success: false, error: 'Rephrase failed after retries' });
         }
 
         const data = await response.json();
@@ -1535,6 +1575,7 @@ ${text}`;
         });
 
     } catch (error) {
+        if (res.headersSent || req.backendSignal.aborted) return;
         console.error('❌ Rephrase API Error:', error);
         res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
@@ -1594,7 +1635,7 @@ const applyHinglishPronunciationFixes = (text) => {
         .trim();
 };
 
-app.post('/api/tts', requireAuth, ttsQuota, boardRateLimit, async (req, res) => {
+app.post('/api/tts', requireAuth, ttsQuota, boardRateLimit, sharedAiConcurrency, ttsConcurrency, ttsDeadline, async (req, res) => {
     try {
         const { text, mode = 'hinglish' } = req.body;
 
@@ -1639,7 +1680,7 @@ app.post('/api/tts', requireAuth, ttsQuota, boardRateLimit, async (req, res) => 
 
         const settings = voiceSettings[mode] || voiceSettings['hinglish'];
 
-        const elResponse = await fetch(
+        const elResponse = await fetchWithRetry(
             `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,
             {
                 method: 'POST',
@@ -1652,8 +1693,10 @@ app.post('/api/tts', requireAuth, ttsQuota, boardRateLimit, async (req, res) => 
                     text: processedText,
                     model_id: 'eleven_multilingual_v2',
                     voice_settings: settings
-                })
-            }
+                }),
+                signal: req.backendSignal
+            },
+            { maxRetries: 1, timeoutMs: Number(process.env.TTS_UPSTREAM_TIMEOUT_MS) || 150_000 }
         );
 
         if (!elResponse.ok) {
@@ -1669,20 +1712,14 @@ app.post('/api/tts', requireAuth, ttsQuota, boardRateLimit, async (req, res) => 
         res.setHeader('Cache-Control', 'no-store');
         res.setHeader('Transfer-Encoding', 'chunked');
 
-        const reader = elResponse.body.getReader();
-        const pump = async () => {
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) { res.end(); break; }
-                res.write(Buffer.from(value));
-            }
-        };
-        await pump();
+        await pipeWebStreamToResponse(elResponse.body, res, { signal: req.backendSignal });
+        if (!req.backendSignal.aborted && !res.writableEnded) res.end();
 
     } catch (error) {
+        if (res.destroyed || res.writableEnded || req.backendSignal.aborted) return;
         console.error('❌ /api/tts error:', error);
         if (!res.headersSent) {
-            res.status(500).json({ error: 'TTS internal error' });
+            res.status(error.code === 'UPSTREAM_TIMEOUT' ? 504 : 500).json({ error: 'TTS internal error' });
         }
     }
 });

@@ -200,7 +200,8 @@ export async function generateQuizFromSources({
   difficulty = 'medium',
   questionCount = 5,
   allChunks = [],
-  identity
+  identity,
+  signal
 }) {
   const config = validateQuizConfig({ difficulty, questionCount });
   const selectedChunks = selectRepresentativeChunks(allChunks, sourceIds, NEOBOOK_CONFIG.MAX_QUIZ_CHUNKS);
@@ -231,6 +232,7 @@ export async function generateQuizFromSources({
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), NEOBOOK_CONFIG.QUIZ_AI_TIMEOUT_MS);
+    const requestSignal = signal ? AbortSignal.any([controller.signal, signal]) : controller.signal;
 
     try {
       const response = await fetch(endpoint, {
@@ -245,7 +247,7 @@ export async function generateQuizFromSources({
             maxOutputTokens: NEOBOOK_CONFIG.MAX_OUTPUT_TOKENS
           }
         }),
-        signal: controller.signal
+        signal: requestSignal
       });
 
       if (!response.ok) {
@@ -260,6 +262,13 @@ export async function generateQuizFromSources({
       outputTokens = data.usageMetadata?.candidatesTokenCount || 0;
     } catch (apiErr) {
       console.warn('[NeoBook Quiz] Gemini call failed:', apiErr.message);
+      if (signal?.aborted) throw apiErr;
+      if (controller.signal.aborted) {
+        throw Object.assign(new Error('Gemini quiz generation timed out. Please try again.'), {
+          status: 504,
+          code: 'UPSTREAM_TIMEOUT'
+        });
+      }
       throw new Error('Gemini is momentarily unavailable for quiz generation. Please retry in a few moments.');
     } finally {
       clearTimeout(timeout);
@@ -590,4 +599,3 @@ export async function getQuizById({ quizId, identity }) {
     createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : data.createdAt
   };
 }
-

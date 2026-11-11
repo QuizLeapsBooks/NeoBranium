@@ -2,17 +2,18 @@ import crypto from 'crypto';
 import { db, admin } from '../firebaseAdmin.js';
 import { NEOBOOK_CONFIG } from './neobookConfig.js';
 import { estimateCostUsd } from './neobookAiService.js';
+import { fetchWithRetry } from '../utils/backendRequestProtection.js';
 
 const geminiApiKey = process.env.GEMINI_API_KEY;
 
-export async function generateFlashcards({ notebookId, chatId, identity, chunks, count = 10 }) {
+export async function generateFlashcards({ notebookId, chatId, identity, chunks, count = 10, signal }) {
   if (!geminiApiKey) throw new Error('Gemini API key is not configured on the server.');
   const usable = (chunks || []).filter(chunk => chunk?.text).slice(0, 20);
   if (usable.length === 0) throw new Error('No readable source content is available for flashcards.');
   const requested = [5, 10, 15, 20].includes(Number(count)) ? Number(count) : 10;
   const excerpts = usable.map((chunk, index) => `[${index + 1}] ${chunk.sourceTitle || 'Source'}${chunk.metadata?.pageNum ? `, page ${chunk.metadata.pageNum}` : ''}${chunk.metadata?.timestamp ? `, ${chunk.metadata.timestamp}` : ''}\n${chunk.text}`).join('\n\n');
   const prompt = `Create exactly ${requested} concise active-recall flashcards from ONLY these excerpts. Each card must test a definition, formula, vocabulary term, relationship, or key concept explicitly supported by the excerpts. Never use outside knowledge. Return JSON only: {"title":"...","cards":[{"front":"question or term","back":"concise answer","explanation":"brief source-grounded explanation","sourceCitation":{"title":"source title","pageNum":1,"timestamp":"00:00"}}]}.\n\n${excerpts}`;
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${NEOBOOK_CONFIG.AI_MODEL}:generateContent?key=${geminiApiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.2, maxOutputTokens: NEOBOOK_CONFIG.MAX_OUTPUT_TOKENS } }) });
+  const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${NEOBOOK_CONFIG.AI_MODEL}:generateContent?key=${geminiApiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.2, maxOutputTokens: NEOBOOK_CONFIG.MAX_OUTPUT_TOKENS } }), signal }, { maxRetries: 1, timeoutMs: NEOBOOK_CONFIG.QUIZ_AI_TIMEOUT_MS });
   if (!response.ok) throw new Error('Gemini is momentarily unavailable for flashcard generation.');
   const data = await response.json();
   let parsed; try { parsed = JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text || '{}'); } catch { throw new Error('Gemini returned an invalid flashcard response.'); }

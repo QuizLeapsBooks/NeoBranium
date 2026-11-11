@@ -43,13 +43,13 @@ test('selected typed text uses the same safe learning response pipeline',async()
   assert.deepEqual(output.suggestedActionIds,['bio.explain']);
 });
 
-test('transient Gemini service failures retry and use the configured stable vision model',async()=>{
+test('transient Gemini service failures fail over without repeating the non-idempotent request',async()=>{
   let calls=0,requestedUrl='';
   const fetchImpl=async(url)=>{calls++;requestedUrl=url;if(calls===1)return{ok:false,status:503,json:async()=>({error:{message:'temporarily overloaded'}})};return{ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(result)}]}}]})};};
   const output=await requestHandwritingRecognition({imageBase64:pngHeader(),apiKey:'server-secret',fetchImpl});
   assert.equal(output.normalizedExpression,'2x^2 = 0');
   assert.equal(calls,2);
-  assert.match(requestedUrl,/models\/gemini-3\.8-flash:generateContent$/);
+  assert.match(requestedUrl,/models\/gemini-3\.6-flash:generateContent$/);
 });
 
 test('Gemini overload falls back to the compatible documented Flash model',async()=>{
@@ -57,9 +57,9 @@ test('Gemini overload falls back to the compatible documented Flash model',async
   const fetchImpl=async(url)=>{urls.push(url);if(url.includes('gemini-3.8-flash'))return{ok:false,status:503,json:async()=>({error:{message:'high demand'}})};return{ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(result)}]}}]})};};
   const output=await requestHandwritingRecognition({imageBase64:pngHeader(),apiKey:'server-secret',fetchImpl});
   assert.equal(output.normalizedExpression,'2x^2 = 0');
-  assert.equal(urls.length,4);
-  assert.ok(urls.slice(0,3).every(url=>url.includes('gemini-3.8-flash')));
-  assert.ok(urls[3].includes('gemini-3.6-flash'));
+  assert.equal(urls.length,2);
+  assert.ok(urls[0].includes('gemini-3.8-flash'));
+  assert.ok(urls[1].includes('gemini-3.6-flash'));
 });
 
 test('missing provider key, malformed response and provider quota fail clearly',async()=>{

@@ -49,6 +49,11 @@ import {
 import { generateFlashcards, reviewFlashcard } from '../services/neobookFlashcardService.js';
 import { generateStudyGuide } from '../services/neobookStudyGuideService.js';
 import { generateMindMap, generateMindMapChildren } from '../services/neobookMindMapService.js';
+import {
+  createConcurrencyLimiter,
+  createRequestDeadline,
+  sharedAiConcurrency
+} from '../utils/backendRequestProtection.js';
 
 export const neobookRouter = express.Router();
 
@@ -110,6 +115,20 @@ const mindMapRateLimiter = rateLimit({
   message: { success: false, error: 'Too many mind map AI requests. Please wait a few moments before trying again.' },
   keyGenerator: (req) => req.identity?.identityKey || req.ip,
 });
+const neoBookAiConcurrency = createConcurrencyLimiter({
+  name: 'NeoBook AI',
+  maxConcurrent: Number(process.env.NEOBOOK_AI_MAX_CONCURRENT) || 8
+});
+const sourceProcessingConcurrency = createConcurrencyLimiter({
+  name: 'NeoBook source processing',
+  maxConcurrent: Number(process.env.NEOBOOK_SOURCE_MAX_CONCURRENT) || 4
+});
+const neoBookAiDeadline = createRequestDeadline({
+  timeoutMs: Number(process.env.NEOBOOK_AI_REQUEST_DEADLINE_MS) || 90_000
+});
+const sourceProcessingDeadline = createRequestDeadline({
+  timeoutMs: Number(process.env.NEOBOOK_SOURCE_REQUEST_DEADLINE_MS) || 180_000
+});
 
 /**
  * Middleware: Attaches verified user UID if Authorization header is present,
@@ -160,14 +179,14 @@ function requireAuthenticatedMindMapUser(req, res, next) {
   next();
 }
 
-function abortOnResponseDisconnect(res) {
+function abortOnResponseDisconnect(req, res) {
   const controller = new AbortController();
   const onClose = () => {
     if (!res.writableEnded) controller.abort();
   };
   res.on('close', onClose);
   return {
-    signal: controller.signal,
+    signal: req.backendSignal ? AbortSignal.any([controller.signal, req.backendSignal]) : controller.signal,
     cleanup: () => res.off('close', onClose)
   };
 }
@@ -469,7 +488,7 @@ neobookRouter.get('/notebooks/:notebookId/sources', async (req, res) => {
 });
 
 // ── POST /api/neobook/notebooks/:notebookId/sources ──────────────────────────
-neobookRouter.post('/notebooks/:notebookId/sources', sourceRateLimiter, async (req, res) => {
+neobookRouter.post('/notebooks/:notebookId/sources', sourceRateLimiter, sourceProcessingConcurrency, sourceProcessingDeadline, async (req, res) => {
   try {
     const { notebookId } = req.params;
     const { type, url, text, title: userTitle, pdfBase64, chatId } = req.body || {};
@@ -502,14 +521,15 @@ neobookRouter.post('/notebooks/:notebookId/sources', sourceRateLimiter, async (r
     const sourceId = `src_${crypto.randomBytes(8).toString('hex')}`;
     let processedResult = null;
     let extractionError = null;
+    let extractionStatus = null;
 
     try {
       if (type === 'url') {
         if (!url || typeof url !== 'string') throw new Error('A valid website URL is required.');
-        processedResult = await fetchWebsiteContent(url);
+        processedResult = await fetchWebsiteContent(url, 3, { signal: req.backendSignal });
       } else if (type === 'youtube') {
         if (!url || typeof url !== 'string') throw new Error('A valid YouTube video link is required.');
-        processedResult = await extractYouTubeTranscript(url);
+        processedResult = await extractYouTubeTranscript(url, { signal: req.backendSignal });
       } else if (type === 'text') {
         if (!text || typeof text !== 'string') throw new Error('Source text content is required.');
         processedResult = processRawTextInput(text, userTitle);
@@ -523,7 +543,9 @@ neobookRouter.post('/notebooks/:notebookId/sources', sourceRateLimiter, async (r
         }
       }
     } catch (processErr) {
+      if (req.backendSignal.aborted) return;
       extractionError = processErr.message;
+      extractionStatus = processErr.status || null;
     }
 
     const status = extractionError ? 'error' : 'ready';
@@ -593,7 +615,7 @@ neobookRouter.post('/notebooks/:notebookId/sources', sourceRateLimiter, async (r
     }
 
     if (status === 'error') {
-      return res.status(422).json({
+      return res.status(extractionStatus || 422).json({
         success: false,
         error: extractionError,
         source: {
@@ -618,6 +640,7 @@ neobookRouter.post('/notebooks/:notebookId/sources', sourceRateLimiter, async (r
       }
     });
   } catch (err) {
+    if (res.headersSent || req.backendSignal?.aborted) return;
     console.error('[NeoBook] Error adding source:', err);
     return res.status(500).json({ success: false, error: err.message || 'Failed to process source.' });
   }
@@ -1067,7 +1090,7 @@ neobookRouter.get('/notebooks/:notebookId/chats/:chatId', async (req, res) => {
 
 // ── POST /api/neobook/notebooks/:notebookId/chats/:chatId/messages ────────────
 // Follow-up messages do NOT count as new chats!
-neobookRouter.post('/notebooks/:notebookId/chats/:chatId/messages', chatRateLimiter, async (req, res) => {
+neobookRouter.post('/notebooks/:notebookId/chats/:chatId/messages', chatRateLimiter, sharedAiConcurrency, neoBookAiConcurrency, neoBookAiDeadline, async (req, res) => {
   try {
     const { notebookId, chatId } = req.params;
     const { message } = req.body || {};
@@ -1126,7 +1149,8 @@ neobookRouter.post('/notebooks/:notebookId/chats/:chatId/messages', chatRateLimi
     const aiResult = await generateGroundedAnswer({
       query: cleanQuery,
       retrievedChunks,
-      conversationHistory
+      conversationHistory,
+      signal: req.backendSignal
     });
 
     // Step 4: Record Token Usage
@@ -1214,6 +1238,7 @@ neobookRouter.post('/notebooks/:notebookId/chats/:chatId/messages', chatRateLimi
       }
     });
   } catch (err) {
+    if (res.headersSent || req.backendSignal?.aborted) return;
     console.error('[NeoBook] Error processing chat message:', err);
     return res.status(500).json({ success: false, error: err.message || 'Error processing response.' });
   }
@@ -1268,7 +1293,7 @@ neobookRouter.delete('/chats/:chatId', async (req, res) => {
 });
 
 // ── POST /api/neobook/notebooks/:notebookId/quizzes/generate ─────────────────
-neobookRouter.post('/notebooks/:notebookId/quizzes/generate', requireAuthenticatedQuizUser, quizRateLimiter, async (req, res) => {
+neobookRouter.post('/notebooks/:notebookId/quizzes/generate', requireAuthenticatedQuizUser, quizRateLimiter, sharedAiConcurrency, neoBookAiConcurrency, neoBookAiDeadline, async (req, res) => {
   let reservationId = null;
   let generatedQuizId = null;
   try {
@@ -1324,7 +1349,8 @@ neobookRouter.post('/notebooks/:notebookId/quizzes/generate', requireAuthenticat
       difficulty,
       questionCount,
       allChunks,
-      identity: req.identity
+      identity: req.identity,
+      signal: req.backendSignal
     });
     generatedQuizId = quiz.id;
 
@@ -1349,8 +1375,9 @@ neobookRouter.post('/notebooks/:notebookId/quizzes/generate', requireAuthenticat
     // A quiz must not survive if token settlement fails after generation.
     if (generatedQuizId && db) await db.collection('neobook_quizzes').doc(generatedQuizId).delete().catch(() => {});
     if (reservationId) await cancelTokenReservation(req.identity, reservationId).catch(() => {});
+    if (res.headersSent || req.backendSignal?.aborted) return;
     console.error('[NeoBook] Error generating quiz:', err);
-    return res.status(500).json({
+    return res.status(err.status || 500).json({
       success: false,
       error: err.message || 'Failed to generate knowledge quiz.'
     });
@@ -1358,7 +1385,7 @@ neobookRouter.post('/notebooks/:notebookId/quizzes/generate', requireAuthenticat
 });
 
 // ── Smart Flashcards: Gemini generation + the same NeoBook token reservation ──
-neobookRouter.post('/notebooks/:notebookId/flashcards/generate', requireAuthenticatedQuizUser, quizRateLimiter, async (req, res) => {
+neobookRouter.post('/notebooks/:notebookId/flashcards/generate', requireAuthenticatedQuizUser, quizRateLimiter, sharedAiConcurrency, neoBookAiConcurrency, neoBookAiDeadline, async (req, res) => {
   let reservationId = null; let setId = null;
   try {
     const { notebookId } = req.params; const { chatId, sourceIds, count } = req.body || {};
@@ -1369,13 +1396,14 @@ neobookRouter.post('/notebooks/:notebookId/flashcards/generate', requireAuthenti
     const reservation = await reserveTokenUsage(req.identity, NEOBOOK_CONFIG.MAX_INPUT_TOKENS_PER_REQUEST + NEOBOOK_CONFIG.MAX_OUTPUT_TOKENS);
     if (!reservation.allowed) return res.status(429).json({ success: false, error: reservation.error, code: 'TOKEN_BUDGET_EXHAUSTED' });
     reservationId = reservation.reservationId;
-    const { set, tokenUsage } = await generateFlashcards({ notebookId, chatId, identity: req.identity, chunks, count }); setId = set.id;
+    const { set, tokenUsage } = await generateFlashcards({ notebookId, chatId, identity: req.identity, chunks, count, signal: req.backendSignal }); setId = set.id;
     const quota = await settleTokenReservation(req.identity, reservationId, tokenUsage); reservationId = null;
     return res.json({ success: true, set, quota: { tokensUsed: quota.tokensUsed, tokensRemaining: quota.tokensRemaining, resetAt: quota.resetAt } });
   } catch (err) {
     if (setId && db) await db.collection('neobook_flashcard_sets').doc(setId).delete().catch(() => {});
     if (reservationId) await cancelTokenReservation(req.identity, reservationId).catch(() => {});
-    return res.status(500).json({ success: false, error: err.message || 'Failed to generate flashcards.' });
+    if (res.headersSent || req.backendSignal?.aborted) return;
+    return res.status(err.status || 500).json({ success: false, error: err.message || 'Failed to generate flashcards.' });
   }
 });
 
@@ -1384,7 +1412,7 @@ neobookRouter.post('/flashcards/:setId/cards/:cardId/review', requireAuthenticat
   catch (err) { return res.status(400).json({ success: false, error: err.message || 'Could not save review.' }); }
 });
 
-neobookRouter.post('/notebooks/:notebookId/study-guides/generate', requireAuthenticatedQuizUser, quizRateLimiter, async (req, res) => {
+neobookRouter.post('/notebooks/:notebookId/study-guides/generate', requireAuthenticatedQuizUser, quizRateLimiter, sharedAiConcurrency, neoBookAiConcurrency, neoBookAiDeadline, async (req, res) => {
   let reservationId = null; let guideId = null;
   try {
     const { notebookId } = req.params; const { chatId, sourceIds } = req.body || {};
@@ -1395,10 +1423,10 @@ neobookRouter.post('/notebooks/:notebookId/study-guides/generate', requireAuthen
     const reservation = await reserveTokenUsage(req.identity, NEOBOOK_CONFIG.MAX_INPUT_TOKENS_PER_REQUEST + NEOBOOK_CONFIG.MAX_OUTPUT_TOKENS);
     if (!reservation.allowed) return res.status(429).json({ success: false, error: reservation.error, code: 'TOKEN_BUDGET_EXHAUSTED' });
     reservationId = reservation.reservationId;
-    const result = await generateStudyGuide({ notebookId, chatId, identity: req.identity, chunks }); guideId = result.guide.id;
+    const result = await generateStudyGuide({ notebookId, chatId, identity: req.identity, chunks, signal: req.backendSignal }); guideId = result.guide.id;
     const quota = await settleTokenReservation(req.identity, reservationId, result.tokenUsage); reservationId = null;
     return res.json({ success: true, guide: result.guide, quota: { tokensUsed: quota.tokensUsed, tokensRemaining: quota.tokensRemaining, resetAt: quota.resetAt } });
-  } catch (err) { if (guideId && db) await db.collection('neobook_study_guides').doc(guideId).delete().catch(() => {}); if (reservationId) await cancelTokenReservation(req.identity, reservationId).catch(() => {}); return res.status(500).json({ success: false, error: err.message || 'Failed to generate study guide.' }); }
+  } catch (err) { if (guideId && db) await db.collection('neobook_study_guides').doc(guideId).delete().catch(() => {}); if (reservationId) await cancelTokenReservation(req.identity, reservationId).catch(() => {}); if (res.headersSent || req.backendSignal?.aborted) return; return res.status(err.status || 500).json({ success: false, error: err.message || 'Failed to generate study guide.' }); }
 });
 
 // ── Mind Maps: source-grounded generation and persistent interactive state ───
@@ -1431,10 +1459,10 @@ neobookRouter.get('/notebooks/:notebookId/chats/:chatId/mindmaps', requireAuthen
   }
 });
 
-neobookRouter.post('/notebooks/:notebookId/mindmaps/generate', requireAuthenticatedMindMapUser, mindMapRateLimiter, async (req, res) => {
+neobookRouter.post('/notebooks/:notebookId/mindmaps/generate', requireAuthenticatedMindMapUser, mindMapRateLimiter, sharedAiConcurrency, neoBookAiConcurrency, neoBookAiDeadline, async (req, res) => {
   let reservationId = null;
   let mapId = null;
-  const cancellation = abortOnResponseDisconnect(res);
+  const cancellation = abortOnResponseDisconnect(req, res);
   try {
     if (!db) return res.status(503).json({ success: false, error: 'Mind maps require the NeoBook database service.' });
     const { notebookId } = req.params;
@@ -1540,9 +1568,9 @@ neobookRouter.patch('/mindmaps/:mapId', requireAuthenticatedMindMapUser, async (
   }
 });
 
-neobookRouter.post('/mindmaps/:mapId/nodes/:nodeId/expand', requireAuthenticatedMindMapUser, mindMapRateLimiter, async (req, res) => {
+neobookRouter.post('/mindmaps/:mapId/nodes/:nodeId/expand', requireAuthenticatedMindMapUser, mindMapRateLimiter, sharedAiConcurrency, neoBookAiConcurrency, neoBookAiDeadline, async (req, res) => {
   let reservationId = null;
-  const cancellation = abortOnResponseDisconnect(res);
+  const cancellation = abortOnResponseDisconnect(req, res);
   try {
     const owned = await getOwnedMindMap(req.params.mapId, req.identity);
     if (!owned) return res.status(404).json({ success: false, error: 'Mind map not found.' });
@@ -1607,9 +1635,9 @@ neobookRouter.post('/mindmaps/:mapId/nodes/:nodeId/expand', requireAuthenticated
   }
 });
 
-neobookRouter.post('/mindmaps/:mapId/nodes/:nodeId/explain', requireAuthenticatedMindMapUser, mindMapRateLimiter, async (req, res) => {
+neobookRouter.post('/mindmaps/:mapId/nodes/:nodeId/explain', requireAuthenticatedMindMapUser, mindMapRateLimiter, sharedAiConcurrency, neoBookAiConcurrency, neoBookAiDeadline, async (req, res) => {
   let reservationId = null;
-  const cancellation = abortOnResponseDisconnect(res);
+  const cancellation = abortOnResponseDisconnect(req, res);
   try {
     const owned = await getOwnedMindMap(req.params.mapId, req.identity);
     if (!owned) return res.status(404).json({ success: false, error: 'Mind map not found.' });

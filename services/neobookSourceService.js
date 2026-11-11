@@ -12,6 +12,7 @@
 import dns from 'dns';
 import { PDFParse } from 'pdf-parse';
 import { NEOBOOK_CONFIG } from './neobookConfig.js';
+import { fetchWithRetry } from '../utils/backendRequestProtection.js';
 
 // ── SSRF & Network Protection ──────────────────────────────────────────────────
 
@@ -229,33 +230,29 @@ export function extractTextFromHtml(html) {
  * @param {number} maxRedirects
  * @returns {Promise<{ title: string, text: string, url: string }>}
  */
-export async function fetchWebsiteContent(urlString, maxRedirects = 3) {
+export async function fetchWebsiteContent(urlString, maxRedirects = 3, { signal } = {}) {
   let currentUrl = urlString;
   let response = null;
 
   for (let hop = 0; hop <= maxRedirects; hop++) {
     const validatedUrl = await validateSafeUrl(currentUrl);
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), NEOBOOK_CONFIG.FETCH_TIMEOUT_MS);
-
     try {
-      response = await fetch(validatedUrl.toString(), {
+      response = await fetchWithRetry(validatedUrl.toString(), {
         method: 'GET',
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 NeoBook/2.0',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,text/plain;q=0.8,*/*;q=0.5'
         },
         redirect: 'manual',
-        signal: controller.signal
-      });
+        signal
+      }, { maxRetries: 1, timeoutMs: NEOBOOK_CONFIG.FETCH_TIMEOUT_MS });
     } catch (fetchErr) {
-      if (fetchErr.name === 'AbortError') {
-        throw new Error('Fetching website timed out after 10 seconds.');
+      if (signal?.aborted) throw fetchErr;
+      if (fetchErr.name === 'AbortError' || fetchErr.code === 'UPSTREAM_TIMEOUT') {
+        throw Object.assign(new Error('Fetching website timed out after 10 seconds.'), { status: 504, code: 'UPSTREAM_TIMEOUT' });
       }
       throw new Error(`Failed to fetch website: ${fetchErr.message}`);
-    } finally {
-      clearTimeout(timeout);
     }
 
     // Handle redirects safely
@@ -334,7 +331,7 @@ export function formatTimestamp(totalSeconds) {
  * @param {string} title
  * @returns {Promise<{ title: string, text: string, videoId: string, segments: Array<{ timestamp: string, text: string }> } | null>}
  */
-export async function analyzeYouTubeWithGemini(videoId, title) {
+export async function analyzeYouTubeWithGemini(videoId, title, signal) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return null;
 
@@ -348,9 +345,10 @@ Produce a comprehensive, deeply informative research document covering:
 Write in a clear, structured format suitable for study and reference.`;
 
   try {
-    const res = await fetch(endpoint, {
+    const res = await fetchWithRetry(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal,
       body: JSON.stringify({
         contents: [{
           parts: [
@@ -364,7 +362,7 @@ Write in a clear, structured format suitable for study and reference.`;
           ]
         }]
       })
-    });
+    }, { maxRetries: 1, timeoutMs: 150_000 });
 
     if (!res.ok) {
       console.warn('[NeoBook] Gemini YouTube analysis status:', res.status);
@@ -395,6 +393,8 @@ Write in a clear, structured format suitable for study and reference.`;
       segments: segments.length > 0 ? segments : [{ timestamp: '00:00', text: text.slice(0, 300) }]
     };
   } catch (gemErr) {
+    if (signal?.aborted) throw gemErr;
+    if (gemErr.code === 'UPSTREAM_TIMEOUT') throw gemErr;
     console.warn('[NeoBook] Gemini multimodal YouTube analysis error:', gemErr.message);
     return null;
   }
@@ -407,7 +407,7 @@ Write in a clear, structured format suitable for study and reference.`;
  * @param {string} urlString
  * @returns {Promise<{ title: string, text: string, videoId: string, segments: Array<{ timestamp: string, text: string }> }>}
  */
-export async function extractYouTubeTranscript(urlString) {
+export async function extractYouTubeTranscript(urlString, { signal } = {}) {
   const videoId = extractYouTubeVideoId(urlString);
   if (!videoId) {
     throw new Error('Invalid YouTube video link. Please provide a standard YouTube video or Shorts URL.');
@@ -417,12 +417,13 @@ export async function extractYouTubeTranscript(urlString) {
   let title = 'YouTube Video';
   let authorName = '';
   try {
-    const oembedRes = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`, {
+    const oembedRes = await fetchWithRetry(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`, {
       headers: {
         'Accept': 'application/json',
         'User-Agent': 'NeoBook/2.0 Research Notebook'
-      }
-    });
+      },
+      signal
+    }, { maxRetries: 1, timeoutMs: NEOBOOK_CONFIG.FETCH_TIMEOUT_MS });
     if (oembedRes.ok) {
       const oembedData = await oembedRes.json();
       if (oembedData.title) {
@@ -433,6 +434,7 @@ export async function extractYouTubeTranscript(urlString) {
       }
     }
   } catch (oembedErr) {
+    if (signal?.aborted) throw oembedErr;
     console.warn('[NeoBook] oEmbed title lookup deferred:', oembedErr.message);
   }
 
@@ -440,7 +442,7 @@ export async function extractYouTubeTranscript(urlString) {
   let captionTracks = [];
   let videoDescription = '';
   try {
-    const itRes = await fetch('https://www.youtube.com/youtubei/v1/player?prettyPrint=false', {
+    const itRes = await fetchWithRetry('https://www.youtube.com/youtubei/v1/player?prettyPrint=false', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -455,7 +457,8 @@ export async function extractYouTubeTranscript(urlString) {
         },
         videoId: videoId,
       }),
-    });
+      signal
+    }, { maxRetries: 1, timeoutMs: NEOBOOK_CONFIG.FETCH_TIMEOUT_MS });
 
     if (itRes.ok) {
       const itData = await itRes.json();
@@ -468,6 +471,7 @@ export async function extractYouTubeTranscript(urlString) {
       }
     }
   } catch (itErr) {
+    if (signal?.aborted) throw itErr;
     console.warn('[NeoBook] InnerTube caption lookup failed:', itErr.message);
   }
 
@@ -475,12 +479,13 @@ export async function extractYouTubeTranscript(urlString) {
   if (!captionTracks || captionTracks.length === 0) {
     try {
       const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
-      const response = await fetch(watchUrl, {
+      const response = await fetchWithRetry(watchUrl, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
           'Accept-Language': 'en-US,en;q=0.9'
-        }
-      });
+        },
+        signal
+      }, { maxRetries: 1, timeoutMs: NEOBOOK_CONFIG.FETCH_TIMEOUT_MS });
 
       if (response.ok) {
         const html = await response.text();
@@ -500,6 +505,7 @@ export async function extractYouTubeTranscript(urlString) {
         }
       }
     } catch (scrapErr) {
+      if (signal?.aborted) throw scrapErr;
       console.warn('[NeoBook] Web fallback caption lookup failed:', scrapErr.message);
     }
   }
@@ -517,7 +523,7 @@ export async function extractYouTubeTranscript(urlString) {
     if (selectedTrack && selectedTrack.baseUrl) {
       try {
         const trackUrl = selectedTrack.baseUrl;
-        const trackRes = await fetch(trackUrl);
+        const trackRes = await fetchWithRetry(trackUrl, { signal }, { maxRetries: 1, timeoutMs: NEOBOOK_CONFIG.FETCH_TIMEOUT_MS });
         if (trackRes.ok) {
           const trackXml = await trackRes.text();
           const segments = [];
@@ -576,6 +582,7 @@ export async function extractYouTubeTranscript(urlString) {
           }
         }
       } catch (trackErr) {
+        if (signal?.aborted) throw trackErr;
         console.warn('[NeoBook] Error parsing caption stream, falling back to multimodal analysis:', trackErr.message);
       }
     }
@@ -584,7 +591,7 @@ export async function extractYouTubeTranscript(urlString) {
   // 5. NOTEBOOKLM MULTIMODAL FALLBACK:
   // When captions are not available/blocked, use Gemini Multimodal Video API to extract the theme, chapters, and topics!
   console.log(`[NeoBook] Using NotebookLM-style multimodal AI analysis for video: ${title}`);
-  const geminiResult = await analyzeYouTubeWithGemini(videoId, title);
+  const geminiResult = await analyzeYouTubeWithGemini(videoId, title, signal);
   if (geminiResult && geminiResult.text && geminiResult.text.length > 50) {
     return geminiResult;
   }
@@ -808,4 +815,3 @@ export function chunkSourceContent(source) {
 
   return chunks;
 }
-
