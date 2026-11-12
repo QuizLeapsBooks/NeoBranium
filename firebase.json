@@ -28,7 +28,7 @@
       "**/middleware/**",
       "**/routes/**",
       "**/services/**",
-      "**/utils/**",
+      "utils/**",
       "**/scripts/**",
       "**/.github/**",
       "**/.firebase/**",
