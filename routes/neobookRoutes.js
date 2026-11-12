@@ -1453,7 +1453,7 @@ neobookRouter.post('/notebooks/:notebookId/study-guides/generate', requireAuthen
 // ── Audio Overview: durable, source-grounded TTS segment playlists ──────────
 neobookRouter.get('/audio-overview/provider-status', requireAuthenticatedAudioUser, (req, res) => {
   const provider = getAudioProviderStatus();
-  res.json({ success: true, available: provider.available, missing: provider.available ? [] : ['Audio generation is not configured on this server.'] });
+  res.json({ success: true, available: provider.available, missing: provider.missing || [] });
 });
 
 neobookRouter.get('/notebooks/:notebookId/chats/:chatId/audio-episodes', requireAuthenticatedAudioUser, async (req, res) => {

@@ -346,9 +346,13 @@ async function loadSources() {
     renderSourcesList();
     return;
   }
+  // Capture the chat context at request time to guard against race conditions
+  const chatId = state.activeChat.id;
+  const notebookId = state.activeNotebook.id;
   try {
-    const res = await apiRequest(`/api/neobook/notebooks/${state.activeNotebook.id}/sources?chatId=${encodeURIComponent(state.activeChat.id)}`);
-    if (res.success) {
+    const res = await apiRequest(`/api/neobook/notebooks/${notebookId}/sources?chatId=${encodeURIComponent(chatId)}`);
+    // Only update state if the active chat hasn't changed while we were loading
+    if (res.success && state.activeChat?.id === chatId) {
       state.sources = res.sources || [];
       renderSourcesList();
     }
@@ -1392,27 +1396,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAudioOverviewFeature(state, apiRequest, escapeHtml, showToast);
   initMindMapFeature(state, apiRequest, escapeHtml, showToast);
 
-  // Rename notebook title and synchronize with server / Firebase Firestore
+  // Rename chat title (and notebook) and synchronize with server / Firebase Firestore
   const titleInput = document.getElementById('notebookTitleInput');
   if (titleInput) {
     titleInput.addEventListener('change', async () => {
       const newTitle = titleInput.value.trim();
       if (!newTitle || !state.activeNotebook) return;
       try {
-        await apiRequest(`/api/neobook/notebooks/${state.activeNotebook.id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ title: newTitle })
-        });
-        state.activeNotebook.title = newTitle;
-        if (state.activeChat) {
+        // Persist the chat title — this is what actually shows after reload
+        if (state.activeChat?.id) {
+          await apiRequest(`/api/neobook/library/chats/${state.activeChat.id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ title: newTitle })
+          });
           state.activeChat.title = newTitle;
           const current = state.chats.find(c => c.id === state.activeChat.id);
           if (current) current.title = newTitle;
           updateChatHeader();
           renderHistoryList();
         }
+        // Also patch the notebook title for backward compatibility
+        await apiRequest(`/api/neobook/notebooks/${state.activeNotebook.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ title: newTitle })
+        });
+        state.activeNotebook.title = newTitle;
+        showToast('Chat renamed successfully.', 'success');
       } catch (err) {
         console.warn('[NeoBook] Could not update title on server:', err.message);
+        showToast('Could not rename chat. Please try again.', 'error');
       }
     });
   }
