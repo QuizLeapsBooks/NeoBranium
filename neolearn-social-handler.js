@@ -11,6 +11,9 @@ const MAX_LEARNING_FEED_POSTS = 60;
 const MAX_FALLBACK_FEED_POSTS = 10;
 const MAX_IMPRESSION_COUNT = 3;
 
+const feedCache = new Map(); // userId -> { ts: number, data: object }
+const FEED_CACHE_TTL_MS = 15_000;
+
 function timestampMillis(value) {
     if (!value) return null;
     if (typeof value.toMillis === 'function') return value.toMillis();

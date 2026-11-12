@@ -1898,6 +1898,52 @@ app.post('/api/profile/upload-photo', express.json({ limit: '7mb' }), async (req
     }
 });
 
+// ── NeoLearn Rate Limiters ────────────────────────────────────────────────────
+const neolearnFeedLimiter = rateLimit({
+  windowMs: 30 * 1000,       // 30 seconds
+  max: 10,                    // max 10 feed loads per 30s per user
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.uid || req.ip,
+  message: { success: false, error: 'Feed is loading too fast. Please slow down.' }
+});
+
+const neolearnWriteLimiter = rateLimit({
+  windowMs: 60 * 1000,       // 1 minute
+  max: 30,                    // max 30 writes per minute per user
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.uid || req.ip,
+  message: { success: false, error: 'Too many requests. Please wait a moment.' }
+});
+
+const neolearnImpressionLimiter = rateLimit({
+  windowMs: 10 * 1000,       // 10 seconds
+  max: 20,                    // max 20 impressions per 10s (normal scroll speed)
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.uid || req.ip,
+  message: { success: false, error: 'Impression rate limit exceeded.' }
+});
+
+const neolearnMessageLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,                    // max 20 messages per minute
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.uid || req.ip,
+  message: { success: false, error: 'Message rate limit reached. Please slow down.' }
+});
+
+const neolearnMomentLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,  // 1 hour
+  max: 10,                    // max 10 moment creations per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.uid || req.ip,
+  message: { success: false, error: 'Too many Moments created. Please try again later.' }
+});
+
 app.post('/api/neolearn/upload-post', createNeoLearnUploadHandler({
     verifyAuthToken,
     isCloudinaryConfigured,
@@ -1916,9 +1962,9 @@ const neoLearnMomentHandlers = createNeoLearnMomentHandlers({
 });
 app.get('/api/neolearn/moments', neoLearnMomentHandlers.getMoments);
 app.get('/api/neolearn/moments/:momentId/views', neoLearnMomentHandlers.getMomentViewers);
-app.post('/api/neolearn/moments', neoLearnMomentHandlers.createMoment);
-app.post('/api/neolearn/moments/like', neoLearnMomentHandlers.toggleMomentLike);
-app.post('/api/neolearn/moments/view', neoLearnMomentHandlers.recordMomentView);
+app.post('/api/neolearn/moments', neolearnMomentLimiter, neoLearnMomentHandlers.createMoment);
+app.post('/api/neolearn/moments/like', neolearnWriteLimiter, neoLearnMomentHandlers.toggleMomentLike);
+app.post('/api/neolearn/moments/view', neolearnWriteLimiter, neoLearnMomentHandlers.recordMomentView);
 
 const neoLearnDirectoryHandlers = createNeoLearnDirectoryHandlers({ verifyAuthToken, db });
 app.get('/api/neolearn/peers', neoLearnDirectoryHandlers.getPeers);
@@ -1949,16 +1995,16 @@ app.post('/api/neolearn/settings', async (req, res) => {
 const neoLearnSocialHandlers = createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadPublicProfile, loadPublicProfiles });
 app.get('/api/neolearn/social/summary/:userId', neoLearnSocialHandlers.getSummary);
 app.get('/api/neolearn/social/connections/:userId', neoLearnSocialHandlers.getConnections);
-app.post('/api/neolearn/social/learning', neoLearnSocialHandlers.setLearning);
-app.get('/api/neolearn/feed', neoLearnSocialHandlers.getLearningFeed);
+app.post('/api/neolearn/social/learning', neolearnWriteLimiter, neoLearnSocialHandlers.setLearning);
+app.get('/api/neolearn/feed', neolearnFeedLimiter, neoLearnSocialHandlers.getLearningFeed);
 
 const neoLearnNotificationHandlers = createNeoLearnNotificationHandlers({ verifyAuthToken, db, rtdb, admin });
-app.post('/api/neolearn/notifications/like', neoLearnNotificationHandlers.recordLikeNotification);
-app.post('/api/neolearn/notifications/comment', neoLearnNotificationHandlers.recordCommentNotification);
+app.post('/api/neolearn/notifications/like', neolearnWriteLimiter, neoLearnNotificationHandlers.recordLikeNotification);
+app.post('/api/neolearn/notifications/comment', neolearnWriteLimiter, neoLearnNotificationHandlers.recordCommentNotification);
 app.post('/api/neolearn/notifications/mark-read', neoLearnNotificationHandlers.markNotificationRead);
 
 const neoLearnMessageHandlers = createNeoLearnMessageHandlers({ verifyAuthToken, db, rtdb });
-app.post('/api/neolearn/messages/send', neoLearnMessageHandlers.sendMessage);
+app.post('/api/neolearn/messages/send', neolearnMessageLimiter, neoLearnMessageHandlers.sendMessage);
 app.post('/api/neolearn/messages/seen', neoLearnMessageHandlers.markMessageSeen);
 app.post('/api/neolearn/messages/hidden', neoLearnMessageHandlers.getHiddenConversations);
 app.post('/api/neolearn/messages/delete', neoLearnMessageHandlers.deleteConversation);
@@ -1991,7 +2037,7 @@ app.get('/api/neolearn/blocks/:targetUserId', neoLearnModerationHandlers.getBloc
 // ── Impression tracking routes ────────────────────────────────────────────────
 // POST /api/neolearn/impressions        → record one impression (atomic transaction)
 const neoLearnImpressionHandlers = createNeoLearnImpressionHandlers({ verifyAuthToken, db, admin });
-app.post('/api/neolearn/impressions', neoLearnImpressionHandlers.recordImpression);
+app.post('/api/neolearn/impressions', neolearnImpressionLimiter, neoLearnImpressionHandlers.recordImpression);
 
 // ── AI Conversation History routes ────────────────────────────────────────────
 // All conversation CRUD is handled server-side (Admin SDK) to enforce auth,
