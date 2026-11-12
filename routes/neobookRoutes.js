@@ -49,6 +49,7 @@ import {
 import { generateFlashcards, reviewFlashcard } from '../services/neobookFlashcardService.js';
 import { generateStudyGuide } from '../services/neobookStudyGuideService.js';
 import { generateMindMap, generateMindMapChildren } from '../services/neobookMindMapService.js';
+import { getAudioProviderStatus, validateAudioConfig, makeAudioEpisodeId, audioChunks, runAudioEpisode, signedAudioUrl } from '../services/neobookAudioService.js';
 import {
   createConcurrencyLimiter,
   createRequestDeadline,
@@ -115,6 +116,11 @@ const mindMapRateLimiter = rateLimit({
   message: { success: false, error: 'Too many mind map AI requests. Please wait a few moments before trying again.' },
   keyGenerator: (req) => req.identity?.identityKey || req.ip,
 });
+const audioRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, max: 4, standardHeaders: true, legacyHeaders: false,
+  message: { success: false, error: 'Too many Audio Overview requests. Please try again later.' },
+  keyGenerator: req => req.identity?.identityKey || req.ip
+});
 const neoBookAiConcurrency = createConcurrencyLimiter({
   name: 'NeoBook AI',
   maxConcurrent: Number(process.env.NEOBOOK_AI_MAX_CONCURRENT) || 8
@@ -129,6 +135,8 @@ const neoBookAiDeadline = createRequestDeadline({
 const sourceProcessingDeadline = createRequestDeadline({
   timeoutMs: Number(process.env.NEOBOOK_SOURCE_REQUEST_DEADLINE_MS) || 180_000
 });
+const audioConcurrency = createConcurrencyLimiter({ name: 'NeoBook audio generation', maxConcurrent: Number(process.env.NEOBOOK_AUDIO_MAX_CONCURRENT) || 1 });
+const audioDeadline = createRequestDeadline({ timeoutMs: NEOBOOK_CONFIG.AUDIO_REQUEST_DEADLINE_MS });
 
 /**
  * Middleware: Attaches verified user UID if Authorization header is present,
@@ -177,6 +185,19 @@ function requireAuthenticatedMindMapUser(req, res, next) {
     return res.status(401).json({ success: false, error: 'Please sign in to create and save NeoBook mind maps.' });
   }
   next();
+}
+function requireAuthenticatedAudioUser(req, res, next) {
+  if (!req.identity?.uid) return res.status(401).json({ success: false, error: 'Please sign in to create and save Audio Overviews.' });
+  next();
+}
+
+async function getOwnedAudioEpisode(episodeId, identity) {
+  if (!db || !identity?.uid) return null;
+  const ref = db.collection('neobook_audio_episodes').doc(episodeId);
+  const snap = await ref.get();
+  if (!snap.exists) return null;
+  const data = snap.data();
+  return data.uid === identity.uid && data.ownerKey === identity.identityKey && !data.isDeleted ? { ref, data } : null;
 }
 
 function abortOnResponseDisconnect(req, res) {
@@ -1427,6 +1448,97 @@ neobookRouter.post('/notebooks/:notebookId/study-guides/generate', requireAuthen
     const quota = await settleTokenReservation(req.identity, reservationId, result.tokenUsage); reservationId = null;
     return res.json({ success: true, guide: result.guide, quota: { tokensUsed: quota.tokensUsed, tokensRemaining: quota.tokensRemaining, resetAt: quota.resetAt } });
   } catch (err) { if (guideId && db) await db.collection('neobook_study_guides').doc(guideId).delete().catch(() => {}); if (reservationId) await cancelTokenReservation(req.identity, reservationId).catch(() => {}); if (res.headersSent || req.backendSignal?.aborted) return; return res.status(err.status || 500).json({ success: false, error: err.message || 'Failed to generate study guide.' }); }
+});
+
+// ── Audio Overview: durable, source-grounded TTS segment playlists ──────────
+neobookRouter.get('/audio-overview/provider-status', requireAuthenticatedAudioUser, (req, res) => {
+  const provider = getAudioProviderStatus();
+  res.json({ success: true, available: provider.available, missing: provider.available ? [] : ['Audio generation is not configured on this server.'] });
+});
+
+neobookRouter.get('/notebooks/:notebookId/chats/:chatId/audio-episodes', requireAuthenticatedAudioUser, async (req, res) => {
+  try {
+    const { notebookId, chatId } = req.params;
+    if (!await getOwnedChat(notebookId, chatId, req.identity)) return res.status(404).json({ success: false, error: 'Chat session not found.' });
+    const snap = await db.collection('neobook_audio_episodes').where('chatId', '==', chatId).limit(50).get();
+    const episodes = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(item => item.uid === req.identity.uid && item.ownerKey === req.identity.identityKey && item.notebookId === notebookId && !item.isDeleted).sort((a, b) => new Date(b.updatedAt?.toDate?.() || b.updatedAt || 0) - new Date(a.updatedAt?.toDate?.() || a.updatedAt || 0)).map(item => ({ id: item.id, title: item.title || 'Audio Overview', description: item.description || '', status: item.status, stage: item.stage, progress: item.progress || null, sourceIds: item.sourceIds || [], createdAt: item.createdAt?.toDate?.()?.toISOString?.() || item.createdAt, updatedAt: item.updatedAt?.toDate?.()?.toISOString?.() || item.updatedAt }));
+    return res.json({ success: true, episodes });
+  } catch (err) { return res.status(500).json({ success: false, error: 'Could not load Audio Overviews.' }); }
+});
+
+neobookRouter.post('/notebooks/:notebookId/audio-episodes', requireAuthenticatedAudioUser, audioRateLimiter, async (req, res) => {
+  try {
+    if (!db) return res.status(503).json({ success: false, error: 'Audio Overview requires the NeoBook database service.' });
+    const { notebookId } = req.params; const { chatId, sourceIds, ...rawConfig } = req.body || {};
+    if (!await getOwnedChat(notebookId, chatId, req.identity)) return res.status(404).json({ success: false, error: 'Chat session not found.' });
+    const sourceSnap = await db.collection('neobook_sources').where('notebookId', '==', notebookId).where('ownerKey', '==', req.identity.identityKey).where('chatId', '==', chatId).get();
+    const ready = new Set(sourceSnap.docs.filter(doc => doc.data().status === 'ready' && !doc.data().isDeleted).map(doc => doc.id));
+    const selected = [...new Set((Array.isArray(sourceIds) ? sourceIds : []).filter(id => typeof id === 'string'))];
+    if (!selected.length || selected.some(id => !ready.has(id))) return res.status(400).json({ success: false, error: 'Choose at least one ready, accessible source.' });
+    const episodeId = makeAudioEpisodeId(); const config = validateAudioConfig(rawConfig);
+    await db.collection('neobook_audio_episodes').doc(episodeId).set(cleanForFirestore({ id: episodeId, notebookId, chatId, uid: req.identity.uid, ownerKey: req.identity.identityKey, sourceIds: selected, title: config.title || 'Audio Overview', config, status: 'queued', stage: 'queued', progress: { completedSegments: 0, totalSegments: 0 }, audioSegments: [], isDeleted: false, createdAt: admin.firestore.FieldValue.serverTimestamp(), updatedAt: admin.firestore.FieldValue.serverTimestamp() }));
+    return res.status(201).json({ success: true, episode: { id: episodeId, status: 'queued', stage: 'queued', title: config.title || 'Audio Overview' } });
+  } catch (err) { return res.status(500).json({ success: false, error: err.message || 'Could not create the Audio Overview.' }); }
+});
+
+neobookRouter.post('/audio-episodes/:episodeId/run', requireAuthenticatedAudioUser, sharedAiConcurrency, audioConcurrency, audioDeadline, async (req, res) => {
+  let reservationId = null;
+  try {
+    const owned = await getOwnedAudioEpisode(req.params.episodeId, req.identity);
+    if (!owned) return res.status(404).json({ success: false, error: 'Audio Overview not found.' });
+    if (owned.data.status === 'ready') return res.json({ success: true, episode: { id: req.params.episodeId, status: 'ready' } });
+    if (owned.data.status === 'running') return res.status(409).json({ success: false, error: 'This Audio Overview is already generating.' });
+    const chunkSnap = await db.collection('neobook_chunks').where('notebookId', '==', owned.data.notebookId).where('ownerKey', '==', req.identity.identityKey).where('chatId', '==', owned.data.chatId).get();
+    const chunks = audioChunks(chunkSnap.docs.map(doc => doc.data()), owned.data.sourceIds);
+    if (!chunks.length) return res.status(400).json({ success: false, error: 'Selected sources no longer have readable content.' });
+    if (!owned.data.script?.segments?.length) {
+      const reservation = await reserveTokenUsage(req.identity, NEOBOOK_CONFIG.MAX_INPUT_TOKENS_PER_REQUEST + NEOBOOK_CONFIG.MAX_OUTPUT_TOKENS);
+      if (!reservation.allowed) return res.status(429).json({ success: false, error: reservation.error, code: 'TOKEN_BUDGET_EXHAUSTED' });
+      reservationId = reservation.reservationId;
+    }
+    await owned.ref.update({ cancelRequested: false, status: 'queued', stage: 'queued', error: null, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+    const cancellation = abortOnResponseDisconnect(req, res);
+    try { await runAudioEpisode({ episodeRef: owned.ref, episode: owned.data, chunks, identity: req.identity, signal: cancellation.signal }); }
+    finally { cancellation.cleanup(); }
+    if (reservationId) { const saved = (await owned.ref.get()).data(); await settleTokenReservation(req.identity, reservationId, saved.tokenUsage || {}); reservationId = null; }
+    return res.json({ success: true, episode: { id: req.params.episodeId, status: 'ready' } });
+  } catch (err) {
+    const owned = await getOwnedAudioEpisode(req.params.episodeId, req.identity).catch(() => null);
+    // The script has real model usage even if TTS later fails; settle it exactly once.
+    if (reservationId && owned?.data?.tokenUsage) { await settleTokenReservation(req.identity, reservationId, owned.data.tokenUsage).catch(() => {}); reservationId = null; }
+    if (reservationId) await cancelTokenReservation(req.identity, reservationId).catch(() => {});
+    if (owned) await owned.ref.update(err.code === 'CANCELLED'
+      ? { status: 'cancelled', stage: 'cancelled', updatedAt: admin.firestore.FieldValue.serverTimestamp() }
+      : { status: 'failed', stage: 'failed', error: String(err.message || 'Audio generation failed.').slice(0, 500), updatedAt: admin.firestore.FieldValue.serverTimestamp() }).catch(() => {});
+    return res.status(err.status || 500).json({ success: false, error: err.message || 'Audio generation failed.' });
+  }
+});
+
+neobookRouter.get('/audio-episodes/:episodeId', requireAuthenticatedAudioUser, async (req, res) => {
+  const owned = await getOwnedAudioEpisode(req.params.episodeId, req.identity); if (!owned) return res.status(404).json({ success: false, error: 'Audio Overview not found.' });
+  const episode = { id: req.params.episodeId, ...owned.data };
+  // URLs are generated only after ownership authorization and are never stored
+  // in Firestore. They allow the native <audio> element to stream each segment.
+  episode.audioSegments = (episode.audioSegments || []).map(segment => ({ id: segment.id, speaker: segment.speaker, url: signedAudioUrl(segment.publicId) }));
+  episode.createdAt = episode.createdAt?.toDate?.()?.toISOString?.() || episode.createdAt; episode.updatedAt = episode.updatedAt?.toDate?.()?.toISOString?.() || episode.updatedAt;
+  return res.json({ success: true, episode });
+});
+
+neobookRouter.get('/audio-episodes/:episodeId/segments/:segmentId', requireAuthenticatedAudioUser, async (req, res) => {
+  const owned = await getOwnedAudioEpisode(req.params.episodeId, req.identity); if (!owned || owned.data.status !== 'ready') return res.status(404).end();
+  const segment = (owned.data.audioSegments || []).find(item => item.id === req.params.segmentId); if (!segment?.publicId) return res.status(404).end();
+  return res.redirect(302, signedAudioUrl(segment.publicId));
+});
+
+neobookRouter.post('/audio-episodes/:episodeId/cancel', requireAuthenticatedAudioUser, async (req, res) => {
+  const owned = await getOwnedAudioEpisode(req.params.episodeId, req.identity); if (!owned) return res.status(404).json({ success: false, error: 'Audio Overview not found.' });
+  if (owned.data.status === 'ready') return res.status(409).json({ success: false, error: 'Completed episodes cannot be cancelled.' });
+  await owned.ref.update({ cancelRequested: true, status: 'cancelling', stage: 'cancelling', updatedAt: admin.firestore.FieldValue.serverTimestamp() }); return res.json({ success: true });
+});
+
+neobookRouter.delete('/audio-episodes/:episodeId', requireAuthenticatedAudioUser, async (req, res) => {
+  const owned = await getOwnedAudioEpisode(req.params.episodeId, req.identity); if (!owned) return res.status(404).json({ success: false, error: 'Audio Overview not found.' });
+  await owned.ref.update({ isDeleted: true, status: 'deleted', updatedAt: admin.firestore.FieldValue.serverTimestamp() }); return res.json({ success: true });
 });
 
 // ── Mind Maps: source-grounded generation and persistent interactive state ───

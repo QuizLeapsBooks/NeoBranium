@@ -6,11 +6,12 @@
 import { auth, onAuthStateChanged, signOut } from '/js/auth.js';
 import { initQuizFeature } from './neobook-quiz.js';
 import { initMindMapFeature } from './neobook-mindmap.js';
+import { initAudioOverviewFeature } from './neobook-audio.js';
 
 // Application State
 const DEFAULT_NOTEBOOK_ID = 'nb_default';
 
-const state = {
+export const state = {
   activeNotebook: {
     id: DEFAULT_NOTEBOOK_ID,
     title: 'My Study Notebook',
@@ -120,7 +121,7 @@ function renderUserAuthUI(user) {
   }
 }
 
-async function apiRequest(endpoint, options = {}) {
+export async function apiRequest(endpoint, options = {}) {
   const baseUrl = getBackendBaseUrl();
   const url = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
   const headers = await getAuthHeaders();
@@ -1388,6 +1389,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // ── Initialise Quiz Feature ───────────────────────────────────────────────
   initQuizFeature(state, apiRequest, escapeHtml, showToast);
+  initAudioOverviewFeature(state, apiRequest, escapeHtml, showToast);
   initMindMapFeature(state, apiRequest, escapeHtml, showToast);
 
   // Rename notebook title and synchronize with server / Firebase Firestore

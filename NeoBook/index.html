@@ -198,18 +198,18 @@
 
         <div class="studio-cards-grid">
           <!-- Card 1: Audio Overview -->
-          <article class="studio-card audio">
+          <article class="studio-card audio active" id="btnOpenAudioOverview" role="button" tabindex="0">
             <div class="studio-card-header">
               <div class="studio-card-icon">
                 <i class="fas fa-podcast"></i>
               </div>
-              <span class="badge-coming-soon">Coming Soon</span>
+              <span class="badge-quiz-active"><i class="fas fa-play"></i> Create</span>
             </div>
             <h4>Audio Overview (Deep Dive)</h4>
             <p>Two AI hosts analyze and summarize your notebook into an engaging conversational podcast audio episode.</p>
             <div class="studio-card-action">
               <i class="fas fa-circle-play"></i>
-              <span>Audio Generation Engine</span>
+              <span>Create Audio Overview</span>
             </div>
           </article>
 
@@ -626,6 +626,24 @@
   </div>
 
   <div class="modal-overlay" id="studyGuideModal"><div class="modal-window study-guide-modal-window"><div class="modal-header"><h3><i class="fas fa-table-columns" style="color:var(--nb-primary)"></i> Data Table &amp; Study Guide</h3><button class="modal-close-btn" id="btnCloseStudyGuide">&times;</button></div><div class="modal-body" id="studyGuideConfig"><p class="modal-subtitle">Extract chapter summaries, timelines, formulas, and comparisons from this chat’s sources.</p><p class="form-hint">Uses your independent NeoBook AI budget.</p></div><div class="modal-body study-guide-output" id="studyGuideOutput" style="display:none"></div><div class="modal-footer" id="studyGuideFooter"><button class="btn-secondary" id="btnCancelStudyGuide">Cancel</button><button class="btn-primary" id="btnGenerateStudyGuide"><i class="fas fa-wand-magic-sparkles"></i> Generate Guide</button></div></div></div>
+
+  <!-- ── MODAL: Audio Overview ───────────────────────────────────────────── -->
+  <div class="modal-overlay" id="audioOverviewModal" aria-hidden="true">
+    <div class="modal-window audio-modal-window" role="dialog" aria-modal="true" aria-labelledby="audioOverviewTitle">
+      <div class="modal-header"><h3 id="audioOverviewTitle"><i class="fas fa-podcast" style="color:var(--nb-primary)"></i> Audio Overview</h3><button class="modal-close-btn" id="btnCloseAudioOverview" type="button">&times;</button></div>
+      <div class="modal-body audio-body">
+        <section id="audioSetupView"><p class="modal-subtitle">Two distinct AI hosts explore only the selected, ready sources in this chat.</p><p class="audio-provider-note" id="audioProviderNote" hidden></p>
+          <div class="audio-section"><label>Select sources <span id="audioSourceCount">0 selected</span></label><div id="audioSourceSelector" class="audio-source-selector"></div></div>
+          <div class="audio-config-grid"><div class="form-group"><label for="audioEpisodeTitle">Episode title</label><input id="audioEpisodeTitle" class="form-input" maxlength="120" placeholder="Optional — generated from sources"></div><div class="form-group"><label for="audioLanguage">Language</label><select id="audioLanguage" class="form-input"><option value="en-US">English</option><option value="hi-IN">Hindi</option></select></div><div class="form-group"><label for="audioDuration">Duration</label><select id="audioDuration" class="form-input"><option value="short">Short</option><option value="standard" selected>Standard</option><option value="deep">Deep Dive</option></select></div><div class="form-group"><label for="audioStyle">Discussion style</label><select id="audioStyle" class="form-input"><option value="educational">Educational</option><option value="analytical">Analytical</option><option value="conversational">Conversational</option></select></div><div class="form-group"><label for="audioDepth">Discussion depth</label><select id="audioDepth" class="form-input"><option value="introductory">Introductory</option><option value="balanced" selected>Balanced</option><option value="advanced">Advanced</option></select></div></div>
+          <div class="form-group"><label for="audioInstructions">Optional instructions</label><textarea id="audioInstructions" class="form-input" maxlength="800" placeholder="For example: focus on exam-ready explanations."></textarea></div><p class="form-hint">The script uses NeoBook’s existing AI budget. Audio is generated only after the source-grounded script validates.</p>
+        </section>
+        <section id="audioProgressView" hidden><div class="audio-progress-icon"><i class="fas fa-spinner fa-spin"></i></div><h4 id="audioProgressTitle">Preparing your overview</h4><p id="audioProgressText">Queued securely.</p><div class="audio-progress-track"><div id="audioProgressFill"></div></div><button id="btnCancelAudio" class="btn-secondary" type="button">Cancel generation</button></section>
+        <section id="audioPlayerView" hidden><div class="audio-player-heading"><div><span class="audio-host-tag">Two-host episode</span><h4 id="audioPlayerTitle"></h4><p id="audioPlayerDescription"></p></div><button id="btnAudioDownload" class="btn-secondary" type="button" disabled title="Downloads are unavailable for segmented private audio"><i class="fas fa-download"></i></button></div><audio id="audioElement" preload="metadata"></audio><div class="audio-controls"><button id="btnAudioBack" type="button" aria-label="Back 15 seconds"><i class="fas fa-rotate-left"></i></button><button id="btnAudioPlay" type="button" class="audio-play" aria-label="Play"><i class="fas fa-play"></i></button><button id="btnAudioForward" type="button" aria-label="Forward 15 seconds"><i class="fas fa-rotate-right"></i></button><span id="audioCurrentTime">0:00</span><input id="audioSeek" type="range" min="0" max="0" value="0" aria-label="Episode progress"><span id="audioTotalTime">0:00</span><select id="audioSpeed" aria-label="Playback speed"><option value="0.8">0.8×</option><option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option></select><input id="audioVolume" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume"></div><div id="audioTranscript" class="audio-transcript"></div></section>
+        <section id="audioLibraryView" class="audio-library"><h4>Episode Library</h4><div id="audioEpisodeList"></div></section>
+      </div>
+      <div class="modal-footer" id="audioFooter"><button class="btn-secondary" id="btnCloseAudioOverviewFooter" type="button">Close</button><button class="btn-primary" id="btnGenerateAudio" type="button"><i class="fas fa-podcast"></i> Generate episode</button></div>
+    </div>
+  </div>
 
   <!-- ── MODAL: Add Source ──────────────────────────────────────────────────── -->
   <div class="modal-overlay" id="addSourceModal">

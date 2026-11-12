@@ -43,6 +43,14 @@ export const NEOBOOK_CONFIG = {
   MAX_QUIZ_CHUNKS: 25,
   QUIZ_AI_TIMEOUT_MS: 45_000,
 
+  // Audio Overview. Audio is intentionally server-side only: the browser never
+  // receives a TTS provider key. A persisted segment playlist keeps Render from
+  // having to buffer or concatenate a whole episode in memory.
+  AUDIO_MAX_SEGMENTS: Number(process.env.NEOBOOK_AUDIO_MAX_SEGMENTS) || 36,
+  AUDIO_MAX_CHUNKS: Number(process.env.NEOBOOK_AUDIO_MAX_CHUNKS) || 30,
+  AUDIO_REQUEST_DEADLINE_MS: Number(process.env.NEOBOOK_AUDIO_REQUEST_DEADLINE_MS) || 300_000,
+  AUDIO_RETENTION_DAYS: Number(process.env.NEOBOOK_AUDIO_RETENTION_DAYS) || 30,
+
   // Timeouts
   FETCH_TIMEOUT_MS: 10_000,
   AI_TIMEOUT_MS: 30_000,

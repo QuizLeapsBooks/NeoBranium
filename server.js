@@ -150,6 +150,8 @@ app.use(helmet({
                 "wss:"
             ],
             imgSrc: ["'self'", "data:", "blob:", "https://firebasestorage.googleapis.com", "https://www.gstatic.com", "https://res.cloudinary.com", "https://pagead2.googlesyndication.com", "https://googleads.g.doubleclick.net", "https://tpc.googlesyndication.com"],
+            // Audio Overview streams authenticated Cloudinary audio segments.
+            mediaSrc: ["'self'", "https://res.cloudinary.com"],
             frameSrc: ["'self'", "https://neobranium.firebaseapp.com", "https://googleads.g.doubleclick.net", "https://tpc.googlesyndication.com", "https://www.google.com"]
         }
     }
