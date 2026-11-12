@@ -1,5 +1,5 @@
-import { retainBoundedObjectUrl } from '../utils/boundedObjectUrlCache.js';
-import { readBlobWithLimit } from '../utils/readBlobWithLimit.js';
+import { retainBoundedObjectUrl } from './utils/boundedObjectUrlCache.js';
+import { readBlobWithLimit } from './utils/readBlobWithLimit.js';
 
 /**
  * Profile Photo Cache & Storage Manager
