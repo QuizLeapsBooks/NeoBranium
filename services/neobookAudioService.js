@@ -64,8 +64,41 @@ async function synthesize(text, speaker, language, signal) {
   return Buffer.from(data.audioContent, 'base64');
 }
 
-function uploadAudio(buffer, publicId) {
-  return new Promise((resolve, reject) => cloudinary.uploader.upload_stream({ resource_type: 'video', type: 'authenticated', public_id: publicId, format: 'mp3', overwrite: false }, (err, result) => err ? reject(err) : resolve(result)).end(buffer));
+export function uploadAudio(buffer, publicId, signal, uploadStream = cloudinary.uploader.upload_stream) {
+  if (signal?.aborted) {
+    return Promise.reject(signal.reason || Object.assign(new Error('Audio upload was cancelled.'), { code: 'REQUEST_ABORTED' }));
+  }
+
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let stream;
+    const cleanup = () => signal?.removeEventListener('abort', onAbort);
+    const settle = (callback) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      callback();
+    };
+    const onAbort = () => {
+      const error = signal.reason || Object.assign(new Error('Audio upload was cancelled.'), { code: 'REQUEST_ABORTED' });
+      // Cloudinary's upload stream otherwise remains open after the HTTP client
+      // has gone away. Destroying it makes cancellation release the socket.
+      stream?.destroy?.(error);
+      settle(() => reject(error));
+    };
+
+    try {
+      stream = uploadStream(
+        { resource_type: 'video', type: 'authenticated', public_id: publicId, format: 'mp3', overwrite: false },
+        (err, result) => settle(() => err ? reject(err) : resolve(result))
+      );
+      signal?.addEventListener('abort', onAbort, { once: true });
+      if (signal?.aborted) return onAbort();
+      stream.end(buffer);
+    } catch (error) {
+      settle(() => reject(error));
+    }
+  });
 }
 
 export async function runAudioEpisode({ episodeRef, episode, chunks, identity, signal }) {
@@ -87,7 +120,7 @@ export async function runAudioEpisode({ episodeRef, episode, chunks, identity, s
     const segment = working.script.segments[i]; if (existing.has(segment.id)) continue;
     await update({ stage: segment.speaker === 'explainer' ? 'generating_explainer_audio' : 'generating_analyst_audio', progress: { completedSegments: i, totalSegments: working.script.segments.length } });
     const buffer = await synthesize(segment.text, segment.speaker, working.config.language, signal);
-    const asset = await uploadAudio(buffer, `neobook_audio/${identity.uid}/${episode.id}/${segment.id}`);
+    const asset = await uploadAudio(buffer, `neobook_audio/${identity.uid}/${episode.id}/${segment.id}`, signal);
     const saved = { id: segment.id, publicId: asset.public_id, bytes: asset.bytes || buffer.length, speaker: segment.speaker };
     audioSegments.push(saved); existing.set(segment.id, saved);
     await update({ audioSegments, progress: { completedSegments: audioSegments.length, totalSegments: working.script.segments.length } });

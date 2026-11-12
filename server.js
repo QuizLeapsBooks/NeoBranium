@@ -60,7 +60,22 @@ app.set('trust proxy', process.env.TRUST_PROXY_HOPS ? Number(process.env.TRUST_P
 
 // Redis client for session storage
 const redisClient = createClient({
-    url: process.env.REDIS_URL
+    url: process.env.REDIS_URL,
+    // A disconnected Redis must not retain every session command in an offline
+    // queue. Those pending commands can otherwise keep Express requests open
+    // and make the service look live while it no longer serves useful traffic.
+    disableOfflineQueue: true,
+    socket: {
+        connectTimeout: Number(process.env.REDIS_CONNECT_TIMEOUT_MS) || 5_000,
+        reconnectStrategy: (retries) => Math.min(1_000 * (retries + 1), 10_000)
+    }
+});
+
+// node-redis emits EventEmitter `error` events after the initial connection as
+// well. Without a listener an ordinary Redis network failure can terminate the
+// Node process.
+redisClient.on('error', (error) => {
+    console.error('[Redis] client error:', error.message);
 });
 
 // Connect to Redis
