@@ -58,49 +58,40 @@ const app = express();
 // Keep the hop count aligned with the Render deployment topology.
 app.set('trust proxy', process.env.TRUST_PROXY_HOPS ? Number(process.env.TRUST_PROXY_HOPS) : 1);
 
-// Redis client for session storage
-const redisClient = createClient({
-    url: process.env.REDIS_URL,
-    // A disconnected Redis must not retain every session command in an offline
-    // queue. Those pending commands can otherwise keep Express requests open
-    // and make the service look live while it no longer serves useful traffic.
-    disableOfflineQueue: true,
-    socket: {
-        connectTimeout: Number(process.env.REDIS_CONNECT_TIMEOUT_MS) || 5_000,
-        reconnectStrategy: (retries) => Math.min(1_000 * (retries + 1), 10_000)
-    }
-});
-
-// node-redis emits EventEmitter `error` events after the initial connection as
-// well. Without a listener an ordinary Redis network failure can terminate the
-// Node process.
-redisClient.on('error', (error) => {
-    console.error('[Redis] client error:', error.message);
-});
-
-// Connect to Redis
-console.log("Attempting Redis connection...");
-try {
-    await redisClient.connect();
-    console.log('✅ Redis connected successfully');
-
-    // Test the connection actually works
-    await redisClient.ping();
-    console.log('✅ Redis ping successful');
-} catch (error) {
-    console.error('❌ Redis connection failed:', error.message);
-    console.log("📝 Using in-memory sessions (data lost on restart)");
-    console.log("💡 For production: Set REDIS_URL to Upstash Redis URL");
-}
-
-// Redis store for sessions
+// Redis is optional. Never let an unavailable Redis prevent the HTTP server
+// from binding its port: Render must be able to run with in-memory sessions.
+const redisUrl = process.env.REDIS_URL?.trim();
+let redisClient = null;
 let redisStore;
 
-if (redisClient.isReady) {
-    redisStore = new RedisStore({
-        client: redisClient,
-        prefix: "sess:"
+if (redisUrl) {
+    redisClient = createClient({
+        url: redisUrl,
+        // Reject commands while disconnected instead of retaining request work.
+        disableOfflineQueue: true,
+        socket: {
+            connectTimeout: Number(process.env.REDIS_CONNECT_TIMEOUT_MS) || 5_000,
+            // Startup gets exactly one attempt. A retry loop here would hold the
+            // top-level await below and stop Render from seeing the HTTP port.
+            reconnectStrategy: false
+        }
     });
+    redisClient.on('error', (error) => {
+        console.error('[Redis] connection unavailable:', error.message || error.code || 'unknown error');
+    });
+
+    console.log('Attempting optional Redis connection...');
+    try {
+        await redisClient.connect();
+        await redisClient.ping();
+        redisStore = new RedisStore({ client: redisClient, prefix: 'sess:' });
+        console.log('✅ Redis connected successfully');
+    } catch (error) {
+        console.warn('[Redis] unavailable; starting with in-memory sessions:', error.message || error.code || 'unknown error');
+        redisClient = null;
+    }
+} else {
+    console.log('[Redis] REDIS_URL is not configured; using in-memory sessions.');
 }
 
 // Validate session secret
@@ -112,7 +103,7 @@ if (!sessionSecret) {
 
 // Session middleware
 app.use(session({
-    store: redisClient.isReady ? redisStore : undefined,
+    store: redisStore,
     secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
