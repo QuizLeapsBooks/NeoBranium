@@ -2,6 +2,11 @@ import express from 'express';
 import { admin, db } from '../firebaseAdmin.js';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { combineAiUsageDailySummaries } from '../services/aiUsagePersistence.js';
+import {
+  getGuestAiQuotaStatus,
+  getGuestIpHash,
+  getUserAiQuotaStatus
+} from '../services/aiQuotaService.js';
 
 const MAX_RANGE_DAYS = 90;
 
@@ -30,6 +35,9 @@ export function createAiUsageRouter({
   getDb = () => db,
   authenticate = requireAuth,
   documentIdField = () => admin.firestore.FieldPath.documentId(),
+  getUserQuotaStatus = getUserAiQuotaStatus,
+  getGuestQuotaStatus = getGuestAiQuotaStatus,
+  guestIpHash = getGuestIpHash,
   now = () => new Date(),
   logger = console
 } = {}) {
@@ -67,6 +75,9 @@ export function createAiUsageRouter({
   }
 
   router.get('/summary', authenticate, async (req, res) => {
+    if (req.isGuest === true) {
+      return res.status(403).json({ success: false, error: 'Sign in to a full account to view usage history.' });
+    }
     const result = await loadDaily(req);
     if (result.error) {
       return res.status(result.status).json({ success: false, error: result.error });
@@ -82,6 +93,9 @@ export function createAiUsageRouter({
   });
 
   router.get('/daily', authenticate, async (req, res) => {
+    if (req.isGuest === true) {
+      return res.status(403).json({ success: false, error: 'Sign in to a full account to view usage history.' });
+    }
     const result = await loadDaily(req);
     if (result.error) {
       return res.status(result.status).json({ success: false, error: result.error });
@@ -93,6 +107,32 @@ export function createAiUsageRouter({
       to: result.range.to,
       daily: result.daily
     });
+  });
+
+  router.get('/quota', authenticate, async (req, res) => {
+    try {
+      if (req.isGuest === true) {
+        return res.json({
+          success: true,
+          quota: await getGuestQuotaStatus({ ipHash: guestIpHash(req) })
+        });
+      }
+      if (typeof req.uid !== 'string' || req.uid.length === 0) {
+        return res.status(401).json({ success: false, error: 'Authentication required.' });
+      }
+      return res.json({
+        success: true,
+        quota: await getUserQuotaStatus(req.uid)
+      });
+    } catch (error) {
+      logger.error('[AI Usage API] Could not load quota status.', {
+        code: error?.code || 'unknown'
+      });
+      return res.status(503).json({
+        success: false,
+        error: 'AI quota status is temporarily unavailable.'
+      });
+    }
   });
   return router;
 }

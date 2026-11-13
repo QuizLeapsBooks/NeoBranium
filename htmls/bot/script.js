@@ -1,6 +1,6 @@
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import { isGuestUser, auth } from '../../js/auth.js';
+import { auth } from '../../js/auth.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
 import { AiHistorySDK } from '/js/ai-history-sdk.js';
 
@@ -21,6 +21,7 @@ class ChatAssistant {
         this.genAI = null;
         this.isProcessing = false;
         this.aiHistory = null;
+        this.serverWakeRequested = false;
 
         // DOM Elements
         this.chatInput = document.querySelector('#chat-input');
@@ -37,8 +38,23 @@ class ChatAssistant {
         // Setup event listeners
         this.setupEventListeners();
 
+        this.chatInput.disabled = true;
+        this.chatInput.placeholder = 'Checking your sign-in...';
         onAuthStateChanged(auth, user => {
-            if (!user || this.aiHistory) return;
+            const canUseAssistant = Boolean(user && !user.isAnonymous);
+            this.chatInput.disabled = !canUseAssistant;
+            this.chatInput.placeholder = canUseAssistant
+                ? 'Ask about science, math, or coding...'
+                : 'Sign in to use AI Assistant';
+            this.toggleSendButton();
+            if (!canUseAssistant) return;
+
+            if (!this.serverWakeRequested) {
+                this.serverWakeRequested = true;
+                void this.wakeUpServer();
+            }
+            this.loadSessionHistory();
+            if (this.aiHistory) return;
             this.aiHistory = new AiHistorySDK({
                 feature: 'ai_assistant',
                 getAuthToken: () => auth.currentUser?.getIdToken(),
@@ -64,29 +80,8 @@ class ChatAssistant {
             this.aiHistory.mountUI(document.body);
         });
 
-        // Guest restriction check
-        if (isGuestUser()) {
-            this.chatInput.disabled = true;
-            this.chatInput.placeholder = "Sign in to use AI Assistant";
-            this.chatInput.style.transition = "all 0.5s ease-in-out";
-            this.chatInput.style.opacity = "0.6";
-            this.chatInput.classList.add("cursor-not-allowed");
-            
-            this.sendButton.disabled = true;
-            this.sendButton.style.transition = "all 0.5s ease-in-out";
-            this.sendButton.style.opacity = "0.5";
-            this.sendButton.classList.add("cursor-not-allowed");
-            return; // Don't proceed to auto-resize or history load
-        }
-
         // Check input state
         this.toggleSendButton();
-
-        // Load chat history from session
-        this.loadSessionHistory();
-
-        // Wake up server in background (handles Render free tier cold starts)
-        this.wakeUpServer();
     }
 
     getApiBaseUrl() {
@@ -159,14 +154,15 @@ class ChatAssistant {
 
     toggleSendButton() {
         const hasText = this.chatInput.value.trim().length > 0;
-        this.sendButton.disabled = !hasText || this.isProcessing;
+        const accountRequired = !auth.currentUser || auth.currentUser.isAnonymous;
+        this.sendButton.disabled = !hasText || this.isProcessing || accountRequired;
     }
 
     async handleSend() {
         if (this.isProcessing) return;
 
         // Hardened Guest Check: Prevent bypass via DevTools
-        if (isGuestUser()) {
+        if (!auth.currentUser || auth.currentUser.isAnonymous) {
             alert("You're in guest mode. Sign in to use the AI Assistant.");
             return;
         }
@@ -218,7 +214,7 @@ class ChatAssistant {
         return messageDiv;
     }
 
-    async getAIResponse(userText, retryCount = 0) {
+    async getAIResponse(userText) {
         this.isProcessing = true;
         this.toggleSendButton();
 
@@ -226,6 +222,10 @@ class ChatAssistant {
         const thinkingMsg = this.addMessage('', 'ai', true);
 
         try {
+            const user = auth.currentUser;
+            if (!user || user.isAnonymous) {
+                throw new Error('Sign in to a full account to use the AI Assistant.');
+            }
             const response = await fetch(`${this.API_BASE_URL}/chat`, {
                 method: 'POST',
                 headers: {
@@ -242,7 +242,7 @@ class ChatAssistant {
 
                 const data = await response.json().catch(() => ({}));
                 if (!response.ok) {
-                    throw new Error(data.reply || `HTTP error! status: ${response.status}`);
+                    throw new Error(data.error || data.reply || `The AI Assistant returned HTTP ${response.status}.`);
                 }
 
             // Remove thinking message
@@ -266,30 +266,16 @@ class ChatAssistant {
             // Remove thinking message
             thinkingMsg.remove();
 
-            // Auto-retry once (handles Render cold start / temporary network issues)
-            if (retryCount === 0) {
-                const retryMsg = this.addMessage(
-                    '<div class="message-content"><p>⏳ Server is waking up, retrying in 3 seconds...</p></div>',
-                    'ai'
-                );
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                retryMsg.remove();
-                this.isProcessing = false;
-                return this.getAIResponse(userText, 1);
-            }
-
-            // Show error message after retry failed too
-            const errorMessage = `
-                <div class="message-content error-message">
-                    <p>⚠️ <strong>Connection Error!</strong></p>
-                    <p>I'm having trouble connecting to the server. Please:</p>
-                    <ul>
-                        <li>Check your internet connection</li>
-                        <li>Try refreshing the page</li>
-                        <li>Try again in a few moments</li>
-                    </ul>
-                </div>
-            `;
+            this.chatInput.value = userText;
+            this.autoResizeTextarea();
+            const errorText = this.escapeHtml(
+                error?.message || 'The AI Assistant could not complete your request.'
+            );
+            const errorMessage = `<div class="message-content error-message">
+                <p>⚠️ <strong>AI Assistant could not respond.</strong></p>
+                <p>${errorText}</p>
+                <p>Your question is still in the input box. You can try again when the service is available.</p>
+            </div>`;
             this.addMessage(errorMessage, 'ai');
         } finally {
             this.isProcessing = false;

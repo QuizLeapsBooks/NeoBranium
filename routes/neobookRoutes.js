@@ -19,7 +19,10 @@ import express from 'express';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { db, admin, verifyAuthToken } from '../firebaseAdmin.js';
+import { requireAccountAuth } from '../middleware/requireAuth.js';
 import { NEOBOOK_CONFIG } from '../services/neobookConfig.js';
+import { createAiQuotaMiddleware } from '../services/aiQuotaMiddleware.js';
+import { estimateAiRequestTokens } from '../services/aiQuotaService.js';
 import {
   getClientIdentity,
   getRemainingLimits,
@@ -150,6 +153,7 @@ async function attachIdentity(req, res, next) {
         const decoded = await verifyAuthToken(req);
         if (decoded?.uid) {
           req.uid = decoded.uid;
+          req.isGuest = decoded.firebase?.sign_in_provider === 'anonymous';
         }
       } catch (authErr) {
         // Log silently and proceed with IP-based identity for guest requests
@@ -162,6 +166,34 @@ async function attachIdentity(req, res, next) {
 }
 
 neobookRouter.use(attachIdentity);
+neobookRouter.use(requireAccountAuth);
+const sharedUserAiBudget = createAiQuotaMiddleware({
+  outputReservationTokens: NEOBOOK_CONFIG.MAX_OUTPUT_TOKENS
+});
+const sharedYouTubeAiBudget = createAiQuotaMiddleware({
+  outputReservationTokens: NEOBOOK_CONFIG.MAX_OUTPUT_TOKENS,
+  chargeOnlyExplicitUsage: true
+});
+const neoBookAiBudgetPaths = [
+  /^\/notebooks\/[^/]+\/sources$/,
+  /^\/notebooks\/[^/]+\/chats\/[^/]+\/messages$/,
+  /^\/notebooks\/[^/]+\/quizzes\/generate$/,
+  /^\/notebooks\/[^/]+\/flashcards\/generate$/,
+  /^\/notebooks\/[^/]+\/study-guides\/generate$/,
+  /^\/audio-episodes\/[^/]+\/run$/,
+  /^\/notebooks\/[^/]+\/mindmaps\/generate$/,
+  /^\/mindmaps\/[^/]+\/nodes\/[^/]+\/(?:expand|explain)$/
+];
+neobookRouter.use((req, res, next) => {
+  if (req.method !== 'POST') return next();
+  if (/^\/notebooks\/[^/]+\/sources$/.test(req.path)) {
+    return req.body?.type === 'youtube'
+      ? sharedYouTubeAiBudget(req, res, next)
+      : next();
+  }
+  if (!neoBookAiBudgetPaths.some(path => path.test(req.path))) return next();
+  return sharedUserAiBudget(req, res, next);
+});
 
 /** Ensures every source operation is bound to an owned chat in its notebook. */
 async function getOwnedChat(notebookId, chatId, identity) {
@@ -567,6 +599,9 @@ neobookRouter.post('/notebooks/:notebookId/sources', sourceRateLimiter, sourcePr
       if (req.backendSignal.aborted) return;
       extractionError = processErr.message;
       extractionStatus = processErr.status || null;
+    }
+    if (processedResult?.tokenUsage) {
+      req.setSharedAiQuotaUsage?.(processedResult.tokenUsage);
     }
 
     const status = extractionError ? 'error' : 'ready';
@@ -1373,6 +1408,7 @@ neobookRouter.post('/notebooks/:notebookId/quizzes/generate', requireAuthenticat
       identity: req.identity,
       signal: req.backendSignal
     });
+    req.setSharedAiQuotaUsage?.(tokenUsage);
     generatedQuizId = quiz.id;
 
     // Charge actual provider usage and release the remainder of the reservation.
@@ -1418,6 +1454,7 @@ neobookRouter.post('/notebooks/:notebookId/flashcards/generate', requireAuthenti
     if (!reservation.allowed) return res.status(429).json({ success: false, error: reservation.error, code: 'TOKEN_BUDGET_EXHAUSTED' });
     reservationId = reservation.reservationId;
     const { set, tokenUsage } = await generateFlashcards({ notebookId, chatId, identity: req.identity, chunks, count, signal: req.backendSignal }); setId = set.id;
+    req.setSharedAiQuotaUsage?.(tokenUsage);
     const quota = await settleTokenReservation(req.identity, reservationId, tokenUsage); reservationId = null;
     return res.json({ success: true, set, quota: { tokensUsed: quota.tokensUsed, tokensRemaining: quota.tokensRemaining, resetAt: quota.resetAt } });
   } catch (err) {
@@ -1445,6 +1482,7 @@ neobookRouter.post('/notebooks/:notebookId/study-guides/generate', requireAuthen
     if (!reservation.allowed) return res.status(429).json({ success: false, error: reservation.error, code: 'TOKEN_BUDGET_EXHAUSTED' });
     reservationId = reservation.reservationId;
     const result = await generateStudyGuide({ notebookId, chatId, identity: req.identity, chunks, signal: req.backendSignal }); guideId = result.guide.id;
+    req.setSharedAiQuotaUsage?.(result.tokenUsage);
     const quota = await settleTokenReservation(req.identity, reservationId, result.tokenUsage); reservationId = null;
     return res.json({ success: true, guide: result.guide, quota: { tokensUsed: quota.tokensUsed, tokensRemaining: quota.tokensRemaining, resetAt: quota.resetAt } });
   } catch (err) { if (guideId && db) await db.collection('neobook_study_guides').doc(guideId).delete().catch(() => {}); if (reservationId) await cancelTokenReservation(req.identity, reservationId).catch(() => {}); if (res.headersSent || req.backendSignal?.aborted) return; return res.status(err.status || 500).json({ success: false, error: err.message || 'Failed to generate study guide.' }); }
@@ -1500,12 +1538,31 @@ neobookRouter.post('/audio-episodes/:episodeId/run', requireAuthenticatedAudioUs
     const cancellation = abortOnResponseDisconnect(req, res);
     try { await runAudioEpisode({ episodeRef: owned.ref, episode: owned.data, chunks, identity: req.identity, signal: cancellation.signal }); }
     finally { cancellation.cleanup(); }
-    if (reservationId) { const saved = (await owned.ref.get()).data(); await settleTokenReservation(req.identity, reservationId, saved.tokenUsage || {}); reservationId = null; }
+    if (reservationId) {
+      const saved = (await owned.ref.get()).data();
+      const scriptTokens = estimateAiRequestTokens(saved.script);
+      req.setSharedAiQuotaUsage?.({
+        totalTokens: (Number(saved.tokenUsage?.inputTokens) || 0) +
+          (Number(saved.tokenUsage?.outputTokens) || 0) + scriptTokens,
+        usageSource: 'estimate'
+      });
+      await settleTokenReservation(req.identity, reservationId, saved.tokenUsage || {});
+      reservationId = null;
+    }
     return res.json({ success: true, episode: { id: req.params.episodeId, status: 'ready' } });
   } catch (err) {
     const owned = await getOwnedAudioEpisode(req.params.episodeId, req.identity).catch(() => null);
     // The script has real model usage even if TTS later fails; settle it exactly once.
-    if (reservationId && owned?.data?.tokenUsage) { await settleTokenReservation(req.identity, reservationId, owned.data.tokenUsage).catch(() => {}); reservationId = null; }
+    if (reservationId && owned?.data?.tokenUsage) {
+      const scriptTokens = estimateAiRequestTokens(owned.data.script);
+      req.setSharedAiQuotaUsage?.({
+        totalTokens: (Number(owned.data.tokenUsage.inputTokens) || 0) +
+          (Number(owned.data.tokenUsage.outputTokens) || 0) + scriptTokens,
+        usageSource: 'estimate'
+      });
+      await settleTokenReservation(req.identity, reservationId, owned.data.tokenUsage).catch(() => {});
+      reservationId = null;
+    }
     if (reservationId) await cancelTokenReservation(req.identity, reservationId).catch(() => {});
     if (owned) await owned.ref.update(err.code === 'CANCELLED'
       ? { status: 'cancelled', stage: 'cancelled', updatedAt: admin.firestore.FieldValue.serverTimestamp() }
@@ -1592,6 +1649,7 @@ neobookRouter.post('/notebooks/:notebookId/mindmaps/generate', requireAuthentica
       subject: typeof subject === 'string' ? subject.slice(0, 120) : '',
       signal: cancellation.signal
     });
+    req.setSharedAiQuotaUsage?.(generated.tokenUsage);
     if (cancellation.signal.aborted) throw new Error('Mind map generation was cancelled.');
     const tree = assignMindMapNodeIds({ ...generated.root, children: generated.children });
     const countNodes = node => 1 + (node.children || []).reduce((count, child) => count + countNodes(child), 0);
@@ -1701,6 +1759,7 @@ neobookRouter.post('/mindmaps/:mapId/nodes/:nodeId/expand', requireAuthenticated
     if (!reservation.allowed) return res.status(429).json({ success: false, error: reservation.error, code: 'TOKEN_BUDGET_EXHAUSTED' });
     reservationId = reservation.reservationId;
     const generated = await generateMindMapChildren({ chunks: selected.chunks, node: parent, signal: cancellation.signal });
+    req.setSharedAiQuotaUsage?.(generated.tokenUsage);
     if (cancellation.signal.aborted) throw new Error('Mind map expansion was cancelled.');
     const generatedChildren = generated.children.map(child => assignMindMapNodeIds(child));
 
@@ -1770,6 +1829,7 @@ neobookRouter.post('/mindmaps/:mapId/nodes/:nodeId/explain', requireAuthenticate
       retrievedChunks,
       signal: cancellation.signal
     });
+    req.setSharedAiQuotaUsage?.(result);
     if (cancellation.signal.aborted) throw new Error('Topic explanation was cancelled.');
     const quota = await settleTokenReservation(req.identity, reservationId, result);
     reservationId = null;

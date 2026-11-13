@@ -1,4 +1,12 @@
 import { randomUUID } from 'node:crypto';
+import {
+  consumeGuestChatQuota,
+  consumeGuestOtherAiQuota,
+  estimateAiRequestTokens,
+  getGuestIpHash,
+  reserveUserAiTokens,
+  settleUserAiTokens
+} from './aiQuotaService.js';
 
 export const AI_FEATURES = Object.freeze({
   CHATBOT: 'chatbot',
@@ -227,12 +235,68 @@ export function createAiUsageRequest({
   return request;
 }
 
-export function createAiUsageMiddleware({ feature, route, provider = null, model = null }) {
-  return (req, res, next) => {
+function estimateFinalizedUsage(event, req, responseBody) {
+  const attempts = event.attempts || [];
+  if (!attempts.length) return { tokens: 0, usageSource: 'unavailable' };
+
+  const inputEstimate = estimateAiRequestTokens(req.body);
+  const outputEstimate = estimateAiRequestTokens(responseBody);
+  const allProviderReported = attempts.every(attempt =>
+    attempt.usageSource === 'provider' && tokenCount(attempt.totalTokens) !== null
+  );
+  const tokens = attempts.reduce((total, attempt) => {
+    const knownTotal = tokenCount(attempt.totalTokens) ??
+      (tokenCount(attempt.inputTokens) !== null && tokenCount(attempt.outputTokens) !== null
+        ? tokenCount(attempt.inputTokens) + tokenCount(attempt.outputTokens)
+        : null);
+    if (knownTotal !== null) return total + knownTotal;
+
+    const chars = tokenCount(attempt.modalityMetrics?.inputCharacters);
+    if (chars !== null) return total + Math.ceil(chars / 4);
+
+    const knownInput = tokenCount(attempt.inputTokens);
+    const knownOutput = tokenCount(attempt.outputTokens);
+    return total + (knownInput ?? inputEstimate) +
+      (knownOutput ?? (attempt.status === 'success' ? outputEstimate : 0));
+  }, 0);
+  return {
+    tokens,
+    usageSource: allProviderReported ? 'provider' : 'estimate'
+  };
+}
+
+function quotaExceededResponse(res, result, message) {
+  return res.status(429).json({
+    success: false,
+    error: message,
+    code: result.code,
+    ...result
+  });
+}
+
+export function createAiUsageMiddleware({
+  feature,
+  route,
+  provider = null,
+  model = null,
+  skipTokenBudget = false,
+  quotaService = {
+    consumeGuestChatQuota,
+    consumeGuestOtherAiQuota,
+    getGuestIpHash,
+    reserveUserAiTokens,
+    settleUserAiTokens
+  }
+}) {
+  return async (req, res, next) => {
+    let quotaReservation = null;
+    let guestIpHash = null;
     try {
+      const identityVerified =
+        typeof req.uid === 'string' && req.uid.length > 0 && req.isGuest !== true;
       const request = createAiUsageRequest({
         uid: req.isGuest === true ? null : req.uid,
-        identityVerified: typeof req.uid === 'string' && req.uid.length > 0 && req.isGuest !== true,
+        identityVerified,
         feature: typeof feature === 'function' ? feature(req) : feature,
         route,
         provider: typeof provider === 'function' ? provider(req) : provider,
@@ -240,17 +304,114 @@ export function createAiUsageMiddleware({ feature, route, provider = null, model
       });
       req.aiUsageRequest = request;
       res.setHeader('X-AI-Request-Id', request.requestId);
+
+      const requestFeature = typeof feature === 'function' ? feature(req) : feature;
+      if (req.isGuest === true) {
+        guestIpHash = quotaService.getGuestIpHash(req);
+        let guestQuota = null;
+        if (requestFeature === AI_FEATURES.CHATBOT) {
+          guestQuota = await quotaService.consumeGuestChatQuota({ ipHash: guestIpHash });
+        } else if (requestFeature !== AI_FEATURES.GEMINI_LIVE) {
+          guestQuota = await quotaService.consumeGuestOtherAiQuota({ ipHash: guestIpHash });
+        }
+        if (guestQuota && !guestQuota.allowed) {
+          return quotaExceededResponse(
+            res,
+            guestQuota,
+            requestFeature === AI_FEATURES.CHATBOT
+              ? 'Guest chatbot daily limit reached. Sign in for the full AI allowance.'
+              : 'Guest AI weekly limit reached. Sign in for the full AI allowance.'
+          );
+        }
+        req.aiGuestIpHash = guestIpHash;
+        req.aiGuestQuota = guestQuota;
+        if (guestQuota) {
+          res.setHeader('X-AI-Quota-Scope', requestFeature === AI_FEATURES.CHATBOT ? 'guest_chat' : 'guest_other');
+          res.setHeader('X-AI-Quota-Limit', String(guestQuota.limit));
+          res.setHeader('X-AI-Quota-Remaining', String(guestQuota.remaining));
+        }
+        return next();
+      } else if (
+        !skipTokenBudget &&
+        identityVerified &&
+        requestFeature !== AI_FEATURES.GEMINI_LIVE
+      ) {
+        const requestTokens = estimateAiRequestTokens(req.body);
+        const outputReserve = requestFeature === AI_FEATURES.TTS
+          ? 0
+          : Math.max(0, Number(req.body?.maxOutputTokens) || 8_192);
+        quotaReservation = await quotaService.reserveUserAiTokens({
+          uid: request.uid,
+          requestId: request.requestId,
+          tokens: requestTokens + outputReserve
+        });
+        if (!quotaReservation.allowed) {
+          return quotaExceededResponse(
+            res,
+            quotaReservation,
+            'Your shared daily AI token budget is exhausted or insufficient for this request. It resets at UTC midnight.'
+          );
+        }
+        req.aiQuotaStatus = quotaReservation;
+        res.setHeader('X-AI-Token-Limit', String(quotaReservation.limit));
+        res.setHeader('X-AI-Token-Remaining', String(quotaReservation.remainingTokens));
+      }
+
+      let responseBody = null;
+      let settlementPromise = null;
+      let finalizationStarted = false;
+      const originalJson = res.json;
+      if (typeof originalJson === 'function') {
+        res.json = function (body) {
+          responseBody = body;
+          return originalJson.call(this, body);
+        };
+      }
+
+      const finalizeAndSettle = outcome => {
+        if (finalizationStarted) return settlementPromise || Promise.resolve();
+        finalizationStarted = true;
+        const event = request.finalize(outcome);
+        if (!quotaReservation || !event) return Promise.resolve();
+        const usage = estimateFinalizedUsage(event, req, responseBody);
+        settlementPromise = quotaService.settleUserAiTokens({
+          uid: request.uid,
+          requestId: request.requestId,
+          actualTokens: usage.tokens,
+          usageSource: usage.usageSource
+        }).then(result => {
+          if (result.overLimit) {
+            console.error('[AI Quota] Final provider usage exceeded the reserved estimate.', {
+              requestId: request.requestId,
+              chargedTokens: result.chargedTokens,
+              usedTokens: result.usedTokens,
+              limit: result.limit
+            });
+          }
+          return result;
+        }).catch(error => {
+          console.error('[AI Quota] Could not settle a token reservation.', {
+            requestId: request.requestId,
+            code: error?.code || 'unknown'
+          });
+          return null;
+        });
+        return settlementPromise;
+      };
+
       if (typeof res.end === 'function') {
         const originalEnd = res.end;
         let endStarted = false;
         res.end = function (...args) {
           if (endStarted) return this;
           endStarted = true;
-          request.finalize({
+          const quotaSettlement = finalizeAndSettle({
             status: res.statusCode < 400 ? 'success' : 'failed',
             errorCategory: errorCategoryForStatus(res.statusCode)
           });
-          void waitForAiUsageDelivery(request).then(({ timedOut, results, waitedMs }) => {
+          const usageDelivery = waitForAiUsageDelivery(request);
+          void Promise.all([quotaSettlement, usageDelivery]).then(([settlement, delivery]) => {
+            const { timedOut, results, waitedMs } = delivery;
             if (timedOut) {
               console.error('[AI Usage] Durable acceptance was not confirmed before response completion.', {
                 requestId: request.requestId,
@@ -262,6 +423,23 @@ export function createAiUsageMiddleware({ feature, route, provider = null, model
                 waitedMs,
                 state: results.find(result => result?.durablyAccepted !== true)?.state || 'no_persistence_sink'
               });
+            }
+            if (settlement?.overLimit && responseBody && res.statusCode < 400 && !res.headersSent) {
+              const deniedBody = JSON.stringify({
+                success: false,
+                error: 'The provider usage exceeded the remaining shared daily AI budget. No answer was returned. The budget resets at UTC midnight.',
+                code: 'DAILY_TOKEN_BUDGET_EXCEEDED',
+                limit: settlement.limit,
+                usedTokens: settlement.usedTokens,
+                remainingTokens: 0,
+                resetAt: settlement.resetAt
+              });
+              res.statusCode = 429;
+              res.removeHeader?.('Content-Length');
+              res.removeHeader?.('ETag');
+              res.setHeader?.('Content-Type', 'application/json; charset=utf-8');
+              originalEnd.call(res, deniedBody);
+              return;
             }
             originalEnd.apply(res, args);
           }).catch(error => {
@@ -278,10 +456,22 @@ export function createAiUsageMiddleware({ feature, route, provider = null, model
         errorCategory: errorCategoryForStatus(res.statusCode)
       }));
       res.once('close', () => {
-        if (!res.writableFinished) request.finalize({ status: 'cancelled', errorCategory: 'client_disconnected' });
+        if (!res.writableFinished) {
+          void finalizeAndSettle({ status: 'cancelled', errorCategory: 'client_disconnected' });
+        }
       });
     } catch (error) {
-      console.error('[AI Usage] Could not initialize request tracking:', error?.message || 'unknown error');
+      console.error('[AI Quota] Could not enforce AI usage quota.', {
+        route,
+        code: error?.code || 'unknown',
+        message: error?.message || 'unknown error'
+      });
+      if (res.headersSent) return next(error);
+      return res.status(503).json({
+        success: false,
+        error: 'AI usage limits are temporarily unavailable. Please try again shortly.',
+        code: 'AI_QUOTA_UNAVAILABLE'
+      });
     }
     next();
   };

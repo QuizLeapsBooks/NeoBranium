@@ -41,7 +41,7 @@ export async function paperAuth(req, res, next) {
       const decoded = await verifyAuthToken(req);
       req.uid = decoded.uid;
       req.decodedToken = decoded;
-      req.isGuest = false;
+      req.isGuest = decoded.firebase?.sign_in_provider === 'anonymous';
       return next();
     } catch (err) {
       const msg = err.message || '';

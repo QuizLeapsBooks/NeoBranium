@@ -2,6 +2,7 @@ import { auth, db, getEmailVerificationSettings } from "./auth.js";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInAnonymously,
   sendEmailVerification,
   GoogleAuthProvider,
   signInWithPopup,
@@ -275,9 +276,16 @@ async function signInWithGoogle(btnId) {
 document.getElementById("googleSignUpBtn")?.addEventListener("click", () => signInWithGoogle("googleSignUpBtn"));
 document.getElementById("googleSignInBtn")?.addEventListener("click", () => signInWithGoogle("googleSignInBtn"));
 
-const handleGuestLogin = () => {
+const handleGuestLogin = async () => {
     sessionStorage.setItem("isGuestMode", "true");
-    window.location.replace("/htmls/dashboard.html");
+    try {
+      await signInAnonymously(auth);
+      window.location.replace("/htmls/dashboard.html");
+    } catch (error) {
+      sessionStorage.removeItem("isGuestMode");
+      console.error("Guest sign-in failed:", error);
+      showToast("Guest access is temporarily unavailable. Please try again or create an account.");
+    }
 };
 document.getElementById("guestSignUpBtn")?.addEventListener("click", handleGuestLogin);
 document.getElementById("guestSignInBtn")?.addEventListener("click", handleGuestLogin);

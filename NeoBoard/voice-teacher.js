@@ -52,7 +52,7 @@ export class VoiceTeacher {
           });
         }).catch(() => resolve(null));
       });
-      if (!user) throw new Error('Sign in to start a voice lesson.');
+      if (!user || user.isAnonymous) throw new Error('Sign in to a full account to start a voice lesson.');
       if (!navigator.mediaDevices?.getUserMedia) throw new Error('Microphone access requires HTTPS and a supported browser.');
       this.documentId = this.context.snapshot().documentId;
       const ctx = this.formatContext();

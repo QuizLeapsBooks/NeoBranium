@@ -462,11 +462,14 @@
   <div id="auth-gate" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(11,15,25,0.97);backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;">
     <div style="text-align:center;">
       <div style="font-size:32px;font-weight:800;color:#a5b4fc;">Neo<span style="color:#6366f1;">Branium</span> <span style="color:#818cf8;">Live AI</span></div>
-      <p style="color:#94a3b8;margin-top:8px;font-size:14px;">Sign in to your NeoBranium account to continue</p>
+      <p style="color:#94a3b8;margin-top:8px;font-size:14px;">Sign in or continue as a guest to use Live AI</p>
     </div>
     <div id="auth-gate-error" style="display:none;color:#f87171;font-size:13px;"></div>
     <button id="auth-gate-signin-btn" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;padding:14px 36px;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;">
       Sign In to NeoBranium
+    </button>
+    <button id="auth-gate-guest-btn" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;padding:12px 30px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;">
+      Continue as Guest
     </button>
     <p style="color:#64748b;font-size:12px;text-align:center;max-width:300px;">
       You need a NeoBranium account to use the Live AI feature.
@@ -499,15 +502,112 @@
     const authGate = document.getElementById('auth-gate');
     const authGateError = document.getElementById('auth-gate-error');
     const authGateSigninBtn = document.getElementById('auth-gate-signin-btn');
+    const authGateGuestBtn = document.getElementById('auth-gate-guest-btn');
 
     // Initially hide body content until auth is resolved
     document.body.style.visibility = 'hidden';
+
+    async function checkSignedInQuotaWarning(user) {
+      try {
+        const token = await window._getNBIdToken();
+        const backendUrl = ['localhost', '127.0.0.1'].includes(location.hostname)
+          ? `http://${location.hostname}:3000`
+          : 'https://neobranium.onrender.com';
+        const response = await fetch(`${backendUrl}/api/ai-usage/quota`, {
+          headers: { Authorization: `****** }
+        });
+        if (!response.ok) throw new Error(`Quota status request failed (${response.status}).`);
+        const result = await response.json();
+        const quota = result?.quota;
+        if (!result?.success || quota?.scope !== 'signed_in') throw new Error('Quota status response was invalid.');
+        const remaining = Number(quota.remainingTokens);
+        const limit = Number(quota.limit);
+        if (!Number.isFinite(remaining) || !Number.isFinite(limit) || limit <= 0 || remaining / limit > 0.25) return;
+
+        const dismissKey = `aiQuotaWarningDismissed:${user.uid}:${new Date().toISOString().slice(0, 10)}:${location.pathname}`;
+        if (sessionStorage.getItem(dismissKey) === 'true') return;
+        document.getElementById('ai-quota-warning')?.remove();
+        const warning = document.createElement('div');
+        warning.id = 'ai-quota-warning';
+        warning.setAttribute('role', 'status');
+        warning.style.cssText = 'position:fixed;z-index:10020;top:18px;left:50%;transform:translateX(-50%);width:min(560px,calc(100vw - 28px));padding:14px 16px;border:1px solid #f59e0b;border-radius:14px;background:#1f2937;color:#f9fafb;box-shadow:0 12px 36px #0005;font:500 14px/1.45 system-ui,sans-serif;display:flex;gap:14px;align-items:center';
+        const text = document.createElement('span');
+        text.textContent = remaining <= 0
+          ? 'Your shared daily AI budget is exhausted. It resets at UTC midnight.'
+          : `AI usage is getting low: ${remaining.toLocaleString()} of ${limit.toLocaleString()} shared daily tokens remain.`;
+        const close = document.createElement('button');
+        close.type = 'button';
+        close.setAttribute('aria-label', 'Dismiss AI usage warning');
+        close.textContent = '×';
+        close.style.cssText = 'border:0;background:transparent;color:inherit;font-size:20px;cursor:pointer';
+        close.addEventListener('click', () => {
+          sessionStorage.setItem(dismissKey, 'true');
+          warning.remove();
+        });
+        warning.append(text, close);
+        document.body.appendChild(warning);
+        window.setTimeout(() => warning.remove(), 7000);
+      } catch (error) {
+        console.warn('[AI Quota] Could not load NeoBot quota status.', error?.message || 'unknown error');
+      }
+    }
 
     _nbAuth.onAuthStateChanged((user) => {
       if (user) {
         // Authenticated — hide gate and reveal content
         authGate.style.display = 'none';
         document.body.style.visibility = 'visible';
+        if (user.isAnonymous) {
+          window._getNBIdToken().then(async token => {
+            const backendUrl = ['localhost', '127.0.0.1'].includes(location.hostname)
+              ? `http://${location.hostname}:3000`
+              : 'https://neobranium.onrender.com';
+            const response = await fetch(`${backendUrl}/api/ai-usage/quota`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!response.ok) return;
+            const result = await response.json();
+            const quota = result?.quota;
+            const candidates = [
+              quota?.weeklyNeoBot && {
+                ratio: quota.weeklyNeoBot.remainingTokens / quota.weeklyNeoBot.limit,
+                message: `Guest NeoBot voice allowance is low: ${Number(quota.weeklyNeoBot.remainingTokens).toLocaleString()} estimated token-equivalents remain this week.`
+              },
+              quota?.dailyChat && {
+                ratio: quota.dailyChat.remaining / quota.dailyChat.limit,
+                message: `Guest chatbot allowance is low: ${quota.dailyChat.remaining} of ${quota.dailyChat.limit} daily chats remain.`
+              },
+              quota?.weeklyOtherAi && {
+                ratio: quota.weeklyOtherAi.remaining / quota.weeklyOtherAi.limit,
+                message: `Guest AI allowance is low: ${quota.weeklyOtherAi.remaining} of ${quota.weeklyOtherAi.limit} weekly uses remain.`
+              }
+            ].filter(item => item && Number.isFinite(item.ratio) && item.ratio <= 0.25)
+              .sort((a, b) => a.ratio - b.ratio);
+            const allowance = candidates[0];
+            if (!allowance) return;
+            const dismissKey = `aiQuotaWarningDismissed:${user.uid}:${new Date().toISOString().slice(0, 10)}:${location.pathname}`;
+            if (sessionStorage.getItem(dismissKey) === 'true') return;
+            const warning = document.createElement('div');
+            warning.setAttribute('role', 'status');
+            warning.style.cssText = 'position:fixed;z-index:10000;top:18px;left:50%;transform:translateX(-50%);width:min(560px,calc(100vw - 28px));padding:14px 16px;border:1px solid #f59e0b;border-radius:14px;background:#1f2937;color:#f9fafb;box-shadow:0 12px 36px #0005;font:500 14px/1.45 system-ui,sans-serif;display:flex;gap:14px;align-items:center';
+            const text = document.createElement('span');
+            text.textContent = allowance.message;
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.setAttribute('aria-label', 'Dismiss AI usage warning');
+            close.textContent = '×';
+            close.style.cssText = 'border:0;background:transparent;color:inherit;font-size:20px;cursor:pointer';
+            close.addEventListener('click', () => {
+              sessionStorage.setItem(dismissKey, 'true');
+              warning.remove();
+            });
+            warning.append(text, close);
+            document.body.appendChild(warning);
+            window.setTimeout(() => warning.remove(), 7000);
+          }).catch(error => console.warn('[AI Quota] Could not load NeoBot quota status.', error?.message || 'unknown error'));
+        } else {
+          void checkSignedInQuotaWarning(user);
+        }
       } else {
         // Not authenticated — show gate
         authGate.style.display = 'flex';
@@ -520,6 +620,19 @@
       authGateSigninBtn.textContent = 'Redirecting...';
       // Redirect to main NeoBranium site login page
       window.location.href = '../index.html#login';
+    });
+    authGateGuestBtn.addEventListener('click', async () => {
+      authGateGuestBtn.disabled = true;
+      authGateGuestBtn.textContent = 'Starting guest session...';
+      try {
+        await _nbAuth.signInAnonymously();
+      } catch (error) {
+        authGateError.textContent = 'Guest access is unavailable. Please sign in or try again later.';
+        authGateError.style.display = 'block';
+        authGateGuestBtn.disabled = false;
+        authGateGuestBtn.textContent = 'Continue as Guest';
+        console.error('[NeoBot] Guest sign-in failed:', error);
+      }
     });
   </script>
 

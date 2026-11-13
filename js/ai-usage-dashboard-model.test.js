@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   aggregateDailyUsage,
+  createAiQuotaApiClient,
   createDailySeries,
   createUsageApiClient,
   getFeatureLabel,
@@ -215,5 +216,84 @@ test('usage API distinguishes network, permission, and malformed-response failur
   await assert.rejects(
     () => invalidShapeClient.fetchDaily('2026-03-01', '2026-03-01'),
     { code: 'INVALID_API_RESPONSE', status: 200 }
+  );
+});
+
+test('usage API retries transient backend responses before returning the persisted daily data', async () => {
+  let calls = 0;
+  const client = createUsageApiClient({
+    apiBase: 'https://api.example.test',
+    getCurrentUser: () => ({ uid: 'user-1', getIdToken: async () => 'valid-token' }),
+    retryDelay: async () => {},
+    fetchImpl: async () => {
+      calls += 1;
+      if (calls === 1) return { status: 503, ok: false };
+      return { status: 200, ok: true, json: async () => ({ success: true, timezone: 'UTC', daily: [] }) };
+    }
+  });
+  const result = await client.fetchDaily('2026-03-09', '2026-03-09', undefined, { forceRefresh: true });
+  assert.equal(calls, 2);
+  assert.equal(result.timezone, 'UTC');
+});
+
+test('quota API retries transport errors, refreshes expired Firebase tokens, and returns today totals', async () => {
+  const calls = [];
+  const tokenRefreshes = [];
+  const quota = {
+    scope: 'signed_in',
+    date: '2026-03-09',
+    limit: 150_000,
+    usedTokens: 18_250,
+    providerTokens: 14_000,
+    estimatedTokens: 4_250,
+    reservedTokens: 500,
+    remainingTokens: 131_250,
+    resetAt: '2026-03-10T00:00:00.000Z'
+  };
+  const client = createAiQuotaApiClient({
+    apiBase: 'https://api.example.test',
+    retryDelay: async () => {},
+    fetchImpl: async (_url, options) => {
+      calls.push(options.headers.Authorization);
+      if (calls.length === 1) throw new TypeError('Failed to fetch');
+      if (calls.length === 2) return { status: 401, ok: false };
+      return { status: 200, ok: true, json: async () => ({ success: true, quota }) };
+    }
+  });
+  const user = {
+    uid: 'user-1',
+    getIdToken: async forceRefresh => {
+      tokenRefreshes.push(forceRefresh);
+      return forceRefresh ? 'fresh-token' : 'old-token';
+    }
+  };
+  const result = await client.fetchStatus(user);
+  assert.equal(result.usedTokens, 18_250);
+  assert.deepEqual(tokenRefreshes, [false, true]);
+  assert.deepEqual(calls, [
+    'Bearer old-token',
+    'Bearer old-token',
+    'Bearer fresh-token'
+  ]);
+});
+
+test('quota API rejects invalid payloads and distinguishes permission failures', async () => {
+  const createClient = fetchImpl => createAiQuotaApiClient({
+    apiBase: 'https://api.example.test',
+    fetchImpl,
+    retryDelay: async () => {}
+  });
+  const user = { getIdToken: async () => 'valid-token' };
+  await assert.rejects(
+    () => createClient(async () => ({
+      status: 200,
+      ok: true,
+      json: async () => ({ success: true, quota: { scope: 'signed_in', limit: null } })
+    })).fetchStatus(user),
+    { code: 'INVALID_API_RESPONSE' }
+  );
+  await assert.rejects(
+    () => createClient(async () => ({ status: 403, ok: false })).fetchStatus(user),
+    { code: 'PERMISSION_DENIED', status: 403 }
   );
 });

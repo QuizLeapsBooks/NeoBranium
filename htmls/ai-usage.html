@@ -53,10 +53,15 @@
     </section>
 
     <div id="dashboardContent" hidden>
+      <div data-ai-quota-overview aria-live="polite">
+        <section class="ai-quota-overview" aria-label="Shared AI usage budget">
+          <p>Loading your shared AI budget…</p>
+        </section>
+      </div>
       <section class="aiu-controls" aria-label="Date range">
         <div class="aiu-range-pills" role="group" aria-label="Choose a date range">
-          <button type="button" data-preset="today">Today</button>
-          <button type="button" data-preset="7d" class="is-selected" aria-pressed="true">7 days</button>
+          <button type="button" data-preset="today" class="is-selected" aria-pressed="true">Today</button>
+          <button type="button" data-preset="7d" aria-pressed="false">7 days</button>
           <button type="button" data-preset="30d" aria-pressed="false">30 days</button>
           <button type="button" data-preset="custom" aria-pressed="false">Custom</button>
         </div>

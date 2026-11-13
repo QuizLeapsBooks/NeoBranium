@@ -49,6 +49,45 @@ function usageApiError(message, code, status) {
   return error;
 }
 
+function waitForRetry(attempt) {
+  return new Promise(resolve => setTimeout(resolve, [500, 1500][attempt] || 1500));
+}
+
+async function fetchWithRetry(fetchImpl, url, options, {
+  maxAttempts = 3,
+  retryStatuses = [502, 503, 504],
+  retryDelay = waitForRetry
+} = {}) {
+  let lastError;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 18_000);
+    try {
+      const response = await fetchImpl(url, { ...options, signal: controller.signal });
+      if (!retryStatuses.includes(response.status) || attempt === maxAttempts - 1) return response;
+      lastError = usageApiError(
+        `AI usage backend temporarily returned HTTP ${response.status}. Retrying...`,
+        'SERVER_ERROR',
+        response.status
+      );
+    } catch (error) {
+      lastError = error?.name === 'AbortError'
+        ? usageApiError('AI usage backend request timed out.', 'NETWORK_UNAVAILABLE')
+        : error;
+      if (attempt === maxAttempts - 1) {
+        throw usageApiError(
+          'Could not reach the AI usage backend after several attempts. Check your connection and try again.',
+          'NETWORK_UNAVAILABLE'
+        );
+      }
+    } finally {
+      clearTimeout(timeout);
+    }
+    await retryDelay(attempt);
+  }
+  throw lastError || usageApiError('Could not reach the AI usage backend.', 'NETWORK_UNAVAILABLE');
+}
+
 function addKnown(current, value) {
   return typeof value === 'number' && Number.isFinite(value)
     ? (current ?? 0) + value
@@ -164,19 +203,19 @@ export function resolveUsageApiBase(pageUrl, configuredBackendUrl) {
   return configuredBackendUrl?.trim() || page.origin;
 }
 
-export function createUsageApiClient({ apiBase, fetchImpl = fetch, getCurrentUser }) {
+export function createUsageApiClient({ apiBase, fetchImpl = fetch, getCurrentUser, retryDelay = waitForRetry }) {
   const pendingRequests = new Map();
   const cachedResponses = new Map();
   const cacheTtlMs = 30_000;
 
   return {
-    async fetchDaily(from, to, user = getCurrentUser()) {
+    async fetchDaily(from, to, user = getCurrentUser(), { forceRefresh = false } = {}) {
       if (!user) {
         throw usageApiError('Sign in to view your AI usage.', 'AUTH_REQUIRED');
       }
       const requestKey = `${user.uid || 'current-user'}:${from}:${to}`;
       const cached = cachedResponses.get(requestKey);
-      if (cached && cached.expiresAt > Date.now()) return cached.payload;
+      if (!forceRefresh && cached && cached.expiresAt > Date.now()) return cached.payload;
       if (cached) cachedResponses.delete(requestKey);
       if (pendingRequests.has(requestKey)) return pendingRequests.get(requestKey);
       for (const [key, entry] of cachedResponses) {
@@ -211,13 +250,14 @@ export function createUsageApiClient({ apiBase, fetchImpl = fetch, getCurrentUse
             );
           }
           try {
-            return await fetchImpl(url, {
+            return await fetchWithRetry(fetchImpl, url, {
               headers: { Authorization: `Bearer ${token}` },
               credentials: 'omit'
-            });
-          } catch {
+            }, { retryDelay });
+          } catch (error) {
+            if (error?.code === 'NETWORK_UNAVAILABLE') throw error;
             throw usageApiError(
-              'Could not reach the AI usage backend. Check that the backend is running and that its API URL and CORS settings are correct.',
+              'Could not reach the AI usage backend after several attempts. Check the API URL, CORS settings, and backend availability.',
               'NETWORK_UNAVAILABLE'
             );
           }
@@ -284,6 +324,79 @@ export function createUsageApiClient({ apiBase, fetchImpl = fetch, getCurrentUse
           cachedResponses.delete(cachedResponses.keys().next().value);
         }
         return payload;
+      })().finally(() => pendingRequests.delete(requestKey));
+
+      pendingRequests.set(requestKey, requestPromise);
+      return requestPromise;
+    }
+  };
+}
+
+export function createAiQuotaApiClient({ apiBase, fetchImpl = fetch, retryDelay = waitForRetry }) {
+  const pendingRequests = new Map();
+  const url = new URL('/api/ai-usage/quota', apiBase);
+
+  return {
+    async fetchStatus(user) {
+      if (!user || typeof user.getIdToken !== 'function') {
+        throw usageApiError('Sign in to view your AI budget.', 'AUTH_REQUIRED');
+      }
+      const requestKey = user.uid || 'current-user';
+      if (pendingRequests.has(requestKey)) return pendingRequests.get(requestKey);
+
+      const requestPromise = (async () => {
+        const request = async forceRefresh => {
+          let token;
+          try {
+            token = await user.getIdToken(forceRefresh);
+          } catch (error) {
+            if (error?.code === 'auth/network-request-failed') {
+              throw usageApiError(
+                'Could not reach Firebase Authentication to refresh your sign-in.',
+                'NETWORK_UNAVAILABLE'
+              );
+            }
+            throw usageApiError('Could not refresh your Firebase sign-in. Sign in again.', 'AUTH_EXPIRED');
+          }
+          if (!token) throw usageApiError('Your sign-in has expired. Sign in again.', 'AUTH_EXPIRED');
+          return fetchWithRetry(fetchImpl, url, {
+            headers: { Authorization: ['Bearer', token].join(' ') },
+            credentials: 'omit'
+          }, { retryDelay });
+        };
+
+        let response = await request(false);
+        if (response.status === 401) response = await request(true);
+        if (response.status === 401) {
+          throw usageApiError('Your sign-in has expired. Sign in again.', 'AUTH_EXPIRED', 401);
+        }
+        if (response.status === 403) {
+          throw usageApiError('Your account is not permitted to view this AI budget.', 'PERMISSION_DENIED', 403);
+        }
+        if (response.status === 404) {
+          throw usageApiError('The AI quota API route is unavailable. The backend may need its latest source.', 'ROUTE_UNAVAILABLE', 404);
+        }
+        if (!response.ok) {
+          throw usageApiError(`The AI quota backend returned HTTP ${response.status}.`, 'SERVER_ERROR', response.status);
+        }
+
+        let payload;
+        try {
+          payload = await response.json();
+        } catch {
+          throw usageApiError('The AI quota API returned invalid JSON.', 'INVALID_API_RESPONSE', response.status);
+        }
+        const quota = payload?.quota;
+        const validSignedIn = quota?.scope === 'signed_in' &&
+          ['limit', 'usedTokens', 'remainingTokens', 'reservedTokens'].every(key =>
+            typeof quota[key] === 'number' && Number.isFinite(quota[key]) && quota[key] >= 0
+          );
+        const validGuest = quota?.scope === 'guest_ip' &&
+          quota.dailyChat && quota.weeklyOtherAi && quota.weeklyNeoBot;
+        if (payload?.success !== true || (!validSignedIn && !validGuest)) {
+          throw usageApiError('The AI quota API returned an invalid response.', 'INVALID_API_RESPONSE', response.status);
+        }
+        return quota;
       })().finally(() => pendingRequests.delete(requestKey));
 
       pendingRequests.set(requestKey, requestPromise);

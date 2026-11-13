@@ -1,12 +1,50 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import admin from 'firebase-admin';
+import { randomUUID } from 'node:crypto';
 import { logSecurityEvent } from '../../../firebaseAdmin.js';
 import { getLiveModel } from '../../../gemini-models.js';
 import {
   AI_FEATURES,
   createAiUsageRequest,
+  estimateTokenUsage,
   waitForAiUsageDelivery
 } from '../../../services/aiUsageTracker.js';
+import {
+  getGuestAiQuotaStatus,
+  getGuestIpHash,
+  getUserAiQuotaStatus,
+  reserveGuestNeoBotAiTokens,
+  reserveUserAiTokens,
+  settleGuestNeoBotAiTokens,
+  settleUserAiTokens
+} from '../../../services/aiQuotaService.js';
+
+const LIVE_SESSION_MAX_MS = 30 * 60 * 1000;
+const LIVE_QUOTA_RESERVATION_TTL_MS = 35 * 60 * 1000;
+
+function estimateLiveFrameTokens(data) {
+  let message;
+  try {
+    message = JSON.parse(data.toString('utf8'));
+  } catch {
+    return Math.max(1, Math.ceil(data.length / 1024));
+  }
+
+  function count(value, key = '') {
+    if (typeof value === 'string') {
+      if (/^(data|audio|image)$/i.test(key)) {
+        return Math.max(1, Math.ceil(value.length * 0.75 / 1024));
+      }
+      return Math.ceil(value.length / 4);
+    }
+    if (Array.isArray(value)) return value.reduce((sum, item) => sum + count(item, key), 0);
+    if (!value || typeof value !== 'object') return 0;
+    return Object.entries(value).reduce((sum, [childKey, childValue]) =>
+      sum + count(childValue, childKey), 0);
+  }
+
+  return Math.max(1, count(message));
+}
 
 /**
  * Verifies a Firebase ID token passed as a query parameter on WebSocket upgrade.
@@ -28,7 +66,7 @@ async function verifyWsToken(token) {
 /**
  * Attaches the WebSocket Proxy Relay to the Node.js HTTP server.
  * Requires a valid Firebase ID token via ?token=<idToken> query parameter.
- * Enables fallback real-time streaming if ephemeral tokens are restricted or unsupported.
+ * Relays Live sessions so server-side usage budgets cannot be bypassed.
  */
 export function setupWebSocketProxy(server) {
   const wss = new WebSocketServer({ noServer: true, maxPayload: 1024 * 1024 });
@@ -96,25 +134,91 @@ export function setupWebSocketProxy(server) {
       else activeByUid.delete(decoded.uid);
     };
 
-    // Token verified — proceed with WebSocket upgrade
+    const isGuest = decoded.firebase?.sign_in_provider === 'anonymous';
+    const requestId = randomUUID();
+    let quotaReservation;
+    let guestIpHash = null;
+    try {
+      if (isGuest) {
+        const forwardedIp = request.headers['x-forwarded-for']?.split(',')[0]?.trim();
+        guestIpHash = getGuestIpHash({
+          ip: forwardedIp || request.socket?.remoteAddress,
+          socket: request.socket
+        });
+        const status = await getGuestAiQuotaStatus({ ipHash: guestIpHash });
+        quotaReservation = await reserveGuestNeoBotAiTokens({
+          ipHash: guestIpHash,
+          requestId,
+          tokens: status.weeklyNeoBot.remainingTokens,
+          reservationTtlMs: LIVE_QUOTA_RESERVATION_TTL_MS
+        });
+      } else {
+        const status = await getUserAiQuotaStatus(decoded.uid);
+        quotaReservation = await reserveUserAiTokens({
+          uid: decoded.uid,
+          requestId,
+          tokens: status.remainingTokens,
+          reservationTtlMs: LIVE_QUOTA_RESERVATION_TTL_MS
+        });
+      }
+    } catch (quotaError) {
+      releaseReservation();
+      socket.write('HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n\r\nAI usage limits are unavailable');
+      socket.destroy();
+      console.error('[WS Proxy] Could not reserve AI usage budget.', {
+        requestId,
+        code: quotaError?.code || 'unknown'
+      });
+      return;
+    }
+
+    if (!quotaReservation?.allowed) {
+      releaseReservation();
+      socket.write('HTTP/1.1 429 Too Many Requests\r\nConnection: close\r\n\r\nAI usage limit reached');
+      socket.destroy();
+      return;
+    }
+
     try {
       wss.handleUpgrade(request, socket, head, (clientWs) => {
         clientWs._uid = decoded.uid;  // Attach verified UID for logging
+        clientWs._isGuest = isGuest;
+        clientWs._guestIpHash = guestIpHash;
+        clientWs._quotaReservation = quotaReservation;
+        clientWs._quotaRequestId = requestId;
         clientWs.once('close', releaseReservation);
         wss.emit('connection', clientWs, request);
       });
     } catch (upgradeError) {
       releaseReservation();
+      const settlement = isGuest
+        ? settleGuestNeoBotAiTokens({ ipHash: guestIpHash, requestId, actualTokens: 0 })
+        : settleUserAiTokens({ uid: decoded.uid, requestId, actualTokens: 0 });
+      void settlement.catch(error => console.error('[WS Proxy] Could not release an unused quota reservation.', {
+        requestId,
+        code: error?.code || 'unknown'
+      }));
       socket.destroy();
     }
   });
 
   wss.on('connection', (clientWs, request) => {
     const uid = clientWs._uid || 'unknown';
+    const isGuest = clientWs._isGuest === true;
+    const guestIpHash = clientWs._guestIpHash;
+    const quotaReservation = clientWs._quotaReservation;
+    const quotaRequestId = clientWs._quotaRequestId;
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
       console.error('[WS Proxy] Rejected connection: GEMINI_API_KEY is not configured.');
+      const settlement = isGuest
+        ? settleGuestNeoBotAiTokens({ ipHash: guestIpHash, requestId: quotaRequestId, actualTokens: 0 })
+        : settleUserAiTokens({ uid, requestId: quotaRequestId, actualTokens: 0 });
+      void settlement.catch(error => console.error('[WS Proxy] Could not release an unused quota reservation.', {
+        requestId: quotaRequestId,
+        code: error?.code || 'unknown'
+      }));
       clientWs.close(1011, 'GEMINI_API_KEY not configured on server');
       return;
     }
@@ -122,8 +226,8 @@ export function setupWebSocketProxy(server) {
     const model = getLiveModel();
     const geminiWsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${apiKey}`;
     const usageRequest = createAiUsageRequest({
-      uid,
-      identityVerified: typeof clientWs._uid === 'string' && clientWs._uid.length > 0,
+      uid: isGuest ? null : uid,
+      identityVerified: !isGuest && typeof clientWs._uid === 'string' && clientWs._uid.length > 0,
       feature: AI_FEATURES.GEMINI_LIVE,
       route: '/ws/live',
       provider: 'gemini',
@@ -134,30 +238,57 @@ export function setupWebSocketProxy(server) {
     let usageFinalized = false;
     let clientToProviderFrameBytes = 0;
     let providerToClientFrameBytes = 0;
+    let clientEstimatedTokens = 0;
+    let providerEstimatedTokens = 0;
+    let cleaned = false;
+    const estimatedSessionTokens = () => clientEstimatedTokens + providerEstimatedTokens;
     const finalizeUsage = (status, errorCategory = null) => {
       if (usageFinalized) return;
       usageFinalized = true;
+      const actualTokens = estimatedSessionTokens();
       usageRequest.recordAttempt({
         provider: 'gemini',
         model,
-        status: geminiOpened ? 'success' : 'failed'
+        status: geminiOpened ? 'success' : 'failed',
+        usage: estimateTokenUsage(clientEstimatedTokens, providerEstimatedTokens)
       });
-      usageRequest.finalize({
-        status,
-        errorCategory,
-        modalityMetrics: {
-          sessionDurationMs: Math.max(0, Date.now() - usageStartedAt),
-          clientToProviderFrameBytes,
-          providerToClientFrameBytes
-        }
-      });
-      void waitForAiUsageDelivery(usageRequest).then(({ timedOut, results }) => {
-        if (timedOut || results.some(result => result?.durablyAccepted !== true)) {
-          console.error('[WS Proxy] Usage event durable acceptance was not confirmed.', {
-            state: results.find(result => result?.durablyAccepted !== true)?.state || 'timeout'
+      if (!isGuest) {
+        usageRequest.finalize({
+          status,
+          errorCategory,
+          modalityMetrics: {
+            sessionDurationMs: Math.max(0, Date.now() - usageStartedAt),
+            clientToProviderFrameBytes,
+            providerToClientFrameBytes
+          }
+        });
+      }
+      const settlement = isGuest
+        ? settleGuestNeoBotAiTokens({ ipHash: guestIpHash, requestId: quotaRequestId, actualTokens, usageSource: 'estimate' })
+        : settleUserAiTokens({ uid, requestId: quotaRequestId, actualTokens, usageSource: 'estimate' });
+      void settlement.then(result => {
+        if (result.overLimit || actualTokens > quotaReservation.reservedTokens) {
+          console.error('[WS Proxy] Estimated Live usage exceeded its reserved quota.', {
+            requestId: quotaRequestId,
+            estimatedTokens: actualTokens,
+            reservedTokens: quotaReservation.reservedTokens
           });
         }
+      }).catch(error => {
+        console.error('[WS Proxy] Could not settle Live AI usage.', {
+          requestId: quotaRequestId,
+          code: error?.code || 'unknown'
+        });
       });
+      if (!isGuest) {
+        void waitForAiUsageDelivery(usageRequest).then(({ timedOut, results }) => {
+          if (timedOut || results.some(result => result?.durablyAccepted !== true)) {
+            console.error('[WS Proxy] Usage event durable acceptance was not confirmed.', {
+              state: results.find(result => result?.durablyAccepted !== true)?.state || 'timeout'
+            });
+          }
+        });
+      }
     };
 
     console.log(`[WS Proxy] Authenticated user uid=${uid} connected. Bridging to Gemini Live (model: ${model})...`);
@@ -166,7 +297,6 @@ export function setupWebSocketProxy(server) {
     // Queue messages sent by client before Gemini connection is open
     const clientMessageQueue = [];
     let queuedBytes = 0;
-    let cleaned = false; // Guard against double-cleanup race condition
 
     geminiWs.on('open', () => {
       geminiOpened = true;
@@ -180,6 +310,13 @@ export function setupWebSocketProxy(server) {
 
     // Forward messages: Client -> Gemini
     clientWs.on('message', (data, isBinary) => {
+      const estimatedTokens = estimateLiveFrameTokens(data);
+      if (estimatedSessionTokens() + estimatedTokens > quotaReservation.reservedTokens) {
+        clientWs.close(4429, 'AI usage limit reached');
+        cleanup();
+        return;
+      }
+      clientEstimatedTokens += estimatedTokens;
       clientToProviderFrameBytes += data.length;
       if (geminiWs.readyState === WebSocket.OPEN) {
         geminiWs.send(data, { binary: isBinary });
@@ -196,7 +333,14 @@ export function setupWebSocketProxy(server) {
 
     // Forward messages: Gemini -> Client
     geminiWs.on('message', (data, isBinary) => {
+      const estimatedTokens = estimateLiveFrameTokens(data);
+      providerEstimatedTokens += estimatedTokens;
       providerToClientFrameBytes += data.length;
+      if (estimatedSessionTokens() > quotaReservation.reservedTokens) {
+        clientWs.close(4429, 'AI usage limit reached');
+        cleanup();
+        return;
+      }
       if (clientWs.readyState === WebSocket.OPEN) {
         clientWs.send(data, { binary: isBinary });
       }
@@ -211,11 +355,17 @@ export function setupWebSocketProxy(server) {
         geminiWs.ping();
       }
     }, 25000);
+    const sessionTimeout = setTimeout(() => {
+      if (clientWs.readyState === WebSocket.OPEN) {
+        clientWs.close(1000, 'Live session time limit reached');
+      }
+    }, LIVE_SESSION_MAX_MS);
 
     const cleanup = () => {
       if (cleaned) return; // Prevent double-cleanup
       cleaned = true;
       clearInterval(keepAliveInterval);
+      clearTimeout(sessionTimeout);
       if (geminiWs.readyState === WebSocket.OPEN || geminiWs.readyState === WebSocket.CONNECTING) {
         geminiWs.close();
       }

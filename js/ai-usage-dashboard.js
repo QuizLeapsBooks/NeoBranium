@@ -29,7 +29,8 @@ const api = createUsageApiClient({
   getCurrentUser: () => auth.currentUser
 });
 
-let activeRange = getUtcDateRange('7d');
+let activeRange = getUtcDateRange('today');
+let activePreset = 'today';
 let requestSequence = 0;
 let authenticatedUser = null;
 let authExpired = false;
@@ -282,14 +283,14 @@ function renderUsage(payload) {
   renderTable(usage.byFeature);
 }
 
-async function loadUsage() {
+async function loadUsage(forceRefresh = false) {
   if (!authenticatedUser || authExpired) return;
   const sequence = ++requestSequence;
   setHidden(usageError, true);
   setHidden(usageView, true);
   setStatus('Loading persisted usage…');
   try {
-    const payload = await api.fetchDaily(activeRange.from, activeRange.to, authenticatedUser);
+    const payload = await api.fetchDaily(activeRange.from, activeRange.to, authenticatedUser, { forceRefresh });
     if (sequence !== requestSequence) return;
     renderUsage(payload);
     setHidden(usageView, false);
@@ -305,7 +306,7 @@ async function loadUsage() {
       for (const control of [...presetButtons, byId('applyRange')]) control.disabled = true;
       retryButton.onclick = () => { window.location.href = '/htmls/sign.html'; };
     } else {
-      retryButton.onclick = loadUsage;
+      retryButton.onclick = () => loadUsage(true);
     }
     setHidden(usageError, false);
   }
@@ -314,6 +315,7 @@ async function loadUsage() {
 for (const button of presetButtons) {
   button.addEventListener('click', () => {
     const preset = button.dataset.preset;
+    activePreset = preset;
     updateRangeButtons(preset);
     if (preset === 'custom') {
       const defaults = getUtcDateRange('7d');
@@ -336,8 +338,22 @@ byId('applyRange').addEventListener('click', () => {
     return;
   }
   activeRange = { from: rangeFrom.value, to: rangeTo.value };
+  activePreset = 'custom';
   loadUsage();
 });
+
+function scheduleDailyRefresh() {
+  const now = new Date();
+  const nextUtcMidnight = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
+  window.setTimeout(() => {
+    if (activePreset !== 'custom') {
+      activeRange = getUtcDateRange(activePreset);
+      loadUsage(true);
+    }
+    scheduleDailyRefresh();
+  }, Math.min(nextUtcMidnight - Date.now() + 250, 2_147_000_000));
+}
+scheduleDailyRefresh();
 
 byId('menuToggle').addEventListener('click', () => {
   const sidebar = byId('sidebar');

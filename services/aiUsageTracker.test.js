@@ -12,6 +12,20 @@ import {
   waitForAiUsageDelivery
 } from './aiUsageTracker.js';
 
+const testQuotaService = {
+  reserveUserAiTokens: async ({ requestId, tokens }) => ({
+    allowed: true,
+    requestId,
+    reservedTokens: tokens,
+    limit: 150_000,
+    remainingTokens: 150_000 - tokens
+  }),
+  settleUserAiTokens: async () => ({ settled: true, overLimit: false }),
+  getGuestIpHash: () => 'a'.repeat(64),
+  consumeGuestChatQuota: async () => ({ allowed: true }),
+  consumeGuestOtherAiQuota: async () => ({ allowed: true })
+};
+
 test('normalizes Gemini and Groq token usage, retaining reported totals', () => {
   assert.deepEqual(normalizeGeminiUsage({
     usageMetadata: { promptTokenCount: 12, candidatesTokenCount: 7, totalTokenCount: 21 }
@@ -104,7 +118,7 @@ test('middleware uses only verified request identity and finalizes failed respon
     res.statusCode = 400;
     res.writableFinished = true;
     res.setHeader = () => {};
-    createAiUsageMiddleware({ feature: AI_FEATURES.CHATBOT, route: '/api/chat' })(req, res, () => {});
+    await createAiUsageMiddleware({ feature: AI_FEATURES.CHATBOT, route: '/api/chat', quotaService: testQuotaService })(req, res, () => {});
     res.emit('finish');
     await new Promise(resolve => setImmediate(resolve));
     assert.equal(events.length, 1);
@@ -116,6 +130,124 @@ test('middleware uses only verified request identity and finalizes failed respon
   }
 });
 
+test('guest AI middleware exposes its server-enforced remaining allowance', async () => {
+  const headers = {};
+  const quotaService = {
+    ...testQuotaService,
+    consumeGuestChatQuota: async () => ({ allowed: true, limit: 10, remaining: 3 })
+  };
+  const req = { uid: 'anonymous-uid', isGuest: true, body: {} };
+  const res = new EventEmitter();
+  res.setHeader = (name, value) => { headers[name] = value; };
+  await createAiUsageMiddleware({
+    feature: AI_FEATURES.CHATBOT,
+    route: '/api/chat',
+    quotaService
+  })(req, res, () => {});
+
+  assert.equal(headers['X-AI-Quota-Scope'], 'guest_chat');
+  assert.equal(headers['X-AI-Quota-Limit'], '10');
+  assert.equal(headers['X-AI-Quota-Remaining'], '3');
+});
+
+test('signed-in AI requests stop before the provider when the shared budget is exhausted', async () => {
+  let handlerCalled = false;
+  let reservationCalls = 0;
+  const quotaService = {
+    ...testQuotaService,
+    reserveUserAiTokens: async () => {
+      reservationCalls += 1;
+      return {
+        allowed: false,
+        code: 'DAILY_TOKEN_BUDGET_EXCEEDED',
+        limit: 150_000,
+        usedTokens: 150_000,
+        remainingTokens: 0,
+        resetAt: '2026-03-10T00:00:00.000Z'
+      };
+    }
+  };
+  const req = { uid: 'verified-uid', isGuest: false, body: { prompt: 'question' } };
+  const res = new EventEmitter();
+  res.statusCode = 200;
+  res.setHeader = () => {};
+  res.status = status => {
+    res.statusCode = status;
+    return res;
+  };
+  res.json = body => {
+    res.body = body;
+    return res;
+  };
+
+  await createAiUsageMiddleware({
+    feature: AI_FEATURES.CHATBOT,
+    route: '/api/chat',
+    quotaService
+  })(req, res, () => { handlerCalled = true; });
+
+  assert.equal(reservationCalls, 1);
+  assert.equal(handlerCalled, false);
+  assert.equal(res.statusCode, 429);
+  assert.equal(res.body.code, 'DAILY_TOKEN_BUDGET_EXCEEDED');
+});
+
+test('a provider overrun returns quota exhaustion instead of the generated answer', async () => {
+  let reservationCalls = 0;
+  let settlementCalls = 0;
+  const quotaService = {
+    ...testQuotaService,
+    reserveUserAiTokens: async ({ requestId, tokens }) => {
+      reservationCalls += 1;
+      return { allowed: true, requestId, reservedTokens: tokens, limit: 150_000, remainingTokens: 10 };
+    },
+    settleUserAiTokens: async () => {
+      settlementCalls += 1;
+      return {
+        settled: true, overLimit: true, usedTokens: 150_010, limit: 150_000, resetAt: '2026-03-10T00:00:00.000Z'
+      };
+    }
+  };
+  const req = { uid: 'verified-uid', isGuest: false, body: { prompt: 'question' } };
+  const res = new EventEmitter();
+  res.statusCode = 200;
+  res.writableFinished = false;
+  res.headers = {};
+  res.setHeader = (name, value) => { res.headers[name] = value; };
+  res.removeHeader = name => { delete res.headers[name]; };
+  res.end = function (body) {
+    this.body = body;
+    this.writableFinished = true;
+    this.emit('finish');
+    return this;
+  };
+  res.json = function (body) {
+    this.jsonBody = body;
+    return this.end(JSON.stringify(body));
+  };
+  const finished = new Promise(resolve => res.once('finish', resolve));
+
+  await createAiUsageMiddleware({
+    feature: AI_FEATURES.CHATBOT,
+    route: '/api/chat',
+    quotaService
+  })(req, res, () => {
+    req.aiUsageRequest.recordAttempt({
+      provider: 'gemini',
+      status: 'success',
+      usage: { inputTokens: 150_001, outputTokens: 9, totalTokens: 150_010, usageSource: 'provider' }
+    });
+    res.json({ success: true, answer: 'must not be delivered' });
+  });
+  await finished;
+
+  assert.equal(reservationCalls, 1);
+  assert.equal(settlementCalls, 1);
+  assert.equal(res.statusCode, 429);
+  assert.equal(JSON.parse(res.body).code, 'DAILY_TOKEN_BUDGET_EXCEEDED');
+  assert.equal(res.body.includes('must not be delivered'), false);
+});
+
 test('middleware records cancelled requests and finalizes only once', async () => {
   const events = [];
   const unsubscribe = subscribeToAiUsageEvents(event => events.push(event));
@@ -125,7 +257,7 @@ test('middleware records cancelled requests and finalizes only once', async () =
     res.statusCode = 200;
     res.writableFinished = false;
     res.setHeader = () => {};
-    createAiUsageMiddleware({ feature: AI_FEATURES.GEMINI_LIVE, route: '/ws/live' })(req, res, () => {});
+    await createAiUsageMiddleware({ feature: AI_FEATURES.GEMINI_LIVE, route: '/ws/live' })(req, res, () => {});
     res.emit('close');
     res.emit('finish');
     await new Promise(resolve => setImmediate(resolve));
@@ -155,7 +287,7 @@ test('HTTP response completion waits for durable acceptance and measures the add
       this.emit('finish');
       return this;
     };
-    createAiUsageMiddleware({ feature: AI_FEATURES.CHATBOT, route: '/api/chat' })(req, res, () => {});
+    await createAiUsageMiddleware({ feature: AI_FEATURES.CHATBOT, route: '/api/chat', quotaService: testQuotaService })(req, res, () => {});
 
     const finished = new Promise(resolve => res.once('finish', resolve));
     const startedAt = performance.now();
@@ -189,7 +321,7 @@ test('failed durable acceptance is reported but does not suppress the AI respons
       this.emit('finish');
       return this;
     };
-    createAiUsageMiddleware({ feature: AI_FEATURES.CHATBOT, route: '/api/chat' })(req, res, () => {});
+    await createAiUsageMiddleware({ feature: AI_FEATURES.CHATBOT, route: '/api/chat', quotaService: testQuotaService })(req, res, () => {});
 
     const finished = new Promise(resolve => res.once('finish', resolve));
     res.end('successful AI result');

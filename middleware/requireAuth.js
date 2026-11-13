@@ -19,6 +19,7 @@ export async function requireAuth(req, res, next) {
     const decoded = await verifyAuthToken(req);
     req.uid = decoded.uid;  // Verified server-side — never set from client body
     req.decodedToken = decoded;
+    req.isGuest = decoded.firebase?.sign_in_provider === 'anonymous';
     next();
   } catch (err) {
     const ip = req.ip || 'unknown';
@@ -53,6 +54,24 @@ export async function requireAuth(req, res, next) {
   }
 }
 
+export function requireAccountAuth(req, res, next) {
+  if (typeof req.uid !== 'string' || req.uid.length === 0) {
+    return res.status(401).json({
+      success: false,
+      error: 'Sign in to a full account to use this feature.',
+      code: 'AUTHENTICATION_REQUIRED'
+    });
+  }
+  if (req.isGuest === true) {
+    return res.status(403).json({
+      success: false,
+      error: 'Create or sign in to a full account to use this feature.',
+      code: 'ACCOUNT_REQUIRED'
+    });
+  }
+  return next();
+}
+
 /**
  * Middleware: require a valid Firebase ID token AND email verification.
  * Use on high-value operations (e.g. AI features) to prevent throwaway accounts.
@@ -63,6 +82,7 @@ export async function requireVerifiedAuth(req, res, next) {
     const decoded = await verifyAuthToken(req);
     req.uid = decoded.uid;
     req.decodedToken = decoded;
+    req.isGuest = decoded.firebase?.sign_in_provider === 'anonymous';
 
     // Uncomment to enforce email verification for AI features:
     // if (!decoded.email_verified) {

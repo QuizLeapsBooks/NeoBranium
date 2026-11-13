@@ -23,7 +23,7 @@ import { createClient } from 'redis';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { verifyAuthToken, db, admin, rtdb } from './firebaseAdmin.js';
-import { requireAuth } from './middleware/requireAuth.js';
+import { requireAuth, requireAccountAuth } from './middleware/requireAuth.js';
 import { chatQuota, solverQuota, ttsQuota, liveSessionQuota, handwritingQuota } from './middleware/quotaByUID.js';
 import { requestHandwritingRecognition, validateSelectionMetadata } from './NeoBoard/handwriting-recognition.js';
 import { getRoutineTextModel, getVisionModel, getHandwritingModel, getLiveModel, getPaperModel } from './gemini-models.js';
@@ -221,7 +221,8 @@ app.use(cors({
         if (!origin || isAllowedOrigin(origin)) return callback(null, true);
         return callback(null, false);
     },
-    credentials: true
+    credentials: true,
+    exposedHeaders: ['X-AI-Token-Limit', 'X-AI-Token-Remaining', 'X-AI-Quota-Scope', 'X-AI-Quota-Limit', 'X-AI-Quota-Remaining']
 }));
 
 
@@ -680,7 +681,7 @@ IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and st
 });
 
 // Blackboard handwriting recognition: explicit, authenticated image request.
-app.post('/api/blackboard/recognize-handwriting', requireAuth, createAiUsageMiddleware({ feature: AI_FEATURES.NEOBOARD, route: '/api/blackboard/recognize-handwriting' }), handwritingQuota, handwritingRateLimit, sharedAiConcurrency, visionAiConcurrency, handwritingDeadline, async (req, res) => {
+app.post('/api/blackboard/recognize-handwriting', requireAuth, requireAccountAuth, createAiUsageMiddleware({ feature: AI_FEATURES.NEOBOARD, route: '/api/blackboard/recognize-handwriting' }), handwritingQuota, handwritingRateLimit, sharedAiConcurrency, visionAiConcurrency, handwritingDeadline, async (req, res) => {
     const uid = req.uid;
     if (handwritingInFlight.has(uid)) return res.status(429).json({error:'A recognition request is already running for this account.',code:'REQUEST_IN_PROGRESS'});
     if (!process.env.GEMINI_API_KEY && !groqApiKey) return res.status(503).json({error:'NeoBoard AI is not configured on the server.',code:'AI_NOT_CONFIGURED'});
@@ -695,7 +696,7 @@ app.post('/api/blackboard/recognize-handwriting', requireAuth, createAiUsageMidd
     } finally { handwritingInFlight.delete(uid); }
 });
 
-app.post('/api/blackboard/analyze-selection', requireAuth, createAiUsageMiddleware({ feature: AI_FEATURES.NEOBOARD, route: '/api/blackboard/analyze-selection' }), handwritingQuota, handwritingRateLimit, sharedAiConcurrency, visionAiConcurrency, handwritingDeadline, async (req, res) => {
+app.post('/api/blackboard/analyze-selection', requireAuth, requireAccountAuth, createAiUsageMiddleware({ feature: AI_FEATURES.NEOBOARD, route: '/api/blackboard/analyze-selection' }), handwritingQuota, handwritingRateLimit, sharedAiConcurrency, visionAiConcurrency, handwritingDeadline, async (req, res) => {
     const uid = req.uid;
     if (handwritingInFlight.has(uid)) return res.status(429).json({error:'A learning request is already running for this account.',code:'REQUEST_IN_PROGRESS'});
     if (!process.env.GEMINI_API_KEY && !groqApiKey) return res.status(503).json({error:'NeoBoard AI is not configured on the server.',code:'AI_NOT_CONFIGURED'});

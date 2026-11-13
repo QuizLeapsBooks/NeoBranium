@@ -372,6 +372,17 @@ Write in a clear, structured format suitable for study and reference.`;
     const data = await res.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text || text.length < 50) return null;
+    const reportedInputTokens = data.usageMetadata?.promptTokenCount;
+    const reportedOutputTokens = data.usageMetadata?.candidatesTokenCount;
+    const usageSource = Number.isFinite(reportedInputTokens) && Number.isFinite(reportedOutputTokens)
+      ? 'provider'
+      : 'estimate';
+    const inputTokens = Number.isFinite(reportedInputTokens)
+      ? reportedInputTokens
+      : Math.ceil(prompt.length / 4) + 1_024;
+    const outputTokens = Number.isFinite(reportedOutputTokens)
+      ? reportedOutputTokens
+      : Math.ceil(text.length / 4);
 
     const segments = [];
     const lines = text.split('\n');
@@ -390,7 +401,8 @@ Write in a clear, structured format suitable for study and reference.`;
       title,
       text: text.trim().slice(0, NEOBOOK_CONFIG.MAX_TEXT_SOURCE_CHARS),
       videoId,
-      segments: segments.length > 0 ? segments : [{ timestamp: '00:00', text: text.slice(0, 300) }]
+      segments: segments.length > 0 ? segments : [{ timestamp: '00:00', text: text.slice(0, 300) }],
+      tokenUsage: { inputTokens, outputTokens, usageSource }
     };
   } catch (gemErr) {
     if (signal?.aborted) throw gemErr;
