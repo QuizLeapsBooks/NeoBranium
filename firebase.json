@@ -42,8 +42,6 @@
 
       "server.js",
       "firebaseAdmin.js",
-      "queueManager.js",
-      "boardMiddleware.js",
       "gemini-models.js",
       "mock-firebase.js",
       "neolearn-*-handler.js",

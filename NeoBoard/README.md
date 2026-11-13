@@ -1,6 +1,6 @@
 # NeoBranium Blackboard foundation
 
-The independent normal blackboard is served at **`/NeoBoard/board.html`**. The existing `/ai-board/ai-board.html` implementation remains separate and unchanged. The board has no runtime service dependencies; state is saved to browser local storage and can be exported as PNG or versioned JSON.
+The independent blackboard is served at **`/NeoBoard/board.html`**. The former AI Board feature has been retired; NeoBoard remains a separate application with its own handwriting recognition and usage instrumentation. The board has no runtime service dependencies; state is saved to browser local storage and can be exported as PNG or versioned JSON.
 
 ## Modules and extension points
 

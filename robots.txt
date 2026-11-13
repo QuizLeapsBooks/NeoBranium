@@ -10,7 +10,7 @@ Disallow: /htmls/chat/
 Disallow: /htmls/doubt/
 Disallow: /htmls/bot/
 Disallow: /htmls/question-paper_generator-ai/
-Disallow: /ai-board/
+Disallow: /htmls/ai-usage.html
 Disallow: /architecture-map.html
 Disallow: /Notes/ihss301.pdf
 Disallow: /screenshot_images/

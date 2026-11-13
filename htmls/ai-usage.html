@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="backend-url" content="https://neobranium.onrender.com" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>AI Usage | NeoBranium</title>
+  <link rel="icon" href="/online-graduation_16847316.png" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="/CSS/ai-usage.css" />
+</head>
+<body class="ai-usage-page">
+  <button class="aiu-menu-toggle" id="menuToggle" type="button" aria-label="Open navigation" aria-expanded="false">
+    <i class="bi bi-list" aria-hidden="true"></i>
+  </button>
+  <div class="aiu-backdrop" id="navBackdrop" hidden></div>
+  <aside class="aiu-sidebar" id="sidebar" aria-label="Main navigation">
+    <a class="aiu-brand" href="/htmls/dashboard.html">
+      <img src="/online-graduation_16847316.png" alt="" />
+      <span>NeoBranium</span>
+    </a>
+    <span class="aiu-nav-label">Workspace</span>
+    <nav class="aiu-nav">
+      <a href="/htmls/dashboard.html"><i class="bi bi-grid-1x2" aria-hidden="true"></i>Dashboard</a>
+      <a href="/htmls/profile.html"><i class="bi bi-person" aria-hidden="true"></i>Profile</a>
+      <a href="/htmls/my-learning.html"><i class="bi bi-journal-bookmark" aria-hidden="true"></i>My Learning</a>
+      <a href="/NeoBoard/board.html"><i class="bi bi-easel2" aria-hidden="true"></i>NeoBoard</a>
+      <a href="/NeoBook/index.html"><i class="bi bi-book" aria-hidden="true"></i>NeoBook</a>
+    </nav>
+    <div class="aiu-sidebar-bottom">
+      <span class="aiu-sidebar-note">Personal usage overview</span>
+      <a href="/htmls/profile.html"><i class="bi bi-arrow-left" aria-hidden="true"></i>Back to profile</a>
+    </div>
+  </aside>
+
+  <main class="aiu-main">
+    <header class="aiu-topbar">
+      <div>
+        <p class="aiu-eyebrow">YOUR ACCOUNT</p>
+        <h1>AI Usage</h1>
+        <p class="aiu-subtitle">A clear view of your recorded AI activity.</p>
+      </div>
+      <a class="aiu-profile-link" href="/htmls/profile.html"><i class="bi bi-person-circle" aria-hidden="true"></i> Profile</a>
+    </header>
+
+    <section class="aiu-signin" id="signInNotice" hidden aria-labelledby="signInTitle">
+      <div class="aiu-signin-icon"><i class="bi bi-shield-lock" aria-hidden="true"></i></div>
+      <h2 id="signInTitle">Sign in to view your AI usage</h2>
+      <p>Your usage history is private and available only to your signed-in account.</p>
+      <a class="aiu-primary-button" href="/htmls/sign.html">Sign in</a>
+    </section>
+
+    <div id="dashboardContent" hidden>
+      <section class="aiu-controls" aria-label="Date range">
+        <div class="aiu-range-pills" role="group" aria-label="Choose a date range">
+          <button type="button" data-preset="today">Today</button>
+          <button type="button" data-preset="7d" class="is-selected" aria-pressed="true">7 days</button>
+          <button type="button" data-preset="30d" aria-pressed="false">30 days</button>
+          <button type="button" data-preset="custom" aria-pressed="false">Custom</button>
+        </div>
+        <div class="aiu-custom-range" id="customRange" hidden>
+          <label>From <input id="rangeFrom" type="date" /></label>
+          <label>To <input id="rangeTo" type="date" /></label>
+          <button class="aiu-apply-button" id="applyRange" type="button">Apply range</button>
+        </div>
+        <p class="aiu-timezone"><i class="bi bi-clock" aria-hidden="true"></i> All dates use UTC.</p>
+      </section>
+
+      <p class="aiu-status" id="usageStatus" role="status" aria-live="polite">Loading usage…</p>
+      <section class="aiu-error" id="usageError" hidden role="alert">
+        <div><i class="bi bi-exclamation-circle" aria-hidden="true"></i><span id="usageErrorText"></span></div>
+        <button id="retryButton" type="button">Try again</button>
+      </section>
+
+      <div id="usageView" hidden>
+        <section class="aiu-metrics" aria-label="Usage summary">
+          <article class="aiu-metric"><span class="aiu-metric-label">AI requests</span><strong id="metricRequests">—</strong><span class="aiu-metric-detail">Logical requests recorded</span><i class="bi bi-activity" aria-hidden="true"></i></article>
+          <article class="aiu-metric"><span class="aiu-metric-label">Successful</span><strong id="metricSuccess">—</strong><span class="aiu-metric-detail">Completed successfully</span><i class="bi bi-check2-circle" aria-hidden="true"></i></article>
+          <article class="aiu-metric"><span class="aiu-metric-label">Failed</span><strong id="metricFailed">—</strong><span class="aiu-metric-detail">Requests that failed</span><i class="bi bi-x-circle" aria-hidden="true"></i></article>
+          <article class="aiu-metric aiu-metric--blue"><span class="aiu-metric-label">Provider input tokens</span><strong id="metricInput">—</strong><span class="aiu-metric-detail">Reported by providers</span><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i></article>
+          <article class="aiu-metric aiu-metric--blue"><span class="aiu-metric-label">Provider output tokens</span><strong id="metricOutput">—</strong><span class="aiu-metric-detail">Reported by providers</span><i class="bi bi-box-arrow-up" aria-hidden="true"></i></article>
+          <article class="aiu-metric aiu-metric--violet"><span class="aiu-metric-label">Estimated tokens</span><strong id="metricEstimated">—</strong><span class="aiu-metric-detail">Estimates, not provider counts</span><i class="bi bi-calculator" aria-hidden="true"></i></article>
+          <article class="aiu-metric"><span class="aiu-metric-label">Additional provider attempts</span><strong id="metricFallbacks">—</strong><span class="aiu-metric-detail">Retries and provider/model switches; not separate requests</span><i class="bi bi-arrow-repeat" aria-hidden="true"></i></article>
+        </section>
+
+        <section class="aiu-charts">
+          <article class="aiu-panel aiu-activity-panel">
+            <header class="aiu-panel-heading">
+              <div><h2>Daily request activity</h2><p>Logical requests by outcome</p></div>
+              <span class="aiu-chart-unit">Requests</span>
+            </header>
+            <div class="aiu-chart-legend"><span><i class="legend-success"></i>Successful</span><span><i class="legend-failed"></i>Failed</span><span><i class="legend-cancelled"></i>Cancelled</span></div>
+            <div class="aiu-chart-wrap" id="activityChart"></div>
+            <p class="aiu-chart-empty" id="activityEmpty" hidden>No recorded requests in this period.</p>
+          </article>
+          <article class="aiu-panel aiu-token-panel">
+            <header class="aiu-panel-heading"><div><h2>Token usage</h2><p>Reported and estimated kept separate</p></div></header>
+            <div id="tokenBreakdown" class="aiu-token-breakdown"></div>
+            <p class="aiu-chart-empty" id="tokenEmpty" hidden>No token counts are available for this period.</p>
+          </article>
+        </section>
+
+        <section class="aiu-lower-grid">
+          <article class="aiu-panel">
+            <header class="aiu-panel-heading"><div><h2>Feature breakdown</h2><p>Based on persisted feature summaries</p></div></header>
+            <div id="featureBreakdown" class="aiu-feature-list"></div>
+            <p class="aiu-chart-empty" id="featureEmpty" hidden>No feature usage recorded for this period.</p>
+          </article>
+          <article class="aiu-panel">
+            <header class="aiu-panel-heading"><div><h2>Provider attempts</h2><p>Attempts are not separate user requests</p></div></header>
+            <div id="providerBreakdown" class="aiu-provider-list"></div>
+            <p class="aiu-chart-empty" id="providerEmpty" hidden>No provider attempts recorded for this period.</p>
+          </article>
+        </section>
+
+        <section class="aiu-panel aiu-table-panel">
+          <header class="aiu-panel-heading"><div><h2>Detailed usage</h2><p>Feature-level totals for the selected period</p></div></header>
+          <div class="aiu-table-scroll">
+            <table>
+              <thead><tr><th scope="col">Feature</th><th scope="col">Requests</th><th scope="col">Successful</th><th scope="col">Failed</th><th scope="col">Cancelled</th><th scope="col">Input tokens</th><th scope="col">Output tokens</th><th scope="col">Estimated tokens</th><th scope="col">Additional attempts</th></tr></thead>
+              <tbody id="usageTableBody"></tbody>
+            </table>
+          </div>
+          <p class="aiu-chart-empty" id="tableEmpty" hidden>No usage details are available for this period.</p>
+        </section>
+        <p class="aiu-source-note">This dashboard shows usage saved by NeoBranium’s central tracker. It does not include NeoBook’s separate usage accounting or activity from before central tracking was enabled. Unknown token counts are shown as unavailable.</p>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="/js/ai-usage-dashboard.js"></script>
+</body>
+</html>

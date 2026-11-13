@@ -259,12 +259,9 @@ test('Criterion 9: Protected routes in server.js are registered with requireAuth
   // Verify all AI endpoints require auth
   const protectedEndpoints = [
     '/api/chat',
-    '/api/chat-stream',
     '/api/gemini-solve',
     '/api/tutor/create-quiz',
     '/api/tutor/practice-similar',
-    '/api/analyze-board',
-    '/api/rephrase-board',
     '/api/tts'
   ];
 
@@ -277,18 +274,32 @@ test('Criterion 9: Protected routes in server.js are registered with requireAuth
 test('Criterion 10: Server.js routes have UID quota middleware attached', () => {
   const serverCode = fs.readFileSync(path.resolve('server.js'), 'utf-8');
 
-  assert.ok(serverCode.includes("app.post('/api/chat', requireAuth, chatQuota"));
-  assert.ok(serverCode.includes("app.post('/api/chat-stream', requireAuth, boardQuota"));
-  assert.ok(serverCode.includes("app.post('/api/gemini-solve', requireAuth, solverQuota"));
-  assert.ok(serverCode.includes("app.post('/api/analyze-board', requireAuth, boardQuota"));
-  assert.ok(serverCode.includes("app.post('/api/rephrase-board', requireAuth, boardQuota"));
-  assert.ok(serverCode.includes("app.post('/api/tts', requireAuth, ttsQuota"));
+  assert.match(serverCode, /app\.post\('\/api\/chat', requireAuth, createAiUsageMiddleware\([\s\S]*?\), chatQuota,/);
+  assert.match(serverCode, /app\.post\('\/api\/gemini-solve', requireAuth, createAiUsageMiddleware\([\s\S]*?\), solverQuota,/);
+  assert.ok(serverCode.includes("app.post('/api/tts', requireAuth, createAiUsageMiddleware"));
+  assert.match(serverCode, /app\.post\('\/api\/tts'[^;]*?, ttsQuota,/);
+  for (const removedRoute of ['/api/chat-stream', '/api/analyze-board', '/api/rephrase-board']) {
+    assert.ok(!serverCode.includes(removedRoute), `${removedRoute} must be removed with AI Board`);
+  }
+  assert.ok(!serverCode.includes('boardRateLimit'));
+  assert.ok(!serverCode.includes('boardQuota'));
+});
+
+test('AI Board-only session storage is no longer configured while NeoBoard remains mounted', () => {
+  const serverCode = fs.readFileSync(path.resolve('server.js'), 'utf-8');
+  const firestoreRules = fs.readFileSync(path.resolve('firestore.rules'), 'utf-8');
+  assert.ok(serverCode.includes('/api/blackboard/recognize-handwriting'));
+  assert.ok(serverCode.includes('/api/blackboard/analyze-selection'));
+  assert.ok(!serverCode.includes('/api/board-queue-status'));
+  assert.ok(!serverCode.includes('/api/board-session-end'));
+  assert.ok(!firestoreRules.includes('aiboard_sessions'));
 });
 
 test('Criterion 11: POST /api/session-token requires auth and liveSessionQuota', () => {
   const sessionCode = fs.readFileSync(path.resolve('NeoBot/backend/routes/session.js'), 'utf-8');
   assert.ok(
-    sessionCode.includes("sessionRouter.post('/session-token', requireAuth, liveSessionQuota"),
+    sessionCode.includes("sessionRouter.post('/session-token', requireAuth, createAiUsageMiddleware") &&
+    sessionCode.includes('}), liveSessionQuota,'),
     'Session router must guard /session-token with requireAuth and liveSessionQuota'
   );
 });

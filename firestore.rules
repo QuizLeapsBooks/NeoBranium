@@ -24,11 +24,6 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // ── AI Board sessions (written by Admin SDK, not by clients) ─────────────
-    match /aiboard_sessions/{sessionId} {
-      allow read, write: if false;
-    }
-
     // ── WhatsApp Queue (Admin SDK only) ──────────────────────────────────────
     match /whatsapp_queue/{docId} {
       allow read, write: if false;

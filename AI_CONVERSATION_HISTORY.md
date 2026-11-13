@@ -1,7 +1,8 @@
 # AI conversation history
 
 Signed-in users can browse, continue, and soft-delete conversations for NeoBot,
-NeoLens, NeoBoard, AI Board, the AI assistant, and question-paper generation.
+NeoLens, NeoBoard, the retired AI Board (legacy history only), the AI assistant,
+and question-paper generation.
 Conversation and message data is stored in Firestore under the authenticated
 user's `users/{uid}/conversations/{conversationId}` path. Clients use the
 authenticated conversation API; Firestore rules deny direct client writes.

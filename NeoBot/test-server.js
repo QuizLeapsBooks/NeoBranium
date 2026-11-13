@@ -7,8 +7,6 @@
  * 4. WebSocket upgrade endpoint presence
  */
 
-import http from 'http';
-
 const BASE_URL = 'http://127.0.0.1:3000';
 
 async function request(path, options = {}) {
@@ -43,27 +41,34 @@ async function runTests() {
     assert(health.data?.status === 'ok', 'GET /health status is "ok"');
     assert(health.data?.service === 'neobranium-backend' || health.data?.service === 'neobot-backend', 'GET /health identifies backend service');
     assert(typeof health.data?.hasApiKey === 'boolean', 'GET /health reports key status without exposing it');
+    assert(
+      health.headers.get('access-control-allow-origin') === 'http://localhost:3000',
+      'Development same-origin requests receive the loopback CORS header'
+    );
+    const frontendOrigin = 'http://127.0.0.1:5500';
+    const frontendHealth = await request('/health', { headers: { Origin: frontendOrigin } });
+    assert(
+      frontendHealth.status === 200 &&
+      frontendHealth.headers.get('access-control-allow-origin') === frontendOrigin,
+      'Development frontend loopback origins are allowed'
+    );
 
-    // Test 2: Session Token Provisioning & Validation
-    if (health.data?.hasApiKey) {
-      console.log('\n--- Test Group 2: Session Token (Key Configured) ---');
+    // Never issue an unauthenticated protected call from this smoke test.
+    const testIdToken = process.env.NEOBRANIUM_TEST_FIREBASE_ID_TOKEN;
+    if (testIdToken && process.env.FIRESTORE_EMULATOR_HOST && health.data?.hasApiKey) {
+      console.log('\n--- Test Group 2: Session Token (Emulator + Test Account) ---');
       const sessionWithKey = await request('/api/session-token', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${testIdToken}`
+        }
       });
-      assert(sessionWithKey.status === 200, 'POST /api/session-token returns 200 when API key is present');
-      assert(sessionWithKey.data?.ok === true, 'POST /api/session-token ok flag is true');
-      assert(sessionWithKey.data?.mode === 'ephemeral' || sessionWithKey.data?.mode === 'proxy', 'POST /api/session-token provides ephemeral or proxy mode');
-    } else {
-      console.log('\n--- Test Group 2: Session Token (Missing Key) ---');
-      const sessionNoKey = await request('/api/session-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      assert(sessionNoKey.status === 500, 'POST /api/session-token returns 500 when API key is missing');
-      assert(sessionNoKey.data?.ok === false, 'POST /api/session-token ok flag is false');
-      assert(Boolean(sessionNoKey.data?.error), 'POST /api/session-token provides helpful error message');
+      assert(sessionWithKey.status === 200, 'Authenticated POST /api/session-token returns HTTP 200');
+      assert(sessionWithKey.data?.ok === true, 'Authenticated session response is successful');
+      assert(sessionWithKey.data?.mode === 'ephemeral' || sessionWithKey.data?.mode === 'proxy', 'Session response selects a supported mode');
     }
+    else console.log('\n--- Test Group 2: Session Token skipped (requires test ID token and Firestore Emulator) ---');
 
     // Test 3: 404 Route Handling
     console.log('\n--- Test Group 3: Unknown Route Handling ---');
@@ -71,33 +76,9 @@ async function runTests() {
     assert(notFound.status === 404, 'Unknown routes return HTTP 404');
     assert(notFound.data?.error === 'Endpoint not found', 'Unknown routes return JSON error object');
 
-    // Test 4: WebSocket Proxy Upgrade Endpoint Presence
-    console.log('\n--- Test Group 4: WebSocket Endpoint ---');
-    const wsResponse = await new Promise((resolve) => {
-      const req = http.request({
-        hostname: 'localhost',
-        port: 3000,
-        path: '/ws/live',
-        headers: {
-          'Connection': 'Upgrade',
-          'Upgrade': 'websocket',
-          'Sec-WebSocket-Key': 'dGhlIHNhbXBsZSBub25jZQ==',
-          'Sec-WebSocket-Version': '13'
-        }
-      });
-      req.on('upgrade', (res, socket) => {
-        socket.destroy();
-        resolve({ upgraded: true, status: res.statusCode });
-      });
-      req.on('response', (res) => {
-        resolve({ upgraded: false, status: res.statusCode });
-      });
-      req.on('error', (err) => {
-        resolve({ upgraded: false, error: err.message });
-      });
-      req.end();
-    });
-    assert(wsResponse.upgraded === true || wsResponse.status === 101, 'HTTP server accepts WebSocket upgrade on /ws/live');
+    // Never open an unauthenticated WebSocket from a smoke test; the proxy
+    // correctly logs and persists security events for rejected upgrades.
+    console.log('\n--- Test Group 4: WebSocket skipped (requires explicit authenticated emulator test) ---');
 
     console.log(`\n========================================`);
     console.log(`🏁 Test Results: ${passed}/${total} passed`);

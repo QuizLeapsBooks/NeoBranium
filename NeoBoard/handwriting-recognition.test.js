@@ -44,12 +44,14 @@ test('selected typed text uses the same safe learning response pipeline',async()
 });
 
 test('transient Gemini service failures fail over without repeating the non-idempotent request',async()=>{
-  let calls=0,requestedUrl='';
+  let calls=0,requestedUrl='';const attempts=[];
   const fetchImpl=async(url)=>{calls++;requestedUrl=url;if(calls===1)return{ok:false,status:503,json:async()=>({error:{message:'temporarily overloaded'}})};return{ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(result)}]}}]})};};
-  const output=await requestHandwritingRecognition({imageBase64:pngHeader(),apiKey:'server-secret',fetchImpl});
+  const output=await requestHandwritingRecognition({imageBase64:pngHeader(),apiKey:'server-secret',fetchImpl,onProviderAttempt:attempt=>attempts.push(attempt)});
   assert.equal(output.normalizedExpression,'2x^2 = 0');
   assert.equal(calls,2);
   assert.match(requestedUrl,/models\/gemini-3\.6-flash:generateContent$/);
+  assert.deepEqual(attempts.map(attempt=>attempt.status),['failed','success']);
+  assert.equal(attempts[1].usage.usageSource,'unavailable');
 });
 
 test('Gemini overload falls back to the compatible documented Flash model',async()=>{

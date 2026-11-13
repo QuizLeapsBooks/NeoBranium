@@ -36,6 +36,12 @@ import {
   sharedAiConcurrency
 } from '../utils/backendRequestProtection.js';
 import {
+  AI_FEATURES,
+  createAiUsageMiddleware,
+  normalizeGeminiUsage,
+  recordAiProviderAttempt
+} from '../services/aiUsageTracker.js';
+import {
   validateAnswerSheetPages,
   sanitizePaperPromptInput,
   reconcileEvaluationMarks
@@ -88,7 +94,7 @@ const paperAiDeadline = createRequestDeadline({
 });
 
 // Helper for Gemini fetch
-async function callGeminiAPI(payload, apiKey, modelOverride, signal, timeoutMs = Number(process.env.PAPER_AI_TIMEOUT_MS) || 60000) {
+async function callGeminiAPI(payload, apiKey, modelOverride, signal, timeoutMs = Number(process.env.PAPER_AI_TIMEOUT_MS) || 60000, onAttempt = () => {}) {
   const model = modelOverride || getPaperModel();
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
@@ -99,15 +105,22 @@ async function callGeminiAPI(payload, apiKey, modelOverride, signal, timeoutMs =
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   const requestSignal = signal ? AbortSignal.any([controller.signal, signal]) : controller.signal;
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      signal: requestSignal
-    });
+    let response;
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: requestSignal
+      });
+    } catch (error) {
+      onAttempt({ status: 'failed', errorCategory: error?.name === 'AbortError' ? 'timeout' : 'provider_error' });
+      throw error;
+    }
 
     if (!response.ok) {
       await response.text();
+      onAttempt({ status: 'failed', errorCategory: response.status === 429 ? 'rate_limited' : 'provider_error' });
       console.error('[PaperRoutes] Gemini API error:', response.status);
       const err = new Error(`Gemini service error: ${response.status}`);
       err.status = response.status >= 500 ? 502 : response.status;
@@ -115,6 +128,7 @@ async function callGeminiAPI(payload, apiKey, modelOverride, signal, timeoutMs =
     }
 
     const data = await response.json();
+    onAttempt({ status: 'success', usage: normalizeGeminiUsage(data) });
     const text = data?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('').trim();
     if (!text) {
       throw new Error('Gemini returned an empty response.');
@@ -235,7 +249,7 @@ export function parseGeminiJSON(text) {
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. POST /api/paper/generate
 // ─────────────────────────────────────────────────────────────────────────────
-paperRouter.post('/generate', paperAuth, paperGenLimiter, paperQuota, sharedAiConcurrency, paperAiConcurrency, paperAiDeadline, async (req, res) => {
+paperRouter.post('/generate', paperAuth, createAiUsageMiddleware({ feature: AI_FEATURES.QUESTION_PAPER, route: '/api/paper/generate', provider: 'gemini' }), paperGenLimiter, paperQuota, sharedAiConcurrency, paperAiConcurrency, paperAiDeadline, async (req, res) => {
   let releaseLock = null;
   try {
     // Acquire concurrency lock for user
@@ -390,7 +404,11 @@ Return strictly a valid JSON object matching this schema:
         maxOutputTokens: 6000,
         responseMimeType: 'application/json'
       }
-    }, geminiApiKey, undefined, req.backendSignal);
+    }, geminiApiKey, undefined, req.backendSignal, undefined, attempt => recordAiProviderAttempt(req, {
+      provider: 'gemini',
+      model: getPaperModel(),
+      ...attempt
+    }));
 
     let parsedPaper;
     try {
@@ -516,7 +534,7 @@ Return strictly a valid JSON object matching this schema:
 // ─────────────────────────────────────────────────────────────────────────────
 // 2. POST /api/paper/upload-evaluate
 // ─────────────────────────────────────────────────────────────────────────────
-paperRouter.post('/upload-evaluate', paperAuth, paperEvalLimiter, paperEvalQuota, sharedAiConcurrency, paperAiConcurrency, paperAiDeadline, async (req, res) => {
+paperRouter.post('/upload-evaluate', paperAuth, createAiUsageMiddleware({ feature: AI_FEATURES.PAPER_EVALUATION, route: '/api/paper/upload-evaluate', provider: 'gemini', model: () => getVisionModel() }), paperEvalLimiter, paperEvalQuota, sharedAiConcurrency, paperAiConcurrency, paperAiDeadline, async (req, res) => {
   let releaseLock = null;
   try {
     const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -627,7 +645,16 @@ Return your evaluation strictly in the following JSON format:
         responseMimeType: 'application/json'
       }
     }, geminiApiKey, getVisionModel(), req.backendSignal,
-      Number(process.env.PAPER_EVAL_AI_TIMEOUT_MS) || Number(process.env.PAPER_AI_TIMEOUT_MS) || 120000);
+      Number(process.env.PAPER_EVAL_AI_TIMEOUT_MS) || Number(process.env.PAPER_AI_TIMEOUT_MS) || 120000,
+      attempt => recordAiProviderAttempt(req, {
+        provider: 'gemini',
+        model: getVisionModel(),
+        modalityMetrics: {
+          imageCount: verifiedPages.length,
+          imageBytes: verifiedPages.reduce((total, page) => total + page.sizeBytes, 0)
+        },
+        ...attempt
+      }));
 
     let parsedResult;
     try {
@@ -668,7 +695,7 @@ Return your evaluation strictly in the following JSON format:
 // ─────────────────────────────────────────────────────────────────────────────
 // 3. POST /api/paper/model-answers
 // ─────────────────────────────────────────────────────────────────────────────
-paperRouter.post('/model-answers', paperAuth, modelAnswerLimiter, paperModelAnswerQuota, sharedAiConcurrency, paperAiConcurrency, paperAiDeadline, async (req, res) => {
+paperRouter.post('/model-answers', paperAuth, createAiUsageMiddleware({ feature: AI_FEATURES.QUESTION_PAPER, route: '/api/paper/model-answers', provider: 'gemini', model: () => getPaperModel() }), modelAnswerLimiter, paperModelAnswerQuota, sharedAiConcurrency, paperAiConcurrency, paperAiDeadline, async (req, res) => {
   let releaseLock = null;
   try {
     if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
@@ -747,7 +774,11 @@ Return your response strictly in the following JSON format:
         maxOutputTokens: 5000,
         responseMimeType: 'application/json'
       }
-    }, geminiApiKey, undefined, req.backendSignal);
+    }, geminiApiKey, undefined, req.backendSignal, undefined, attempt => recordAiProviderAttempt(req, {
+      provider: 'gemini',
+      model: getPaperModel(),
+      ...attempt
+    }));
 
     let parsedAnswers;
     try {

@@ -20,6 +20,7 @@ import {
   collection,
   getDocs,
   limit,
+  orderBy,
   query,
   where
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
@@ -142,8 +143,9 @@ async function loadAndRenderRecommendations(user, prefs) {
       const [calSnap, taskSnap] = await Promise.all([
         getDocs(query(
           collection(db, "mentor_calendar", user.uid, "days"),
-          where("quizCompleted", "==", true),
-          where("date", ">=", since30Key)
+          where("date", ">=", since30Key),
+          orderBy("date", "desc"),
+          limit(32)
         )),
         getDocs(query(
           collection(db, "mentor_goals", user.uid, "items"),
@@ -154,6 +156,7 @@ async function loadAndRenderRecommendations(user, prefs) {
 
       calSnap.forEach(d => {
         const day = d.data();
+        if (day.quizCompleted !== true) return;
         (Array.isArray(day.quizDetails) ? day.quizDetails : []).forEach(qz => {
           const match = String(qz.score || "").match(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/);
           quizRecords.push({
@@ -308,18 +311,20 @@ async function renderContinueLearning(user, prefs) {
 
     const snap = await getDocs(query(
       collection(db, "mentor_calendar", user.uid, "days"),
-      where("quizCompleted", "==", true),
-      where("date", ">=", sinceKey)
+      where("date", ">=", sinceKey),
+      orderBy("date", "desc"),
+      limit(16)
     ));
 
-    if (snap.empty) {
+    const quizDays = snap.docs.filter(dayDoc => dayDoc.data().quizCompleted === true);
+    if (quizDays.length === 0) {
       banner.style.display = "none";
       return;
     }
 
     // Find the most recent quiz
     let latestDay = null;
-    snap.forEach(d => {
+    quizDays.forEach(d => {
       const day = d.data();
       if (!latestDay || day.date > latestDay.date) latestDay = day;
     });

@@ -45,43 +45,6 @@ export async function loadUserData(user) {
     }
 }
 
-export async function verifyBoardAccess() {
-    try {
-        const apiBase = (() => {
-            const metaBackend = document.querySelector('meta[name="backend-url"]');
-            if (metaBackend && metaBackend.getAttribute('content')) {
-                return metaBackend.getAttribute('content');
-            }
-            return 'https://neobranium.onrender.com';
-        })();
-        const resp = await fetch(`${apiBase}/api/board-queue-status`, {
-            credentials: 'include'
-        });
-        if (!resp.ok) {
-            let errorMsg = 'server_error';
-            try {
-                const errData = await resp.json();
-                errorMsg = errData.error || errData.message || 'server_error';
-            } catch(e) {
-                // Ignore parse error
-            }
-            return { allowed: false, reason: errorMsg, status: resp.status };
-        }
-        const data = await resp.json();
-        
-        const minutesUsed = data.sessionData?.minutesUsed || 0;
-        const remainingMinutes = Math.max(0, 20 - minutesUsed);
-        
-        return { 
-            allowed: remainingMinutes > 0, 
-            minutesUsed: minutesUsed,
-            remainingMinutes: remainingMinutes
-        };
-    } catch(e) {
-        return { allowed: false, reason: 'network_error', status: 503 }; // Fail closed
-    }
-}
-
 export function isGuestUser() {
     if (auth.currentUser) return false;
     
@@ -213,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Single source of truth for Auth State
     onAuthStateChanged(auth, async (user) => {
         const path = window.location.pathname;
-        const isNeoApp = path.includes("/NeoBook") || path.includes("/NeoBot");
+        const isNeoApp = path.includes("/NeoBook") || path.includes("/NeoBot") || path.endsWith("/ai-usage.html");
         const isLandingPage = (path === "/" || path === "/index.html") && !isNeoApp;
         const isAuthPage = path.includes("sign.html") || path.includes("verify-email.html");
         const isEntryPage = isLandingPage || isAuthPage;
@@ -275,46 +238,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     import("./activity.js").catch((error) => console.error("Activity integration failed:", error));
-
-    // --- Usage Limit System ---
-    const checkUsageLimit = async () => {
-        const path = window.location.pathname;
-        const isAIBoard = path.includes("ai-board.html");
-        const isTutor = path.includes("doubt/index.html");
-        
-        // Only kick users out if they are actively on the AI features pages
-        if (!isAIBoard && !isTutor) return;
-
-        const access = await verifyBoardAccess();
-        if (!access.allowed) {
-            if (access.status === 429) {
-                alert("Rate limit exceeded. Please wait a few minutes and try again.");
-                window.location.href = "/htmls/dashboard.html";
-            } else if (access.status === 403) {
-                // 403 can happen if backend session is missing (e.g. server restarted).
-                // Don't force sign-out — just silently allow access (fresh session).
-                console.warn("Usage check: no server session found, treating as fresh access.");
-                return;
-            } else if (access.reason === 'network_error' || access.status === 503) {
-                // Backend unreachable (cold start, offline) — don't block user
-                console.warn("Usage check: backend unreachable, skipping limit check.");
-                return;
-            } else if (access.status) {
-                console.warn(`Usage check server error: ${access.reason} (${access.status})`);
-                // Non-critical server error — don't block user, just log it
-                return;
-            } else {
-                // This means remainingMinutes <= 0 (genuine usage limit hit)
-                alert("Your 20-minute AI usage limit has finished. Please try again later.");
-                window.location.href = "/htmls/dashboard.html";
-            }
-        }
-    };
-
-    // Check immediately and then every 1 minute
-    checkUsageLimit();
-    setInterval(checkUsageLimit, 60000);
-    // --------------------------
 
     const logout = document.getElementById("logout");
     if (logout) {

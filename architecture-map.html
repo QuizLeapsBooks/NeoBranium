@@ -1017,7 +1017,7 @@
             <option value="notes_study">02 · Syllabus Mastery (Notes Path)</option>
             <option value="exam_prep">03 · Board Exam Questions (IQ Bank)</option>
             <option value="quiz_practice">04 · Interactive Quiz Assessment</option>
-            <option value="ai_tutoring">05 · AI Whiteboard & Doubt Solving</option>
+            <option value="ai_tutoring">05 · NeoLens & NeoBot Live AI</option>
             <option value="account_mgmt">06 · Profile & Settings Configuration</option>
           </select>
         </div>
@@ -1336,19 +1336,6 @@
         evidence: 'Linked from dashboard sidebar and cards; displays monthly top scorers.',
         x: 640, y: 760
       },
-      ai_board: {
-        id: 'ai_board',
-        title: 'AI Whiteboard & Voice Tutor',
-        path: 'ai-board/ai-board.html',
-        category: 'ai',
-        status: 'Authenticated / Guest (Gated)',
-        purpose: 'Interactive canvas drawing board, handwriting analysis, voice explanations, and queue-managed AI tutor.',
-        scripts: ['ai-board/js/main.js', 'js/auth.js'],
-        styles: ['ai-board/ai-board.css'],
-        services: ['Express /api/analyze-board', 'Google Gemini', 'ElevenLabs / Web Speech', 'Queue Manager'],
-        evidence: 'Linked from dashboard card; checks verifyBoardAccess() in js/auth.js; wired through ai-board/js/main.js.',
-        x: 940, y: 60
-      },
       doubt: {
         id: 'doubt',
         title: 'NeoLens Doubt Solver',
@@ -1555,7 +1542,6 @@
       { from: 'dashboard', to: 'paper_gen', kind: 'nav', note: 'Sidebar: AI Exam Paper Generator' },
       { from: 'dashboard', to: 'chat', kind: 'nav', note: 'Sidebar & card: Peer Discussion Chat' },
       { from: 'dashboard', to: 'doubt', kind: 'nav', note: 'Featured tool card: NeoLens Multimodal Doubt Solver' },
-      { from: 'dashboard', to: 'ai_board', kind: 'nav', note: 'Featured tool card: Interactive AI Whiteboard' },
       { from: 'dashboard', to: 'quiz_hub_math', kind: 'nav', note: 'Class modal selection -> Maths subject route' },
       { from: 'dashboard', to: 'quiz_hub_sci', kind: 'nav', note: 'Class modal selection -> Science subject route' },
       { from: 'dashboard', to: 'profile', kind: 'auth', note: 'User profile dropdown menu' },
@@ -1570,7 +1556,6 @@
       { from: 'notes_hub', to: 'notes_app', kind: 'nav', note: 'Link into authenticated notes surface' },
       { from: 'quiz_hub_math', to: 'dashboard', kind: 'nav', note: 'Back to dashboard navigation' },
       { from: 'quiz_hub_sci', to: 'dashboard', kind: 'nav', note: 'Back to dashboard navigation' },
-      { from: 'ai_board', to: 'dashboard', kind: 'nav', note: 'Exit canvas back to dashboard or timeout redirect' },
       { from: 'doubt', to: 'dashboard', kind: 'nav', note: 'Back to dashboard and study materials' },
       { from: 'chat', to: 'dashboard', kind: 'nav', note: 'Back to main dashboard' },
       { from: 'bot', to: 'dashboard', kind: 'nav', note: 'Back to learner hub' }
@@ -1582,7 +1567,7 @@
       notes_study: ['index', 'notes_hub', 'notes_app'],
       exam_prep: ['index', 'iq_expected', 'iq_top'],
       quiz_practice: ['dashboard', 'quiz_hub_math', 'quiz_hub_sci', 'spotlight'],
-      ai_tutoring: ['dashboard', 'doubt', 'ai_board', 'bot', 'paper_gen'],
+      ai_tutoring: ['dashboard', 'doubt', 'bot', 'paper_gen'],
       account_mgmt: ['dashboard', 'profile', 'setting', 'rank_info']
     };
 
@@ -1590,7 +1575,6 @@
     const SYS_NODES = {
       p_index: { id: 'p_index', title: 'Homepage / Entry', path: 'index.html', category: 'public', x: 40, y: 60, desc: 'Public landing & search engine' },
       p_dashboard: { id: 'p_dashboard', title: 'Learner Dashboard', path: 'htmls/dashboard.html', category: 'app', x: 40, y: 190, desc: 'Main study launchpad' },
-      p_board: { id: 'p_board', title: 'AI Whiteboard', path: 'ai-board/ai-board.html', category: 'ai', x: 40, y: 320, desc: 'Interactive canvas & speech tutor' },
       p_doubt: { id: 'p_doubt', title: 'Doubt Solver', path: 'htmls/doubt/index.html', category: 'ai', x: 40, y: 450, desc: 'Multimodal image doubt solver' },
       p_chat: { id: 'p_chat', title: 'Peer Chat App', path: 'htmls/chat/chat_app.html', category: 'ai', x: 40, y: 580, desc: 'Live peer messaging screen' },
       p_bot: { id: 'p_bot', title: 'Bot Helper', path: 'htmls/bot/bot.html', category: 'ai', x: 40, y: 710, desc: 'Streamed AI conversation screen' },
@@ -1598,7 +1582,6 @@
       p_live_ai: { id: 'p_live_ai', title: 'NeoBranium Live AI', path: 'NeoBot/index.html', category: 'ai', x: 40, y: 970, desc: 'Real-time multimodal voice & vision screen' },
 
       js_auth: { id: 'js_auth', title: 'Auth & Profile Core', path: 'js/auth.js · firebase-auth.js', category: 'backend', x: 340, y: 100, desc: 'Firebase auth state, guest mode, redirects' },
-      js_board: { id: 'js_board', title: 'Board Modular Engines', path: 'ai-board/js/{ai,board,speech,ui}', category: 'backend', x: 340, y: 280, desc: 'Canvas rendering, gestures, voice router' },
       js_doubt: { id: 'js_doubt', title: 'Doubt Analyzer Script', path: 'htmls/doubt/script.js', category: 'backend', x: 340, y: 440, desc: 'Base64 image handler, follow-up history' },
       js_chat: { id: 'js_chat', title: 'Realtime Chat Engine', path: 'htmls/chat/{chat,message,report}.js', category: 'backend', x: 340, y: 580, desc: 'RTDB stream, guest input lock, reporting' },
       js_bot: { id: 'js_bot', title: 'Streaming Chat Assistant', path: 'htmls/bot/script.js', category: 'backend', x: 340, y: 710, desc: 'SSE stream consumer, marked formatting' },
@@ -1606,7 +1589,6 @@
       js_live_ai: { id: 'js_live_ai', title: 'Multimodal Live Engine', path: 'NeoBot/js/{main,gemini-live-client}.js', category: 'backend', x: 340, y: 970, desc: '16kHz PCM, 1 FPS vision, WebSocket relay' },
 
       be_server: { id: 'be_server', title: 'Express AI Gateway', path: 'server.js (:3000 / Render)', category: 'backend', x: 640, y: 360, desc: 'Helmet, CORS, rate-limits, session store, AI routes' },
-      be_queue: { id: 'be_queue', title: 'Board Concurrency Queue', path: 'boardMiddleware.js · queueManager.js', category: 'backend', x: 640, y: 180, desc: 'Max 5 concurrent active users, 20m limits' },
       be_func: { id: 'be_func', title: 'Callable Cloud Function', path: 'functions/index.js', category: 'backend', x: 640, y: 720, desc: 'Firebase Functions v2 solveDoubt proxy' },
 
       db_auth: { id: 'db_auth', title: 'Firebase Auth', path: 'Identity & JWT tokens', category: 'data', x: 940, y: 80, desc: 'Email/Password & Google provider authentication' },
@@ -1625,7 +1607,6 @@
     const SYS_CONNECTIONS = [
       { from: 'p_index', to: 'js_auth', kind: 'auth' },
       { from: 'p_dashboard', to: 'js_auth', kind: 'auth' },
-      { from: 'p_board', to: 'js_board', kind: 'ai' },
       { from: 'p_doubt', to: 'js_doubt', kind: 'ai' },
       { from: 'p_chat', to: 'js_chat', kind: 'data' },
       { from: 'p_bot', to: 'js_bot', kind: 'ai' },
@@ -1633,8 +1614,6 @@
 
       { from: 'js_auth', to: 'db_auth', kind: 'auth' },
       { from: 'js_auth', to: 'db_firestore', kind: 'data' },
-      { from: 'js_board', to: 'be_queue', kind: 'ai' },
-      { from: 'js_board', to: 'be_server', kind: 'ai' },
       { from: 'js_doubt', to: 'be_server', kind: 'ai' },
       { from: 'js_doubt', to: 'db_storage', kind: 'data' },
       { from: 'js_doubt', to: 'db_firestore', kind: 'data' },
@@ -1643,7 +1622,6 @@
       { from: 'js_bot', to: 'be_server', kind: 'ai' },
       { from: 'js_paper', to: 'be_server', kind: 'ai' },
 
-      { from: 'be_queue', to: 'be_server', kind: 'backend' },
       { from: 'be_server', to: 'db_redis', kind: 'data' },
       { from: 'be_server', to: 'db_firestore', kind: 'data' },
       { from: 'be_server', to: 'ext_groq', kind: 'ai' },
@@ -1702,7 +1680,6 @@
         pages: [
           { name: 'Live Peer Chat', path: 'htmls/chat/chat_app.html', rule: 'Input locked: "Sign in to chat"', cite: 'chat.js:58: messageInput.disabled = true' },
           { name: 'Bot Helper AI Assistant', path: 'htmls/bot/bot.html', rule: 'Input locked: "Sign in to use AI Assistant"', cite: 'bot/script.js:40: this.chatInput.disabled = true' },
-          { name: 'AI Whiteboard & Voice Tutor', path: 'ai-board/ai-board.html', rule: '20-min limit; session queue enforcement (max 5)', cite: 'auth.js:35 verifyBoardAccess() & queueManager.js' },
           { name: 'NeoLens Doubt Solver', path: 'htmls/doubt/index.html', rule: 'AI image solving gated by backend rate-limits', cite: 'doubt/script.js:255 calls /gemini-solve with session' },
           { name: 'Exam Paper Generator', path: 'htmls/question-paper_generator-ai/ai-generate.html', rule: 'Throttled by client usage counter', cite: 'usage-limits.js canGeneratePaper()' }
         ]
@@ -2480,7 +2457,7 @@
         notes_study: '02 &bull; Syllabus Mastery (Notes Path)',
         exam_prep: '03 &bull; Board Exam Preparation (IQ Bank)',
         quiz_practice: '04 &bull; Interactive Quiz Assessment',
-        ai_tutoring: '05 &bull; AI Whiteboard & Doubt Solving',
+        ai_tutoring: '05 &bull; NeoLens & NeoBot Live AI',
         account_mgmt: '06 &bull; Profile & Settings Configuration'
       };
 

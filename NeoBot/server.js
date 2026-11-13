@@ -1,15 +1,15 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import http from 'http';
-import dotenv from 'dotenv';
 import { sessionRouter } from './backend/routes/session.js';
 import { setupWebSocketProxy } from './backend/routes/proxy.js';
 import { getLiveModel } from '../gemini-models.js';
-
-// Load environment variables from .env
-dotenv.config();
+import { createAiUsageRouter } from '../routes/aiUsageRoutes.js';
+import { startAiUsagePersistence } from '../services/aiUsagePersistence.js';
 
 const app = express();
+startAiUsagePersistence();
 const PORT = process.env.PORT || 3000;
 const configuredOrigin = process.env.ALLOWED_ORIGIN;
 const isProduction = process.env.NODE_ENV === 'production';
@@ -30,13 +30,25 @@ const buildAllowedOrigins = (envValue, selfUrl) => {
 const selfUrl = process.env.RENDER_EXTERNAL_URL || null;
 const resolvedOrigins = buildAllowedOrigins(allowedOrigin, selfUrl);
 
+const isAllowedDevelopmentOrigin = origin => {
+  if (isProduction || !origin) return false;
+  try {
+    const parsed = new URL(origin);
+    const hostname = parsed.hostname.replace(/^\[|\]$/g, '');
+    return parsed.protocol === 'http:' &&
+      ['localhost', '127.0.0.1', '::1'].includes(hostname);
+  } catch {
+    return false;
+  }
+};
+
 // CORS configuration
 const corsOptions = {
   origin: (origin, callback) => {
     // No origin = same-origin or non-browser request → allow
     if (!origin) return callback(null, true);
     if (resolvedOrigins === '*') return callback(null, true);
-    if (resolvedOrigins.includes(origin)) return callback(null, true);
+    if (resolvedOrigins.includes(origin) || isAllowedDevelopmentOrigin(origin)) return callback(null, true);
     return callback(new Error(`Origin ${origin} not allowed by CORS`));
   },
   methods: ['GET', 'POST', 'OPTIONS'],
@@ -82,6 +94,7 @@ app.get('/health', (req, res) => {
 
 // Mount session API routes
 app.use('/api', sessionRouter);
+app.use('/api/ai-usage', createAiUsageRouter());
 
 // Fallback 404 handler for unknown routes
 app.use((req, res) => {

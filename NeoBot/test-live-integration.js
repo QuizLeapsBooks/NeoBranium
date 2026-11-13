@@ -13,6 +13,7 @@ import fs from 'fs';
 import WebSocket from 'ws';
 
 const BASE_URL = 'http://127.0.0.1:3000';
+const testIdToken = process.env.NEOBRANIUM_TEST_FIREBASE_ID_TOKEN;
 
 async function runLiveIntegrationTests() {
   console.log('🚀 Starting NeoBot Full Live Integration Verification...\n');
@@ -43,7 +44,10 @@ async function runLiveIntegrationTests() {
   console.log('\n--- Step 2: Ephemeral Session Token Provisioning ---');
   const sessionRes = await fetch(`${BASE_URL}/api/session-token`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' }
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${testIdToken}`
+    }
   });
   const session = await sessionRes.json();
   assert(sessionRes.status === 200, 'POST /api/session-token returns HTTP 200');
@@ -319,7 +323,13 @@ async function runLiveIntegrationTests() {
   }
 }
 
-runLiveIntegrationTests().catch((err) => {
-  console.error('Integration test failure:', err);
-  process.exit(1);
-});
+if (process.env.RUN_LIVE_AI_INTEGRATION === 'true' &&
+    testIdToken &&
+    process.env.FIRESTORE_EMULATOR_HOST) {
+  runLiveIntegrationTests().catch((err) => {
+    console.error('Integration test failure:', err?.message || 'unknown error');
+    process.exit(1);
+  });
+} else {
+  console.log('[skip] Live AI integration requires RUN_LIVE_AI_INTEGRATION=true, a test ID token, and Firestore Emulator.');
+}

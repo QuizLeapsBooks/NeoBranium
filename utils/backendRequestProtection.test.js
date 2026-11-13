@@ -68,6 +68,38 @@ test('fetchWithRetry does not retry POSTs without an idempotency key', async () 
   assert.equal(calls, 1);
 });
 
+test('fetchWithRetry can retry selected transient POST statuses without retrying transport failures', async () => {
+  let statusCalls = 0;
+  const retries = [];
+  const response = await fetchWithRetry('https://upstream.invalid', { method: 'POST' }, {
+    maxRetries: 3,
+    retryable: true,
+    retryStatusCodesOnly: true,
+    baseDelayMs: 1,
+    maxDelayMs: 1,
+    fetchImpl: async () => {
+      statusCalls++;
+      return new Response('', { status: statusCalls === 1 ? 503 : 200 });
+    },
+    onRetry: details => retries.push(details)
+  });
+  assert.equal(response.status, 200);
+  assert.equal(statusCalls, 2);
+  assert.deepEqual(retries, [{ attempt: 1, status: 503, code: 'UPSTREAM_RETRYABLE_STATUS' }]);
+
+  let transportCalls = 0;
+  await assert.rejects(fetchWithRetry('https://upstream.invalid', { method: 'POST' }, {
+    maxRetries: 3,
+    retryable: true,
+    retryStatusCodesOnly: true,
+    fetchImpl: async () => {
+      transportCalls++;
+      throw new TypeError('network unavailable');
+    }
+  }), /network unavailable/);
+  assert.equal(transportCalls, 1);
+});
+
 test('fetchWithRetry stops immediately when the caller cancels', async () => {
   const controller = new AbortController();
   let calls = 0;

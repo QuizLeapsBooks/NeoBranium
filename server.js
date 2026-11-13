@@ -10,6 +10,7 @@ import { setupWebSocketProxy } from './NeoBot/backend/routes/proxy.js';
 import { paperRouter } from './routes/paperRoutes.js';
 import { createLeaderboardRouter } from './routes/leaderboardRoutes.js';
 import { neobookRouter } from './routes/neobookRoutes.js';
+import { createAiUsageRouter } from './routes/aiUsageRoutes.js';
 
 import express from 'express';
 import cors from 'cors';
@@ -21,11 +22,9 @@ import RedisStore from 'connect-redis';
 import { createClient } from 'redis';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { boardRateLimit } from './boardMiddleware.js';
-import queueManager from './queueManager.js';
-import { endSession, verifyAuthToken, db, admin, rtdb } from './firebaseAdmin.js';
+import { verifyAuthToken, db, admin, rtdb } from './firebaseAdmin.js';
 import { requireAuth } from './middleware/requireAuth.js';
-import { chatQuota, solverQuota, boardQuota, ttsQuota, liveSessionQuota, handwritingQuota } from './middleware/quotaByUID.js';
+import { chatQuota, solverQuota, ttsQuota, liveSessionQuota, handwritingQuota } from './middleware/quotaByUID.js';
 import { requestHandwritingRecognition, validateSelectionMetadata } from './NeoBoard/handwriting-recognition.js';
 import { getRoutineTextModel, getVisionModel, getHandwritingModel, getLiveModel, getPaperModel } from './gemini-models.js';
 import { v2 as cloudinary } from 'cloudinary';
@@ -38,6 +37,8 @@ import { createNeoLearnModerationHandlers } from './neolearn-moderation-handler.
 import { createNeoLearnMessageHandlers } from './neolearn-message-handler.js';
 import { createNeoLearnImpressionHandlers } from './neolearn-impression-handler.js';
 import { validateAIImage } from './utils/paperSecurity.js';
+import { requestNeoLensImageAnalysis } from './utils/neolensGemini.js';
+import { getQuizContextDateRange } from './utils/quizContextDateRange.js';
 import { createAiConversationHandler } from './ai-conversation-handler.js';
 import { createAiUploadHandler } from './ai-upload-handler.js';
 import {
@@ -48,11 +49,21 @@ import {
     sharedAiConcurrency
 } from './utils/backendRequestProtection.js';
 import { createUserMemoryStore } from './utils/userMemoryStore.js';
+import {
+    AI_FEATURES,
+    createAiUsageMiddleware,
+    finalizeAiUsageRequest,
+    normalizeGeminiUsage,
+    normalizeGroqUsage,
+    recordAiProviderAttempt
+} from './services/aiUsageTracker.js';
+import { startAiUsagePersistence } from './services/aiUsagePersistence.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+startAiUsagePersistence();
 
 // This service runs behind a single trusted hosting proxy in production.
 // Keep the hop count aligned with the Render deployment topology.
@@ -188,6 +199,16 @@ const allowedOrigins = [
 const isDevelopment = process.env.NODE_ENV !== 'production';
 const isAllowedOrigin = (origin) => {
     if (isDevelopment && origin === 'null') return true;
+    if (isDevelopment) {
+        try {
+            const parsed = new URL(origin);
+            const hostname = parsed.hostname.replace(/^\[|\]$/g, '');
+            if (parsed.protocol === 'http:' &&
+                ['localhost', '127.0.0.1', '::1'].includes(hostname)) return true;
+        } catch {
+            return false;
+        }
+    }
     return allowedOrigins.some(allowed => origin === allowed || origin === allowed + '/');
 };
 
@@ -239,7 +260,7 @@ app.use((req, res, next) => {
     const routePath = req.path;
     const paperEvaluation = routePath === '/api/paper/upload-evaluate';
     const imageAI = [
-        '/api/gemini-solve', '/api/tutor/create-quiz', '/api/analyze-board',
+        '/api/gemini-solve', '/api/tutor/create-quiz',
         '/api/blackboard/recognize-handwriting', '/api/blackboard/analyze-selection',
         '/api/ai/upload-image'
     ].includes(routePath);
@@ -398,7 +419,7 @@ function sanitizeAIInput(message) {
 }
 
 // Main chat endpoint — requires Firebase auth and per-UID daily quota
-app.post('/api/chat', requireAuth, chatQuota, sharedAiConcurrency, textAiConcurrency, chatDeadline, async (req, res) => {
+app.post('/api/chat', requireAuth, createAiUsageMiddleware({ feature: req => req.body?.task === 'paper_generation' ? AI_FEATURES.QUESTION_PAPER : AI_FEATURES.CHATBOT, route: '/api/chat' }), chatQuota, sharedAiConcurrency, textAiConcurrency, chatDeadline, async (req, res) => {
     const isProd = process.env.NODE_ENV === 'production';
     // req.uid is set by requireAuth (verified server-side); body uid is ignored
 
@@ -479,23 +500,22 @@ app.post('/api/chat', requireAuth, chatQuota, sharedAiConcurrency, textAiConcurr
                 }
 
                 // Load last 5 quiz-completion day records for brief performance context
-                const since = new Date();
-                since.setDate(since.getDate() - 30);
-                const sinceStr = since.toISOString().slice(0, 10);
+                const { from: sinceStr, to: throughStr } = getQuizContextDateRange();
 
                 const calSnap = await db
                     .collection('mentor_calendar')
                     .doc(req.uid)
                     .collection('days')
-                    .where('quizCompleted', '==', true)
                     .where('date', '>=', sinceStr)
+                    .where('date', '<=', throughStr)
                     .orderBy('date', 'desc')
-                    .limit(5)
+                    .limit(32)
                     .get();
 
                 const recentQuizzes = [];
                 calSnap.forEach(dayDoc => {
                     const day = dayDoc.data();
+                    if (day.quizCompleted !== true) return;
                     (day.quizDetails || []).forEach(q => {
                         if (recentQuizzes.length < 5) {
                             recentQuizzes.push(`${q.title || q.quizId || 'quiz'} (${q.score || '?'})`);
@@ -587,6 +607,12 @@ IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and st
                 signal: req.backendSignal
             });
         } catch (fetchError) {
+            recordAiProviderAttempt(req, {
+                provider: 'gemini',
+                model: task === 'paper_generation' ? getPaperModel() : GEMINI_ROUTINE_MODEL,
+                status: 'failed',
+                errorCategory: fetchError.code === 'UPSTREAM_TIMEOUT' ? 'timeout' : 'provider_error'
+            });
             if (res.headersSent || req.backendSignal.aborted) return;
             console.error('[AI] Gemini fetch error:', fetchError);
             return res.status(fetchError.status || 502).json({
@@ -596,6 +622,12 @@ IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and st
 
         if (!geminiResponse.ok) {
             const errorText = await geminiResponse.text();
+            recordAiProviderAttempt(req, {
+                provider: 'gemini',
+                model: task === 'paper_generation' ? getPaperModel() : GEMINI_ROUTINE_MODEL,
+                status: 'failed',
+                errorCategory: geminiResponse.status === 429 ? 'rate_limited' : 'provider_error'
+            });
             console.error('[AI] Gemini API error:', geminiResponse.status, errorText);
             return res.status(502).json({ reply: 'Gemini AI request failed' });
         }
@@ -603,7 +635,19 @@ IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and st
         let geminiData;
         try {
             geminiData = await geminiResponse.json();
+            recordAiProviderAttempt(req, {
+                provider: 'gemini',
+                model: task === 'paper_generation' ? getPaperModel() : GEMINI_ROUTINE_MODEL,
+                status: 'success',
+                usage: normalizeGeminiUsage(geminiData)
+            });
         } catch (jsonError) {
+            recordAiProviderAttempt(req, {
+                provider: 'gemini',
+                model: task === 'paper_generation' ? getPaperModel() : GEMINI_ROUTINE_MODEL,
+                status: 'failed',
+                errorCategory: 'invalid_provider_response'
+            });
             console.error('Failed to parse Gemini response:', jsonError);
             return res.status(502).json({ reply: 'Gemini AI request failed' });
         }
@@ -635,193 +679,14 @@ IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and st
     }
 });
 
-// Streaming Chat Endpoint for Live Tutor
-app.post('/api/chat-stream', requireAuth, boardQuota, boardRateLimit, sharedAiConcurrency, streamConcurrency, streamAiDeadline, async (req, res) => {
-    // Set headers for SSE
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    try {
-        const { message, history = [], task = 'tutor_chat', tutorState = {} } = req.body;
-
-        const sanResult = sanitizeAIInput(message);
-        const sanEq = sanitizeAIInput(tutorState.detectedEquation || '');
-        const sanTopic = sanitizeAIInput(tutorState.currentTopic || '');
-        
-        if (!sanResult.safe || !sanEq.safe || !sanTopic.safe) {
-            res.write(`data: ${JSON.stringify({ content: "Main sirf NeoBranium ke syllabus ke baare mein help kar sakta hoon. Koi aur question hai?" })}\n\n`);
-            res.write('data: [DONE]\n\n');
-            return res.end();
-        }
-
-        const safeHistory = (history || [])
-            .slice(-10)
-            .filter(h => h.role && h.content && typeof h.content === 'string')
-            .map(h => ({
-                role: h.role === 'assistant' ? 'assistant' : 'user',
-                content: h.content.slice(0, 2000) // cap each history message
-            }));
-
-        const secureUserId = req.uid || req.session?.id || req.ip;
-        let memory = await getUserMemory(secureUserId);
-        if (!memory) {
-            memory = {
-                name: null,
-                topics: [],
-                preferences: {},
-                sessionStart: new Date(),
-                messageCount: 0
-            };
-        }
-        memory.messageCount++;
-        saveUserMemory(secureUserId, memory).catch(e => console.error(e));
-
-        // Validate mode
-        const mode = tutorState.mode || 'hinglish';
-        let modeInstruction = "";
-        switch (mode) {
-            case 'english': modeInstruction = "Respond in formal English. Be professional, encouraging, and concise."; break;
-            case 'hindi': modeInstruction = "Respond in pure, formal Hindi using Devanagari script. Ensure explanations are easy for CBSE students."; break;
-            case 'hinglish': modeInstruction = "Respond in extremely natural Indian Hindi. Mix Hindi and English naturally (e.g. hindi). Sound like an educated Indian student tutor."; break;
-            case 'teacher': modeInstruction = "Explain like an experienced Indian CBSE coaching teacher. Patiently reinforce concepts, warn about common mistakes."; break;
-            default: modeInstruction = "Respond naturally.";
-        }
-
-        // Build prompt
-        let systemContent = `You are a patient, adaptive, emotionally intelligent AI Tutor from NeoBranium by Aevorin. 
-You are currently helping a student who is looking at a digital study board.
-Board Context: The student has drawn/written: "${tutorState.detectedEquation ? tutorState.detectedEquation.slice(0, 500) : 'unknown'}"
-Recent Topic: "${tutorState.currentTopic ? tutorState.currentTopic.slice(0, 100) : 'general'}"
-
-RULES:
-1. Act as a human-like, conversational tutor.
-2. DO NOT repeat the entire solution if they ask a small follow-up. 
-3. Encourage curiosity and explain incrementally step-by-step.
-4. Sometimes ask small guiding questions instead of giving the final answer instantly.
-5. If the user asks 'why', explain the reasoning simply. If they ask 'next', show just the next step.
-6. Tone/Language: ${modeInstruction}
-7. IMPORTANT: Format math with $$ for blocks and \\( \\) for inline.
-8. INTRODUCTION & CREATOR DETAILS (ONLY WHEN ASKED): Do NOT volunteer introduction or background details unprompted. If and only if the student specifically asks for an introduction, who made you, who created or manages NeoBranium, or what Aevorin means, explain that this is NeoBranium by Aevorin, "Aevorin" has no literal dictionary meaning and stands for "Advancing Every Vision of Research Into Newness", and the platform is created and managed entirely by a single human: Shubham Singh.`;
-
-        // Intent detection (lightweight preprocessing instruction)
-        let processedMessage = message;
-        if (message.match(/^(again|repeat|one more time)$/i)) processedMessage = "Please explain that again, but simpler.";
-        if (message.match(/^(next|next step|continue)$/i)) processedMessage = "Please show me the next step in the solution.";
-        if (message.match(/^(why|how come)$/i)) processedMessage = "Why is that the case? Please explain the reasoning.";
-
-        const messages = [
-            { role: 'system', content: systemContent },
-            ...safeHistory,
-            { role: 'user', content: processedMessage }
-        ];
-
-        const requestBody = {
-            model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
-            messages: messages,
-            temperature: 0.7,
-            max_tokens: 1024,
-            stream: true // Enable streaming
-        };
-
-        if (!groqApiKey) {
-            res.write(`data: ${JSON.stringify({ error: 'AI service unavailable' })}\n\n`);
-            return res.end();
-        }
-
-        let groqResponse;
-        try {
-            groqResponse = await fetchWithRetry('https://api.groq.com/openai/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${groqApiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestBody),
-                signal: req.backendSignal
-            });
-        } catch (fetchError) {
-            if (req.backendSignal.aborted || fetchError.name === 'AbortError') {
-                return res.end();
-            }
-            if (res.headersSent || req.backendSignal.aborted) return;
-            console.error("[AI] Groq Stream Fetch Error:", fetchError);
-            res.write(`data: ${JSON.stringify({ error: fetchError.code === 'UPSTREAM_TIMEOUT' ? 'AI stream timed out' : 'AI stream failed' })}\n\n`);
-            return res.end();
-        }
-
-        if (!groqResponse.ok) {
-            console.error("[AI] Groq Stream Error:", await groqResponse.text());
-            res.write(`data: ${JSON.stringify({ error: 'AI stream failed' })}\n\n`);
-            return res.end();
-        }
-
-        // Process SSE stream from Groq
-        const decoder = new TextDecoder("utf-8");
-        let buffer = "";
-        const transformSseChunk = chunk => {
-            buffer += decoder.decode(chunk, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop();
-            let output = '';
-            for (const line of lines) {
-                const trimmed = line.trim();
-                if (!trimmed || !trimmed.startsWith('data: ') || trimmed === 'data: [DONE]') continue;
-                try {
-                    const data = JSON.parse(trimmed.slice(6));
-                    const content = data.choices?.[0]?.delta?.content;
-                    if (content) output += `data: ${JSON.stringify({ content })}\n\n`;
-                } catch (error) {
-                    if (trimmed.length > 50) console.warn('[AI] Skipping malformed upstream stream event.');
-                }
-            }
-            return output;
-        };
-        const flushSseChunk = () => {
-            const tail = decoder.decode();
-            if (tail) buffer += tail;
-            const line = buffer.trim();
-            buffer = '';
-            if (!line.startsWith('data: ') || line === 'data: [DONE]') return '';
-            try {
-                const data = JSON.parse(line.slice(6));
-                const content = data.choices?.[0]?.delta?.content;
-                return content ? `data: ${JSON.stringify({ content })}\n\n` : '';
-            } catch {
-                return '';
-            }
-        };
-        try {
-            await pipeWebStreamToResponse(groqResponse.body, res, {
-                signal: req.backendSignal,
-                transformChunk: transformSseChunk,
-                flushChunk: flushSseChunk
-            });
-            if (!req.backendSignal.aborted && !res.writableEnded) {
-                res.write('data: [DONE]\n\n');
-                res.end();
-            }
-        } catch (streamError) {
-            if (!req.backendSignal.aborted) throw streamError;
-        }
-    } catch (error) {
-        if (res.destroyed || res.writableEnded || req.backendSignal.aborted) return;
-        if (res.destroyed || res.writableEnded || req.backendSignal.aborted) return;
-        console.error('❌ Stream request failed:', error);
-        res.write(`data: ${JSON.stringify({ error: 'Internal Server Error' })}\n\n`);
-        res.end();
-    }
-});
-
-
 // Blackboard handwriting recognition: explicit, authenticated image request.
-app.post('/api/blackboard/recognize-handwriting', requireAuth, handwritingQuota, handwritingRateLimit, sharedAiConcurrency, visionAiConcurrency, handwritingDeadline, async (req, res) => {
+app.post('/api/blackboard/recognize-handwriting', requireAuth, createAiUsageMiddleware({ feature: AI_FEATURES.NEOBOARD, route: '/api/blackboard/recognize-handwriting' }), handwritingQuota, handwritingRateLimit, sharedAiConcurrency, visionAiConcurrency, handwritingDeadline, async (req, res) => {
     const uid = req.uid;
     if (handwritingInFlight.has(uid)) return res.status(429).json({error:'A recognition request is already running for this account.',code:'REQUEST_IN_PROGRESS'});
     if (!process.env.GEMINI_API_KEY && !groqApiKey) return res.status(503).json({error:'NeoBoard AI is not configured on the server.',code:'AI_NOT_CONFIGURED'});
     handwritingInFlight.add(uid);
     try {
-        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS,fallbackApiKey:groqApiKey,fallbackModel:GROQ_MODEL,fallbackVisionModel:process.env.GROQ_VISION_MODEL||'qwen/qwen3.8-27b',signal:req.backendSignal});
+        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS,fallbackApiKey:groqApiKey,fallbackModel:GROQ_MODEL,fallbackVisionModel:process.env.GROQ_VISION_MODEL||'qwen/qwen3.8-27b',signal:req.backendSignal,onProviderAttempt:attempt=>recordAiProviderAttempt(req,attempt)});
         res.json({success:true,result});
     } catch (error) {
         if (res.headersSent || req.backendSignal.aborted) return;
@@ -830,14 +695,14 @@ app.post('/api/blackboard/recognize-handwriting', requireAuth, handwritingQuota,
     } finally { handwritingInFlight.delete(uid); }
 });
 
-app.post('/api/blackboard/analyze-selection', requireAuth, handwritingQuota, handwritingRateLimit, sharedAiConcurrency, visionAiConcurrency, handwritingDeadline, async (req, res) => {
+app.post('/api/blackboard/analyze-selection', requireAuth, createAiUsageMiddleware({ feature: AI_FEATURES.NEOBOARD, route: '/api/blackboard/analyze-selection' }), handwritingQuota, handwritingRateLimit, sharedAiConcurrency, visionAiConcurrency, handwritingDeadline, async (req, res) => {
     const uid = req.uid;
     if (handwritingInFlight.has(uid)) return res.status(429).json({error:'A learning request is already running for this account.',code:'REQUEST_IN_PROGRESS'});
     if (!process.env.GEMINI_API_KEY && !groqApiKey) return res.status(503).json({error:'NeoBoard AI is not configured on the server.',code:'AI_NOT_CONFIGURED'});
     handwritingInFlight.add(uid);
     try {
         validateSelectionMetadata(req.body?.selection);
-        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,selectedText:req.body?.selectedText,subject:req.body?.subject,requestedFormat:req.body?.requestedFormat,customQuestion:req.body?.customQuestion,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS,fallbackApiKey:groqApiKey,fallbackModel:GROQ_MODEL,fallbackVisionModel:process.env.GROQ_VISION_MODEL||'qwen/qwen3.8-27b',signal:req.backendSignal});
+        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,selectedText:req.body?.selectedText,subject:req.body?.subject,requestedFormat:req.body?.requestedFormat,customQuestion:req.body?.customQuestion,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS,fallbackApiKey:groqApiKey,fallbackModel:GROQ_MODEL,fallbackVisionModel:process.env.GROQ_VISION_MODEL||'qwen/qwen3.8-27b',signal:req.backendSignal,onProviderAttempt:attempt=>recordAiProviderAttempt(req,attempt)});
         res.json({success:true,result});
     } catch (error) {
         if (res.headersSent || req.backendSignal.aborted) return;
@@ -847,7 +712,7 @@ app.post('/api/blackboard/analyze-selection', requireAuth, handwritingQuota, han
 });
 
 // Gemini Image Solving API — requires Firebase auth + UID-keyed daily quota
-app.post('/api/gemini-solve', requireAuth, solverQuota, sharedAiConcurrency, visionAiConcurrency, standardAiDeadline, async (req, res) => {
+app.post('/api/gemini-solve', requireAuth, createAiUsageMiddleware({ feature: AI_FEATURES.NEOLENS, route: '/api/gemini-solve', provider: 'gemini', model: () => GEMINI_VISION_MODEL }), solverQuota, sharedAiConcurrency, visionAiConcurrency, standardAiDeadline, async (req, res) => {
     try {
         let { base64, mimeType } = req.body;
         const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -865,49 +730,57 @@ app.post('/api/gemini-solve', requireAuth, solverQuota, sharedAiConcurrency, vis
         base64 = validatedImage.cleanBase64;
         mimeType = validatedImage.verifiedMimeType;
 
-        let response;
+        let resultText;
         try {
-            response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_VISION_MODEL}:generateContent?key=${geminiApiKey}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: "You are NeoLens, an AI tutor for Indian school students (CBSE/NCERT standards) from NeoBranium by Aevorin.\n\nA student has uploaded a question image. Your job:\n1. Identify and clearly state the question from the image (correct any OCR or image quality errors).\n2. Solve it accurately. Match the explanation length to the complexity — give a short direct answer for simple questions, and a clear step-by-step explanation only when the problem genuinely requires it for a student to understand.\n3. Use simple, student-friendly language. Avoid filler phrases, unnecessary repetition, and restating the same conclusion multiple times.\n4. Do NOT use LaTeX markup (no $...$, no \\\\frac). Use plain text and Unicode math symbols only (√, ×, ÷, ², ³, °, π, ½).\n5. If the user explicitly asks about the introduction or creator of NeoLens/NeoBranium, state that NeoBranium is by Aevorin, 'Aevorin' has no literal dictionary meaning and stands for 'Advancing Every Vision of Research Into Newness', and the platform is created and managed by a single human, Shubham Singh. Never volunteer this information unless specifically asked." },
-                            {
-                                inline_data: {
-                                    mime_type: mimeType,
-                                    data: base64
-                                }
-                            }
-                        ]
-                    }],
-                    generationConfig: { maxOutputTokens: 1800, temperature: 0.2 }
-                }),
-                signal: req.backendSignal
-            });
-        } catch (fetchError) {
+            ({ resultText } = await requestNeoLensImageAnalysis({
+                apiKey: geminiApiKey,
+                model: GEMINI_VISION_MODEL,
+                prompt: "You are NeoLens, an AI tutor for Indian school students (CBSE/NCERT standards) from NeoBranium by Aevorin.\n\nA student has uploaded a question image. Your job:\n1. Identify and clearly state the question from the image (correct any OCR or image quality errors).\n2. Solve it accurately. Match the explanation length to the complexity — give a short direct answer for simple questions, and a clear step-by-step explanation only when the problem genuinely requires it for a student to understand.\n3. Use simple, student-friendly language. Avoid filler phrases, unnecessary repetition, and restating the same conclusion multiple times.\n4. Do NOT use LaTeX markup (no $...$, no \\\\frac). Use plain text and Unicode math symbols only (√, ×, ÷, ², ³, °, π, ½).\n5. If the user explicitly asks about the introduction or creator of NeoLens/NeoBranium, state that NeoBranium is by Aevorin, 'Aevorin' has no literal dictionary meaning and stands for 'Advancing Every Vision of Research Into Newness', and the platform is created and managed by a single human, Shubham Singh. Never volunteer this information unless specifically asked.",
+                base64,
+                mimeType,
+                signal: req.backendSignal,
+                fallbackApiKey: groqApiKey,
+                fallbackModel: process.env.GROQ_VISION_MODEL || 'qwen/qwen3.8-27b',
+                onProviderAttempt: attempt => recordAiProviderAttempt(req, {
+                    ...attempt,
+                    modalityMetrics: {
+                        ...attempt.modalityMetrics,
+                        imageBytes: validatedImage.sizeBytes
+                    }
+                })
+            }));
+        } catch (providerError) {
             if (res.headersSent || req.backendSignal.aborted) return;
-            console.error('[AI] Gemini API Failure:', fetchError);
-            return res.status(fetchError.status || 502).json({ success: false, error: 'Gemini API request failed after retries' });
-        }
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            console.error('[AI] Gemini API Failure (Status):', JSON.stringify(data, null, 2));
-            return res.status(502).json({ success: false, error: 'Gemini API request failed' });
+            console.warn('[AI] NeoLens provider request failed after bounded retries.', {
+                status: providerError.status || null,
+                code: providerError.code || 'provider_error'
+            });
+            const failureCode = providerError.code === 'UPSTREAM_RETRYABLE_STATUS'
+                ? providerError.status === 429 ? 'PROVIDER_RATE_LIMIT' : 'PROVIDER_UNAVAILABLE'
+                : providerError.code || 'PROVIDER_ERROR';
+            const failureStatus = [429, 503, 504].includes(providerError.status)
+                ? providerError.status
+                : 502;
+            const publicMessage = ['PROVIDER_AUTHENTICATION', 'FALLBACK_AUTHENTICATION'].includes(failureCode)
+                ? 'NeoLens could not authenticate with its AI service. Please contact support.'
+                : failureStatus === 504
+                    ? 'NeoLens took too long to respond. Please try again.'
+                    : failureStatus === 429 || failureStatus === 503
+                        ? 'NeoLens is temporarily busy. Please try again shortly.'
+                        : failureCode.includes('INVALID') || failureCode.includes('EMPTY')
+                            ? 'NeoLens received an invalid AI response. Please try again.'
+                            : ['PROVIDER_REQUEST_REJECTED', 'FALLBACK_REQUEST_REJECTED'].includes(failureCode)
+                                ? 'NeoLens could not process this image. Please try a clearer image.'
+                                : 'NeoLens could not reach its AI service. Please try again shortly.';
+            return res.status(failureStatus).json({
+                success: false,
+                error: publicMessage,
+                code: failureCode
+            });
         }
 
         // Increment quota tracked by UID-based middleware (req.quotaInfo is set by solverQuota)
         // Session-based counter removed — UID quota is cross-device and bypass-proof.
-        const candidates = data?.candidates || [];
-        const firstCandidate = candidates[0];
-        const contentParts = firstCandidate?.content?.parts || [];
-        const resultText = contentParts[0]?.text || "No solution could be generated. Please try with a clearer image.";
-
         res.json({
             success: true,
             result: resultText
@@ -924,7 +797,7 @@ app.post('/api/gemini-solve', requireAuth, solverQuota, sharedAiConcurrency, vis
 // NeoLens Quiz Generation API — requires auth + UID-keyed daily quota
 // POST /api/tutor/create-quiz
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-app.post('/api/tutor/create-quiz', requireAuth, solverQuota, sharedAiConcurrency, visionAiConcurrency, standardAiDeadline, async (req, res) => {
+app.post('/api/tutor/create-quiz', requireAuth, createAiUsageMiddleware({ feature: AI_FEATURES.NEOLENS, route: '/api/tutor/create-quiz' }), solverQuota, sharedAiConcurrency, visionAiConcurrency, standardAiDeadline, async (req, res) => {
     try {
         let { base64, mimeType, aiSolution } = req.body;
         const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -1006,12 +879,26 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
                 }
             );
         } catch (fetchError) {
+            recordAiProviderAttempt(req, {
+                provider: 'gemini',
+                model: GEMINI_VISION_MODEL,
+                status: 'failed',
+                errorCategory: fetchError.code === 'UPSTREAM_TIMEOUT' ? 'timeout' : 'provider_error',
+                modalityMetrics: { imageCount: 1, imageBytes: validatedImage.sizeBytes }
+            });
             if (res.headersSent || req.backendSignal.aborted) return;
             console.error('[AI] Gemini Quiz API fetch error:', fetchError);
             return res.status(fetchError.status || 502).json({ success: false, error: 'AI quiz generation failed after retries.' });
         }
 
         if (!geminiResponse.ok) {
+            recordAiProviderAttempt(req, {
+                provider: 'gemini',
+                model: GEMINI_VISION_MODEL,
+                status: 'failed',
+                errorCategory: geminiResponse.status === 429 ? 'rate_limited' : 'provider_error',
+                modalityMetrics: { imageCount: 1, imageBytes: validatedImage.sizeBytes }
+            });
             const errText = await geminiResponse.text();
             console.error('[AI] Gemini Quiz API error:', geminiResponse.status, errText);
             return res.status(502).json({ success: false, error: 'AI quiz generation failed.' });
@@ -1020,7 +907,21 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
         let geminiData;
         try {
             geminiData = await geminiResponse.json();
+            recordAiProviderAttempt(req, {
+                provider: 'gemini',
+                model: base64 ? GEMINI_VISION_MODEL : GEMINI_ROUTINE_MODEL,
+                status: geminiResponse.ok ? 'success' : 'failed',
+                usage: normalizeGeminiUsage(geminiData),
+                errorCategory: geminiResponse.ok ? null : geminiResponse.status === 429 ? 'rate_limited' : 'provider_error',
+                modalityMetrics: { imageCount: base64 ? 1 : 0, imageBytes: base64 ? validatedImage.sizeBytes : 0 }
+            });
         } catch (jsonErr) {
+            recordAiProviderAttempt(req, {
+                provider: 'gemini',
+                model: base64 ? GEMINI_VISION_MODEL : GEMINI_ROUTINE_MODEL,
+                status: 'failed',
+                errorCategory: 'invalid_provider_response'
+            });
             console.error('❌ Failed to parse Gemini quiz response:', jsonErr);
             return res.status(502).json({ success: false, error: 'Unexpected response from AI.' });
         }
@@ -1079,7 +980,7 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
 // NeoLens Practice Similar Questions API
 // POST /api/tutor/practice-similar
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-app.post('/api/tutor/practice-similar', requireAuth, solverQuota, sharedAiConcurrency, visionAiConcurrency, standardAiDeadline, async (req, res) => {
+app.post('/api/tutor/practice-similar', requireAuth, createAiUsageMiddleware({ feature: AI_FEATURES.NEOLENS, route: '/api/tutor/practice-similar' }), solverQuota, sharedAiConcurrency, visionAiConcurrency, standardAiDeadline, async (req, res) => {
     try {
         let { base64, mimeType, aiSolution, previousQuiz, incorrectIndices } = req.body;
         const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -1162,18 +1063,39 @@ Return ONLY a valid JSON object with this exact structure (no markdown fences, n
                 }
             );
         } catch (fetchError) {
+            recordAiProviderAttempt(req, {
+                provider: 'gemini',
+                model: base64 ? GEMINI_VISION_MODEL : GEMINI_ROUTINE_MODEL,
+                status: 'failed',
+                errorCategory: fetchError.code === 'UPSTREAM_TIMEOUT' ? 'timeout' : 'provider_error',
+                modalityMetrics: { imageCount: base64 ? 1 : 0, imageBase64Characters: base64 ? base64.length : 0 }
+            });
             if (res.headersSent || req.backendSignal.aborted) return;
             console.error('[AI] Gemini Practice API fetch error:', fetchError);
             return res.status(fetchError.status || 502).json({ success: false, error: 'AI practice generation failed after retries.' });
         }
 
         if (!geminiResponse.ok) {
+            recordAiProviderAttempt(req, {
+                provider: 'gemini',
+                model: base64 ? GEMINI_VISION_MODEL : GEMINI_ROUTINE_MODEL,
+                status: 'failed',
+                errorCategory: geminiResponse.status === 429 ? 'rate_limited' : 'provider_error',
+                modalityMetrics: { imageCount: base64 ? 1 : 0, imageBase64Characters: base64 ? base64.length : 0 }
+            });
             const errText = await geminiResponse.text();
             console.error('[AI] Gemini Practice API error:', geminiResponse.status, errText);
             return res.status(502).json({ success: false, error: 'AI practice generation failed.' });
         }
 
         const geminiData = await geminiResponse.json();
+        recordAiProviderAttempt(req, {
+            provider: 'gemini',
+            model: base64 ? GEMINI_VISION_MODEL : GEMINI_ROUTINE_MODEL,
+            status: 'success',
+            usage: normalizeGeminiUsage(geminiData),
+            modalityMetrics: { imageCount: base64 ? 1 : 0, imageBase64Characters: base64 ? base64.length : 0 }
+        });
         const rawText = geminiData?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('').trim();
 
         if (!rawText) {
@@ -1261,287 +1183,6 @@ function safeParseGeminiJSON(rawText) {
     }
 }
 
-// AI Board Analysis API
-app.post('/api/analyze-board', requireAuth, boardQuota, boardRateLimit, sharedAiConcurrency, visionAiConcurrency, standardAiDeadline, async (req, res) => {
-    try {
-        let { base64, mimeType, mode = 'hinglish', isAutoScan = false } = req.body;
-        const geminiApiKey = process.env.GEMINI_API_KEY;
-
-        if (!geminiApiKey) {
-            return res.status(500).json({ success: false, error: 'AI service configuration missing' });
-        }
-
-        if (!base64 || !mimeType) {
-            return res.status(400).json({ success: false, error: 'Missing image data' });
-        }
-
-        const validatedImage = validateAIImage(base64, mimeType);
-        base64 = validatedImage.cleanBase64;
-        mimeType = validatedImage.verifiedMimeType;
-
-        let modeInstruction = "";
-        switch (mode) {
-            case 'english':
-                modeInstruction = "Respond in formal English. Be professional, encouraging, student-friendly, and concise but clear. No slang.";
-                break;
-            case 'hindi':
-                modeInstruction = "Respond in pure, formal Hindi using Devanagari script. Ensure explanations are easy for CBSE students. Avoid robotic translation.";
-                break;
-            case 'hinglish':
-                modeInstruction = "Respond in extremely natural Indian Hinglish. Mix Hindi and English naturally. Tone should be warm, friendly, and human-like (e.g. 'Dekho yaha basically...'). Do NOT translate technical terms (keep 'variable', 'carry', etc). No exaggerated slang. Sound like an educated Indian student.";
-                break;
-            case 'teacher':
-                modeInstruction = "Explain like an experienced Indian CBSE coaching teacher. Patiently reinforce concepts, warn about common mistakes, emphasize exam relevance, and occasionally repeat key concepts (e.g. 'Beta, yaha dhyan dena').";
-                break;
-            default:
-                modeInstruction = "Respond naturally.";
-        }
-
-        // Specialized prompt for digital study board analysis
-        let prompt = "";
-        const structureInstructions = `
-Provide your response strictly in the following JSON format:
-{
-  "confidence": <integer 0-100>,
-  "inputType": "<math|text|diagram|unclear>",
-  "blocks": [
-    {
-      "type": "text",
-      "content": "<plain text, Hindi or Hinglish as requested>"
-    },
-    {
-      "type": "equation",
-      "format": "latex",
-      "content": "<pure LaTeX without delimiters, e.g. 2Mg + O_{2} \\rightarrow 2MgO>"
-    },
-    {
-      "type": "heading",
-      "content": "<heading text>"
-    },
-    {
-      "type": "bullet_list",
-      "items": ["<item 1>", "<item 2>"]
-    },
-    {
-      "type": "step",
-      "content": "<step explanation>",
-      "number": <integer>
-    },
-    {
-      "type": "warning",
-      "content": "<warning or common mistake note>"
-    },
-    {
-      "type": "final_answer",
-      "content": "<the final result or conclusion>"
-    }
-  ],
-  "commands": [
-    {"type": "circle", "x": <0-1000>, "y": <0-1000>, "radius": <optional 1-100>},
-    {"type": "underline", "x": <0-1000>, "y": <0-1000>, "width": <optional 1-200>},
-    {"type": "arrow", "x1": <0-1000>, "y1": <0-1000>, "x2": <0-1000>, "y2": <0-1000>},
-    {"type": "write", "text": "<short label>", "x": <0-1000>, "y": <0-1000>}
-  ]
-}
-
-Scientific Notation Rules:
-1. Detect subscripts and superscripts intelligently (e.g., O2 -> O_{2}, x2 -> x^{2} if intended as power).
-2. For chemistry, use proper LaTeX notation for reactions (e.g. \\rightarrow, \\Delta).
-3. Never output scientific equations as raw plain text; always use the "equation" block.
-4. Tone/Style: ${modeInstruction}`;
-
-        if (isAutoScan) {
-            prompt = `You are the NeoBranium Live Tutor by Aevorin. PASSIVELY observe the student's writing. Only speak up if you see a mistake or if you can provide a helpful hint. If asked for an introduction or creator, explain that NeoBranium is by Aevorin, 'Aevorin' has no literal dictionary meaning and stands for 'Advancing Every Vision of Research Into Newness', and the platform is created and managed by a single human, Shubham Singh (only mention this when directly asked).
-${structureInstructions}
-
-Guidelines for Live Tutor:
-- If correct, leave "blocks" and "commands" empty.
-- Coordinates (0-1000) are relative to the image (0,0 is top-left).
-- DO NOT give final answers. Use "write" command for small hints only.`;
-        } else {
-            prompt = `You are the NeoBranium AI Board analyzer by Aevorin. The user has drawn or written something on their digital study board. Analyze it and provide a detailed explanation. If asked for an introduction or creator, explain that NeoBranium is by Aevorin, 'Aevorin' has no literal dictionary meaning and stands for 'Advancing Every Vision of Research Into Newness', and the platform is created and managed by a single human, Shubham Singh (only mention this when directly asked).
-${structureInstructions}
-
-Explanation Guidelines:
-- Use "commands" to highlight key parts of the student's work on the canvas.
-- Maximum total length: 300 words.
-- If inputType is 'unclear', leave blocks and commands empty.`;
-        }
-
-        let response;
-        try {
-            response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_VISION_MODEL}:generateContent?key=${geminiApiKey}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: prompt },
-                            {
-                                inline_data: {
-                                    mime_type: mimeType,
-                                    data: base64
-                                }
-                            }
-                        ]
-                    }],
-                    generationConfig: { maxOutputTokens: 1000, temperature: 0.2 }
-                }),
-                signal: req.backendSignal
-            });
-        } catch (fetchError) {
-            if (res.headersSent || req.backendSignal.aborted) return;
-            console.error('[AI] Analyze Board API fetch error:', fetchError);
-            return res.status(fetchError.status || 502).json({ success: false, error: 'AI Analysis failed after retries' });
-        }
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            console.error('[AI] Gemini Analysis Failure:', JSON.stringify(data, null, 2));
-            return res.status(502).json({ success: false, error: 'AI Analysis failed' });
-        }
-
-        // Quota tracked by UID-based boardQuota middleware (req.quotaInfo)
-        // Session-based counter removed — UID quota is cross-device and bypass-proof.
-
-        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-        let parsedResult = safeParseGeminiJSON(rawText);
-
-        if (!parsedResult) {
-            console.warn('[AI] analyze-board JSON parse failed, falling back to text block');
-            parsedResult = {
-                confidence: 80,
-                inputType: 'text',
-                blocks: [{ type: 'text', content: rawText.replace(/```json|```/g, '').trim() }],
-                commands: []
-            };
-        }
-
-        // Normalize legacy explanation if present
-        if (parsedResult.explanation && !parsedResult.blocks) {
-            parsedResult.blocks = [{
-                type: 'text',
-                content: parsedResult.explanation
-                    .replace(/\[\[math\]\]/g, '$$$$')
-                    .replace(/\[\[\/math\]\]/g, '$$$$')
-                    .replace(/\[math\]/g, '\\(')
-                    .replace(/\[\/math\]/g, '\\)')
-            }];
-            delete parsedResult.explanation;
-        }
-
-        if (parsedResult.blocks) {
-            parsedResult.blocks.forEach(block => {
-                if (block.content && typeof block.content === 'string') {
-                    block.content = block.content
-                        .replace(/\[\[math\]\]/g, '$$$$')
-                        .replace(/\[\[\/math\]\]/g, '$$$$')
-                        .replace(/\[math\]/g, '\\(')
-                        .replace(/\[\/math\]/g, '\\)');
-                }
-            });
-        }
-
-        res.json({
-            success: true,
-            result: parsedResult
-        });
-
-    } catch (error) {
-        if (res.headersSent || req.backendSignal.aborted) return;
-        console.error('❌ Analyze Board Error:', error);
-        res.status(500).json({ success: false, error: 'Internal Server Error' });
-    }
-});
-
-// Rephrase API for AI Board Modes
-app.post('/api/rephrase-board', requireAuth, boardQuota, boardRateLimit, sharedAiConcurrency, textAiConcurrency, standardAiDeadline, async (req, res) => {
-    try {
-        const { text, mode } = req.body;
-        const groqApiKey = process.env.GROQ_API_KEY;
-
-        if (!groqApiKey) {
-            return res.status(500).json({ success: false, error: 'AI service configuration missing' });
-        }
-
-        if (!text || !mode) {
-            return res.status(400).json({ success: false, error: 'Missing text or mode' });
-        }
-
-        let modeInstruction = "";
-        switch (mode) {
-            case 'english':
-                modeInstruction = "Respond in formal English. Be professional, encouraging, student-friendly, and concise but clear. No slang.";
-                break;
-            case 'hindi':
-                modeInstruction = "Respond in pure, formal Hindi using Devanagari script. Ensure explanations are easy for CBSE students. Avoid robotic translation.";
-                break;
-            case 'hinglish':
-                modeInstruction = "Respond in extremely natural Indian Hinglish. Mix Hindi and English naturally (e.g. 'Dekho yaha basically addition ho raha hai.'). Do NOT translate technical terms. No exaggerated slang. Speak like educated real Indian students.";
-                break;
-            case 'teacher':
-                modeInstruction = "Explain like an experienced Indian CBSE tuition teacher. Patiently reinforce concepts, warn about common mistakes, emphasize exam relevance, and repeat key concepts (e.g. 'Beta, yaha students usually mistake kar dete hain').";
-                break;
-            default:
-                modeInstruction = "Respond naturally.";
-        }
-
-        const prompt = `You are an educational assistant. Rephrase the following explanation into the requested mode. Limit to 250 words. Do not change facts.
-
-Requested Mode Instruction:
-${modeInstruction}
-
-IMPORTANT: Format all mathematical equations using standard LaTeX delimiters ($$ for block math, and \\( \\) for inline math).
-
-Explanation to rephrase:
-${text}`;
-
-        const requestBody = {
-            model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
-            messages: [{ role: 'system', content: prompt }],
-            temperature: 0.7,
-            max_tokens: 1024
-        };
-
-        let response;
-        try {
-            response = await fetchWithRetry('https://api.groq.com/openai/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${groqApiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestBody),
-                signal: req.backendSignal
-            });
-        } catch (fetchError) {
-            if (res.headersSent || req.backendSignal.aborted) return;
-            console.error('[AI] Rephrase API fetch error:', fetchError);
-            return res.status(fetchError.status || 502).json({ success: false, error: 'Rephrase failed after retries' });
-        }
-
-        const data = await response.json();
-
-        if (!response.ok || !data.choices || data.choices.length === 0) {
-            console.error('[AI] Rephrase Error:', data);
-            return res.status(502).json({ success: false, error: 'Rephrase failed' });
-        }
-
-        res.json({
-            success: true,
-            result: data.choices[0].message.content
-        });
-
-    } catch (error) {
-        if (res.headersSent || req.backendSignal.aborted) return;
-        console.error('❌ Rephrase API Error:', error);
-        res.status(500).json({ success: false, error: 'Internal Server Error' });
-    }
-});
-
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // ElevenLabs TTS Route  (nb-tts — new addition)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1596,7 +1237,9 @@ const applyHinglishPronunciationFixes = (text) => {
         .trim();
 };
 
-app.post('/api/tts', requireAuth, ttsQuota, boardRateLimit, sharedAiConcurrency, ttsConcurrency, ttsDeadline, async (req, res) => {
+app.post('/api/tts', requireAuth, createAiUsageMiddleware({ feature: AI_FEATURES.TTS, route: '/api/tts', provider: 'elevenlabs', model: 'eleven_multilingual_v2' }), ttsQuota, sharedAiConcurrency, ttsConcurrency, ttsDeadline, async (req, res) => {
+    let ttsProviderRequestStarted = false;
+    let ttsProviderAttemptRecorded = false;
     try {
         const { text, mode = 'hinglish' } = req.body;
 
@@ -1641,6 +1284,7 @@ app.post('/api/tts', requireAuth, ttsQuota, boardRateLimit, sharedAiConcurrency,
 
         const settings = voiceSettings[mode] || voiceSettings['hinglish'];
 
+        ttsProviderRequestStarted = true;
         const elResponse = await fetchWithRetry(
             `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,
             {
@@ -1661,12 +1305,34 @@ app.post('/api/tts', requireAuth, ttsQuota, boardRateLimit, sharedAiConcurrency,
         );
 
         if (!elResponse.ok) {
+            recordAiProviderAttempt(req, {
+                provider: 'elevenlabs',
+                model: 'eleven_multilingual_v2',
+                status: 'failed',
+                errorCategory: elResponse.status === 429 ? 'rate_limited' : 'provider_error',
+                modalityMetrics: { inputCharacters: processedText.length }
+            });
+            ttsProviderAttemptRecorded = true;
             const errText = await elResponse.text();
             console.error('❌ ElevenLabs TTS error:', elResponse.status, errText);
             return res.status(502).json({
                 error: 'Text-to-speech conversion failed.'
             });
         }
+        const audioContentLengthHeader = elResponse.headers.get('content-length');
+        const audioContentLength = audioContentLengthHeader === null ? null : Number(audioContentLengthHeader);
+        recordAiProviderAttempt(req, {
+            provider: 'elevenlabs',
+            model: 'eleven_multilingual_v2',
+            status: 'success',
+            modalityMetrics: {
+                inputCharacters: processedText.length,
+                ...(audioContentLength !== null && Number.isFinite(audioContentLength) && audioContentLength >= 0
+                    ? { audioOutputBytes: audioContentLength }
+                    : {})
+            }
+        });
+        ttsProviderAttemptRecorded = true;
 
         // Stream audio back to client
         res.setHeader('Content-Type', 'audio/mpeg');
@@ -1677,6 +1343,14 @@ app.post('/api/tts', requireAuth, ttsQuota, boardRateLimit, sharedAiConcurrency,
         if (!req.backendSignal.aborted && !res.writableEnded) res.end();
 
     } catch (error) {
+        if (ttsProviderRequestStarted && !ttsProviderAttemptRecorded) {
+            recordAiProviderAttempt(req, {
+                provider: 'elevenlabs',
+                model: 'eleven_multilingual_v2',
+                status: 'failed',
+                errorCategory: error.code === 'UPSTREAM_TIMEOUT' || error.name === 'AbortError' ? 'timeout' : 'provider_error'
+            });
+        }
         if (res.destroyed || res.writableEnded || req.backendSignal.aborted) return;
         console.error('❌ /api/tts error:', error);
         if (!res.headersSent) {
@@ -1717,6 +1391,7 @@ app.get('/health', (req, res) => {
 
 // Mount NeoBranium Multimodal Live AI session router
 app.use('/api', sessionRouter);
+app.use('/api/ai-usage', createAiUsageRouter());
 
 // Mount NeoBranium Question Paper & Answer Sheet Evaluation router
 app.use('/api/paper', paperRouter);
@@ -1758,38 +1433,6 @@ app.get('/api/stats', async (req, res) => {
     } catch (error) {
         console.error("Stats processing error:", error);
         res.status(500).json({ error: "Failed to load stats" });
-    }
-});
-
-app.post('/api/board-heartbeat', async (req, res) => {
-    const userId = req.session?.firebaseUid || req.session?.id;
-    if (!userId) return res.status(403).json({ error: 'No session' });
-    queueManager.heartbeat(userId);
-    res.json({ ok: true });
-});
-
-app.post('/api/board-session-end', async (req, res) => {
-    const userId = req.session?.firebaseUid || req.session?.id;
-    if (!userId) return res.status(403).json({ error: 'No session' });
-    queueManager.leave(userId);
-    await endSession(userId).catch(e => console.error(e));
-    res.json({ ok: true });
-});
-
-app.get('/api/board-queue-status', async (req, res) => {
-    try {
-        const userId = req.session?.firebaseUid || req.session?.id;
-        // If no session exists yet, this is a fresh user — grant full access (don't block as "expired")
-        if (!userId) {
-            return res.json({ sessionData: null });
-        }
-        const position = queueManager.getPosition(userId);
-        const { getSessionStatus } = await import('./firebaseAdmin.js');
-        const sessionData = await getSessionStatus(userId).catch(() => null);
-        res.json({ ...position, sessionData });
-    } catch (error) {
-        console.error('Error in /api/board-queue-status:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
@@ -2220,7 +1863,6 @@ app.use((req, res, next) => {
     if (pathLower.startsWith('/css/') || 
         pathLower.startsWith('/js/') || 
         pathLower.startsWith('/htmls/') || 
-        pathLower.startsWith('/ai-board/') ||
         pathLower.startsWith('/neoboard/') ||
         pathLower.startsWith('/blog/') ||
         pathLower.startsWith('/notes/') ||

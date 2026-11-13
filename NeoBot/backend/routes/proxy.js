@@ -2,6 +2,11 @@ import { WebSocketServer, WebSocket } from 'ws';
 import admin from 'firebase-admin';
 import { logSecurityEvent } from '../../../firebaseAdmin.js';
 import { getLiveModel } from '../../../gemini-models.js';
+import {
+  AI_FEATURES,
+  createAiUsageRequest,
+  waitForAiUsageDelivery
+} from '../../../services/aiUsageTracker.js';
 
 /**
  * Verifies a Firebase ID token passed as a query parameter on WebSocket upgrade.
@@ -116,6 +121,44 @@ export function setupWebSocketProxy(server) {
 
     const model = getLiveModel();
     const geminiWsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${apiKey}`;
+    const usageRequest = createAiUsageRequest({
+      uid,
+      identityVerified: typeof clientWs._uid === 'string' && clientWs._uid.length > 0,
+      feature: AI_FEATURES.GEMINI_LIVE,
+      route: '/ws/live',
+      provider: 'gemini',
+      model
+    });
+    const usageStartedAt = Date.now();
+    let geminiOpened = false;
+    let usageFinalized = false;
+    let clientToProviderFrameBytes = 0;
+    let providerToClientFrameBytes = 0;
+    const finalizeUsage = (status, errorCategory = null) => {
+      if (usageFinalized) return;
+      usageFinalized = true;
+      usageRequest.recordAttempt({
+        provider: 'gemini',
+        model,
+        status: geminiOpened ? 'success' : 'failed'
+      });
+      usageRequest.finalize({
+        status,
+        errorCategory,
+        modalityMetrics: {
+          sessionDurationMs: Math.max(0, Date.now() - usageStartedAt),
+          clientToProviderFrameBytes,
+          providerToClientFrameBytes
+        }
+      });
+      void waitForAiUsageDelivery(usageRequest).then(({ timedOut, results }) => {
+        if (timedOut || results.some(result => result?.durablyAccepted !== true)) {
+          console.error('[WS Proxy] Usage event durable acceptance was not confirmed.', {
+            state: results.find(result => result?.durablyAccepted !== true)?.state || 'timeout'
+          });
+        }
+      });
+    };
 
     console.log(`[WS Proxy] Authenticated user uid=${uid} connected. Bridging to Gemini Live (model: ${model})...`);
     const geminiWs = new WebSocket(geminiWsUrl);
@@ -126,6 +169,7 @@ export function setupWebSocketProxy(server) {
     let cleaned = false; // Guard against double-cleanup race condition
 
     geminiWs.on('open', () => {
+      geminiOpened = true;
       console.log('[WS Proxy] Connected to Gemini Live API. Flushing queued messages...');
       while (clientMessageQueue.length > 0 && geminiWs.readyState === WebSocket.OPEN) {
         const queued = clientMessageQueue.shift();
@@ -136,6 +180,7 @@ export function setupWebSocketProxy(server) {
 
     // Forward messages: Client -> Gemini
     clientWs.on('message', (data, isBinary) => {
+      clientToProviderFrameBytes += data.length;
       if (geminiWs.readyState === WebSocket.OPEN) {
         geminiWs.send(data, { binary: isBinary });
       } else if (geminiWs.readyState === WebSocket.CONNECTING) {
@@ -151,6 +196,7 @@ export function setupWebSocketProxy(server) {
 
     // Forward messages: Gemini -> Client
     geminiWs.on('message', (data, isBinary) => {
+      providerToClientFrameBytes += data.length;
       if (clientWs.readyState === WebSocket.OPEN) {
         clientWs.send(data, { binary: isBinary });
       }
@@ -180,16 +226,20 @@ export function setupWebSocketProxy(server) {
 
     clientWs.on('close', (code, reason) => {
       console.log(`[WS Proxy] uid=${uid} disconnected (${code}: ${reason.toString() || 'no reason'})`);
+      const completedNormally = code === 1000 && geminiOpened;
+      finalizeUsage(completedNormally ? 'success' : 'cancelled', completedNormally ? null : 'client_disconnected');
       cleanup();
     });
 
     clientWs.on('error', (err) => {
       console.error(`[WS Proxy] Client error (uid=${uid}):`, err.message);
+      finalizeUsage('failed', 'client_error');
       cleanup();
     });
 
     geminiWs.on('close', (code, reason) => {
       const reasonStr = reason.toString() || 'Gemini disconnected';
+      finalizeUsage(code === 1000 ? 'success' : 'failed', code === 1000 ? null : 'provider_disconnect');
       console.log(`[WS Proxy] Gemini disconnected (${code}: ${reasonStr})`);
       if (clientWs.readyState === WebSocket.OPEN) {
         // Code must be valid WebSocket close code (1000-4999)
@@ -201,6 +251,7 @@ export function setupWebSocketProxy(server) {
 
     geminiWs.on('error', (err) => {
       console.error('[WS Proxy] Gemini Live error:', err.message);
+      finalizeUsage('failed', 'provider_error');
       if (clientWs.readyState === WebSocket.OPEN) {
         clientWs.close(1011, err.message.slice(0, 120));
       }

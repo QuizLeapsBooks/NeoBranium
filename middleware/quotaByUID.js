@@ -18,7 +18,7 @@ import { db, logSecurityEvent, checkAndTrackUsageByUID } from '../firebaseAdmin.
  * Factory: creates a quota middleware for a specific endpoint category.
  *
  * @param {Object} options
- * @param {string}  options.category     Firestore sub-collection key (e.g. 'chat', 'solver', 'board')
+ * @param {string}  options.category     Firestore sub-collection key (e.g. 'chat', 'solver')
  * @param {number}  options.dailyLimit   Max requests per 24h UTC day
  * @param {boolean} [options.failOpen]   If true, allows on Firestore error (default: true for availability)
  * @returns Express middleware
@@ -96,13 +96,6 @@ export const solverQuota = createQuotaMiddleware({
 export const handwritingQuota = createQuotaMiddleware({
   category: 'blackboard_handwriting',
   dailyLimit: parseInt(process.env.QUOTA_HANDWRITING_DAILY || '20', 10),
-  failOpen: false
-});
-
-// /api/analyze-board, /api/rephrase-board, /api/chat-stream — AI Board (expensive)
-export const boardQuota = createQuotaMiddleware({
-  category: 'board',
-  dailyLimit: parseInt(process.env.QUOTA_BOARD_DAILY || '30', 10),
   failOpen: false
 });
 

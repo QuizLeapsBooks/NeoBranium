@@ -6,7 +6,8 @@
     "node": "24.22.1"
   },
   "scripts": {
-    "test": "node --test *.test.js services/*.test.js utils/*.test.js NeoBoard/*.test.js",
+    "test": "node --test *.test.js services/*.test.js utils/*.test.js routes/*.test.js NeoBoard/*.test.js js/ai-usage-dashboard-model.test.js",
+    "ai-usage:reconcile": "node scripts/reconcile-ai-usage-outbox.js",
     "test:live-ai": "node NeoBot/test-frontend.js && node NeoBot/test-server.js",
     "start": "node server.js",
     "dev": "nodemon server.js",

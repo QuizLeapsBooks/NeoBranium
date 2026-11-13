@@ -3,6 +3,12 @@ import { getRobotPersonality } from '../config/robot-personality.js';
 import { requireAuth } from '../../../middleware/requireAuth.js';
 import { liveSessionQuota } from '../../../middleware/quotaByUID.js';
 import { getLiveModel } from '../../../gemini-models.js';
+import {
+  AI_FEATURES,
+  createAiUsageMiddleware,
+  recordAiProviderAttempt,
+  normalizeGeminiUsage
+} from '../../../services/aiUsageTracker.js';
 
 export const sessionRouter = Router();
 
@@ -12,7 +18,7 @@ export const sessionRouter = Router();
  * Requires a valid Firebase ID token in Authorization: Bearer <token>.
  * Applies a per-UID daily quota to prevent abuse of Gemini Live API.
  */
-sessionRouter.post('/session-token', requireAuth, liveSessionQuota, async (req, res) => {
+sessionRouter.post('/session-token', requireAuth, createAiUsageMiddleware({ feature: AI_FEATURES.GEMINI_LIVE, route: '/api/session-token', provider: 'gemini', model: () => getLiveModel() }), liveSessionQuota, async (req, res) => {
   // Read API key from environment (must be set in .env or Render env vars)
   const apiKey = process.env.GEMINI_API_KEY;
 
@@ -52,6 +58,13 @@ sessionRouter.post('/session-token', requireAuth, liveSessionQuota, async (req, 
     const data = await googleResponse.json();
 
     if (googleResponse.ok && (data.name || data.token)) {
+      recordAiProviderAttempt(req, {
+        provider: 'gemini',
+        model,
+        status: 'success',
+        usage: normalizeGeminiUsage(data),
+        modalityMetrics: { sessionTokenIssued: true }
+      });
       const tokenValue = data.name || data.token;
       return res.status(200).json({
         ok: true,
@@ -70,6 +83,13 @@ sessionRouter.post('/session-token', requireAuth, liveSessionQuota, async (req, 
       status: googleResponse.status,
       errorStatus: data.error?.status,
       message: data.error?.message
+    });
+    recordAiProviderAttempt(req, {
+      provider: 'gemini',
+      model,
+      status: 'failed',
+      usage: normalizeGeminiUsage(data),
+      errorCategory: googleResponse.status === 429 ? 'rate_limited' : 'provider_error'
     });
 
     // If Google reports that the credentials/API key are fundamentally invalid
@@ -94,6 +114,12 @@ sessionRouter.post('/session-token', requireAuth, liveSessionQuota, async (req, 
     });
 
   } catch (err) {
+    recordAiProviderAttempt(req, {
+      provider: 'gemini',
+      model,
+      status: 'failed',
+      errorCategory: 'provider_error'
+    });
     console.error('[Session] Error during token provisioning:', err.message);
     
     // In case of network error reaching Google auth_tokens, provide proxy mode

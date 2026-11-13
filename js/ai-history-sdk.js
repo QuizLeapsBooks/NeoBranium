@@ -345,7 +345,7 @@ export class AiHistorySDK {
 
     /* ── Helpers ─────────────────────────────────────────────────────────── */
     _uuid() { return typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : (Math.random().toString(36).slice(2) + Date.now().toString(36)); }
-    _featureLabel() { return ({ neolens:'NeoLens', neobot:'NeoBot', doubt_solver:'Doubt Solver', ai_board:'AI Board', neoboard:'NeoBoard', ai_assistant:'AI Assistant', question_paper:'Question Paper', general:'AI Chat' })[this._feature] || this._feature; }
+    _featureLabel() { return ({ neolens:'NeoLens', neobot:'NeoBot', doubt_solver:'Doubt Solver', ai_board:'Retired AI Board (historical)', neoboard:'NeoBoard', ai_assistant:'AI Assistant', question_paper:'Question Paper', general:'AI Chat' })[this._feature] || this._feature; }
     _esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     async _fileToDataUri(file) {
         if (!file || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {

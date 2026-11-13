@@ -2477,7 +2477,7 @@ footer {
   transform: translateX(4px);
 }
 
-/* AI Suite Showcase Cards (AI Board & Paper Generator) */
+/* AI Suite Showcase Cards (NeoBoard & Paper Generator) */
 .ai-duo-section {
   display: grid;
   grid-template-columns: 1fr 1fr;

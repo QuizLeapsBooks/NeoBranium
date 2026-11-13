@@ -24,7 +24,7 @@ PRIVATE_PATHS = {
     "htmls/doubt/index.html",
     "htmls/bot/bot.html",
     "htmls/question-paper_generator-ai/ai-generate.html",
-    "ai-board/ai-board.html",
+    "htmls/ai-usage.html",
     "architecture-map.html",
     "header.html",
     "zohoverify/verifyforzoho.html",

@@ -3,6 +3,7 @@ import DOMPurify from "dompurify";
 import { collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 import { AiHistorySDK } from "/js/ai-history-sdk.js";
+import { createAuthenticatedFetch } from "./neolens-api.js";
 
 // ── IndexedDB helpers for client-side image storage ───────────────────────
 // Images are stored locally in the browser and never uploaded to Firebase.
@@ -53,10 +54,23 @@ async function loadImageFromIDB(key) {
 
 document.addEventListener('DOMContentLoaded', () => {
     let loggedInUserId = null;
+    let authStateResolved = false;
+    let resolveInitialAuthState;
+    const initialAuthState = new Promise(resolve => {
+        resolveInitialAuthState = resolve;
+    });
+    const authenticatedFetch = createAuthenticatedFetch({
+        getCurrentUser: () => auth.currentUser,
+        waitForUser: () => authStateResolved ? Promise.resolve(auth.currentUser) : initialAuthState
+    });
     // AI History SDK instance (initialised after auth)
     let aiHistory = null;
 
     onAuthStateChanged(auth, (user) => {
+        if (!authStateResolved) {
+            authStateResolved = true;
+            resolveInitialAuthState(user);
+        }
         if (user) {
             loggedInUserId = user.uid;
             // Init SDK only once
@@ -262,30 +276,21 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStatus('Quantum System Online. Waiting for input...', false);
 
     const getApiBaseUrl = () => {
+        const host = window.location.hostname.replace(/^\[|\]$/g, '');
+        if (['localhost', '127.0.0.1', '::1'].includes(host)) {
+            return `${window.location.protocol}//${host === '::1' ? '[::1]' : host}:3000/api`;
+        }
         // Allow an explicit override via a <meta name="backend-url"> tag
         const metaBackend = document.querySelector('meta[name="backend-url"]');
         if (metaBackend && metaBackend.getAttribute('content')) {
             const val = metaBackend.getAttribute('content');
             return val.endsWith('/') ? `${val}api` : `${val}/api`;
         }
-        // In local development (Live Server / localhost) hit the local Express server
-        const host = window.location.hostname;
-        if (host === 'localhost' || host === '127.0.0.1') {
-            return 'http://localhost:3000/api';
-        }
         // Production: always use the hosted backend
         return 'https://neobranium.onrender.com/api';
     };
 
     const API_BASE_URL = getApiBaseUrl();
-
-    const getAuthHeaders = async () => {
-        const headers = { 'Content-Type': 'application/json' };
-        if (auth.currentUser) {
-            headers.Authorization = `Bearer ${await auth.currentUser.getIdToken()}`;
-        }
-        return headers;
-    };
 
     // --- Smooth Reveal Effect ---
     const revealContent = (element, html) => {
@@ -451,9 +456,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return { conversationId: null, imageSaved: false };
             }) : Promise.resolve(null);
 
-            const response = await fetch(`${API_BASE_URL}/gemini-solve`, {
+            const response = await authenticatedFetch(`${API_BASE_URL}/gemini-solve`, {
                 method: 'POST',
-                headers: await getAuthHeaders(),
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({
                     base64: base64Data,
@@ -470,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (contentType && contentType.includes("text/html")) {
                     errorMsg = "API route not found (returned HTML). Check your hosting configuration.";
                 }
-                throw new Error(errorMsg);
+                throw Object.assign(new Error(errorMsg), { status: response.status });
             }
 
             if (!contentType || !contentType.includes("application/json")) {
@@ -520,12 +525,27 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
         } catch (error) {
-            console.error("NeoLens Solve Error:", error);
-            updateStatus('System Error detected.', false);
-            outputContent.innerHTML = `<div style="color: #ff4d4d; padding: 20px; background: rgba(255, 77, 77, 0.1); border-radius: 12px; border: 1px solid rgba(255, 77, 77, 0.3);">
-                <p><i class="fa-solid fa-triangle-exclamation"></i> <strong>NeoLens couldn't complete this request right now. Please try again.</strong></p>
-                <p style="font-size: 13px; margin-top: 10px;">If the issue persists, please try uploading a clearer image.</p>
-            </div>`;
+            console.warn('[NeoLens] Image analysis request failed.', {
+                status: error.status || null,
+                code: error.code || 'request_failed'
+            });
+            const message = error.code === 'AUTH_REQUIRED' || error.code === 'AUTH_EXPIRED' || error.status === 401
+                ? 'Sign in again to use NeoLens.'
+                : [429, 503].includes(error.status)
+                    ? 'NeoLens is temporarily busy. Please try again shortly.'
+                    : error.status === 504
+                        ? 'NeoLens took too long to respond. Please try again.'
+                        : error.status === 502
+                            ? 'NeoLens could not reach its AI service. Please try again shortly.'
+                            : error instanceof TypeError
+                                ? 'Could not reach the NeoBranium server. Check your connection and try again.'
+                                : 'NeoLens could not complete this request. Please try again.';
+            updateStatus(message, false);
+            outputContent.replaceChildren();
+            const errorMessage = document.createElement('p');
+            errorMessage.textContent = message;
+            errorMessage.style.cssText = 'color:#ff8a8a;padding:20px;background:rgba(255,77,77,.1);border-radius:12px;border:1px solid rgba(255,77,77,.3)';
+            outputContent.appendChild(errorMessage);
         } finally {
             solveBtn.disabled = false;
             uploadArea.classList.remove('processing');
@@ -929,9 +949,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const fullSolution = outputContent.innerText;
-            const response = await fetch(`${API_BASE_URL}/chat`, {
+            const response = await authenticatedFetch(`${API_BASE_URL}/chat`, {
                 method: 'POST',
-                headers: await getAuthHeaders(),
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({
                     message: `
@@ -946,7 +966,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
             });
 
-            if (!response.ok) throw new Error('Network error');
+            if (!response.ok) {
+                const errorBody = await response.json().catch(() => null);
+                throw Object.assign(new Error(errorBody?.error || 'NeoLens could not answer this follow-up.'), {
+                    status: response.status
+                });
+            }
             const data = await response.json();
 
             loadingDiv.remove();
@@ -978,8 +1003,15 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
         } catch (error) {
-            console.error('Follow-up Error:', error);
-            loadingDiv.innerHTML = '<span style="color:var(--error)">NeoLens couldn\'t complete this request right now. Please try again.</span>';
+            console.warn('[NeoLens] Follow-up request failed.', {
+                status: error.status || null,
+                code: error.code || 'request_failed'
+            });
+            loadingDiv.textContent = error.status === 503 || error.status === 429
+                ? 'NeoLens is temporarily busy. Please try your follow-up again shortly.'
+                : error.code === 'AUTH_REQUIRED' || error.code === 'AUTH_EXPIRED' || error.status === 401
+                    ? 'Sign in again to ask a follow-up question.'
+                    : 'NeoLens could not answer this follow-up. Please try again.';
         } finally {
             isFollowUpLoading = false;
             sendFollowUpBtn.disabled = false;
@@ -1051,9 +1083,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const mimeType = currentFile ? currentFile.type : 'image/jpeg';
 
-            const response = await fetch(`${API_BASE_URL}/tutor/create-quiz`, {
+            const response = await authenticatedFetch(`${API_BASE_URL}/tutor/create-quiz`, {
                 method: 'POST',
-                headers: await getAuthHeaders(),
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
                 body: JSON.stringify({
                     base64: base64Data,
@@ -1070,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const errData = await response.json();
                     errMsg = errData.error || errMsg;
                 }
-                throw new Error(errMsg);
+                throw Object.assign(new Error(errMsg), { status: response.status });
             }
 
             if (!contentType || !contentType.includes('application/json')) {
@@ -1087,7 +1119,10 @@ document.addEventListener('DOMContentLoaded', () => {
             void saveQuizHistory(data.quiz, 'quiz', quizId);
 
         } catch (error) {
-            console.error('Quiz Generation Error:', error);
+            console.warn('[NeoLens] Quiz generation request failed.', {
+                status: error.status || null,
+                code: error.code || 'request_failed'
+            });
             quizContent.innerHTML = `
                 <div style="padding:20px; color:var(--error); background:rgba(239,68,68,0.08);
                      border-radius:10px; border:1px solid rgba(239,68,68,0.25); margin:15px;">
@@ -1288,9 +1323,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             : currentBase64;
                         const mimeType = currentFile ? currentFile.type : 'image/jpeg';
 
-                        const response = await fetch(`${getApiBaseUrl()}/tutor/practice-similar`, {
+                        const response = await authenticatedFetch(`${getApiBaseUrl()}/tutor/practice-similar`, {
                             method: 'POST',
-                            headers: await getAuthHeaders(),
+                            headers: { 'Content-Type': 'application/json' },
                             credentials: 'include',
                             body: JSON.stringify({
                                 base64: base64Data,
@@ -1308,7 +1343,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const errData = await response.json();
                                 errMsg = errData.error || errMsg;
                             }
-                            throw new Error(errMsg);
+                            throw Object.assign(new Error(errMsg), { status: response.status });
                         }
 
                         if (!contentType || !contentType.includes('application/json')) {
@@ -1329,8 +1364,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                         
                     } catch (error) {
-                        console.error('Practice Generation Error:', error);
-                        alert('NeoLens couldn\'t complete this request right now. Please try again.');
+                        console.warn('[NeoLens] Practice request failed.', {
+                            status: error.status || null,
+                            code: error.code || 'request_failed'
+                        });
+                        alert(error.status === 503 || error.status === 429
+                            ? 'NeoLens is temporarily busy. Please try again shortly.'
+                            : 'NeoLens couldn\'t complete this request right now. Please try again.');
                         practiceBtn.disabled = false;
                         practiceBtn.innerHTML = '<i class="fa-solid fa-bolt"></i> Practice Similar Questions';
                     } finally {

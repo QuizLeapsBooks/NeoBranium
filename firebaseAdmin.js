@@ -50,52 +50,10 @@ export function setDb(customDb) {
 }
 
 /**
- * Checks if the user is allowed to use the AI board and tracks usage.
- * @param {string} userId - Verified Firebase UID.
- * @returns {Promise<{allowed: boolean, minutesUsed: number, remainingMinutes: number, resetAt: Date|null}>}
- */
-export async function checkAndTrackUsage(userId) {
-  const fallback = { allowed: false, unavailable: true, minutesUsed: 0, remainingMinutes: 0, resetAt: null };
-  
-  if (!db) {
-    console.warn('Firebase DB not initialized. Returning fallback.');
-    return fallback;
-  }
-
-  try {
-    const docRef = db.collection('aiboard_sessions').doc(userId);
-    const now = new Date();
-    const sixHours = 6 * 60 * 60 * 1000;
-    return await db.runTransaction(async (txn) => {
-      const snapshot = await txn.get(docRef);
-      const data = snapshot.exists ? snapshot.data() : {};
-      let minutesUsed = Number(data.minutesUsed) || 0;
-      let periodStart = data.periodStart?.toDate ? data.periodStart.toDate() : now;
-      const sessionStart = data.sessionStart?.toDate ? data.sessionStart.toDate() : null;
-      if (now - periodStart > sixHours) { minutesUsed = 0; periodStart = now; }
-      if (sessionStart && data.isActive === true) minutesUsed += Math.max(0, (now - sessionStart) / 60000);
-      if (minutesUsed >= 20) return { allowed: false, minutesUsed, remainingMinutes: 0, resetAt: new Date(periodStart.getTime() + sixHours) };
-      txn.set(docRef, {
-        minutesUsed,
-        periodStart,
-        sessionStart: now,
-        isActive: true,
-        lastActive: admin.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
-      return { allowed: true, minutesUsed, remainingMinutes: Math.max(0, 20 - minutesUsed), resetAt: new Date(periodStart.getTime() + sixHours) };
-    });
-
-  } catch (error) {
-    console.error('Firebase error in checkAndTrackUsage:', error);
-    return fallback;
-  }
-}
-
-/**
  * Checks and tracks daily AI quota by verified Firebase UID.
  * Cross-device safe, bypass-proof via Firestore transactions.
  * @param {string} uid - Verified Firebase UID
- * @param {string} category - AI category (e.g. 'chat', 'solver', 'board', 'tts', 'live_session')
+ * @param {string} category - AI category (e.g. 'chat', 'solver', 'tts', 'live_session')
  * @param {number} dailyLimit - Daily quota limit
  * @returns {Promise<{allowed: boolean, count: number, limit: number, remaining: number, resetAt: string}>}
  */
@@ -131,70 +89,6 @@ export async function checkAndTrackUsageByUID(uid, category = 'chat', dailyLimit
 
     return { allowed: true, count: count + 1, limit: dailyLimit, remaining: dailyLimit - (count + 1), resetAt };
   });
-}
-
-/**
- * Ends the user's session and updates usage.
- * @param {string} userId - Verified Firebase UID.
- * @returns {Promise<number>} Updated minutes used.
- */
-export async function endSession(userId) {
-  if (!db) {
-    console.warn('Firebase DB not initialized in endSession.');
-    return 0;
-  }
-
-  try {
-    const docRef = db.collection('aiboard_sessions').doc(userId);
-    const doc = await docRef.get();
-    
-    if (!doc.exists) return 0;
-    
-    const data = doc.data();
-    let minutesUsed = data.minutesUsed || 0;
-    const sessionStart = data.sessionStart ? data.sessionStart.toDate() : null;
-    const isActive = data.isActive;
-    const now = new Date();
-    
-    if (isActive && sessionStart) {
-      const elapsed = (now - sessionStart) / (1000 * 60);
-      minutesUsed += elapsed;
-      if (minutesUsed > 20) minutesUsed = 20; // clamp to max 20
-    }
-    
-    await docRef.update({
-      isActive: false,
-      minutesUsed: minutesUsed,
-      lastActive: admin.firestore.FieldValue.serverTimestamp(),
-      sessionStart: null
-    });
-    
-    return minutesUsed;
-  } catch (error) {
-    console.error('Error in endSession:', error);
-    return 0;
-  }
-}
-
-/**
- * Gets the raw session status.
- * @param {string} userId - The session ID of the user (req.session.id).
- * @returns {Promise<object|null>} Raw data or null.
- */
-export async function getSessionStatus(userId) {
-  if (!db) {
-    console.warn('Firebase DB not initialized in getSessionStatus.');
-    return null;
-  }
-
-  try {
-    const docRef = db.collection('aiboard_sessions').doc(userId);
-    const doc = await docRef.get();
-    return doc.exists ? doc.data() : null;
-  } catch (error) {
-    console.error('Error in getSessionStatus:', error);
-    return null;
-  }
 }
 
 /**
@@ -251,4 +145,3 @@ export async function logSecurityEvent(eventType, details = {}) {
 }
 
 export { admin, db, rtdb };
-

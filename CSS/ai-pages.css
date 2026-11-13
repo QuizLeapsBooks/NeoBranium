@@ -1,6 +1,6 @@
 /* AI workspace presentation layer. Each screen remains a standalone page with
    its own existing initialization, DOM contract and navigation. */
-body:is(.nb-ai-chat,.nb-neolens,.nb-ai-board,.nb-paper-page) {
+body:is(.nb-ai-chat,.nb-neolens,.nb-paper-page) {
   --ai-page-bg: #f4f6fa;
   --ai-surface: #ffffff;
   --ai-surface-raised: #f8fafc;
@@ -213,54 +213,6 @@ body.nb-neolens .close-modal,
 body.nb-neolens .send-follow-up-btn,
 body.nb-neolens .remove-btn { color: var(--ai-secondary); background: var(--ai-surface); border-color: var(--ai-border); box-shadow: none; }
 body.nb-neolens :is(input,button):focus-visible { outline-color: color-mix(in srgb, var(--ai-accent) 45%, transparent); }
-
-/* AI Board is intentionally an immersive dark canvas; keep its board colors and
-   full-screen/touch behavior, and refine only the surrounding controls/panels. */
-body.nb-ai-board {
-  --bg-color: #101827;
-  --accent-glow: rgba(168,146,240,.16);
-  --btn-bg: #182335;
-  --btn-hover: #223047;
-  --text-color: #e5edf7;
-  --glass-border: #2c3a4e;
-  --font-main: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color-scheme: dark;
-}
-body.nb-ai-board::before,
-body.nb-ai-board::after { display: none; }
-body.nb-ai-board .floating-btn,
-body.nb-ai-board .control-btn { min-height: 44px; color: #e5edf7; background: #182335; border-color: #2c3a4e; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.2); backdrop-filter: none; transition: color .15s ease, background-color .15s ease, border-color .15s ease; }
-body.nb-ai-board .floating-btn:hover,
-body.nb-ai-board .control-btn:hover { color: #fff; background: #223047; border-color: #475569; box-shadow: 0 2px 8px rgba(0,0,0,.24); transform: none; }
-body.nb-ai-board .scan-btn { color: #d9d0ff; border-color: #514477; }
-body.nb-ai-board .scan-btn:hover,
-body.nb-ai-board .scan-btn.scanning { color: #fff; background: #342c50; border-color: #8270b8; box-shadow: none; }
-body.nb-ai-board .mic-btn.listening,
-body.nb-ai-board .mic-btn.thinking { box-shadow: none; }
-body.nb-ai-board .clear-btn:hover { color: #fecaca; background: #382532; border-color: #75404a; box-shadow: none; }
-body.nb-ai-board .controls-container { max-width: calc(100vw - 24px); gap: 8px; padding: 8px; background: #121b2b; border-color: #2c3a4e; border-radius: 14px; box-shadow: 0 4px 16px rgba(0,0,0,.28); backdrop-filter: none; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
-body.nb-ai-board .divider { background: #2c3a4e; }
-body.nb-ai-board .response-modal { color: #e5edf7; background: #182335; border-color: #2c3a4e; box-shadow: 0 -6px 24px rgba(0,0,0,.32); backdrop-filter: none; }
-body.nb-ai-board .modal-header { border-color: #2c3a4e; }
-body.nb-ai-board .modal-title,
-body.nb-ai-board .hint-title { color: #e5edf7; }
-body.nb-ai-board .mode-btn { color: #c0ccdc; background: #1d2a3d; border-color: #2c3a4e; }
-body.nb-ai-board .mode-btn:hover,
-body.nb-ai-board .mode-btn.active { color: #fff; background: #342c50; border-color: #8270b8; }
-body.nb-ai-board .modal-body { color: #e5edf7; }
-body.nb-ai-board .modal-body :is(h2,h3,h4) { color: #c4b5fd; }
-body.nb-ai-board .modal-body code { color: #c4b5fd; background: #253247; }
-body.nb-ai-board .hint-popup,
-body.nb-ai-board .confidence-meter { color: #e5edf7; background: #182335; border-color: #2c3a4e; box-shadow: 0 4px 16px rgba(0,0,0,.26); }
-body.nb-ai-board .hint-header { border-color: #2c3a4e; }
-body.nb-ai-board :is(.floating-btn,.control-btn,.action-btn,.speech-btn,.close-btn,.mode-btn):focus-visible { outline: 3px solid #a892f0; outline-offset: 2px; }
-@media (max-width: 768px) {
-  body.nb-ai-board .controls-container { left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); width: auto; max-width: none; justify-content: flex-start; transform: none; }
-  body.nb-ai-board .control-btn,
-  body.nb-ai-board .floating-btn { flex: 0 0 44px; min-width: 44px; min-height: 44px; padding: 10px; }
-  body.nb-ai-board .toggle-container { flex: 0 0 auto; min-height: 44px; padding: 0 8px; }
-  body.nb-ai-board .response-modal { max-height: 78dvh; }
-}
 
 /* Question Paper Generator */
 body.nb-paper-page {

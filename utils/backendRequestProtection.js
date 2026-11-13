@@ -101,6 +101,8 @@ export async function fetchWithRetry(url, options = {}, config = {}) {
     maxDelayMs = 4_000,
     jitterRatio = 0.25,
     retryable: explicitlyRetryable = false,
+    retryStatusCodesOnly = false,
+    onRetry,
     fetchImpl = fetch
   } = config;
   const boundedBaseDelayMs = Math.max(1, Number(baseDelayMs) || 400);
@@ -145,12 +147,17 @@ export async function fetchWithRetry(url, options = {}, config = {}) {
         status: response.status,
         code: 'UPSTREAM_RETRYABLE_STATUS'
       });
+      if (attempt < attempts) onRetry?.({ attempt, status: response.status, code: lastError.code });
     } catch (error) {
       lastError = controller.signal.aborted
         ? (callerSignal?.aborted ? abortError(callerSignal) : timerError)
         : error;
       if (callerSignal?.aborted) throw abortError(callerSignal);
       if (lastError.code === 'UPSTREAM_TIMEOUT' && !mayRetry) throw lastError;
+      if (retryStatusCodesOnly) throw lastError;
+      if (attempt < attempts) {
+        onRetry?.({ attempt, status: lastError.status || null, code: lastError.code || 'network_error' });
+      }
     } finally {
       if (!responseCleanupTransferred) cleanup();
     }
