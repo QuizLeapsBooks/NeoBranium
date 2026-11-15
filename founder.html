@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Shubham Singh — Founder | NeoBranium</title>
+  <meta name="description"
+    content="Learn about Shubham Singh, the founder and creator of NeoBranium (by Aevorin) — an innovative AI-powered learning platform built for Indian students.">
+  <meta name="keywords"
+    content="Shubham Singh, Founder of NeoBranium, Shubham Singh NeoBranium, Aevorin, AI education, NeoBot, NeoLens, CBSE NCERT AI tutor">
+  <meta name="author" content="Shubham Singh">
+  <meta name="robots" content="index, follow">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/online-graduation_16847316.png" type="image/png">
+
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=Outfit:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+  <!-- Canonical & Alternate URLs -->
+  <link rel="canonical" href="https://neobranium.web.app/founder.html">
+  <link rel="alternate" hreflang="en-IN" href="https://neobranium.web.app/founder.html">
+  <link rel="alternate" hreflang="en" href="https://neobranium.web.app/founder.html">
+  <meta name="language" content="English">
+  <meta name="geo.region" content="IN">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Shubham Singh — Founder | NeoBranium">
+  <meta property="og:description"
+    content="Discover the vision and story of Shubham Singh, founder of NeoBranium — the student-first AI learning platform.">
+  <meta property="og:image" content="https://neobranium.web.app/online-graduation_16847316.png">
+  <meta property="og:url" content="https://neobranium.web.app/founder.html">
+  <meta property="og:type" content="profile">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Shubham Singh — Founder | NeoBranium">
+  <meta name="twitter:description"
+    content="Discover the vision and story of Shubham Singh, founder of NeoBranium — the student-first AI learning platform.">
+  <meta name="twitter:image" content="https://neobranium.web.app/online-graduation_16847316.png">
+
+  <!-- Base Stylesheet -->
+  <link rel="stylesheet" href="/index_css.css">
+
+  <style>
+    /* Scoped Styles for Founder Page */
+    .founder-page {
+      background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .founder-nav-header {
+      background: var(--header-bg);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .founder-nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0.9rem 5%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .founder-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .founder-nav-links a {
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: var(--transition);
+    }
+
+    .founder-nav-links a:hover {
+      color: var(--primary);
+    }
+
+    .founder-main {
+      flex: 1;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2.5rem 5% 4rem;
+      width: 100%;
+    }
+
+    .breadcrumb-nav {
+      margin-bottom: 2rem;
+    }
+
+    .back-home-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      padding: 0.45rem 1rem;
+      background: var(--bg-white);
+      border: 1px solid var(--border-color);
+      border-radius: 9999px;
+      transition: var(--transition);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    }
+
+    .back-home-link:hover {
+      color: var(--primary);
+      border-color: var(--primary);
+      transform: translateX(-3px);
+    }
+
+    /* Hero Profile Card */
+    .founder-hero-card {
+      background: var(--bg-white);
+      border-radius: 24px;
+      border: 1px solid var(--border-color);
+      padding: 3rem;
+      box-shadow: var(--card-shadow);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 2.5rem;
+    }
+
+    .founder-hero-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+    }
+
+    .founder-header-flex {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .founder-avatar-wrap {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1d4ed8 0%, #0ea5e9 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      box-shadow: 0 10px 25px -5px rgba(29, 78, 216, 0.35);
+      border: 4px solid #ffffff;
+      flex-shrink: 0;
+    }
+
+    .founder-title-meta {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .founder-hero-card h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.2;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .founder-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--primary);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .founder-lead {
+      font-size: 1.15rem;
+      line-height: 1.7;
+      color: var(--text-main);
+      font-weight: 450;
+      margin-top: 1rem;
+    }
+
+    /* Content Sections */
+    .founder-section {
+      background: var(--bg-white);
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      padding: 2.2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--card-shadow);
+    }
+
+    .founder-section h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .founder-section h2 i {
+      color: var(--primary);
+      font-size: 1.25rem;
+    }
+
+    .founder-section p {
+      color: #334155;
+      font-size: 1.02rem;
+      line-height: 1.75;
+      margin-bottom: 1rem;
+    }
+
+    .founder-section p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Grid of Innovations */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--bg-light);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 1.4rem;
+      transition: var(--transition);
+    }
+
+    .feature-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.1);
+    }
+
+    .feature-card .feat-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+      font-size: 0.92rem;
+      color: var(--text-dim);
+      line-height: 1.55;
+      margin: 0;
+    }
+
+    /* CTA Section */
+    .founder-cta-box {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 2.5rem;
+      text-align: center;
+      box-shadow: 0 15px 30px -10px rgba(15, 23, 42, 0.4);
+      margin-bottom: 2rem;
+    }
+
+    .founder-cta-box h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.8rem;
+    }
+
+    .founder-cta-box p {
+      color: #94a3b8;
+      max-width: 600px;
+      margin: 0 auto 1.8rem;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    .founder-cta-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-return-home {
+      background: var(--primary);
+      color: #ffffff;
+      text-decoration: none;
+      padding: 0.8rem 1.8rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: var(--transition);
+    }
+
+    .btn-return-home:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-contact {
+      background: transparent;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 0.8rem 1.8rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: var(--transition);
+    }
+
+    .btn-contact:hover {
+      border-color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Footer adjustments */
+    .footer-bottom a {
+      color: inherit;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: var(--transition);
+    }
+
+    .footer-bottom a:hover {
+      color: var(--primary);
+    }
+
+    @media (max-width: 768px) {
+      .founder-hero-card {
+        padding: 2rem 1.5rem;
+      }
+
+      .founder-header-flex {
+        gap: 1.25rem;
+      }
+
+      .founder-hero-card h1 {
+        font-size: 1.85rem;
+      }
+
+      .founder-lead {
+        font-size: 1.05rem;
+      }
+
+      .founder-section {
+        padding: 1.6rem 1.25rem;
+      }
+
+      .founder-cta-box {
+        padding: 2rem 1.25rem;
+      }
+    }
+  </style>
+
+  <!-- Structured Data: Person and EducationalOrganization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Person",
+        "@id": "https://neobranium.web.app/founder.html#person",
+        "name": "Shubham Singh",
+        "jobTitle": "Founder",
+        "description": "Founder and creator of NeoBranium, an AI-powered education and learning platform.",
+        "url": "https://neobranium.web.app/founder.html",
+        "worksFor": {
+          "@id": "https://neobranium.web.app/#organization"
+        }
+      },
+      {
+        "@type": "EducationalOrganization",
+        "@id": "https://neobranium.web.app/#organization",
+        "name": "NeoBranium",
+        "url": "https://neobranium.web.app/",
+        "logo": "https://neobranium.web.app/online-graduation_16847316.png",
+        "founder": {
+          "@id": "https://neobranium.web.app/founder.html#person"
+        },
+        "sameAs": [
+          "https://facebook.com/NeoBranium",
+          "https://instagram.com/aevorinneo",
+          "https://youtube.com/@aevorin-neo",
+          "https://twitter.com/NeoBranium"
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+
+<body class="founder-page">
+
+  <!-- Header & Navigation -->
+  <header class="founder-nav-header">
+    <div class="founder-nav-container">
+      <a href="/index.html" class="logo" style="text-decoration:none; display:flex; align-items:center; gap:0.75rem;">
+        <img src="/online-graduation_16847316.png" alt="NeoBranium - AI Learning Platform Logo" width="36" height="36" style="object-fit:contain;">
+        <span style="font-family:'Outfit',sans-serif; font-weight:800; font-size:1.45rem; color:var(--text-main);">NeoBranium</span>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="founder-nav-links">
+          <li><a href="/index.html">Home</a></li>
+          <li><a href="/about.html">About Us</a></li>
+          <li><a href="/IQ/top-question.html">Top Qs</a></li>
+          <li><a href="/IQ/expected-questions.html">Expected Qs</a></li>
+          <li><a href="/htmls/contactus.html">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="founder-main">
+
+    <!-- Breadcrumb Return Link -->
+    <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+      <a href="/index.html" class="back-home-link">
+        <i class="fas fa-arrow-left"></i>
+        <span>Return to NeoBranium Homepage</span>
+      </a>
+    </nav>
+
+    <!-- Hero Card with Exact H1 -->
+    <article class="founder-hero-card">
+      <div class="founder-header-flex">
+        <div class="founder-avatar-wrap" aria-hidden="true">
+          SS
+        </div>
+        <div class="founder-title-meta">
+          <span class="founder-badge">
+            <i class="fas fa-lightbulb"></i> Platform Founder &amp; Architect
+          </span>
+          <h1>Shubham Singh — Founder</h1>
+          <p style="color:var(--text-dim); font-size:0.95rem; margin:0;">
+            Creator of <strong>NeoBranium</strong> • By <strong>Aevorin</strong>
+          </p>
+        </div>
+      </div>
+
+      <p class="founder-lead">
+        <strong>Shubham Singh</strong> is the founder and creator of <strong>NeoBranium</strong>, an AI-augmented educational ecosystem built under the <strong>Aevorin</strong> brand to empower students across India with world-class, accessible learning technology.
+      </p>
+    </article>
+
+    <!-- Vision & Story Section -->
+    <section class="founder-section">
+      <h2><i class="fas fa-compass"></i> The Vision Behind NeoBranium</h2>
+      <p>
+        NeoBranium was founded by Shubham Singh out of a simple yet profound realization: every student deserves an inspiring, patient, and deeply knowledgeable learning companion. Traditional learning resources are often fragmented, difficult to navigate, or locked behind costly paywalls.
+      </p>
+      <p>
+        Shubham designed NeoBranium as a unified, student-first sanctuary. The platform harmonizes rigorous academic curricula—ranging from NCERT/CBSE Class 9 through 12—with real-time multimodal Artificial Intelligence. Whether a learner is untangling complex chemical reactions, mastering trigonometric proofs, or revising during late-night exam prep, NeoBranium turns confusion into clarity.
+      </p>
+    </section>
+
+    <!-- Key Innovations Engineered -->
+    <section class="founder-section">
+      <h2><i class="fas fa-microchip"></i> AI Innovations Engineered by the Founder</h2>
+      <p>
+        Under Shubham Singh's leadership and technical architecture, NeoBranium has pioneered several flagship tools tailored specifically to the needs of students:
+      </p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feat-icon"><i class="fas fa-robot"></i></div>
+          <h3>NeoBot Live AI</h3>
+          <p>Real-time conversational voice and vision intelligence delivering interactive, bidirectional study mentoring and conceptual coaching.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feat-icon"><i class="fas fa-camera"></i></div>
+          <h3>NeoLens Solver</h3>
+          <p>Computer-vision question solver that extracts handwritten or printed problems and generates step-by-step solutions without confusing jargon.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feat-icon"><i class="fas fa-palette"></i></div>
+          <h3>NeoBoard Canvas</h3>
+          <p>An infinite interactive whiteboard enabling learners to brainstorm, sketch diagrams, and explore mind maps alongside AI guidance.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feat-icon"><i class="fas fa-file-alt"></i></div>
+          <h3>Exam Engine</h3>
+          <p>Intelligent test and question paper generator aligned with CBSE standards, blueprint schemes, and Bloom's taxonomy.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Core Philosophy -->
+    <section class="founder-section">
+      <h2><i class="fas fa-heart"></i> Core Philosophy &amp; Mission</h2>
+      <p>
+        <strong>1. Universal Accessibility:</strong> High-quality learning tools should be freely accessible to every ambitious student, regardless of geography or financial background.
+      </p>
+      <p>
+        <strong>2. Conceptual Depth Over Rote Memorization:</strong> Tools are crafted to instill deep fundamental understanding, encouraging students to ask "why" and "how" instead of merely memorizing answers.
+      </p>
+      <p>
+        <strong>3. Continuous Evolution:</strong> NeoBranium is an ever-evolving ecosystem, continually updated with state-of-the-art AI advancements, verified curriculum resources, and feedback directly from active learners.
+      </p>
+    </section>
+
+    <!-- Action & Return CTA -->
+    <section class="founder-cta-box">
+      <h2>Explore NeoBranium Today</h2>
+      <p>
+        Experience how next-generation AI and structured academic guidance come together to elevate your learning journey.
+      </p>
+      <div class="founder-cta-actions">
+        <a href="/index.html" class="btn-return-home">
+          <i class="fas fa-home"></i> Return to Homepage
+        </a>
+        <a href="/about.html" class="btn-contact">
+          <i class="fas fa-info-circle"></i> About Our Mission
+        </a>
+        <a href="/htmls/contactus.html" class="btn-contact">
+          <i class="fas fa-envelope"></i> Contact Us
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="logo">
+          <img src="/online-graduation_16847316.png" alt="NeoBranium - AI Learning Platform Logo" loading="lazy">
+          <span>NeoBranium</span>
+        </div>
+        <p>A next-gen learning platform for students of all classes.</p>
+        <div class="social-links">
+          <a href="https://facebook.com/NeoBranium" rel="noopener noreferrer" aria-label="Facebook"><i
+              class="fab fa-facebook"></i></a>
+          <a href="https://instagram.com/aevorinneo" rel="noopener noreferrer" aria-label="Instagram"><i
+              class="fab fa-instagram"></i></a>
+          <a href="https://youtube.com/@aevorin-neo" rel="noopener noreferrer" aria-label="YouTube"><i
+              class="fab fa-youtube"></i></a>
+          <a href="https://twitter.com/NeoBranium" rel="noopener noreferrer" aria-label="Twitter"><i
+              class="fab fa-twitter"></i></a>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <h4>AI Suite &amp; Tools</h4>
+        <ul>
+          <li><a href="/NeoBot/index.html"><strong>🤖 NeoBot Live AI</strong></a></li>
+          <li><a href="/htmls/doubt/index.html">📸 NeoLens Solver</a></li>
+          <li><a href="/NeoBoard/board.html">🎨 NeoBoard Canvas</a></li>
+          <li><a href="/htmls/question-paper_generator-ai/ai-generate.html">📝 Exam Paper Generator</a></li>
+          <li><a href="/htmls/neolearn/index.html">👥 NeoLearn Social</a></li>
+          <li><a href="/IQ/expected-questions.html">Expected Questions</a></li>
+          <li><a href="/Notes/detailed-notes.html">All Notes (9–12)</a></li>
+          <li><a href="/blog/blog.html">Blog Articles</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="/about.html">About Us</a></li>
+          <li><a href="/founder.html">Shubham Singh</a></li>
+          <li><a href="/htmls/contactus.html">Contact Us</a></li>
+          <li><a href="/htmls/terms_conditions.html">Terms &amp; Conditions</a></li>
+          <li><a href="/htmls/privacy.html">Privacy Policy</a></li>
+          <li><a href="/architecture-map.html">System Atlas</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-newsletter">
+        <h4>Stay Updated</h4>
+        <p>Subscribe to our newsletter for latest updates.</p>
+
+        <form class="newsletter-form" id="newsletterForm-founder" method="POST"
+          action="https://64416c18.sibforms.com/serve/MUIFAMQH1jddteW_S3AMRx57Rrc7jz_UHdudP4cXQYMdXme0u_zT6ZANoi8Vq41vKc9waTGXlKbXqQ9K1ioOhf-P2mJSrzIgMu_nQ3cyUphJK6EJMUuu890vvVp-2hAhfdPLB5A_HnrAo43oYtWd9KLmxQWYoriZLTCSj9f0txJzBLRCi7eA_TF1Ovn87AAtJVAUWMs_J1po-XRrtQ==">
+          <input type="email" id="EMAIL" name="EMAIL" placeholder="Enter your email" autocomplete="off" required>
+          <input type="hidden" name="locale" value="en">
+          <input type="hidden" name="html_type" value="simple">
+          <input type="text" name="email_address_check" value=""
+            style="display:none !important; position:absolute; left:-9999px; opacity:0; pointer-events:none;"
+            tabindex="-1" aria-hidden="true">
+          <button type="submit" class="btn btn-primary">Subscribe</button>
+        </form>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; <span id="copyright-year">2026</span> NeoBranium. All rights reserved. • Founded by <a href="/founder.html">Shubham Singh</a></p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+
+</html>

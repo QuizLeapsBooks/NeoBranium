@@ -1035,6 +1035,17 @@ footer {
   font-size: 0.9rem;
 }
 
+.footer-bottom a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: var(--transition);
+}
+
+.footer-bottom a:hover {
+  color: var(--primary);
+}
+
 /* Modals */
 .modal {
   display: none;

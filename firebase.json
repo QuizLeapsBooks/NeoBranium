@@ -170,6 +170,11 @@
         "type": 308
       },
       {
+        "source": "/founder",
+        "destination": "/founder.html",
+        "type": 308
+      },
+      {
         "source": "/contact",
         "destination": "/htmls/contactus.html",
         "type": 308
