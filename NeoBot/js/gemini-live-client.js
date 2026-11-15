@@ -45,12 +45,30 @@ export class GeminiLiveClient {
     // 0. Obtain Firebase ID token (set by NeoBot auth gate script in index.html)
     let idToken = null;
     try {
-      if (this.tokenProvider) {
+      if (typeof this.tokenProvider === 'function') {
         idToken = await this.tokenProvider();
-      } else if (typeof window._getNBIdToken === 'function') {
+      }
+      if (!idToken && typeof window !== 'undefined' && typeof window._getNBIdToken === 'function') {
         idToken = await window._getNBIdToken();
       }
+      if (!idToken && typeof window !== 'undefined') {
+        try {
+          const authMod = await import('/js/auth.js');
+          if (authMod?.auth) {
+            if (typeof authMod.auth.authStateReady === 'function') {
+              await authMod.auth.authStateReady();
+            }
+            if (authMod.auth.currentUser) {
+              idToken = await authMod.auth.currentUser.getIdToken();
+            } else if (typeof authMod.signInAnonymously === 'function') {
+              const anon = await authMod.signInAnonymously(authMod.auth);
+              idToken = await anon.user.getIdToken();
+            }
+          }
+        } catch (_) {}
+      }
     } catch (tokenErr) {
+      console.warn('[GeminiLiveClient] Token acquisition failed:', tokenErr.message);
       throw new Error('Authentication required: Please sign in to use NeoBranium Live AI.');
     }
     if (!idToken) {

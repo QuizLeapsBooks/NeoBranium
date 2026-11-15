@@ -11,9 +11,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="NeoBranium Live AI">
 
-  <!-- Firebase Auth SDK (required for NeoBranium Live API authentication) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 
   <!-- Preconnect and Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -459,7 +456,7 @@
   <div id="toast-container" class="toast-container" aria-live="assertive"></div>
 
   <!-- Auth Gate Overlay: shown to unauthenticated users -->
-  <div id="auth-gate" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(11,15,25,0.97);backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;">
+  <div id="auth-gate" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(11,15,25,0.97);backdrop-filter:blur(12px);flex-direction:column;align-items:center;justify-content:center;gap:20px;">
     <div style="text-align:center;">
       <div style="font-size:32px;font-weight:800;color:#a5b4fc;">Neo<span style="color:#6366f1;">Branium</span> <span style="color:#818cf8;">Live AI</span></div>
       <p style="color:#94a3b8;margin-top:8px;font-size:14px;">Sign in or continue as a guest to use Live AI</p>
@@ -478,25 +475,32 @@
   </div>
 
   <!-- Firebase init + Auth gate logic -->
-  <script>
-    // Firebase project config (public — same as used in main site)
-    const _nbFirebaseConfig = {
-      apiKey: "AIzaSyA1iWJdGtmrox9RAHgWBxaK4p8KGf7ji_Y",
-      authDomain: "neobranium.firebaseapp.com",
-      projectId: "neobranium",
-      storageBucket: "neobranium.appspot.com",
-      messagingSenderId: "59188872045",
-      appId: "1:59188872045:web:450a70b28e4be5db335064",
-      databaseURL: "https://neobranium-default-rtdb.firebaseio.com"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(_nbFirebaseConfig);
-    const _nbAuth = firebase.auth();
+  <script type="module">
+    import { auth, onAuthStateChanged, signInAnonymously } from '/js/auth.js';
 
     // Expose a getter so ES modules can retrieve the current ID token
     window._getNBIdToken = async () => {
-      const user = _nbAuth.currentUser;
+      if (typeof auth.authStateReady === 'function') {
+        await auth.authStateReady();
+      }
+      let user = auth.currentUser;
+      if (!user) {
+        user = await new Promise(resolve => {
+          const unsub = onAuthStateChanged(auth, u => {
+            unsub();
+            resolve(u);
+          });
+          setTimeout(() => resolve(null), 1500);
+        });
+      }
+      if (!user) {
+        try {
+          const cred = await signInAnonymously(auth);
+          user = cred.user;
+        } catch (_) {}
+      }
       if (!user) throw new Error('Not signed in');
-      return user.getIdToken();
+      return await user.getIdToken();
     };
 
     const authGate = document.getElementById('auth-gate');
@@ -514,7 +518,7 @@
           ? `http://${location.hostname}:3000`
           : 'https://neobranium.onrender.com';
         const response = await fetch(`${backendUrl}/api/ai-usage/quota`, {
-          headers: { Authorization: `****** }
+          headers: { Authorization: `Bearer ${token}` }
         });
         if (!response.ok) throw new Error(`Quota status request failed (${response.status}).`);
         const result = await response.json();
@@ -552,7 +556,7 @@
       }
     }
 
-    _nbAuth.onAuthStateChanged((user) => {
+    onAuthStateChanged(auth, (user) => {
       if (user) {
         // Authenticated — hide gate and reveal content
         authGate.style.display = 'none';
@@ -625,7 +629,7 @@
       authGateGuestBtn.disabled = true;
       authGateGuestBtn.textContent = 'Starting guest session...';
       try {
-        await _nbAuth.signInAnonymously();
+        await signInAnonymously(auth);
       } catch (error) {
         authGateError.textContent = 'Guest access is unavailable. Please sign in or try again later.';
         authGateError.style.display = 'block';

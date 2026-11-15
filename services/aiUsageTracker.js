@@ -177,6 +177,7 @@ export function createAiUsageRequest({
 
   const request = {
     requestId: context.requestId,
+    uid: context.uid,
     recordAttempt(attempt = {}) {
       if (context.finalized) return false;
       const usage = attempt.usage || normalizeUsage(null, null, null);

@@ -290,7 +290,9 @@ async function loadUsage(forceRefresh = false) {
   setHidden(usageView, true);
   setStatus('Loading persisted usage…');
   try {
-    const payload = await api.fetchDaily(activeRange.from, activeRange.to, authenticatedUser, { forceRefresh });
+    const payload = forceRefresh
+      ? await api.fetchDaily(activeRange.from, activeRange.to, authenticatedUser, { forceRefresh })
+      : await api.fetchDaily(activeRange.from, activeRange.to, authenticatedUser);
     if (sequence !== requestSequence) return;
     renderUsage(payload);
     setHidden(usageView, false);

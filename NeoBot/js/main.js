@@ -255,6 +255,7 @@ class NeoBotApp {
     this.geminiClient = new GeminiLiveClient({
       voice: this.selectedVoice,
       systemInstruction: systemPrompt,
+      tokenProvider: () => (typeof window._getNBIdToken === 'function' ? window._getNBIdToken() : null),
       onReady: () => {
         console.log('[NeoBot] Gemini session ready.');
         this.updateUIState('ready', 'Online - Listening & Watching');
