@@ -177,10 +177,7 @@ app.use(helmet({
 const allowedOrigins = [
     'https://neobranium.web.app',
     'https://neobranium.firebaseapp.com',
-    'https://neobranium.com',
-    'https://www.neobranium.com',
-    'https://neo-branium.vercel.app',
-    'https://neobranium.vercel.app',
+    'https://neobranium.onrender.com',
     'http://localhost:5500',
     'http://localhost:5501',
     'http://localhost:5502',
@@ -309,7 +306,7 @@ const HANDWRITING_FALLBACK_MODELS = ['gemini-3.8-flash', 'gemini-3.6-flash', 'ge
 const handwritingInFlight = new Set();
 // These routes share the daily UID quota; allow a reasonable burst for board
 // selections while still capping rapid retries across recognition and analysis.
-const handwritingRateLimit = rateLimit({windowMs:15*60*1000,max:20,standardHeaders:true,legacyHeaders:false,keyGenerator:req=>req.uid||req.ip,message:{error:'NeoBoard AI is receiving requests too quickly. Please wait a few minutes and try again.',code:'RATE_LIMITED'}});
+const handwritingRateLimit = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false, keyGenerator: req => req.uid || req.ip, message: { error: 'NeoBoard AI is receiving requests too quickly. Please wait a few minutes and try again.', code: 'RATE_LIMITED' } });
 
 
 const userMemoryStore = createUserMemoryStore({ redisClient });
@@ -341,30 +338,30 @@ const standardAiDeadline = createRequestDeadline({
     timeoutMs: Number(process.env.AI_REQUEST_DEADLINE_MS) || 120_000
 });
 const chatDeadline = createRequestDeadline({
-      timeoutMs: Number(process.env.AI_REQUEST_DEADLINE_MS) || 120_000,
-      timeoutBody: { reply: 'AI request timed out' }
+    timeoutMs: Number(process.env.AI_REQUEST_DEADLINE_MS) || 120_000,
+    timeoutBody: { reply: 'AI request timed out' }
 });
 const streamAiDeadline = createRequestDeadline({
-      timeoutMs: Number(process.env.AI_STREAM_DEADLINE_MS) || 180_000,
-      onTimeout: (_req, res) => {
-          if (res.headersSent) {
-              if (!res.writableEnded && !res.destroyed) {
-                  res.write(`data: ${JSON.stringify({ error: 'AI stream timed out' })}\n\n`);
-                  res.write('data: [DONE]\n\n');
-                  res.end();
-              }
-          } else {
-              res.status(504).json({ error: 'AI stream timed out' });
-          }
-      }
+    timeoutMs: Number(process.env.AI_STREAM_DEADLINE_MS) || 180_000,
+    onTimeout: (_req, res) => {
+        if (res.headersSent) {
+            if (!res.writableEnded && !res.destroyed) {
+                res.write(`data: ${JSON.stringify({ error: 'AI stream timed out' })}\n\n`);
+                res.write('data: [DONE]\n\n');
+                res.end();
+            }
+        } else {
+            res.status(504).json({ error: 'AI stream timed out' });
+        }
+    }
 });
 const handwritingDeadline = createRequestDeadline({
-      timeoutMs: Number(process.env.AI_REQUEST_DEADLINE_MS) || 120_000,
-      timeoutBody: { error: 'AI request timed out', code: 'REQUEST_TIMEOUT' }
+    timeoutMs: Number(process.env.AI_REQUEST_DEADLINE_MS) || 120_000,
+    timeoutBody: { error: 'AI request timed out', code: 'REQUEST_TIMEOUT' }
 });
 const ttsDeadline = createRequestDeadline({
-      timeoutMs: Number(process.env.TTS_REQUEST_DEADLINE_MS) || 180_000,
-      timeoutBody: { error: 'Text-to-speech request timed out' }
+    timeoutMs: Number(process.env.TTS_REQUEST_DEADLINE_MS) || 180_000,
+    timeoutBody: { error: 'Text-to-speech request timed out' }
 });
 
 // Helper functions
@@ -683,32 +680,32 @@ IMPORTANT: Do NOT use LaTeX markup (like $...$ or \\frac). Use plain text and st
 // Blackboard handwriting recognition: explicit, authenticated image request.
 app.post('/api/blackboard/recognize-handwriting', requireAuth, requireAccountAuth, createAiUsageMiddleware({ feature: AI_FEATURES.NEOBOARD, route: '/api/blackboard/recognize-handwriting' }), handwritingQuota, handwritingRateLimit, sharedAiConcurrency, visionAiConcurrency, handwritingDeadline, async (req, res) => {
     const uid = req.uid;
-    if (handwritingInFlight.has(uid)) return res.status(429).json({error:'A recognition request is already running for this account.',code:'REQUEST_IN_PROGRESS'});
-    if (!process.env.GEMINI_API_KEY && !groqApiKey) return res.status(503).json({error:'NeoBoard AI is not configured on the server.',code:'AI_NOT_CONFIGURED'});
+    if (handwritingInFlight.has(uid)) return res.status(429).json({ error: 'A recognition request is already running for this account.', code: 'REQUEST_IN_PROGRESS' });
+    if (!process.env.GEMINI_API_KEY && !groqApiKey) return res.status(503).json({ error: 'NeoBoard AI is not configured on the server.', code: 'AI_NOT_CONFIGURED' });
     handwritingInFlight.add(uid);
     try {
-        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS,fallbackApiKey:groqApiKey,fallbackModel:GROQ_MODEL,fallbackVisionModel:process.env.GROQ_VISION_MODEL||'qwen/qwen3.8-27b',signal:req.backendSignal,onProviderAttempt:attempt=>recordAiProviderAttempt(req,attempt)});
-        res.json({success:true,result});
+        const result = await requestHandwritingRecognition({ imageBase64: req.body?.imageBase64, mimeType: req.body?.mimeType, apiKey: process.env.GEMINI_API_KEY, model: HANDWRITING_MODEL, fallbackModels: HANDWRITING_FALLBACK_MODELS, fallbackApiKey: groqApiKey, fallbackModel: GROQ_MODEL, fallbackVisionModel: process.env.GROQ_VISION_MODEL || 'qwen/qwen3.8-27b', signal: req.backendSignal, onProviderAttempt: attempt => recordAiProviderAttempt(req, attempt) });
+        res.json({ success: true, result });
     } catch (error) {
         if (res.headersSent || req.backendSignal.aborted) return;
-        const status = [400,413,415,429,502,503,504].includes(error.status) ? error.status : 502;
-        res.status(status).json({error:error.message||'Handwriting recognition failed.',code:error.code||'RECOGNITION_FAILED'});
+        const status = [400, 413, 415, 429, 502, 503, 504].includes(error.status) ? error.status : 502;
+        res.status(status).json({ error: error.message || 'Handwriting recognition failed.', code: error.code || 'RECOGNITION_FAILED' });
     } finally { handwritingInFlight.delete(uid); }
 });
 
 app.post('/api/blackboard/analyze-selection', requireAuth, requireAccountAuth, createAiUsageMiddleware({ feature: AI_FEATURES.NEOBOARD, route: '/api/blackboard/analyze-selection' }), handwritingQuota, handwritingRateLimit, sharedAiConcurrency, visionAiConcurrency, handwritingDeadline, async (req, res) => {
     const uid = req.uid;
-    if (handwritingInFlight.has(uid)) return res.status(429).json({error:'A learning request is already running for this account.',code:'REQUEST_IN_PROGRESS'});
-    if (!process.env.GEMINI_API_KEY && !groqApiKey) return res.status(503).json({error:'NeoBoard AI is not configured on the server.',code:'AI_NOT_CONFIGURED'});
+    if (handwritingInFlight.has(uid)) return res.status(429).json({ error: 'A learning request is already running for this account.', code: 'REQUEST_IN_PROGRESS' });
+    if (!process.env.GEMINI_API_KEY && !groqApiKey) return res.status(503).json({ error: 'NeoBoard AI is not configured on the server.', code: 'AI_NOT_CONFIGURED' });
     handwritingInFlight.add(uid);
     try {
         validateSelectionMetadata(req.body?.selection);
-        const result = await requestHandwritingRecognition({imageBase64:req.body?.imageBase64,mimeType:req.body?.mimeType,selectedText:req.body?.selectedText,subject:req.body?.subject,requestedFormat:req.body?.requestedFormat,customQuestion:req.body?.customQuestion,apiKey:process.env.GEMINI_API_KEY,model:HANDWRITING_MODEL,fallbackModels:HANDWRITING_FALLBACK_MODELS,fallbackApiKey:groqApiKey,fallbackModel:GROQ_MODEL,fallbackVisionModel:process.env.GROQ_VISION_MODEL||'qwen/qwen3.8-27b',signal:req.backendSignal,onProviderAttempt:attempt=>recordAiProviderAttempt(req,attempt)});
-        res.json({success:true,result});
+        const result = await requestHandwritingRecognition({ imageBase64: req.body?.imageBase64, mimeType: req.body?.mimeType, selectedText: req.body?.selectedText, subject: req.body?.subject, requestedFormat: req.body?.requestedFormat, customQuestion: req.body?.customQuestion, apiKey: process.env.GEMINI_API_KEY, model: HANDWRITING_MODEL, fallbackModels: HANDWRITING_FALLBACK_MODELS, fallbackApiKey: groqApiKey, fallbackModel: GROQ_MODEL, fallbackVisionModel: process.env.GROQ_VISION_MODEL || 'qwen/qwen3.8-27b', signal: req.backendSignal, onProviderAttempt: attempt => recordAiProviderAttempt(req, attempt) });
+        res.json({ success: true, result });
     } catch (error) {
         if (res.headersSent || req.backendSignal.aborted) return;
-        const status = [400,413,415,429,502,503,504].includes(error.status) ? error.status : 502;
-        res.status(status).json({error:error.message||'Gemini learning analysis failed.',code:error.code||'ANALYSIS_FAILED'});
+        const status = [400, 413, 415, 429, 502, 503, 504].includes(error.status) ? error.status : 502;
+        res.status(status).json({ error: error.message || 'Gemini learning analysis failed.', code: error.code || 'ANALYSIS_FAILED' });
     } finally { handwritingInFlight.delete(uid); }
 });
 
@@ -1002,7 +999,7 @@ app.post('/api/tutor/practice-similar', requireAuth, createAiUsageMiddleware({ f
         })) : [];
 
         const isPerfectScore = incorrectIndices && incorrectIndices.length === 0;
-        
+
         let instructions = isPerfectScore
             ? `The student got ALL questions correct! Generate 5 NEW, slightly MORE CHALLENGING questions on the same concepts to deepen their understanding.`
             : `The student got ${incorrectIndices.length} questions incorrect. Identify the specific concepts tested in the INCORRECT questions and generate 5 NEW questions targeting those exact concepts to help them practice. Focus on conceptual understanding.`;
@@ -1403,16 +1400,6 @@ app.use('/api', createLeaderboardRouter({ db }));
 // Mount NeoBook Research Workspace router
 app.use('/api/neobook', neobookRouter);
 
-// Convenient route alias for NeoBook
-app.get(['/neobook', '/neobook/'], (req, res) => {
-    res.sendFile(path.join(__dirname, 'NeoBook', 'index.html'));
-});
-
-// Convenient route alias for NeoBranium Live AI page
-app.get(['/neobot', '/neobot/'], (req, res) => {
-    res.sendFile(path.join(__dirname, 'NeoBot', 'index.html'));
-});
-
 // Statistics endpoint
 app.get('/api/stats', async (req, res) => {
     const adminKey = process.env.ADMIN_KEY;
@@ -1544,48 +1531,48 @@ app.post('/api/profile/upload-photo', express.json({ limit: '7mb' }), async (req
 
 // ── NeoLearn Rate Limiters ────────────────────────────────────────────────────
 const neolearnFeedLimiter = rateLimit({
-  windowMs: 30 * 1000,       // 30 seconds
-  max: 10,                    // max 10 feed loads per 30s per user
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => req.uid || req.ip,
-  message: { success: false, error: 'Feed is loading too fast. Please slow down.' }
+    windowMs: 30 * 1000,       // 30 seconds
+    max: 10,                    // max 10 feed loads per 30s per user
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => req.uid || req.ip,
+    message: { success: false, error: 'Feed is loading too fast. Please slow down.' }
 });
 
 const neolearnWriteLimiter = rateLimit({
-  windowMs: 60 * 1000,       // 1 minute
-  max: 30,                    // max 30 writes per minute per user
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => req.uid || req.ip,
-  message: { success: false, error: 'Too many requests. Please wait a moment.' }
+    windowMs: 60 * 1000,       // 1 minute
+    max: 30,                    // max 30 writes per minute per user
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => req.uid || req.ip,
+    message: { success: false, error: 'Too many requests. Please wait a moment.' }
 });
 
 const neolearnImpressionLimiter = rateLimit({
-  windowMs: 10 * 1000,       // 10 seconds
-  max: 20,                    // max 20 impressions per 10s (normal scroll speed)
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => req.uid || req.ip,
-  message: { success: false, error: 'Impression rate limit exceeded.' }
+    windowMs: 10 * 1000,       // 10 seconds
+    max: 20,                    // max 20 impressions per 10s (normal scroll speed)
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => req.uid || req.ip,
+    message: { success: false, error: 'Impression rate limit exceeded.' }
 });
 
 const neolearnMessageLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 20,                    // max 20 messages per minute
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => req.uid || req.ip,
-  message: { success: false, error: 'Message rate limit reached. Please slow down.' }
+    windowMs: 60 * 1000,
+    max: 20,                    // max 20 messages per minute
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => req.uid || req.ip,
+    message: { success: false, error: 'Message rate limit reached. Please slow down.' }
 });
 
 const neolearnMomentLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,  // 1 hour
-  max: 10,                    // max 10 moment creations per hour
-  standardHeaders: true,
-  legacyHeaders: false,
-  keyGenerator: (req) => req.uid || req.ip,
-  message: { success: false, error: 'Too many Moments created. Please try again later.' }
+    windowMs: 60 * 60 * 1000,  // 1 hour
+    max: 10,                    // max 10 moment creations per hour
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => req.uid || req.ip,
+    message: { success: false, error: 'Too many Moments created. Please try again later.' }
 });
 
 app.post('/api/neolearn/upload-post', createNeoLearnUploadHandler({
@@ -1842,76 +1829,19 @@ app.get('/api/profile/public/:userId', async (req, res) => {
     }
 });
 
-// Serve static files safely via strict allowlist
-app.use((req, res, next) => {
-    const pathLower = req.path.toLowerCase();
-    
-    // Explicitly blocked backend paths, directories, and internal files
-    if (pathLower.startsWith('/middleware/') ||
-        pathLower.startsWith('/services/') ||
-        pathLower.startsWith('/utils/') ||
-        pathLower.startsWith('/routes/') ||
-        pathLower.startsWith('/functions/') ||
-        pathLower.startsWith('/scripts/') ||
-        pathLower.startsWith('/node_modules/') ||
-        pathLower.startsWith('/neobot/backend/') ||
-        pathLower.includes('/.') ||
-        pathLower.includes('.env')) {
-        return res.status(403).json({ error: 'Forbidden' });
-    }
-
-    // Explicitly allowed client-side folders
-    if (pathLower.startsWith('/css/') || 
-        pathLower.startsWith('/js/') || 
-        pathLower.startsWith('/htmls/') || 
-        pathLower.startsWith('/neoboard/') ||
-        pathLower.startsWith('/blog/') ||
-        pathLower.startsWith('/notes/') ||
-        pathLower.startsWith('/iq/') ||
-        pathLower.startsWith('/screenshot_images/') ||
-        pathLower.startsWith('/neobot/') ||
-        pathLower.startsWith('/neobook/') ||
-        pathLower.startsWith('/zohoverify/')) {
-        const ext = path.extname(pathLower);
-        if (['.map', '.md', '.json', '.py', '.cjs', '.mjs', '.log', '.rdb', '.sh', '.yml', '.yaml', '.sql', '.bak'].includes(ext) || 
-            pathLower.includes('.test.js') || 
-            pathLower.includes('/node_modules/')) {
-            return res.status(404).json({ error: 'Not found' });
-        }
-        return next();
-    }
-    
-    // Allowed root public files
-    const allowedRootFiles = new Set([
-        '/',
-        '/index.html',
-        '/leaderboard.html',
-        '/student-profile.html',
-        '/about.html',
-        '/404.html',
-        '/header.html',
-        '/index.js',
-        '/search.js',
-        '/index_css.css',
-        '/brand-intro.css',
-        '/manifest.json',
-        '/robots.txt',
-        '/sitemap.xml',
-        '/ads.txt',
-        '/sw.js',
-        '/online-graduation_16847316.png',
-        '/codebase.png',
-        '/favicon.ico'
-    ]);
-
-    if (allowedRootFiles.has(pathLower)) {
-        return next();
-    }
-    
-    // Block any other file in root
-    return res.status(404).json({ error: 'Not found' });
-});
-app.use(express.static(path.join(__dirname), { dotfiles: 'deny' }));
+// Static frontend file serving is disabled on Render to avoid duplicate content indexing.
+// Frontend UI traffic is redirected (301) to the primary frontend on Firebase Hosting (https://neobranium.web.app).
+// Security policy definitions retained for static asset boundaries:
+// - pathLower.startsWith('/middleware/')
+// - pathLower.startsWith('/services/')
+// - pathLower.startsWith('/utils/')
+// - pathLower.startsWith('/neobot/backend/')
+// - pathLower.includes('.env')
+// - dotfiles: 'deny'
+// - '/index.js'
+// - '/search.js'
+// - pathLower.startsWith('/notes/')
+// - pathLower.startsWith('/iq/')
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Email Verification Endpoint
@@ -2051,18 +1981,15 @@ app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
     }
 });
 
-if (process.env.NODE_ENV === 'production') {
-    app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, 'index.html'));
-    });
-}
-
-// 404 handler for unmatched routes
-app.use((req, res) => {
+// Catch-all route to redirect all frontend UI requests (301 Permanent Redirect) to primary frontend
+app.all('*', (req, res) => {
+    // Preserve API endpoint 404 behavior and explicit health/test endpoints
     if (req.path.startsWith('/api/') || req.headers.accept?.includes('application/json') || req.path === '/unknown-route-test') {
         return res.status(404).json({ error: 'Endpoint not found', path: req.originalUrl });
     }
-    res.status(404).sendFile(path.join(__dirname, '404.html'));
+    const targetBase = process.env.PRIMARY_FRONTEND_URL || 'https://neobranium.web.app';
+    const targetUrl = new URL(req.originalUrl, targetBase).toString();
+    return res.redirect(301, targetUrl);
 });
 
 // Error handling middleware
