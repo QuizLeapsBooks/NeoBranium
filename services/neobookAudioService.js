@@ -7,12 +7,19 @@ import { estimateCostUsd } from './neobookAiService.js';
 import { selectRepresentativeChunks } from './neobookQuizService.js';
 import { fetchWithRetry } from '../utils/backendRequestProtection.js';
 
-const ttsKey = process.env.GOOGLE_TTS_API_KEY || process.env.GOOGLE_CLOUD_TTS_API_KEY;
+const cloudTtsKey = process.env.GOOGLE_TTS_API_KEY || process.env.GOOGLE_CLOUD_TTS_API_KEY;
 const configuredStorage = () => Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
 if (configuredStorage()) cloudinary.config({ cloud_name: process.env.CLOUDINARY_CLOUD_NAME, api_key: process.env.CLOUDINARY_API_KEY, api_secret: process.env.CLOUDINARY_API_SECRET, secure: true });
 
 export function getAudioProviderStatus() {
-  return { available: Boolean(process.env.GEMINI_API_KEY && ttsKey && configuredStorage()), missing: [!process.env.GEMINI_API_KEY && 'GEMINI_API_KEY', !ttsKey && 'GOOGLE_TTS_API_KEY', !configuredStorage() && 'Cloudinary audio storage credentials'].filter(Boolean) };
+  const hasGemini = Boolean(process.env.GEMINI_API_KEY);
+  const hasStorage = configuredStorage();
+  const hasCloudTTS = Boolean(hasGemini && cloudTtsKey && hasStorage);
+  return {
+    available: hasGemini,
+    hasCloudTTS,
+    missing: [!hasGemini && 'GEMINI_API_KEY'].filter(Boolean)
+  };
 }
 
 export function validateAudioConfig(input = {}) {
@@ -58,7 +65,7 @@ async function synthesize(text, speaker, language, signal) {
     ? { explainer: 'hi-IN-Standard-A', analyst: 'hi-IN-Standard-B' }
     : { explainer: 'en-US-Neural2-F', analyst: 'en-US-Neural2-D' };
   const voice = speaker === 'explainer' ? (process.env.NEOBOOK_TTS_EXPLAINER_VOICE || defaults.explainer) : (process.env.NEOBOOK_TTS_ANALYST_VOICE || defaults.analyst);
-  const response = await fetchWithRetry(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${ttsKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': crypto.randomUUID() }, body: JSON.stringify({ input: { text }, voice: { languageCode: language, name: voice }, audioConfig: { audioEncoding: 'MP3', speakingRate: speaker === 'analyst' ? 1.02 : 0.96 } }), signal }, { timeoutMs: 45_000, maxRetries: 2 });
+  const response = await fetchWithRetry(`https://texttospeech.googleapis.com/v1/text:synthesize?key=${cloudTtsKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': crypto.randomUUID() }, body: JSON.stringify({ input: { text }, voice: { languageCode: language, name: voice }, audioConfig: { audioEncoding: 'MP3', speakingRate: speaker === 'analyst' ? 1.02 : 0.96 } }), signal }, { timeoutMs: 45_000, maxRetries: 2 });
   if (!response.ok) throw new Error(`Text-to-speech provider failed (${response.status}).`);
   const data = await response.json(); if (!data.audioContent) throw new Error('Text-to-speech provider returned no audio.');
   return Buffer.from(data.audioContent, 'base64');
@@ -119,9 +126,19 @@ export async function runAudioEpisode({ episodeRef, episode, chunks, identity, s
     if (signal?.aborted) throw Object.assign(new Error('Audio generation was cancelled.'), { code: 'CANCELLED' });
     const segment = working.script.segments[i]; if (existing.has(segment.id)) continue;
     await update({ stage: segment.speaker === 'explainer' ? 'generating_explainer_audio' : 'generating_analyst_audio', progress: { completedSegments: i, totalSegments: working.script.segments.length } });
-    const buffer = await synthesize(segment.text, segment.speaker, working.config.language, signal);
-    const asset = await uploadAudio(buffer, `neobook_audio/${identity.uid}/${episode.id}/${segment.id}`, signal);
-    const saved = { id: segment.id, publicId: asset.public_id, bytes: asset.bytes || buffer.length, speaker: segment.speaker };
+    let saved = null;
+    if (status.hasCloudTTS && cloudTtsKey && configuredStorage()) {
+      try {
+        const buffer = await synthesize(segment.text, segment.speaker, working.config.language, signal);
+        const asset = await uploadAudio(buffer, `neobook_audio/${identity.uid}/${episode.id}/${segment.id}`, signal);
+        saved = { id: segment.id, publicId: asset.public_id, bytes: asset.bytes || buffer.length, speaker: segment.speaker, text: segment.text };
+      } catch (synthErr) {
+        console.warn(`[NeoBook Audio] Cloud TTS failed for segment ${segment.id}: ${synthErr.message}. Falling back to browser speech synthesis.`);
+      }
+    }
+    if (!saved) {
+      saved = { id: segment.id, speaker: segment.speaker, text: segment.text, useBrowserSpeech: true };
+    }
     audioSegments.push(saved); existing.set(segment.id, saved);
     await update({ audioSegments, progress: { completedSegments: audioSegments.length, totalSegments: working.script.segments.length } });
   }
@@ -129,6 +146,13 @@ export async function runAudioEpisode({ episodeRef, episode, chunks, identity, s
   return { ...working, audioSegments, status: 'ready', stage: 'complete' };
 }
 
-export function signedAudioUrl(publicId) { return cloudinary.url(publicId, { resource_type: 'video', type: 'authenticated', sign_url: true, secure: true, format: 'mp3' }); }
+export function signedAudioUrl(publicId) {
+  if (!publicId) return null;
+  try {
+    return cloudinary.url(publicId, { resource_type: 'video', type: 'authenticated', sign_url: true, secure: true, format: 'mp3' });
+  } catch {
+    return null;
+  }
+}
 export function makeAudioEpisodeId() { return `aud_${crypto.randomBytes(10).toString('hex')}`; }
 export function audioChunks(chunks, sourceIds) { return selectRepresentativeChunks(chunks.filter(c => !sourceIds?.length || sourceIds.includes(c.sourceId)), sourceIds, NEOBOOK_CONFIG.AUDIO_MAX_CHUNKS); }

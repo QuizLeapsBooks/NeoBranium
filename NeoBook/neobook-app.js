@@ -1002,14 +1002,18 @@ function closeAddSourceModal() {
 
 async function openHistoryDrawer() {
   const drawer = document.getElementById('historyDrawer');
+  const backdrop = document.getElementById('historyBackdrop');
   if (drawer) drawer.classList.add('open');
+  if (backdrop) backdrop.classList.add('open');
   state.libraryFolderFilter = 'all';
   await loadChatLibrary();
 }
 
 function closeHistoryDrawer() {
   const drawer = document.getElementById('historyDrawer');
+  const backdrop = document.getElementById('historyBackdrop');
   if (drawer) drawer.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('open');
 }
 
 let flashcardState = { set: null, index: 0, revealed: false, generating: false };
@@ -1292,7 +1296,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // History Drawer openers & closers
   document.getElementById('btnOpenHistory')?.addEventListener('click', openHistoryDrawer);
+  document.getElementById('btnChatOpenHistory')?.addEventListener('click', openHistoryDrawer);
   document.getElementById('btnCloseHistory')?.addEventListener('click', closeHistoryDrawer);
+  document.getElementById('historyBackdrop')?.addEventListener('click', closeHistoryDrawer);
   document.getElementById('btnCloseQuotaNotice')?.addEventListener('click', hideQuotaPopover);
   document.getElementById('btnOpenFlashcards')?.addEventListener('click', openFlashcards);
   document.getElementById('btnOpenFlashcards')?.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') openFlashcards(); });

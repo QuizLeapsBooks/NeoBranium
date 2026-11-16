@@ -1491,7 +1491,7 @@ neobookRouter.post('/notebooks/:notebookId/study-guides/generate', requireAuthen
 // ── Audio Overview: durable, source-grounded TTS segment playlists ──────────
 neobookRouter.get('/audio-overview/provider-status', requireAuthenticatedAudioUser, (req, res) => {
   const provider = getAudioProviderStatus();
-  res.json({ success: true, available: provider.available, missing: provider.missing || [] });
+  res.json({ success: true, available: provider.available, hasCloudTTS: provider.hasCloudTTS, missing: provider.missing || [] });
 });
 
 neobookRouter.get('/notebooks/:notebookId/chats/:chatId/audio-episodes', requireAuthenticatedAudioUser, async (req, res) => {
@@ -1576,7 +1576,13 @@ neobookRouter.get('/audio-episodes/:episodeId', requireAuthenticatedAudioUser, a
   const episode = { id: req.params.episodeId, ...owned.data };
   // URLs are generated only after ownership authorization and are never stored
   // in Firestore. They allow the native <audio> element to stream each segment.
-  episode.audioSegments = (episode.audioSegments || []).map(segment => ({ id: segment.id, speaker: segment.speaker, url: signedAudioUrl(segment.publicId) }));
+  episode.audioSegments = (episode.audioSegments || []).map(segment => ({
+    id: segment.id,
+    speaker: segment.speaker,
+    url: segment.publicId ? signedAudioUrl(segment.publicId) : null,
+    text: segment.text,
+    useBrowserSpeech: Boolean(segment.useBrowserSpeech || !segment.publicId)
+  }));
   episode.createdAt = episode.createdAt?.toDate?.()?.toISOString?.() || episode.createdAt; episode.updatedAt = episode.updatedAt?.toDate?.()?.toISOString?.() || episode.updatedAt;
   return res.json({ success: true, episode });
 });

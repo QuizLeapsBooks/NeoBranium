@@ -46,15 +46,15 @@
     </div>
 
     <!-- Mobile Segment Control -->
-    <div class="mobile-tabs" id="mobileTabs">
-      <button class="mobile-tab-btn" data-target="sources">
-        <i class="fas fa-layer-group"></i> Sources
+    <div class="mobile-tabs" id="mobileTabs" role="tablist" aria-label="NeoBook Panels">
+      <button class="mobile-tab-btn" data-target="sources" role="tab" aria-selected="false">
+        <i class="fas fa-layer-group"></i> <span>Sources</span>
       </button>
-      <button class="mobile-tab-btn active" data-target="chat">
-        <i class="fas fa-comments"></i> Chat
+      <button class="mobile-tab-btn active" data-target="chat" role="tab" aria-selected="true">
+        <i class="fas fa-comments"></i> <span>Chat</span>
       </button>
-      <button class="mobile-tab-btn" data-target="studio">
-        <i class="fas fa-wand-magic-sparkles"></i> Studio
+      <button class="mobile-tab-btn" data-target="studio" role="tab" aria-selected="false">
+        <i class="fas fa-wand-magic-sparkles"></i> <span>Studio</span>
       </button>
     </div>
 
@@ -72,14 +72,14 @@
         <small id="quotaPopoverReset"></small>
       </div>
 
-      <button id="btnNewChatTop" class="btn-icon-text" title="Start a fresh chat (Consumes 1 daily new-chat allowance)">
+      <button id="btnNewChatTop" class="btn-icon-text" title="Start a fresh chat">
         <i class="fas fa-plus"></i>
-        <span>New Chat</span>
+        <span class="btn-label">New Chat</span>
       </button>
 
       <button id="btnOpenHistory" class="btn-icon-text" title="Open Chat Library">
         <i class="fas fa-folder-open"></i>
-        <span>Library</span>
+        <span class="btn-label">Library</span>
       </button>
 
       <!-- User Authentication & Profile Zone -->
@@ -129,8 +129,11 @@
           <span id="activeChatTitle">Chat with your sources</span>
         </div>
         <div class="chat-header-actions">
-          <button id="btnChatNewChat" class="btn-icon-text" style="padding:4px 9px;font-size:0.78rem;">
-            <i class="fas fa-plus"></i> New Chat
+          <button id="btnChatOpenHistory" class="btn-icon-text" style="padding:4px 9px;font-size:0.78rem;" title="Open Chat Library">
+            <i class="fas fa-folder-open"></i> <span class="btn-label">Library</span>
+          </button>
+          <button id="btnChatNewChat" class="btn-icon-text" style="padding:4px 9px;font-size:0.78rem;" title="Start a fresh chat">
+            <i class="fas fa-plus"></i> <span class="btn-label">New Chat</span>
           </button>
         </div>
       </div>
@@ -723,7 +726,8 @@
   </div>
 
   <!-- ── DRAWER: Chat Library ───────────────────────────────────────────────── -->
-  <aside class="history-drawer" id="historyDrawer">
+  <div class="history-backdrop" id="historyBackdrop" aria-hidden="true"></div>
+  <aside class="history-drawer" id="historyDrawer" aria-label="Chat Library Drawer">
     <div class="history-header">
       <div class="panel-title">
         <i class="fas fa-folder-open"></i>
