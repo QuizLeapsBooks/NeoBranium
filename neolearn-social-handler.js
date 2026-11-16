@@ -10,8 +10,6 @@ const MAX_LEARNING_FEED_CANDIDATES = 120;
 const MAX_LEARNING_FEED_POSTS = 60;
 const MAX_FALLBACK_FEED_POSTS = 10;
 const MAX_IMPRESSION_COUNT = 3;
-
-const feedCache = new Map(); // userId -> { ts: number, data: object }
 const FEED_CACHE_TTL_MS = 15_000;
 
 function timestampMillis(value) {
@@ -37,6 +35,8 @@ function validUserId(userId) {
 }
 
 export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadPublicProfile, loadPublicProfiles }) {
+    // Instance-scoped feed cache so each test harness is fully isolated.
+    const feedCache = new Map(); // cacheKey -> { ts: number, data: object }
     async function authenticate(req, res) {
         try {
             const decodedToken = await verifyAuthToken(req);
@@ -234,6 +234,13 @@ export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadP
         if (!learnerUserId) return;
         if (!db) return res.status(503).json({ success: false, error: 'NeoLearn data is unavailable.' });
 
+        // SWR: serve from in-memory cache if fresh, then revalidate.
+        const cacheKey = `${learnerUserId}:${req.query?.mode || 'learning'}`;
+        const cached = feedCache.get(cacheKey);
+        if (cached && Date.now() - cached.ts < FEED_CACHE_TTL_MS) {
+            return res.json(cached.data);
+        }
+
         try {
             const learningSnapshot = await db.collection('neolearn_learning')
                 .where('learnerUserId', '==', learnerUserId)
@@ -264,10 +271,13 @@ export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadP
                 const selectedPostIds = new Set(selection.feed.map((post) => post.postId));
                 const selectedPosts = eligiblePosts.filter(({ post }) => selectedPostIds.has(post.postId));
                 const discoveryAuthorIds = [...new Set(selectedPosts.map(({ authorId }) => authorId))];
-                const discoveryProfiles = await Promise.all(discoveryAuthorIds.map(async (userId) => {
-                    const profileSnapshot = await db.collection('neolearn_profiles').doc(userId).get();
-                    if (!profileSnapshot.exists) return null;
-                    return loadPublicProfile(db, userId, profileSnapshot.data(), learnerUserId);
+                const discoveryProfileRefs = discoveryAuthorIds.map((userId) => db.collection('neolearn_profiles').doc(userId));
+                const discoverySnapshots = typeof db.getAll === 'function'
+                    ? await db.getAll(...discoveryProfileRefs)
+                    : await Promise.all(discoveryProfileRefs.map((ref) => ref.get()));
+                const discoveryProfiles = await Promise.all(discoverySnapshots.map((snapshot, index) => {
+                    if (!snapshot.exists) return null;
+                    return loadPublicProfile(db, discoveryAuthorIds[index], snapshot.data(), learnerUserId);
                 }));
                 const authors = new Map(discoveryProfiles.filter(Boolean).map((profile) => [profile.userId, profile]));
                 const feed = selection.feed.map((post) => {
@@ -275,24 +285,29 @@ export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadP
                     const author = authors.get(authorId);
                     return author ? { ...post, author } : null;
                 }).filter(Boolean);
-                return res.json({
+                const responsePayload = {
                     success: true,
                     feedMode: 'discovery',
                     feed,
                     impressionCounts: selection.impressionCounts,
                     isFallback: selection.isFallback,
                     impressionsEnforced: selection.impressionsEnforced
-                });
+                };
+                feedCache.set(cacheKey, { ts: Date.now(), data: responsePayload });
+                return res.json(responsePayload);
             }
 
             if (!followedUserIds.length) {
                 return res.json({ success: true, learningCount: 0, learningProfiles: [], feed: [] });
             }
 
-            const learnedProfiles = await Promise.all(followedUserIds.map(async (userId) => {
-                const profileSnapshot = await db.collection('neolearn_profiles').doc(userId).get();
-                if (!profileSnapshot.exists) return null;
-                return loadPublicProfile(db, userId, profileSnapshot.data(), learnerUserId);
+            const profileRefs = followedUserIds.map((userId) => db.collection('neolearn_profiles').doc(userId));
+            const profileSnapshots = typeof db.getAll === 'function'
+                ? await db.getAll(...profileRefs)
+                : await Promise.all(profileRefs.map((ref) => ref.get()));
+            const learnedProfiles = await Promise.all(profileSnapshots.map((snapshot, index) => {
+                if (!snapshot.exists) return null;
+                return loadPublicProfile(db, followedUserIds[index], snapshot.data(), learnerUserId);
             }));
             const authors = new Map(learnedProfiles.filter(Boolean).map((profile) => [profile.userId, profile]));
             const authorIds = [...authors.keys()];
@@ -325,7 +340,7 @@ export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadP
                 MAX_LEARNING_FEED_POSTS
             );
 
-            return res.json({
+            const responsePayload = {
                 success: true,
                 learningCount: authorIds.length,
                 learningProfiles: [...authors.values()],
@@ -333,7 +348,9 @@ export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadP
                 impressionCounts: selection.impressionCounts,
                 isFallback: selection.isFallback,
                 impressionsEnforced: selection.impressionsEnforced
-            });
+            };
+            feedCache.set(cacheKey, { ts: Date.now(), data: responsePayload });
+            return res.json(responsePayload);
         } catch (error) {
             console.error('NeoLearn Learning feed failed:', error.message);
             return res.status(503).json({ success: false, error: 'Your Learning feed could not be loaded.' });

@@ -23,6 +23,8 @@ const detailDialog = document.getElementById('neolearnPostDetailDialog');
 let currentUser = null;
 let loadingFeed = false;
 let feedGeneration = 0;
+let lastFeedLoadMs = 0;
+const FEED_RELOAD_COOLDOWN_MS = 30_000; // 30 s minimum between automatic background reloads
 let activeLearningCount = 0;
 let postViewCounts = {};
 // lastShownAt: postId → timestamp (ms) of most recent impression — used for fallback ordering.
@@ -347,8 +349,11 @@ async function loadDiscoveryFeed(learningCount) {
   }
 }
 
-async function loadFeed() {
+async function loadFeed(isUserInitiated = false) {
   if (!currentUser || loadingFeed) return;
+  const now = Date.now();
+  if (!isUserInitiated && lastFeedLoadMs !== 0 && now - lastFeedLoadMs < FEED_RELOAD_COOLDOWN_MS) return;
+  lastFeedLoadMs = now;
   const user = currentUser;
   const requestGeneration = feedGeneration;
   loadingFeed = true;
@@ -459,7 +464,7 @@ async function handleUser(user) {
   }
 }
 
-document.getElementById('retryNeoLearnFeed').addEventListener('click', loadFeed);
+document.getElementById('retryNeoLearnFeed').addEventListener('click', () => loadFeed(true));
 document.getElementById('retryNlSuggested').addEventListener('click', () => {
   if (currentUser) loadSuggestedPeers(currentUser);
 });
@@ -481,7 +486,7 @@ document.addEventListener('neolearnPostCreated', () => {
   } catch { /* storage may be unavailable */ }
   feedGeneration += 1;
   loadingFeed = false;
-  loadFeed();
+  loadFeed(true); // user just created a post — always refresh immediately
 });
 document.addEventListener('userLoaded', (event) => handleUser(event.detail?.user));
 if (auth.currentUser) handleUser(auth.currentUser);

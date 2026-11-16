@@ -30,24 +30,19 @@ export function createNeoLearnMessageHandlers({ verifyAuthToken, db, rtdb }) {
         }
 
         try {
-            // Check Blocks
-            const [viewerBlock, targetBlock] = await Promise.all([
+            // Run all pre-send checks in parallel
+            const [viewerBlock, targetBlock, relationship, targetProfile] = await Promise.all([
                 db.collection('neolearn_blocks').doc(`${senderId}_${targetUserId}`).get(),
-                db.collection('neolearn_blocks').doc(`${targetUserId}_${senderId}`).get()
+                db.collection('neolearn_blocks').doc(`${targetUserId}_${senderId}`).get(),
+                db.collection('neolearn_learning').doc(learningRelationshipId(senderId, targetUserId)).get(),
+                db.collection('users').doc(targetUserId).get()
             ]);
             if (viewerBlock.exists || targetBlock.exists) {
                 return res.status(403).json({ success: false, error: 'You cannot send messages to this user.' });
             }
-
-            // Check Learning relationship (Sender MUST be learning Target)
-            const relationshipRef = db.collection('neolearn_learning').doc(learningRelationshipId(senderId, targetUserId));
-            const relationship = await relationshipRef.get();
             if (!relationship.exists) {
                 return res.status(403).json({ success: false, error: 'You can only message users you are Learning.' });
             }
-
-            // Check privacy settings
-            const targetProfile = await db.collection('users').doc(targetUserId).get();
             const messagePrivacy = targetProfile.data()?.messagePrivacy || 'everyone';
             if (messagePrivacy === 'none') {
                 return res.status(403).json({ success: false, error: 'This user does not accept messages.' });
@@ -133,13 +128,16 @@ export function createNeoLearnMessageHandlers({ verifyAuthToken, db, rtdb }) {
 
             const [firstId, secondId] = [viewerId, targetUserId].sort();
             const messagesRef = rtdb.ref(`neolearn_direct_messages/${firstId}/${secondId}/messages`);
-            const snapshots = await Promise.all(messageIds.map(id => messagesRef.child(id).get()));
+            // Batch: fetch the entire message set once and filter by requested IDs
+            const bulkSnapshot = await messagesRef.get();
+            const allMessages = bulkSnapshot.val() || {};
             const updates = {};
-            snapshots.forEach((snapshot, index) => {
-                const message = snapshot.val();
-                if (!snapshot.exists() || !message || message.senderId !== targetUserId) return;
-                updates[`${messageIds[index]}/readByRecipient`] = true;
-            });
+            for (const id of messageIds) {
+                const message = allMessages[id];
+                if (message && message.senderId === targetUserId) {
+                    updates[`${id}/readByRecipient`] = true;
+                }
+            }
             if (Object.keys(updates).length) {
                 await messagesRef.update(updates);
             }

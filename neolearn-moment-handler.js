@@ -169,14 +169,28 @@ export function createNeoLearnMomentHandlers({ verifyAuthToken, db, rtdb, admin,
                 userId,
                 authorSnapshots[index].exists ? authorSnapshots[index].data() : {}
             ]));
+            // Bulk-prefetch likes and views for all eligible moments, respecting concurrency limits
+            const momentIds = eligible.map((m) => m.momentId);
+            const ownedMomentIds = eligible.filter((m) => m.userId === viewerId).map((m) => m.momentId);
+            const ownedMomentIdSet = new Set(ownedMomentIds);
+            const allLikesSnap = await mapWithConcurrency(
+                momentIds,
+                MOMENT_READ_CONCURRENCY,
+                (id) => rtdb.ref(`neolearn_realtime/moment_likes/${id}`).get(),
+                requestCancellation.signal
+            );
+            const allViewsSnap = await mapWithConcurrency(
+                ownedMomentIds,
+                MOMENT_READ_CONCURRENCY,
+                (id) => rtdb.ref(`neolearn_realtime/moment_views/${id}`).get(),
+                requestCancellation.signal
+            );
+            const likesMap = new Map(momentIds.map((id, i) => [id, allLikesSnap[i].val() || {}]));
+            const viewsMap = new Map(ownedMomentIds.map((id, i) => [id, allViewsSnap[i].val() || {}]));
             const moments = await mapWithConcurrency(eligible, MOMENT_READ_CONCURRENCY, async (moment) => {
-                const likeSnapshot = await rtdb.ref(`neolearn_realtime/moment_likes/${moment.momentId}`).get();
-                const viewSnapshot = moment.userId === viewerId
-                    ? await rtdb.ref(`neolearn_realtime/moment_views/${moment.momentId}`).get()
-                    : { val: () => null };
+                const likes = likesMap.get(moment.momentId) || {};
+                const views = viewsMap.get(moment.momentId) || {};
                 const profile = profiles.get(moment.userId) || {};
-                const likes = likeSnapshot.val() || {};
-                const views = viewSnapshot.val() || {};
                 return {
                     momentId: moment.momentId,
                     userId: moment.userId,
@@ -311,19 +325,22 @@ export function createNeoLearnMomentHandlers({ verifyAuthToken, db, rtdb, admin,
                 getNeoLearnBlockedUserIds(db, ownerId)
             ]);
             const views = viewSnapshot.val() || {};
-            const viewers = await Promise.all(Object.entries(views)
-                .filter(([userId]) => validId(userId) && !blockedUserIds.has(userId))
-                .map(async ([userId, viewedAt]) => {
-                    const profileSnapshot = await db.collection('neolearn_profiles').doc(userId).get();
-                    if (!profileSnapshot.exists) return null;
-                    const profile = profileSnapshot.data();
-                    return {
-                        userId,
-                        name: profile.name || 'NeoLearn learner',
-                        profilePhotoUrl: profile.profilePhotoUrl || '',
-                        viewedAt: typeof viewedAt === 'number' ? viewedAt : null
-                    };
-                }));
+            const viewerEntries = Object.entries(views)
+                .filter(([userId]) => validId(userId) && !blockedUserIds.has(userId));
+            const viewerIds = viewerEntries.map(([userId]) => userId);
+            const profileSnapshots = viewerIds.length && typeof db.getAll === 'function'
+                ? await db.getAll(...viewerIds.map((userId) => db.collection('neolearn_profiles').doc(userId)))
+                : await Promise.all(viewerIds.map((userId) => db.collection('neolearn_profiles').doc(userId).get()));
+            const viewers = viewerEntries.map(([userId, viewedAt], index) => {
+                if (!profileSnapshots[index].exists) return null;
+                const profile = profileSnapshots[index].data();
+                return {
+                    userId,
+                    name: profile.name || 'NeoLearn learner',
+                    profilePhotoUrl: profile.profilePhotoUrl || '',
+                    viewedAt: typeof viewedAt === 'number' ? viewedAt : null
+                };
+            });
             viewers.sort((first, second) => (second?.viewedAt || 0) - (first?.viewedAt || 0));
             const visibleViewers = viewers.filter(Boolean);
             return res.json({ success: true, viewers: visibleViewers, viewCount: visibleViewers.length });

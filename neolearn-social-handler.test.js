@@ -107,7 +107,12 @@ function createHarness({ authenticated = true } = {}) {
             throw new Error(`Unexpected collection: ${collectionName}`);
         },
         async getAll(...refs) {
-            return refs.map((ref) => snapshot(ref.id, impressions.get(ref.key)));
+            return refs.map((ref) => {
+                if (ref.collectionName === 'neolearn_profiles') {
+                    return snapshot(ref.id, profiles.get(ref.id));
+                }
+                return snapshot(ref.id, impressions.get(ref.key));
+            });
         },
         async runTransaction(callback) {
             const writes = [];

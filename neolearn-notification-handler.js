@@ -156,14 +156,18 @@ export function createNeoLearnNotificationHandlers({ verifyAuthToken, db, rtdb, 
 
         try {
             if (markAll === true) {
+                const MAX_NOTIFICATIONS = 500;
                 const notifsRef = rtdb.ref(`neolearn_notifications/${userId}`);
                 const snap = await notifsRef.get();
                 if (snap.exists()) {
                     const updates = {};
+                    let count = 0;
                     snap.forEach((child) => {
+                        if (count >= MAX_NOTIFICATIONS) return;
                         const val = child.val();
                         if (val && !val.read) {
                             updates[`${child.key}/read`] = true;
+                            count++;
                         }
                     });
                     if (Object.keys(updates).length > 0) {

@@ -129,8 +129,8 @@ app.use(session({
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 50, // Stricter limit: 50 requests per 15 minutes
-    skip: (req) => req.path === '/api/health' || req.path === '/health',
+    max: 200, // Raised to accommodate interactive app usage; NeoLearn has its own per-route limiters.
+    skip: (req) => req.path === '/api/health' || req.path === '/health' || req.path.startsWith('/neolearn/'),
     message: { reply: 'Too many requests, please try again later.' },
     // IP-based baseline; identity-specific AI quotas are enforced separately.
     standardHeaders: true,
@@ -1530,12 +1530,23 @@ app.post('/api/profile/upload-photo', express.json({ limit: '7mb' }), async (req
 });
 
 // ── NeoLearn Rate Limiters ────────────────────────────────────────────────────
+function extractUidKey(req) {
+    try {
+        const auth = req.headers?.authorization;
+        if (auth?.startsWith('Bearer ')) {
+            const payload = JSON.parse(Buffer.from(auth.split('.')[1], 'base64url').toString());
+            if (payload?.user_id || payload?.sub) return `uid:${payload.user_id || payload.sub}`;
+        }
+    } catch { /* fall through */ }
+    return `ip:${req.ip}`;
+}
+
 const neolearnFeedLimiter = rateLimit({
-    windowMs: 30 * 1000,       // 30 seconds
-    max: 10,                    // max 10 feed loads per 30s per user
+    windowMs: 5 * 60 * 1000,   // 5 minutes
+    max: 30,                    // max 30 feed loads per 5 min per user
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => req.uid || req.ip,
+    keyGenerator: extractUidKey,
     message: { success: false, error: 'Feed is loading too fast. Please slow down.' }
 });
 
@@ -1544,16 +1555,16 @@ const neolearnWriteLimiter = rateLimit({
     max: 30,                    // max 30 writes per minute per user
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => req.uid || req.ip,
+    keyGenerator: extractUidKey,
     message: { success: false, error: 'Too many requests. Please wait a moment.' }
 });
 
 const neolearnImpressionLimiter = rateLimit({
-    windowMs: 10 * 1000,       // 10 seconds
-    max: 20,                    // max 20 impressions per 10s (normal scroll speed)
+    windowMs: 60 * 1000,       // 1 minute
+    max: 60,                    // max 60 impressions per minute (normal scroll speed)
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => req.uid || req.ip,
+    keyGenerator: extractUidKey,
     message: { success: false, error: 'Impression rate limit exceeded.' }
 });
 
@@ -1562,7 +1573,7 @@ const neolearnMessageLimiter = rateLimit({
     max: 20,                    // max 20 messages per minute
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => req.uid || req.ip,
+    keyGenerator: extractUidKey,
     message: { success: false, error: 'Message rate limit reached. Please slow down.' }
 });
 
@@ -1571,7 +1582,7 @@ const neolearnMomentLimiter = rateLimit({
     max: 10,                    // max 10 moment creations per hour
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => req.uid || req.ip,
+    keyGenerator: extractUidKey,
     message: { success: false, error: 'Too many Moments created. Please try again later.' }
 });
 
@@ -1666,9 +1677,11 @@ app.delete('/api/neolearn/blocks/:targetUserId', neoLearnModerationHandlers.unbl
 app.get('/api/neolearn/blocks/:targetUserId', neoLearnModerationHandlers.getBlockStatus);
 
 // ── Impression tracking routes ────────────────────────────────────────────────
-// POST /api/neolearn/impressions        → record one impression (atomic transaction)
+// POST /api/neolearn/impressions       → record one impression (atomic, with 60 s cooldown)
+// POST /api/neolearn/impressions/batch → record up to 20 impressions in one batch write
 const neoLearnImpressionHandlers = createNeoLearnImpressionHandlers({ verifyAuthToken, db, admin });
 app.post('/api/neolearn/impressions', neolearnImpressionLimiter, neoLearnImpressionHandlers.recordImpression);
+app.post('/api/neolearn/impressions/batch', neolearnImpressionLimiter, neoLearnImpressionHandlers.recordImpressionBatch);
 
 // ── AI Conversation History routes ────────────────────────────────────────────
 // All conversation CRUD is handled server-side (Admin SDK) to enforce auth,
