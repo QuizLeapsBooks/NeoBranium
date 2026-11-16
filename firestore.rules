@@ -100,10 +100,19 @@ service cloud.firestore {
         }
       }
 
+      // ── AI Usage Daily sub-collection (NB-SEC-01) ─────────────────────────
+      // Authoritative token and budget accounting is handled exclusively by
+      // backend services using Admin SDK. Clients may read their own records
+      // to display quota progress, but client writes are blocked.
+      match /ai_usage_daily/{date} {
+        allow read: if isOwner(userId);
+        allow write: if false; // Admin SDK only
+      }
+
       // Preserve existing access to other user sub-collections, but do not let
-      // this broad legacy grant override the stricter conversation rules above.
+      // this broad legacy grant override the stricter conversation or quota rules above.
       match /{subCollection}/{document=**} {
-        allow read, write: if isOwner(userId) && subCollection != 'conversations';
+        allow read, write: if isOwner(userId) && subCollection != 'conversations' && subCollection != 'ai_usage_daily';
       }
     }
 
@@ -174,7 +183,15 @@ service cloud.firestore {
     match /mentor_calendar/{userId} {
       allow read, write: if isOwner(userId);
       match /days/{dayId} {
-        allow read, write: if isOwner(userId);
+        allow read: if isOwner(userId);
+        // Direct client creation/update is allowed ONLY for non-authoritative daily activity (e.g. visited: true).
+        // Authoritative quiz fields (quizCompleted, quizCount, quizIds, quizDetails, score, accuracy, verifiedQuizzes, verified)
+        // must NEVER be written or altered by the client SDK. All quiz scoring is verified server-side.
+        allow create: if isOwner(userId)
+          && !request.resource.data.keys().hasAny(['quizCompleted', 'quizCount', 'quizIds', 'quizDetails', 'score', 'accuracy', 'verifiedQuizzes', 'verified']);
+        allow update: if isOwner(userId)
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['quizCompleted', 'quizCount', 'quizIds', 'quizDetails', 'score', 'accuracy', 'verifiedQuizzes', 'verified']);
+        allow delete: if false;
       }
     }
 

@@ -8,7 +8,24 @@
  * - Rejects missing, malformed, expired, or revoked tokens.
  */
 
+import crypto from 'crypto';
 import { verifyAuthToken, logSecurityEvent } from '../firebaseAdmin.js';
+
+/**
+ * Derives a stable, tamper-resistant HMAC identifier for anonymous guest requests
+ * based on client IP to prevent quota multiplication via UID recycling.
+ */
+export function getAnonymousQuotaIdentifier(req) {
+  let rawIp = req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress || '127.0.0.1';
+  if (typeof rawIp === 'string') {
+    if (rawIp.startsWith('::ffff:')) rawIp = rawIp.substring(7);
+    if (rawIp === '::1' || rawIp === 'localhost') rawIp = '127.0.0.1';
+  } else {
+    rawIp = '127.0.0.1';
+  }
+  const secret = process.env.IP_QUOTA_HMAC_KEY || process.env.SESSION_SECRET || 'neobranium_anon_hmac_default_key_32';
+  return crypto.createHmac('sha256', secret).update(rawIp).digest('hex').slice(0, 32);
+}
 
 /**
  * Middleware: require a valid Firebase ID token.
@@ -20,6 +37,7 @@ export async function requireAuth(req, res, next) {
     req.uid = decoded.uid;  // Verified server-side — never set from client body
     req.decodedToken = decoded;
     req.isGuest = decoded.firebase?.sign_in_provider === 'anonymous';
+    req.quotaUid = req.isGuest ? `anon_quota:${getAnonymousQuotaIdentifier(req)}` : req.uid;
     next();
   } catch (err) {
     const ip = req.ip || 'unknown';

@@ -10,6 +10,7 @@ import {
   getPublicProfile,
   syncStudentPublicProfile
 } from '../services/leaderboardService.js';
+import { submitVerifiedQuiz } from '../services/quizVerificationService.js';
 
 export function createLeaderboardRouter({ db }) {
   const router = express.Router();
@@ -187,6 +188,56 @@ export function createLeaderboardRouter({ db }) {
     } catch (err) {
       console.error('[Leaderboard] Profile sync failed:', err.message);
       return res.status(500).json({ success: false, error: 'Failed to sync leaderboard profile' });
+    }
+  });
+
+  /**
+   * POST /api/leaderboard/submit-quiz
+   * Authenticated: Authoritative server-side quiz submission & scoring.
+   * Calculates score against canonical chapter keys, prevents duplicate replays,
+   * stores verified completion to mentor_calendar using Admin SDK, and syncs leaderboard.
+   */
+  router.post('/leaderboard/submit-quiz', requireAuth, async (req, res) => {
+    try {
+      if (!db) {
+        return res.status(503).json({ success: false, error: 'Database unavailable' });
+      }
+
+      // Anonymous guests cannot submit to public leaderboard
+      if (req.isGuest) {
+        return res.status(403).json({
+          success: false,
+          code: 'GUEST_SUBMISSION_BLOCKED',
+          error: 'Guest accounts cannot submit to the public leaderboard. Please sign in to save verified progress.'
+        });
+      }
+
+      const { quizId, level, answers, timeTakenSeconds, title } = req.body || {};
+      if (!quizId || typeof quizId !== 'string') {
+        return res.status(400).json({
+          success: false,
+          code: 'INVALID_QUIZ_ID',
+          error: 'Valid quiz identifier is required.'
+        });
+      }
+
+      const outcome = await submitVerifiedQuiz(db, req.uid, {
+        quizId,
+        level: level || 'level1',
+        answers: answers || {},
+        timeTakenSeconds: typeof timeTakenSeconds === 'number' ? timeTakenSeconds : 0,
+        title
+      });
+
+      if (!outcome.success) {
+        const statusCode = outcome.code === 'RATE_LIMITED' ? 429 : 400;
+        return res.status(statusCode).json(outcome);
+      }
+
+      return res.json(outcome);
+    } catch (err) {
+      console.error('[Leaderboard] Quiz submission error:', err.message);
+      return res.status(500).json({ success: false, error: 'Failed to record verified quiz submission.' });
     }
   });
 

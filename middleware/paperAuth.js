@@ -21,10 +21,15 @@ function issueGuestOwnershipToken() {
 }
 
 export function getPaperIpHash(req) {
-  let rawIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
-  if (rawIp.startsWith('::ffff:')) rawIp = rawIp.substring(7);
-  if (rawIp === '::1' || rawIp === 'localhost') rawIp = '127.0.0.1';
-  return crypto.createHash('sha256').update(rawIp + (process.env.SESSION_SECRET || 'neobranium_guest')).digest('hex').slice(0, 16);
+  let rawIp = req.ip || req.connection?.remoteAddress || req.socket?.remoteAddress || '127.0.0.1';
+  if (typeof rawIp === 'string') {
+    if (rawIp.startsWith('::ffff:')) rawIp = rawIp.substring(7);
+    if (rawIp === '::1' || rawIp === 'localhost') rawIp = '127.0.0.1';
+  } else {
+    rawIp = '127.0.0.1';
+  }
+  const secret = process.env.IP_QUOTA_HMAC_KEY || process.env.SESSION_SECRET || 'neobranium_guest';
+  return crypto.createHmac('sha256', secret).update(rawIp).digest('hex').slice(0, 32);
 }
 
 export async function paperAuth(req, res, next) {
@@ -42,6 +47,7 @@ export async function paperAuth(req, res, next) {
       req.uid = decoded.uid;
       req.decodedToken = decoded;
       req.isGuest = decoded.firebase?.sign_in_provider === 'anonymous';
+      req.quotaUid = req.isGuest ? `anon_quota:${ipHash}` : req.uid;
       return next();
     } catch (err) {
       const msg = err.message || '';
@@ -71,5 +77,6 @@ export async function paperAuth(req, res, next) {
     return res.status(401).json({ success: false, error: 'Guest session expired or invalid. Start a new guest session.' });
   }
   req.isGuest = true;
+  req.quotaUid = `guest_quota:${ipHash}`;
   next();
 }

@@ -48,37 +48,24 @@ export async function recordVisit(user) {
 
 export async function recordQuizCompletion(user, result) {
   if (!user) return;
-  const key = dateKey();
   try {
-    await setDoc(activityRef(user.uid, key), {
-      date: key,
-      quizCompleted: true,
-      quizCount: increment(1),
-      quizIds: arrayUnion(result.quizId),
-      quizDetails: arrayUnion({
+    const token = await user.getIdToken();
+    await fetch("/api/leaderboard/submit-quiz", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
         quizId: result.quizId,
         title: result.title,
-        score: result.score,
-        completedAt: new Date().toISOString()
-      }),
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-
-    // Auto-sync public leaderboard profile if user has enabled it
-    try {
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists() && userDoc.data().showOnLeaderboard !== false && userDoc.data().leaderboardPrivacy !== 'private') {
-        const token = await user.getIdToken();
-        fetch("/api/leaderboard/sync", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` }
-        }).catch(() => {});
-      }
-    } catch (syncErr) {
-      // Best-effort non-blocking sync
-    }
+        level: result.level || "level1",
+        answers: result.answers || {},
+        timeTakenSeconds: 30
+      })
+    });
   } catch (error) {
-    console.error("Unable to record quiz completion:", error);
+    console.warn("Unable to submit verified quiz completion:", error);
   }
 }
 

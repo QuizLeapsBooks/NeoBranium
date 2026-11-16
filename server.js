@@ -24,7 +24,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { verifyAuthToken, db, admin, rtdb } from './firebaseAdmin.js';
 import { requireAuth, requireAccountAuth } from './middleware/requireAuth.js';
-import { chatQuota, solverQuota, ttsQuota, liveSessionQuota, handwritingQuota } from './middleware/quotaByUID.js';
+import { chatQuota, solverQuota, tutorQuota, ttsQuota, liveSessionQuota, handwritingQuota } from './middleware/quotaByUID.js';
 import { requestHandwritingRecognition, validateSelectionMetadata } from './NeoBoard/handwriting-recognition.js';
 import { getRoutineTextModel, getVisionModel, getHandwritingModel, getLiveModel, getPaperModel } from './gemini-models.js';
 import { v2 as cloudinary } from 'cloudinary';
@@ -795,7 +795,7 @@ app.post('/api/gemini-solve', requireAuth, createAiUsageMiddleware({ feature: AI
 // NeoLens Quiz Generation API — requires auth + UID-keyed daily quota
 // POST /api/tutor/create-quiz
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-app.post('/api/tutor/create-quiz', requireAuth, createAiUsageMiddleware({ feature: AI_FEATURES.NEOLENS, route: '/api/tutor/create-quiz' }), solverQuota, sharedAiConcurrency, visionAiConcurrency, standardAiDeadline, async (req, res) => {
+app.post('/api/tutor/create-quiz', requireAuth, createAiUsageMiddleware({ feature: AI_FEATURES.NEOLENS, route: '/api/tutor/create-quiz' }), tutorQuota, sharedAiConcurrency, visionAiConcurrency, standardAiDeadline, async (req, res) => {
     try {
         let { base64, mimeType, aiSolution } = req.body;
         const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -1239,14 +1239,22 @@ app.post('/api/tts', requireAuth, createAiUsageMiddleware({ feature: AI_FEATURES
     let ttsProviderRequestStarted = false;
     let ttsProviderAttemptRecorded = false;
     try {
-        const { text, mode = 'hinglish' } = req.body;
+        const { text, mode = 'hinglish' } = req.body || {};
 
         if (!text || typeof text !== 'string' || text.trim().length === 0) {
             return res.status(400).json({ error: 'Missing or invalid text' });
         }
 
-        if (text.length > 5000) {
-            return res.status(400).json({ error: 'Text too long for TTS' });
+        const isGuest = req.isGuest === true;
+        const maxChars = isGuest
+            ? parseInt(process.env.TTS_ANON_MAX_CHARS || '200', 10)
+            : parseInt(process.env.TTS_REGISTERED_MAX_CHARS || '1000', 10);
+
+        if (text.length > maxChars) {
+            const errorMsg = isGuest
+                ? `Guest text is limited to ${maxChars} characters. Sign in to convert longer text.`
+                : `Text too long for TTS (max ${maxChars} characters)`;
+            return res.status(400).json({ error: errorMsg, code: 'TEXT_TOO_LONG', limit: maxChars });
         }
 
         if (!ELEVENLABS_API_KEY) {

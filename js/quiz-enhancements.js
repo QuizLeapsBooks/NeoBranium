@@ -257,9 +257,8 @@
   }
 
   // ─── Activity tracking ──────────────────────────────────────────────────────
-  async function recordCompletion(score, total, level) {
+  async function recordCompletion(score, total, level, answers = {}) {
     try {
-      const actMod = await import("/js/activity.js");
       const authMod = await import("/js/auth.js");
       let user = authMod.auth.currentUser;
       if (!user) {
@@ -274,7 +273,29 @@
       if (!user) return;
       const quizId = window.location.pathname.split("/").pop().replace(/\.html$/, "");
       const title = document.querySelector(".quiz-title")?.textContent?.trim() || document.title;
-      await actMod.recordQuizCompletion(user, { quizId, title, score: score + "/" + total, level, completedAt: new Date().toISOString() });
+
+      // Submit verified completion to server endpoint
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch("/api/leaderboard/submit-quiz", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            quizId,
+            level: level || "level1",
+            answers,
+            title
+          })
+        });
+        if (res.ok) {
+          showToast("Quiz progress verified and recorded! 🏆");
+        }
+      } catch (apiErr) {
+        console.warn("Backend quiz verification submission failed:", apiErr);
+      }
     } catch (err) { console.warn("Could not record quiz completion:", err); }
   }
 
@@ -335,20 +356,21 @@
     const resultDiv = document.getElementById("result");
     if (!resultDiv || !resultDiv.textContent.trim()) return;
 
+    // Extract student's checked answers
+    const answers = {};
+    quizContainer?.querySelectorAll("input[type='radio']:checked").forEach(inp => { answers[inp.name] = inp.value; });
+
     // 1. ALWAYS record completion if score text is detected
     const match = resultDiv.textContent.match(/(\d+)\s*\/\s*(\d+)/);
     if (match) {
       const correct = parseInt(match[1], 10);
       const total = parseInt(match[2], 10);
-      recordCompletion(correct, total, level);
+      recordCompletion(correct, total, level, answers);
     }
 
     // 2. Render visual review panel if quizData is accessible
     const quizData = getGlobalQuizData();
     if (!quizData || !quizData[level]) return;
-
-    const answers = {};
-    quizContainer?.querySelectorAll("input[type='radio']:checked").forEach(inp => { answers[inp.name] = inp.value; });
 
     document.getElementById("nbQuizResultPanel")?.remove();
     const panel = renderEnhancedResult(quizData, level, answers);

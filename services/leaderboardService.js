@@ -15,6 +15,16 @@ import {
   sortLeaderboardEntries,
   RANKING_CONFIG
 } from '../utils/rankingAlgorithm.js';
+import { isValidQuizId } from './quizVerificationService.js';
+
+function isValidScoreString(score) {
+  if (typeof score !== 'string') return false;
+  const match = score.match(/^(\d+)\s*\/\s*(\d+)$/);
+  if (!match) return false;
+  const num = parseInt(match[1], 10);
+  const total = parseInt(match[2], 10);
+  return num >= 0 && total > 0 && num <= total && total <= 100;
+}
 
 const CACHE_TTL_MS = 30 * 1000; // 30 seconds cache
 let cachedLeaderboard = {
@@ -104,7 +114,13 @@ export async function syncStudentPublicProfile(db, userId) {
     }
     if (Array.isArray(dayData.quizDetails)) {
       dayData.quizDetails.forEach(q => {
-        allQuizzes.push(q);
+        if (!q || typeof q !== 'object') return;
+        const isVerified = q.verified === true || q.serverVerified === true;
+        // Preserve legacy valid records while ensuring new client-written records cannot inject unverified quizzes
+        const isLegacyValid = !('verified' in q) && isValidScoreString(q.score) && typeof q.quizId === 'string' && q.quizId.length > 0 && q.quizId.length <= 100;
+        if (isVerified || isLegacyValid) {
+          allQuizzes.push(q);
+        }
       });
     }
   });
