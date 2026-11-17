@@ -36,6 +36,13 @@ function esc(v) {
   );
 }
 
+function safeQuizUrl(url) {
+  if (typeof url === "string" && /^\/htmls\/quiz_htmls\/[a-zA-Z0-9_\-]+\.html$/.test(url)) {
+    return esc(url);
+  }
+  return "/htmls/quiz_htmls/class10-physics-chapter-1.html";
+}
+
 function parseScore(raw) {
   if (raw === null || raw === undefined) return null;
   if (typeof raw === "number") {
@@ -556,7 +563,7 @@ function _renderRevision() {
           </div>
           <div class="nb-ml-rev-foot">
             ${b.savedAt ? `<small class="nb-ml-rev-date">Saved ${new Date(b.savedAt).toLocaleDateString()}</small>` : ""}
-            ${b.quizPage ? `<a href="${esc(b.quizPage)}" class="nb-ml-rev-link">Retry Quiz →</a>` : ""}
+            ${b.quizPage ? `<a href="${safeQuizUrl(b.quizPage)}" class="nb-ml-rev-link">Retry Quiz →</a>` : ""}
           </div>
         </div>`;
     }).join("");

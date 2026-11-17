@@ -7,6 +7,7 @@ import crypto from 'crypto';
 import http from 'http';
 import { sessionRouter } from './NeoBot/backend/routes/session.js';
 import { setupWebSocketProxy } from './NeoBot/backend/routes/proxy.js';
+import { initWsTicketStore } from './NeoBot/backend/routes/wsTicketStore.js';
 import { paperRouter } from './routes/paperRoutes.js';
 import { createLeaderboardRouter } from './routes/leaderboardRoutes.js';
 import { neobookRouter } from './routes/neobookRoutes.js';
@@ -96,6 +97,9 @@ if (redisUrl) {
         await redisClient.connect();
         await redisClient.ping();
         redisStore = new RedisStore({ client: redisClient, prefix: 'sess:' });
+        // Wire up the WebSocket ticket store to use the same Redis connection
+        // for atomic, multi-instance safe single-use ticket consumption (NB-SEC-09)
+        initWsTicketStore(redisClient);
         console.log('✅ Redis connected successfully');
     } catch (error) {
         console.warn('[Redis] unavailable; starting with in-memory sessions:', error.message || error.code || 'unknown error');
@@ -1919,7 +1923,7 @@ app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
                     await new Promise(resolve => setTimeout(resolve, attempt * 3000)); // 3s, 6s
                 } else {
                     console.error('❌ All attempts to generate verification link failed.');
-                    return;
+                    return res.status(503).json({ success: false, error: 'Verification link generation timed out. Please try again shortly.' });
                 }
             }
         }
@@ -1929,7 +1933,7 @@ app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
 
         if (!gmailUser || !gmailPass) {
             console.error('❌ GMAIL_USER or GMAIL_APP_PASSWORD not set in environment.');
-            return;
+            return res.status(500).json({ success: false, error: 'Email delivery service is temporarily misconfigured.' });
         }
 
         const transporter = nodemailer.createTransport({

@@ -657,6 +657,14 @@
 
     // ═══ SAVED QUESTIONS WIDGET ═════════════════════════════════════════
     const BOOKMARKS_KEY = "neobranium_quiz_bookmarks";
+
+    function sanitizeQuizPage(page) {
+      if (typeof page === 'string' && /^\/htmls\/quiz_htmls\/[a-zA-Z0-9_\-]+\.html$/.test(page)) {
+        return page;
+      }
+      return '/htmls/quiz_htmls/class10-physics-chapter-1.html';
+    }
+
     function loadSavedQuestions() {
       const container = document.getElementById('savedQuestionsContainer');
       const badge = document.getElementById('savedQuestionsBadge');
@@ -690,54 +698,86 @@
         return;
       }
 
-      container.innerHTML = bookmarks.map((b, idx) => `
-        <div class="nb-saved-q-card" id="savedQCard_${idx}">
-          <div class="nb-saved-q-header">
-            <span class="badge bg-primary">${b.quizTitle || 'Quiz Question'}</span>
-            <div>
-              <button class="btn btn-sm btn-outline-warning toggle-ans-btn me-2" data-target="ans_${idx}" style="font-size:0.75rem;">
-                <i class="bi bi-eye"></i> Answer
-              </button>
-              <button class="btn btn-sm btn-outline-danger remove-bm-btn" data-id="${b.id}" style="font-size:0.75rem;" title="Remove from saved">
-                <i class="bi bi-trash"></i>
-              </button>
-            </div>
-          </div>
-          <div class="nb-saved-q-text">${b.question}</div>
-          <div class="nb-saved-q-ans d-none" id="ans_${idx}">
-            <strong>Correct Answer:</strong> ${b.answer}
-          </div>
-          <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary border-opacity-25">
-            <small class="text-muted">${b.savedAt ? 'Saved ' + new Date(b.savedAt).toLocaleDateString() : ''}</small>
-            <a href="${b.quizPage || '/htmls/quiz_htmls/class10-physics-chapter-1.html'}" class="btn btn-sm btn-outline-info py-0 px-2" style="font-size:0.75rem;">
-              Practice Quiz <i class="bi bi-arrow-right"></i>
-            </a>
-          </div>
-        </div>
-      `).join('');
+      container.replaceChildren();
 
-      // Wire answer reveal
-      container.querySelectorAll('.toggle-ans-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const target = document.getElementById(btn.dataset.target);
-          if (target) {
-            const isHidden = target.classList.contains('d-none');
-            target.classList.toggle('d-none', !isHidden);
-            btn.innerHTML = isHidden ? '<i class="bi bi-eye-slash"></i> Hide' : '<i class="bi bi-eye"></i> Answer';
-          }
+      bookmarks.forEach((b, idx) => {
+        const card = document.createElement('div');
+        card.className = 'nb-saved-q-card';
+        card.id = `savedQCard_${idx}`;
+
+        const header = document.createElement('div');
+        header.className = 'nb-saved-q-header';
+
+        const badge = document.createElement('span');
+        badge.className = 'badge bg-primary';
+        badge.textContent = b.quizTitle || 'Quiz Question';
+
+        const btnGroup = document.createElement('div');
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'btn btn-sm btn-outline-warning toggle-ans-btn me-2';
+        toggleBtn.style.fontSize = '0.75rem';
+        toggleBtn.innerHTML = '<i class="bi bi-eye"></i> Answer';
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'btn btn-sm btn-outline-danger remove-bm-btn';
+        removeBtn.style.fontSize = '0.75rem';
+        removeBtn.title = 'Remove from saved';
+        removeBtn.innerHTML = '<i class="bi bi-trash"></i>';
+
+        btnGroup.appendChild(toggleBtn);
+        btnGroup.appendChild(removeBtn);
+        header.appendChild(badge);
+        header.appendChild(btnGroup);
+
+        const qText = document.createElement('div');
+        qText.className = 'nb-saved-q-text';
+        qText.textContent = b.question || '';
+
+        const ansBox = document.createElement('div');
+        ansBox.className = 'nb-saved-q-ans d-none';
+        ansBox.id = `ans_${idx}`;
+        const strong = document.createElement('strong');
+        strong.textContent = 'Correct Answer: ';
+        ansBox.appendChild(strong);
+        ansBox.appendChild(document.createTextNode(b.answer || ''));
+
+        toggleBtn.addEventListener('click', () => {
+          const isHidden = ansBox.classList.contains('d-none');
+          ansBox.classList.toggle('d-none', !isHidden);
+          toggleBtn.innerHTML = isHidden ? '<i class="bi bi-eye-slash"></i> Hide' : '<i class="bi bi-eye"></i> Answer';
         });
-      });
 
-      // Wire remove
-      container.querySelectorAll('.remove-bm-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const id = btn.dataset.id;
+        removeBtn.addEventListener('click', () => {
           let list = [];
           try { list = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || '[]'); } catch (e) { }
-          list = list.filter(item => item.id !== id);
+          list = list.filter(item => item.id !== b.id);
           localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(list));
           loadSavedQuestions();
         });
+
+        const footer = document.createElement('div');
+        footer.className = 'd-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary border-opacity-25';
+
+        const dateSmall = document.createElement('small');
+        dateSmall.className = 'text-muted';
+        dateSmall.textContent = b.savedAt ? 'Saved ' + new Date(b.savedAt).toLocaleDateString() : '';
+
+        const link = document.createElement('a');
+        link.className = 'btn btn-sm btn-outline-info py-0 px-2';
+        link.style.fontSize = '0.75rem';
+        link.href = sanitizeQuizPage(b.quizPage);
+        link.innerHTML = 'Practice Quiz <i class="bi bi-arrow-right"></i>';
+
+        footer.appendChild(dateSmall);
+        footer.appendChild(link);
+
+        card.appendChild(header);
+        card.appendChild(qText);
+        card.appendChild(ansBox);
+        card.appendChild(footer);
+
+        container.appendChild(card);
       });
     }
 

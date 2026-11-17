@@ -190,10 +190,27 @@ export function createNeoLearnDirectoryHandlers({ verifyAuthToken, db }) {
         if (!targetId || targetId.length > 128 || targetId.includes('/')) {
             return res.status(400).json({ success: false, error: 'Invalid NeoLearn profile.' });
         }
-            const requestedOffset = Number.parseInt(req.query?.offset || '0', 10);
-            if (!Number.isInteger(requestedOffset) || requestedOffset < 0 || requestedOffset > 100000) {
-                return res.status(400).json({ success: false, error: 'Invalid post page.' });
+
+        // NB-SEC-08: Reject arbitrary offset pagination to prevent resource exhaustion / denial-of-wallet.
+        if (req.query?.offset !== undefined && req.query.offset !== '0' && req.query.offset !== '') {
+            return res.status(400).json({ success: false, error: 'Offset pagination is disabled. Use cursor pagination.' });
+        }
+
+        // Cursor-based post pagination
+        const postCursor = req.query?.postCursor || req.query?.cursor;
+        if (postCursor !== undefined && (typeof postCursor !== 'string' || !postCursor || postCursor.length > 128 || postCursor.includes('/'))) {
+            return res.status(400).json({ success: false, error: 'Invalid post page.' });
+        }
+
+        // Strict bounding on limit parameter
+        let pageSize = 60;
+        if (req.query?.limit !== undefined) {
+            const parsedLimit = Number.parseInt(req.query.limit, 10);
+            if (!Number.isInteger(parsedLimit) || parsedLimit <= 0 || parsedLimit > 60) {
+                return res.status(400).json({ success: false, error: 'Invalid post limit.' });
             }
+            pageSize = parsedLimit;
+        }
 
         try {
             const profileDoc = await db.collection('neolearn_profiles').doc(targetId).get();
@@ -211,15 +228,32 @@ export function createNeoLearnDirectoryHandlers({ verifyAuthToken, db }) {
                 isBlocked = Boolean(viewerBlock?.exists);
             }
 
-            const postsQuery = db.collection('neolearn_posts')
+            let cursorSnapshot = null;
+            if (postCursor) {
+                cursorSnapshot = await db.collection('neolearn_posts').doc(postCursor).get();
+                if (!cursorSnapshot.exists || cursorSnapshot.data()?.userId !== targetId) {
+                    return res.status(400).json({ success: false, error: 'Invalid post page.' });
+                }
+            }
+
+            let postsQuery = db.collection('neolearn_posts')
                 .where('userId', '==', targetId)
                 .orderBy('createdAt', 'desc');
+
+            if (cursorSnapshot) {
+                postsQuery = postsQuery.startAfter(cursorSnapshot);
+            }
+
             const [profile, postsSnapshot, postsCount] = await Promise.all([
                 loadPublicProfile(db, targetId, profileDoc.data(), viewerId),
-                isBlocked ? Promise.resolve({ docs: [] }) : postsQuery.offset(requestedOffset).limit(60).get(),
+                isBlocked ? Promise.resolve({ docs: [] }) : postsQuery.limit(pageSize + 1).get(),
                 isBlocked ? Promise.resolve(0) : loadPostCount(targetId)
             ]);
-            const posts = isBlocked ? [] : postsSnapshot.docs.map((postDoc) => publicPost(postDoc.id, postDoc.data()));
+
+            const hasMorePosts = !isBlocked && postsSnapshot.docs.length > pageSize;
+            const pageDocs = hasMorePosts ? postsSnapshot.docs.slice(0, pageSize) : postsSnapshot.docs;
+            const posts = isBlocked ? [] : pageDocs.map((postDoc) => publicPost(postDoc.id, postDoc.data()));
+            const nextPostCursor = hasMorePosts ? pageDocs.at(-1)?.id || null : null;
 
             return res.json({
                 success: true,
@@ -227,8 +261,9 @@ export function createNeoLearnDirectoryHandlers({ verifyAuthToken, db }) {
                 isBlocked,
                 profile: { ...profile, postsCount },
                 posts,
-                hasMorePosts: isBlocked ? false : (requestedOffset + posts.length < postsCount),
-                nextPostOffset: isBlocked ? 0 : (requestedOffset + posts.length)
+                hasMorePosts,
+                nextPostOffset: null,
+                nextPostCursor
             });
         } catch (error) {
             console.error('NeoLearn profile read failed:', error.message);

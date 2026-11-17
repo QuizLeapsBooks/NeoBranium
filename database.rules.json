@@ -119,8 +119,8 @@
             "timestamp"
           ],
           "$commentId": {
-            ".write": "auth != null && !data.exists()",
-            ".validate": "newData.hasChildren(['username', 'text', 'timestamp']) && newData.child('username').isString() && newData.child('username').val().length > 0 && newData.child('username').val().length <= 100 && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 2000 && !newData.child('text').val().matches(/.*<script.*/) && newData.child('timestamp').isNumber() && (!newData.hasChild('reported') || newData.child('reported').isBoolean()) && (!newData.hasChild('deleted') || newData.child('deleted').isBoolean())"
+            ".write": "auth != null && ((!data.exists() && newData.child('uid').val() === auth.uid) || (data.exists() && data.child('uid').val() === auth.uid && (!newData.exists() || (newData.child('deleted').val() === true && newData.child('uid').val() === data.child('uid').val()))) || (data.exists() && newData.child('reported').val() === true && newData.child('uid').val() === data.child('uid').val() && newData.child('text').val() === data.child('text').val() && newData.child('username').val() === data.child('username').val() && newData.child('timestamp').val() === data.child('timestamp').val() && newData.child('deleted').val() === data.child('deleted').val()))",
+            ".validate": "newData.hasChildren(['uid', 'username', 'text', 'timestamp']) && newData.child('uid').isString() && newData.child('uid').val() === auth.uid && newData.child('username').isString() && newData.child('username').val().length > 0 && newData.child('username').val().length <= 100 && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 2000 && !newData.child('text').val().matches(/.*<script.*/) && newData.child('timestamp').isNumber() && (!newData.hasChild('reported') || newData.child('reported').isBoolean()) && (!newData.hasChild('deleted') || newData.child('deleted').isBoolean()) && (!data.exists() || newData.child('uid').val() === data.child('uid').val())"
           }
         }
       }

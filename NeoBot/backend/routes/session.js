@@ -3,6 +3,7 @@ import { getRobotPersonality } from '../config/robot-personality.js';
 import { requireAuth } from '../../../middleware/requireAuth.js';
 import { liveSessionQuota } from '../../../middleware/quotaByUID.js';
 import { getLiveModel } from '../../../gemini-models.js';
+import { issueWsTicket } from './wsTicketStore.js';
 import {
   AI_FEATURES,
   createAiUsageMiddleware,
@@ -35,6 +36,10 @@ sessionRouter.post('/session-token', requireAuth, createAiUsageMiddleware({ feat
     });
   }
 
+  // Issue short-lived, single-use WebSocket connection ticket (resolves NB-SEC-09)
+  const isGuest = req.user?.firebase?.sign_in_provider === 'anonymous';
+  const ticket = await issueWsTicket({ uid: req.uid, isGuest });
+
   return res.status(200).json({
     ok: true,
     mode: 'proxy',
@@ -43,6 +48,7 @@ sessionRouter.post('/session-token', requireAuth, createAiUsageMiddleware({ feat
     robotName,
     systemInstruction,
     wsPath: '/ws/live',
+    ticket,
     notice: 'Usage is metered through the authenticated backend relay.'
   });
 });

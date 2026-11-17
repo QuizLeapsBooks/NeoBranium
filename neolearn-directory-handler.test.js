@@ -92,11 +92,18 @@ function createHarness({ viewerId = 'viewer-uid', unauthorized = false, extraPos
             }
             if (name === 'neolearn_posts') {
                 return {
+                    doc(id) {
+                        const item = postData.find((p) => p.id === id);
+                        return {
+                            id,
+                            async get() { return makeSnapshot(id, item ? item.data : null); }
+                        };
+                    },
                     where(field, operator, value) {
                         assert.equal(field, 'userId');
                         assert.equal(operator, '==');
                         let direction = null;
-                        let offset = 0;
+                        let cursorId = null;
                         let limit = Infinity;
                         const query = {
                             orderBy(field, order) {
@@ -104,7 +111,10 @@ function createHarness({ viewerId = 'viewer-uid', unauthorized = false, extraPos
                                 direction = order;
                                 return query;
                             },
-                            offset(value) { offset = value; return query; },
+                            startAfter(snapshot) {
+                                cursorId = snapshot.id;
+                                return query;
+                            },
                             limit(value) { limit = value; return query; },
                             count() {
                                 postCountReads += 1;
@@ -113,8 +123,9 @@ function createHarness({ viewerId = 'viewer-uid', unauthorized = false, extraPos
                             },
                             async get() {
                                 let posts = postData.filter((post) => post.data.userId === value && post.data.createdAt);
-                                if (direction === 'desc') posts.sort((a, b) => b.data.createdAt.toMillis() - a.data.createdAt.toMillis());
-                                return { docs: posts.slice(offset, offset + limit).map((post) => makeSnapshot(post.id, post.data)) };
+                                if (direction === 'desc') posts.sort((a, b) => b.data.createdAt.toMillis() - a.data.createdAt.toMillis() || b.id.localeCompare(a.id));
+                                const startIndex = cursorId ? posts.findIndex((p) => p.id === cursorId) + 1 : 0;
+                                return { docs: posts.slice(startIndex, startIndex + limit).map((post) => makeSnapshot(post.id, post.data)) };
                             }
                         };
                         return query;
@@ -231,24 +242,79 @@ test('profile handler marks only token-owned profile as owner', async () => {
     assert.equal(res.body.profile.rank, 3);
 });
 
-test('profile posts are paginated and reject invalid offsets', async () => {
+test('NB-SEC-08: profile posts are paginated via cursor and reject offset pagination', async () => {
     const { getProfile } = createHarness({ extraPosts: 61 });
     const firstPage = response();
     await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: {} }, firstPage);
+    assert.equal(firstPage.statusCode, 200);
     assert.equal(firstPage.body.posts.length, 60);
     assert.equal(firstPage.body.profile.postsCount, 63);
     assert.equal(firstPage.body.hasMorePosts, true);
-    assert.equal(firstPage.body.nextPostOffset, 60);
+    assert.ok(firstPage.body.nextPostCursor);
 
     const secondPage = response();
-    await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: { offset: '60' } }, secondPage);
+    await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: { postCursor: firstPage.body.nextPostCursor } }, secondPage);
+    assert.equal(secondPage.statusCode, 200);
     assert.equal(secondPage.body.posts.length, 3);
     assert.equal(secondPage.body.hasMorePosts, false);
-    assert.equal(secondPage.body.nextPostOffset, 63);
+    assert.equal(secondPage.body.nextPostCursor, null);
 
-    const invalidPage = response();
-    await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: { offset: '-1' } }, invalidPage);
-    assert.equal(invalidPage.statusCode, 400);
+    // Reject offset query parameter to prevent resource exhaustion (denial-of-wallet)
+    const offsetPage = response();
+    await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: { offset: '60' } }, offsetPage);
+    assert.equal(offsetPage.statusCode, 400);
+
+    const negativeOffsetPage = response();
+    await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: { offset: '-1' } }, negativeOffsetPage);
+    assert.equal(negativeOffsetPage.statusCode, 400);
+
+    // Reject malformed or invalid cursors
+    const malformedCursorPage = response();
+    await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: { postCursor: 'bad/cursor' } }, malformedCursorPage);
+    assert.equal(malformedCursorPage.statusCode, 400);
+
+    const nonExistentCursorPage = response();
+    await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: { postCursor: 'non-existent-doc-id' } }, nonExistentCursorPage);
+    assert.equal(nonExistentCursorPage.statusCode, 400);
+
+    // Reject cross-user / tampered cursor (private-post belongs to viewer-uid, not peer-uid)
+    const tamperedCursorPage = response();
+    await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: { postCursor: 'private-post' } }, tamperedCursorPage);
+    assert.equal(tamperedCursorPage.statusCode, 400);
+
+    // Reject invalid limit values
+    const zeroLimitPage = response();
+    await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: { limit: '0' } }, zeroLimitPage);
+    assert.equal(zeroLimitPage.statusCode, 400);
+
+    const negativeLimitPage = response();
+    await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: { limit: '-10' } }, negativeLimitPage);
+    assert.equal(negativeLimitPage.statusCode, 400);
+
+    const excessiveLimitPage = response();
+    await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: { limit: '999' } }, excessiveLimitPage);
+    assert.equal(excessiveLimitPage.statusCode, 400);
+
+    const invalidLimitPage = response();
+    await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: { limit: 'abc' } }, invalidLimitPage);
+    assert.equal(invalidLimitPage.statusCode, 400);
+});
+
+test('NB-SEC-08: cursor pagination guarantees stable ordering across timestamp collisions', async () => {
+    // Both posts have exact same timestamp
+    const collisionTime = 1700000000000;
+    const { getProfile } = createHarness();
+    const page1 = response();
+    await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: { limit: '1' } }, page1);
+    assert.equal(page1.statusCode, 200);
+    assert.equal(page1.body.posts.length, 1);
+    assert.ok(page1.body.nextPostCursor);
+
+    const page2 = response();
+    await getProfile({ headers: { authorization: 'Bearer valid' }, params: { userId: 'peer-uid' }, query: { limit: '1', postCursor: page1.body.nextPostCursor } }, page2);
+    assert.equal(page2.statusCode, 200);
+    assert.equal(page2.body.posts.length, 1);
+    assert.notEqual(page1.body.posts[0].postId, page2.body.posts[0].postId, 'Must not duplicate post across cursor pages');
 });
 
 test('unauthenticated directory requests do not return profile data', async () => {

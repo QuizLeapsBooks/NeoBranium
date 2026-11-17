@@ -79,10 +79,12 @@ function invalidateUserData(userId, targetUserId = userId) {
   } catch { /* Session storage can be unavailable in restricted contexts. */ }
 }
 
-export async function getNeoLearnProfile(user, userId, offset = 0) {
+export async function getNeoLearnProfile(user, userId, postCursor = null) {
   if (!userId || userId.includes('/')) throw new Error('Invalid NeoLearn profile.');
-  const safeOffset = Number.isInteger(offset) && offset >= 0 ? offset : 0;
-  return authenticatedRequest(user, `/api/neolearn/profiles/${encodeURIComponent(userId)}?offset=${safeOffset}`);
+  const queryParam = (typeof postCursor === 'string' && postCursor.trim())
+    ? `?postCursor=${encodeURIComponent(postCursor.trim())}`
+    : '';
+  return authenticatedRequest(user, `/api/neolearn/profiles/${encodeURIComponent(userId)}${queryParam}`);
 }
 
 export async function getNeoLearnFeed(user = auth.currentUser) {

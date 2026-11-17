@@ -1,8 +1,8 @@
 import { WebSocketServer, WebSocket } from 'ws';
-import admin from 'firebase-admin';
 import { randomUUID } from 'node:crypto';
 import { logSecurityEvent } from '../../../firebaseAdmin.js';
 import { getLiveModel } from '../../../gemini-models.js';
+import { consumeWsTicket } from './wsTicketStore.js';
 import {
   AI_FEATURES,
   createAiUsageRequest,
@@ -47,25 +47,34 @@ function estimateLiveFrameTokens(data) {
 }
 
 /**
- * Verifies a Firebase ID token passed as a query parameter on WebSocket upgrade.
- * WebSocket upgrades happen before Express middleware, so we handle auth here.
+ * Verifies a WebSocket authentication credential.
+ * Only accepts short-lived, single-use connection tickets (?ticket=).
+ * Legacy Firebase ID tokens in URL query parameters are explicitly rejected
+ * to prevent token exposure in proxy logs and browser history (NB-SEC-09).
  *
- * @param {string} token Firebase ID token
- * @returns {Promise<admin.auth.DecodedIdToken>}
+ * @param {string} ticket Single-use connection ticket from /api/session-token
+ * @returns {Promise<{ uid: string, firebase: { sign_in_provider: string }, isGuest: boolean }>}
+ * @throws {Error} if the ticket is missing, invalid, expired, or already consumed
  */
-async function verifyWsToken(token) {
-  if (!token || typeof token !== 'string' || token.trim() === '') {
-    throw new Error('Missing WebSocket auth token');
+export async function verifyWsToken(ticket) {
+  if (!ticket || typeof ticket !== 'string' || ticket.trim() === '') {
+    throw new Error('Missing WebSocket connection ticket');
   }
-  if (!admin.apps.length) {
-    throw new Error('Firebase Admin not initialized');
+  const trimmed = ticket.trim();
+
+  // Only accept single-use short-lived tickets — ID tokens in URLs are rejected
+  const identity = await consumeWsTicket(trimmed);
+  if (identity) {
+    return identity;
   }
-  return admin.auth().verifyIdToken(token.trim());
+
+  throw new Error('Invalid, expired, or already-consumed WebSocket connection ticket');
 }
 
 /**
  * Attaches the WebSocket Proxy Relay to the Node.js HTTP server.
- * Requires a valid Firebase ID token via ?token=<idToken> query parameter.
+ * Requires a valid single-use ticket via ?ticket=<ticket>.
+ * Legacy ?token= URL parameter is explicitly rejected (NB-SEC-09).
  * Relays Live sessions so server-side usage budgets cannot be bypassed.
  */
 export function setupWebSocketProxy(server) {
@@ -102,10 +111,26 @@ export function setupWebSocketProxy(server) {
     }
 
     // ── Authenticate the WebSocket connection before upgrading ──────────────
+    // Only accept single-use short-lived tickets (?ticket=).
+    // Legacy ?token= URL parameter is REJECTED to prevent ID token exposure in logs (NB-SEC-09).
+    const ticket = searchParams.get('ticket');
     const token = searchParams.get('token');
+
+    // Explicitly reject any attempt to authenticate using an ID token in the URL
+    if (!ticket && token) {
+      logSecurityEvent('ws_auth_failure', {
+        path: pathname,
+        ip: request.socket?.remoteAddress || 'unknown',
+        reason: 'Legacy ?token= parameter rejected; use POST /api/session-token to obtain a ?ticket='
+      });
+      socket.write('HTTP/1.1 401 Unauthorized\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nUnauthorized: use POST /api/session-token to obtain a short-lived ticket');
+      socket.destroy();
+      return;
+    }
+
     let decoded;
     try {
-      decoded = await verifyWsToken(token);
+      decoded = await verifyWsToken(ticket);
     } catch (authErr) {
       logSecurityEvent('ws_auth_failure', {
         path: pathname,
@@ -113,7 +138,7 @@ export function setupWebSocketProxy(server) {
         reason: authErr.message.slice(0, 120)
       });
       // Respond with HTTP 401 before the upgrade
-      socket.write('HTTP/1.1 401 Unauthorized\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nUnauthorized: valid Firebase token required');
+      socket.write('HTTP/1.1 401 Unauthorized\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nUnauthorized: use POST /api/session-token to obtain a short-lived ticket');
       socket.destroy();
       return;
     }

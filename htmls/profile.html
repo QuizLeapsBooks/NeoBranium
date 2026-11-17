@@ -274,6 +274,14 @@
 
     // ─── Render Saved Questions in Profile ──────────────────────────────────
     const BOOKMARKS_KEY = "neobranium_quiz_bookmarks";
+
+    function sanitizeQuizPage(page) {
+      if (typeof page === 'string' && /^\/htmls\/quiz_htmls\/[a-zA-Z0-9_\-]+\.html$/.test(page)) {
+        return page;
+      }
+      return '/htmls/quiz_htmls/class10-physics-chapter-1.html';
+    }
+
     function renderProfileSavedQuestions() {
       const container = document.getElementById('profileSavedQuestionsContainer');
       const countEl = document.getElementById('profileSavedCount');
@@ -295,52 +303,91 @@
         return;
       }
 
-      container.innerHTML = list.map((item, idx) => `
-        <div class="nb-saved-q-card mb-3 p-3 rounded" style="background:var(--account-surface, rgba(255,255,255,0.04)); border:1px solid var(--account-border, rgba(255,255,255,0.08));">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <span class="badge bg-primary" style="font-size:0.75rem;">${item.quizTitle || 'Quiz Question'}</span>
-            <div>
-              <button class="btn btn-sm btn-outline-warning prof-toggle-ans me-2" data-target="prof_ans_${idx}" style="font-size:0.75rem; border-radius:6px;">
-                <i class="bi bi-eye"></i> Answer
-              </button>
-              <button class="btn btn-sm btn-outline-danger prof-remove-bm" data-id="${item.id}" style="font-size:0.75rem; border-radius:6px;" title="Remove bookmark">
-                <i class="bi bi-trash"></i>
-              </button>
-            </div>
-          </div>
-          <p class="mb-2 fw-semibold" style="font-size:0.92rem; color:var(--account-text, #f1f5f9);">${item.question}</p>
-          <div class="d-none p-2 mb-2 rounded prof-ans-box" id="prof_ans_${idx}" style="background:rgba(16,185,129,0.12); color:#6ee7b7; font-size:0.85rem; border:1px solid rgba(16,185,129,0.25);">
-            <strong>Correct Answer:</strong> ${item.answer}
-          </div>
-          <div class="d-flex justify-content-between align-items-center pt-2" style="border-top:1px solid rgba(255,255,255,0.06); font-size:0.78rem;">
-            <span class="account-muted">${item.savedAt ? 'Bookmarked ' + new Date(item.savedAt).toLocaleDateString() : ''}</span>
-            <a href="${item.quizPage || '/htmls/quiz_htmls/class10-physics-chapter-1.html'}" class="btn btn-sm btn-outline-info py-0 px-2" style="font-size:0.75rem; border-radius:6px;">
-              Open Quiz <i class="bi bi-arrow-right"></i>
-            </a>
-          </div>
-        </div>
-      `).join('');
+      container.replaceChildren();
 
-      container.querySelectorAll('.prof-toggle-ans').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const target = document.getElementById(btn.dataset.target);
-          if (target) {
-            const isHidden = target.classList.contains('d-none');
-            target.classList.toggle('d-none', !isHidden);
-            btn.innerHTML = isHidden ? '<i class="bi bi-eye-slash"></i> Hide' : '<i class="bi bi-eye"></i> Answer';
-          }
+      list.forEach((item, idx) => {
+        const card = document.createElement('div');
+        card.className = 'nb-saved-q-card mb-3 p-3 rounded';
+        card.style.cssText = 'background:var(--account-surface, rgba(255,255,255,0.04)); border:1px solid var(--account-border, rgba(255,255,255,0.08));';
+
+        const header = document.createElement('div');
+        header.className = 'd-flex justify-content-between align-items-center mb-2';
+
+        const badge = document.createElement('span');
+        badge.className = 'badge bg-primary';
+        badge.style.fontSize = '0.75rem';
+        badge.textContent = item.quizTitle || 'Quiz Question';
+
+        const btnGroup = document.createElement('div');
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'btn btn-sm btn-outline-warning prof-toggle-ans me-2';
+        toggleBtn.style.cssText = 'font-size:0.75rem; border-radius:6px;';
+        toggleBtn.innerHTML = '<i class="bi bi-eye"></i> Answer';
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'btn btn-sm btn-outline-danger prof-remove-bm';
+        removeBtn.style.cssText = 'font-size:0.75rem; border-radius:6px;';
+        removeBtn.title = 'Remove bookmark';
+        removeBtn.innerHTML = '<i class="bi bi-trash"></i>';
+
+        btnGroup.appendChild(toggleBtn);
+        btnGroup.appendChild(removeBtn);
+        header.appendChild(badge);
+        header.appendChild(btnGroup);
+
+        const qText = document.createElement('p');
+        qText.className = 'mb-2 fw-semibold';
+        qText.style.cssText = 'font-size:0.92rem; color:var(--account-text, #f1f5f9);';
+        qText.textContent = item.question || '';
+
+        const ansBox = document.createElement('div');
+        ansBox.className = 'd-none p-2 mb-2 rounded prof-ans-box';
+        ansBox.id = `prof_ans_${idx}`;
+        ansBox.style.cssText = 'background:rgba(16,185,129,0.12); color:#6ee7b7; font-size:0.85rem; border:1px solid rgba(16,185,129,0.25);';
+
+        const strong = document.createElement('strong');
+        strong.textContent = 'Correct Answer: ';
+        ansBox.appendChild(strong);
+        ansBox.appendChild(document.createTextNode(item.answer || ''));
+
+        toggleBtn.addEventListener('click', () => {
+          const isHidden = ansBox.classList.contains('d-none');
+          ansBox.classList.toggle('d-none', !isHidden);
+          toggleBtn.innerHTML = isHidden ? '<i class="bi bi-eye-slash"></i> Hide' : '<i class="bi bi-eye"></i> Answer';
         });
-      });
 
-      container.querySelectorAll('.prof-remove-bm').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const id = btn.dataset.id;
+        removeBtn.addEventListener('click', () => {
           let current = [];
           try { current = JSON.parse(localStorage.getItem(BOOKMARKS_KEY) || '[]'); } catch (e) {}
-          current = current.filter(x => x.id !== id);
+          current = current.filter(x => x.id !== item.id);
           localStorage.setItem(BOOKMARKS_KEY, JSON.stringify(current));
           renderProfileSavedQuestions();
         });
+
+        const footer = document.createElement('div');
+        footer.className = 'd-flex justify-content-between align-items-center pt-2';
+        footer.style.cssText = 'border-top:1px solid rgba(255,255,255,0.06); font-size:0.78rem;';
+
+        const dateSpan = document.createElement('span');
+        dateSpan.className = 'account-muted';
+        dateSpan.textContent = item.savedAt ? 'Bookmarked ' + new Date(item.savedAt).toLocaleDateString() : '';
+
+        const quizLink = document.createElement('a');
+        quizLink.className = 'btn btn-sm btn-outline-info py-0 px-2';
+        quizLink.style.cssText = 'font-size:0.75rem; border-radius:6px;';
+        quizLink.href = sanitizeQuizPage(item.quizPage);
+        quizLink.innerHTML = 'Open Quiz <i class="bi bi-arrow-right"></i>';
+
+        footer.appendChild(dateSpan);
+        footer.appendChild(quizLink);
+
+        card.appendChild(header);
+        card.appendChild(qText);
+        card.appendChild(ansBox);
+        card.appendChild(footer);
+
+        container.appendChild(card);
       });
     }
 

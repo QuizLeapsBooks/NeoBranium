@@ -96,6 +96,7 @@ async function postComment(noteId, userId, username, text) {
     const commentRef = ref(db, `notes/${noteId}/comments`);
     const newCommentRef = push(commentRef); // Generate unique comment ID
     await set(newCommentRef, {
+        uid: userId,
         username: username,
         text: text,
         timestamp: Date.now(),
@@ -108,22 +109,33 @@ async function postComment(noteId, userId, username, text) {
 function loadComments(noteId, commentList) {
     const commentsRef = ref(db, `notes/${noteId}/comments`);
     onValue(commentsRef, (snapshot) => {
-        commentList.innerHTML = ''; // Clear existing comments
+        commentList.replaceChildren(); // Safe DOM clear
         if (snapshot.exists()) {
             snapshot.forEach(childSnapshot => {
                 const comment = childSnapshot.val();
                 if (!comment.deleted) {
                     const li = document.createElement('li');
-                    li.innerHTML = `<strong>${escapeHtml(comment.username)}:</strong> ${escapeHtml(comment.text)} <br><small>${new Date(comment.timestamp).toLocaleString()}</small>`;
+                    const strong = document.createElement('strong');
+                    strong.textContent = `${comment.username || 'User'}: `;
+                    li.appendChild(strong);
+                    li.appendChild(document.createTextNode(comment.text || ''));
+                    li.appendChild(document.createElement('br'));
+                    const small = document.createElement('small');
+                    small.textContent = comment.timestamp ? new Date(comment.timestamp).toLocaleString() : '';
+                    li.appendChild(small);
                     commentList.appendChild(li);
                 }
             });
         } else {
-            commentList.innerHTML = '<li>No comments yet.</li>';
+            const li = document.createElement('li');
+            li.textContent = 'No comments yet.';
+            commentList.appendChild(li);
         }
     }, (error) => {
         console.error(`Error loading comments for ${noteId}:`, error);
-        commentList.innerHTML = '<li>Error loading comments.</li>';
+        const li = document.createElement('li');
+        li.textContent = 'Error loading comments.';
+        commentList.replaceChildren(li);
     });
 }
 

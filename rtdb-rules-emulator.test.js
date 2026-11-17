@@ -102,19 +102,36 @@ test('Realtime Database rules enforce the current client access model', {
     await expectDenied(report, { uid: bob, method: 'DELETE' });
   });
 
-  await t.test('note comments allow valid creation but no client edits or deletes', async () => {
+  await t.test('NB-SEC-07: note comments enforce auth.uid ownership and prevent identity spoofing', async () => {
     const comment = `notes/${noteId}/comments/${commentId}`;
     await expectDenied(comment, {
       method: 'PUT',
       body: { username: 'Alice', text: 'unauthenticated', timestamp: Date.now() }
     });
+    // Spoofed UID write attempt by Bob claiming Alice's UID is denied
+    await expectDenied(`notes/${noteId}/comments/${runId}-spoofed`, {
+      uid: bob,
+      method: 'PUT',
+      body: { uid: alice, username: 'Alice', text: 'spoofed comment', timestamp: Date.now(), reported: false, deleted: false }
+    });
+    // Missing UID write attempt is denied
+    await expectDenied(`notes/${noteId}/comments/${runId}-missing-uid`, {
+      uid: alice,
+      method: 'PUT',
+      body: { username: 'Alice', text: 'missing uid', timestamp: Date.now(), reported: false, deleted: false }
+    });
+    // Legitimate owner write is allowed
     await expectAllowed(comment, {
       uid: alice,
       method: 'PUT',
-      body: { username: 'Alice', text: 'valid note comment', timestamp: Date.now(), reported: false, deleted: false }
+      body: { uid: alice, username: 'Alice', text: 'valid note comment', timestamp: Date.now(), reported: false, deleted: false }
     });
-    await expectDenied(comment, { uid: alice, method: 'PATCH', body: { deleted: true } });
+    // Another user cannot modify or delete Alice's comment
+    await expectDenied(comment, { uid: bob, method: 'PATCH', body: { deleted: true } });
     await expectDenied(comment, { uid: bob, method: 'DELETE' });
+    // Owner can soft-delete or delete their own comment
+    await expectAllowed(comment, { uid: alice, method: 'PATCH', body: { deleted: true, uid: alice } });
+    await expectAllowed(comment, { uid: alice, method: 'DELETE' });
   });
 
   await t.test('NeoLearn post likes, comments, and presence enforce UID ownership', async () => {

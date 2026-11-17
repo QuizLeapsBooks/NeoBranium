@@ -9,10 +9,17 @@
   "hosting": {
     "public": ".",
     "ignore": [
+      ".git/**",
+      "**/.git/**",
+      ".github/**",
+      ".*/**",
+      "**/.*/**",
+      ".*",
+      "**/.env*",
+      ".env*",
       "firebase.json",
       "**/.*",
       "**/node_modules/**",
-
       "**/*.js.map",
       "**/*.ts.map",
       "**/*.log",
@@ -32,14 +39,11 @@
       "**/scripts/**",
       "**/.github/**",
       "**/.firebase/**",
-
       "**/*.mp4",
       "**/*.mkv",
       "**/*.avi",
       "**/*.mov",
-
       "dump.rdb",
-
       "server.js",
       "firebaseAdmin.js",
       "gemini-models.js",
@@ -51,25 +55,105 @@
       "NeoBot/server.js",
       "NeoBot/backend/**",
       "NeoBot/test-*.js",
-
       "patch.py",
       "patch2.py",
       "requirement.txt",
-
       "package.json",
       "package-lock.json",
       "vercel.json",
-
       "READEM.md",
       "profilem.md",
       "profiles_solution.md",
-
       "git checkout Final Commit",
-
       "screenshot_images/**",
-      "functions/**"
+      "functions/**",
+      "database.rules.json",
+      "firebase.rtdb-emulator.json",
+      "firestore.indexes.json",
+      "ai-conversation-handler.js",
+      "ai-upload-handler.js",
+      "neolearn-social-data.js",
+      "neolearn-social-handler.js",
+      "neolearn-impression-handler.js",
+      "neolearn-message-handler.js",
+      "neolearn-moderation-handler.js",
+      "neolearn-notification-handler.js",
+      "neolearn-upload-handler.js",
+      "neolearn-moment-handler.js",
+      "dump_msgs.js",
+      "index.js",
+      "search.js",
+      "update_html.js",
+      "patch_messages.js",
+      "patch_messages_empty.js",
+      "patch_messages_presence.js",
+      "patch_settings.js",
+      "patch_settings_privacy.js",
+      "patch_js.cjs",
+      "fix_social.js",
+      "fix_social.cjs",
+      "fix_social2.cjs",
+      "test_admin.js",
+      "test_dotenv.js",
+      "test_main.js",
+      "test_main2.js",
+      "test_main3.js",
+      "architecture-map.html",
+      "pages.txt",
+      "sample-prompt.txt",
+      "transcript_outputs.txt",
+      "ai-conversation-handler.test.js",
+      "ai-upload-handler.test.js",
+      "ai-quota-ui.test.js",
+      "firebase-hosting-assets.test.js",
+      "leaderboard.test.js",
+      "neolearn-directory-handler.test.js",
+      "neolearn-impression-handler.test.js",
+      "neolearn-message-handler.test.js",
+      "neolearn-message-history.test.js",
+      "neolearn-moderation.test.js",
+      "neolearn-moment-handler.test.js",
+      "neolearn-notification-handler.test.js",
+      "neolearn-notifications-service.test.js",
+      "neolearn-privacy-settings.test.js",
+      "neolearn-rtdb.test.js",
+      "neolearn-social-client.test.js",
+      "neolearn-social-handler.test.js",
+      "neolearn-upload-handler.test.js",
+      "neolearn-feed-history.test.js",
+      "paper-generator.test.js",
+      "phase4.test.js",
+      "rankingAlgorithm.test.js",
+      "require-auth-quota.test.js",
+      "gemini-models.test.js",
+      "neobook-quiz-service.test.js",
+      "rtdb-rules-emulator.test.js",
+      "service-worker.test.js",
+      "security.test.js",
+      "tests/**"
     ],
     "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "X-Frame-Options",
+            "value": "SAMEORIGIN"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
+          },
+          {
+            "key": "Strict-Transport-Security",
+            "value": "max-age=31536000; includeSubDomains"
+          }
+        ]
+      },
       {
         "source": "/sw.js",
         "headers": [

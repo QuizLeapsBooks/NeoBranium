@@ -10,9 +10,14 @@
  */
 
 import dns from 'dns';
+import net from 'net';
+import { Agent as UndiciAgent, buildConnector } from 'undici';
 import { PDFParse } from 'pdf-parse';
 import { NEOBOOK_CONFIG } from './neobookConfig.js';
 import { fetchWithRetry } from '../utils/backendRequestProtection.js';
+
+// Maximum response body size for website fetching (4× text budget = generous HTML headroom)
+const MAX_FETCH_BODY_BYTES = NEOBOOK_CONFIG.MAX_TEXT_SOURCE_CHARS * 4;
 
 // ── SSRF & Network Protection ──────────────────────────────────────────────────
 
@@ -98,11 +103,43 @@ export function isPrivateIpv6(ip) {
   // Multicast ff00::/8
   if (norm.startsWith('ff')) return true;
 
-  // IPv4-mapped IPv6 address (e.g. ::ffff:192.168.1.1 or ::ffff:c0a8:0101)
-  if (norm.includes('::ffff:')) {
-    const after = norm.split('::ffff:')[1];
-    if (after.includes('.')) {
-      return isPrivateIpv4(after);
+  // Documentation 2001:db8::/32
+  if (norm.startsWith('2001:db8:') || norm.startsWith('2001:0db8:')) return true;
+
+  // Discard prefix 100::/64
+  if (norm.startsWith('100::')) return true;
+
+  // IPv4-embedded in IPv6 in dot-decimal form (e.g. ::ffff:192.168.1.1, ::127.0.0.1, 0:0:0:0:0:ffff:10.0.0.1)
+  if (norm.includes('.')) {
+    const lastColon = norm.lastIndexOf(':');
+    const ipv4Part = lastColon !== -1 ? norm.slice(lastColon + 1) : norm;
+    return isPrivateIpv4(ipv4Part);
+  }
+
+  // IPv4-mapped or translated in hex form (e.g. ::ffff:c0a8:0101, 0:0:0:0:0:ffff:c0a8:0101)
+  if (norm.includes(':ffff:')) {
+    const after = norm.slice(norm.indexOf(':ffff:') + 6);
+    const hexGroups = after.split(':');
+    if (hexGroups.length === 2) {
+      const hi = parseInt(hexGroups[0], 16);
+      const lo = parseInt(hexGroups[1], 16);
+      if (!isNaN(hi) && !isNaN(lo)) {
+        const dotDecimal = `${(hi >> 8) & 0xff}.${hi & 0xff}.${(lo >> 8) & 0xff}.${lo & 0xff}`;
+        return isPrivateIpv4(dotDecimal);
+      }
+    }
+  }
+
+  // IPv4-compatible in hex form (e.g. ::c0a8:0101)
+  if (norm.startsWith('::') && !norm.slice(2).includes('::')) {
+    const hexGroups = norm.slice(2).split(':');
+    if (hexGroups.length === 2) {
+      const hi = parseInt(hexGroups[0], 16);
+      const lo = parseInt(hexGroups[1], 16);
+      if (!isNaN(hi) && !isNaN(lo)) {
+        const dotDecimal = `${(hi >> 8) & 0xff}.${hi & 0xff}.${(lo >> 8) & 0xff}.${lo & 0xff}`;
+        return isPrivateIpv4(dotDecimal);
+      }
     }
   }
 
@@ -125,8 +162,12 @@ export function isPrivateOrRestrictedIp(ip, family) {
 /**
  * Validates a target URL against SSRF threats.
  * Resolves DNS to check all candidate IPs before fetching.
+ * Returns the parsed URL together with the first validated IP so the caller
+ * can pin its HTTP connection to that exact address, eliminating the
+ * DNS Time-of-Check / Time-of-Use (TOCTOU) window.
+ *
  * @param {string} rawUrl
- * @returns {Promise<URL>}
+ * @returns {Promise<{ parsed: URL, address: string, family: number }>}
  */
 export async function validateSafeUrl(rawUrl) {
   if (typeof rawUrl !== 'string' || !rawUrl.trim()) {
@@ -158,25 +199,101 @@ export async function validateSafeUrl(rawUrl) {
     throw new Error('Access to local, internal, or private hostnames is forbidden.');
   }
 
-  // Resolve hostname via DNS to prevent DNS rebinding & check IP ranges
+  // Strip IPv6 brackets if present (e.g. [::1] -> ::1)
+  let cleanHost = hostname;
+  if (cleanHost.startsWith('[') && cleanHost.endsWith(']')) {
+    cleanHost = cleanHost.slice(1, -1);
+  }
+
+  // If host is an IP literal, validate directly without secondary DNS
   let addresses;
-  try {
-    addresses = await dns.promises.lookup(hostname, { all: true });
-  } catch (err) {
-    throw new Error(`Could not resolve domain name: ${hostname}`);
+  const ipVersion = net.isIP(cleanHost);
+  if (ipVersion !== 0) {
+    if (isPrivateOrRestrictedIp(cleanHost, ipVersion)) {
+      throw new Error(`Access to private or restricted network address (${cleanHost}) is forbidden.`);
+    }
+    addresses = [{ address: cleanHost, family: ipVersion }];
+  } else {
+    // Resolve hostname via DNS to prevent DNS rebinding & check IP ranges
+    try {
+      addresses = await dns.promises.lookup(cleanHost, { all: true });
+    } catch (err) {
+      throw new Error(`Could not resolve domain name: ${hostname}`);
+    }
   }
 
   if (!addresses || addresses.length === 0) {
     throw new Error(`No IP addresses found for domain: ${hostname}`);
   }
 
+  // All addresses must be public; mixed public/private answers fail safely.
+  let firstPublic = null;
   for (const { address, family } of addresses) {
     if (isPrivateOrRestrictedIp(address, family)) {
       throw new Error(`Access to private or restricted network address (${address}) is forbidden.`);
     }
+    if (!firstPublic) firstPublic = { address, family };
   }
 
-  return parsed;
+  return { parsed, address: firstPublic.address, family: firstPublic.family };
+}
+
+/**
+ * Creates a one-shot undici Agent whose TCP connection is pinned to a specific
+ * pre-validated IP address.  The original hostname is preserved in the Host
+ * header and SNI so that TLS certificate validation continues to work normally.
+ *
+ * This eliminates the DNS TOCTOU window: we already checked the IP during
+ * validateSafeUrl(); now we force the HTTP stack to connect to *exactly* that
+ * address instead of doing a second, independent DNS lookup.
+ *
+ * @param {string} hostname   - e.g. "example.com"
+ * @param {string} resolvedIp - validated public IP returned by validateSafeUrl
+ * @returns {UndiciAgent}
+ */
+function createPinnedAgent(hostname, resolvedIp) {
+  const connector = buildConnector({ rejectUnauthorized: true });
+  return new UndiciAgent({
+    connect(opts, callback) {
+      connector(
+        {
+          ...opts,
+          hostname: resolvedIp, // connect to the pre-validated IP directly
+          servername: hostname, // TLS SNI uses original hostname
+        },
+        callback
+      );
+    }
+  });
+}
+
+/**
+ * Fetches a URL using a connection pinned to a pre-validated IP address,
+ * bypassing any secondary DNS resolution by the HTTP client.
+ *
+ * The Host header is set to the original hostname so virtual hosting works.
+ * TLS certificate verification is NOT disabled.
+ *
+ * @param {URL} parsedUrl      - validated URL object
+ * @param {string} resolvedIp  - pre-validated public IP from validateSafeUrl
+ * @param {object} [options]   - additional fetch options (headers, signal, etc.)
+ * @returns {Promise<Response>}
+ */
+export async function fetchPinned(parsedUrl, resolvedIp, options = {}) {
+  const { fetch: undiciFetch } = await import('undici');
+  const agent = createPinnedAgent(parsedUrl.hostname, resolvedIp);
+  try {
+    return await undiciFetch(parsedUrl.toString(), {
+      ...options,
+      dispatcher: agent,
+      headers: {
+        ...(options.headers || {}),
+        Host: parsedUrl.host // preserve original Host header for virtual hosting
+      }
+    });
+  } finally {
+    agent.close().catch(() => {});
+  }
 }
 
 /**
@@ -235,18 +352,29 @@ export async function fetchWebsiteContent(urlString, maxRedirects = 3, { signal 
   let response = null;
 
   for (let hop = 0; hop <= maxRedirects; hop++) {
-    const validatedUrl = await validateSafeUrl(currentUrl);
+    // validateSafeUrl now returns { parsed, address, family } — the resolved IP
+    // is used to pin the HTTP connection, closing the DNS TOCTOU window.
+    const { parsed: validatedUrl, address: resolvedIp } = await validateSafeUrl(currentUrl);
 
     try {
-      response = await fetchWithRetry(validatedUrl.toString(), {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 NeoBook/2.0',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,text/plain;q=0.8,*/*;q=0.5'
-        },
-        redirect: 'manual',
-        signal
-      }, { maxRetries: 1, timeoutMs: NEOBOOK_CONFIG.FETCH_TIMEOUT_MS });
+      // Use fetchPinned so the HTTP client connects to the already-validated IP
+      // rather than performing a fresh DNS resolution (which could differ).
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), NEOBOOK_CONFIG.FETCH_TIMEOUT_MS);
+      if (signal) signal.addEventListener('abort', () => controller.abort(), { once: true });
+      try {
+        response = await fetchPinned(validatedUrl, resolvedIp, {
+          method: 'GET',
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 NeoBook/2.0',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,text/plain;q=0.8,*/*;q=0.5'
+          },
+          redirect: 'manual',
+          signal: controller.signal
+        });
+      } finally {
+        clearTimeout(timeoutId);
+      }
     } catch (fetchErr) {
       if (signal?.aborted) throw fetchErr;
       if (fetchErr.name === 'AbortError' || fetchErr.code === 'UPSTREAM_TIMEOUT') {
@@ -255,8 +383,11 @@ export async function fetchWebsiteContent(urlString, maxRedirects = 3, { signal 
       throw new Error(`Failed to fetch website: ${fetchErr.message}`);
     }
 
-    // Handle redirects safely
+    // Handle redirects safely: each redirect target is re-validated and re-pinned.
     if (response.status >= 300 && response.status < 400) {
+      if (hop >= maxRedirects) {
+        throw new Error(`Too many redirects (limit is ${maxRedirects}).`);
+      }
       const redirectLocation = response.headers.get('location');
       if (!redirectLocation) {
         throw new Error(`Received redirect status ${response.status} with no Location header.`);
@@ -278,7 +409,40 @@ export async function fetchWebsiteContent(urlString, maxRedirects = 3, { signal 
     throw new Error(`Unsupported content type (${contentType}). Only HTML and text web pages can be processed.`);
   }
 
-  const rawBody = await response.text();
+  // Enforce a hard response body size limit before reading into memory.
+  const contentLength = parseInt(response.headers.get('content-length'), 10);
+  if (!isNaN(contentLength) && contentLength > MAX_FETCH_BODY_BYTES * 2) {
+    throw new Error(`Website response size (${contentLength} bytes) exceeds maximum limit.`);
+  }
+
+  // Enforce a hard response body size limit before reading into memory.
+  // This prevents a malicious server sending a huge body to exhaust RAM/CPU.
+  let rawBody;
+  if (response.body) {
+    const reader = response.body.getReader();
+    const chunks = [];
+    let totalBytes = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > MAX_FETCH_BODY_BYTES) {
+        reader.cancel().catch(() => {});
+        break;
+      }
+      chunks.push(value);
+    }
+    const combined = new Uint8Array(totalBytes > MAX_FETCH_BODY_BYTES ? MAX_FETCH_BODY_BYTES : totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) {
+      combined.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    rawBody = new TextDecoder().decode(combined);
+  } else {
+    rawBody = await response.text();
+  }
+
   const { title, text } = extractTextFromHtml(rawBody);
 
   if (!text || text.length < 50) {

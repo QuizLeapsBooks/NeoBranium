@@ -156,7 +156,7 @@
     const thoughtCount = document.getElementById('neoLearnThoughtCount');
     const thoughtStatus = document.getElementById('neoLearnThoughtStatus');
     let activeUser = null;
-    let postsOffset = 0;
+    let postsCursor = null;
     let profileTargetId = null;
     let savedThought = '';
     let viewingOwner = false;
@@ -529,7 +529,7 @@
           fragment.append(card);
         });
         postsGrid.append(fragment);
-        postsOffset = Number.isInteger(result.nextPostOffset) ? result.nextPostOffset : postsGrid.children.length;
+        postsCursor = result.nextPostCursor || null;
         document.getElementById('loadMoreNeoLearnPeerPosts').hidden = result.isBlocked || !result.hasMorePosts;
         const emptyState = document.getElementById('neoLearnPeerPostsEmpty');
         if (result.isBlocked) {
@@ -567,13 +567,13 @@
     async function loadProfile(loadMore = false) {
       if (!activeUser) return;
       const loadVersion = ++profileLoadVersion;
-      const requestedOffset = loadMore ? postsOffset : 0;
+      const cursorToSend = loadMore ? postsCursor : null;
       let hasRenderedCache = false;
       const cacheKey = `neolearnProfileCache_${activeUser.uid}_${targetIdFromUrl || activeUser.uid}`;
       
       if (!loadMore) {
         profileTargetId = targetIdFromUrl || activeUser.uid;
-        postsOffset = 0;
+        postsCursor = null;
         const cachedStr = sessionStorage.getItem(cacheKey);
         if (cachedStr) {
           try {
@@ -598,7 +598,7 @@
       }
       
       try {
-        const result = await getNeoLearnProfile(activeUser, profileTargetId, requestedOffset);
+        const result = await getNeoLearnProfile(activeUser, profileTargetId, cursorToSend);
         if (loadVersion !== profileLoadVersion) return;
         if (!loadMore) sessionStorage.setItem(cacheKey, JSON.stringify(result));
         renderProfileData(result, loadMore);

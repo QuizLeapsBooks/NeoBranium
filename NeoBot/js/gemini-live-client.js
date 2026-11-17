@@ -110,12 +110,15 @@ export class GeminiLiveClient {
       wsUrl = `${endpoint}?access_token=${encodeURIComponent(sessionData.token)}`;
     } else {
       console.log('[GeminiLiveClient] Connecting via Backend WebSocket Relay Proxy...');
-      // Convert HTTP(S) URL to WS(S) URL and append Firebase ID token as auth param
+      // Convert HTTP(S) URL to WS(S) URL
       const wsProtocol = backendUrl.startsWith('https') ? 'wss:' : 'ws:';
       const host = backendUrl.replace(/^https?:\/\//, '');
       const path = sessionData.wsPath || '/ws/live';
-      // idToken is passed as query param because WebSocket API cannot set custom headers
-      wsUrl = `${wsProtocol}//${host}${path}?token=${encodeURIComponent(idToken)}`;
+      // Always use short-lived single-use ticket (NB-SEC-09: ID tokens must NOT appear in URLs)
+      if (!sessionData.ticket) {
+        throw new Error('Backend did not issue a connection ticket. Cannot establish secure WebSocket.');
+      }
+      wsUrl = `${wsProtocol}//${host}${path}?ticket=${encodeURIComponent(sessionData.ticket)}`;
     }
 
     // 3. Connect WebSocket
