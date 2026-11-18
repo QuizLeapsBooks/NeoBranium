@@ -1901,14 +1901,12 @@ app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
         const fname = requestedName.replace(/[<>"'&]/g, '') || userRecord.displayName?.split(' ')[0] || 'User';
         const isNewSignup = Boolean(requestedName);
 
-        // ⏳ If this is a fresh signup, wait 4 seconds before generating the link.
-        // Firebase internally rate-limits generateEmailVerificationLink right after
-        // account creation. A short delay lets this window pass.
+        // ⏳ Short propagation buffer for fresh signups
         if (isNewSignup) {
-            await new Promise(resolve => setTimeout(resolve, 4000));
+            await new Promise(resolve => setTimeout(resolve, 800));
         }
 
-        // Generate verification link with retry (up to 3 attempts)
+        // Generate verification link with retry (up to 3 attempts) and fallback
         let verificationLink = null;
         for (let attempt = 1; attempt <= 3; attempt++) {
             try {
@@ -1919,8 +1917,17 @@ app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
                 break; // success — exit retry loop
             } catch (linkErr) {
                 console.warn(`⚠️ generateEmailVerificationLink attempt ${attempt} failed: ${linkErr.message}`);
+                // Fallback: If actionCodeSettings throws (e.g. unauthorized continue URL), try without actionCodeSettings
+                try {
+                    verificationLink = await admin.auth().generateEmailVerificationLink(userEmail);
+                    console.log('✅ Generated verification link using standard fallback');
+                    break;
+                } catch (fallbackErr) {
+                    console.warn(`⚠️ Fallback link generation also failed: ${fallbackErr.message}`);
+                }
+
                 if (attempt < 3) {
-                    await new Promise(resolve => setTimeout(resolve, attempt * 3000)); // 3s, 6s
+                    await new Promise(resolve => setTimeout(resolve, attempt * 1500));
                 } else {
                     console.error('❌ All attempts to generate verification link failed.');
                     return res.status(503).json({ success: false, error: 'Verification link generation timed out. Please try again shortly.' });
@@ -1928,23 +1935,18 @@ app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
             }
         }
 
-        const gmailUser = process.env.GMAIL_USER;
-        const gmailPass = process.env.GMAIL_APP_PASSWORD;
+        const rawGmailUser = process.env.GMAIL_USER;
+        const rawGmailPass = process.env.GMAIL_APP_PASSWORD;
+        const gmailUser = rawGmailUser ? rawGmailUser.trim() : null;
+        // Strip spaces from App Password (e.g. "abcd efgh ijkl mnop" -> "abcdefghijklmnop")
+        const gmailPass = rawGmailPass ? rawGmailPass.replace(/\s+/g, '') : null;
 
         if (!gmailUser || !gmailPass) {
             console.error('❌ GMAIL_USER or GMAIL_APP_PASSWORD not set in environment.');
             return res.status(500).json({ success: false, error: 'Email delivery service is temporarily misconfigured.' });
         }
 
-        const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false,
-            family: 4,
-            auth: { user: gmailUser, pass: gmailPass }
-        });
-
-        await transporter.sendMail({
+        const mailPayload = {
             from: `"NeoBranium" <${gmailUser}>`,
             to: userEmail,
             subject: '✅ Verify Your NeoBranium Account',
@@ -1995,7 +1997,32 @@ app.post('/api/send-verification-email', emailRateLimit, async (req, res) => {
   </table>
 </body>
 </html>`
-        });
+        };
+
+        // Primary: service 'gmail' (port 465 SSL, bypasses cloud port 587 restrictions)
+        try {
+            const transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: { user: gmailUser, pass: gmailPass },
+                connectionTimeout: 10000,
+                greetingTimeout: 10000,
+                socketTimeout: 15000
+            });
+            await transporter.sendMail(mailPayload);
+        } catch (primaryErr) {
+            console.warn(`⚠️ Primary SMTPS delivery failed (${primaryErr.message}), trying port 587 fallback...`);
+            const fallbackTransporter = nodemailer.createTransport({
+                host: 'smtp.gmail.com',
+                port: 587,
+                secure: false,
+                family: 4,
+                auth: { user: gmailUser, pass: gmailPass },
+                connectionTimeout: 10000,
+                greetingTimeout: 10000,
+                socketTimeout: 15000
+            });
+            await fallbackTransporter.sendMail(mailPayload);
+        }
 
         console.log(`✅ Verification email sent to ${userEmail}`);
         return res.json({ success: true, message: 'Verification email sent.' });

@@ -58,12 +58,18 @@ window.resendVerification = async () => {
   const user = auth.currentUser;
   if (user) {
     try {
-      // Try Render server (Gmail SMTP) first for reliable delivery
+      // Try Render server (Gmail SMTP) first for branded custom delivery
       await sendVerificationViaServer();
       showMessage("Verification email sent! Please check your inbox.", false);
     } catch (serverError) {
-      console.error("Server resend failed:", serverError);
-      showMessage(`Could not resend the email: ${serverError.message}`);
+      console.warn("Server resend failed, falling back to Firebase Auth client email:", serverError);
+      try {
+        await sendEmailVerification(user, getEmailVerificationSettings());
+        showMessage("Verification email sent via Firebase! Please check your inbox (and spam folder).", false);
+      } catch (clientError) {
+        console.error("Firebase client email fallback failed:", clientError);
+        showMessage(`Could not resend the email: ${serverError.message || clientError.message}`);
+      }
     }
   } else {
     showMessage("No signed-in account found. Please sign in again.");
@@ -95,8 +101,14 @@ onAuthStateChanged(auth, async (user) => {
         await sendVerificationViaServer(justSignedUp);
         showMessage("Verification email sent! Please check your inbox (and spam folder).", false);
       } catch (err) {
-        console.error("Auto email failed:", err);
-        showMessage("Could not send email automatically. Please click 'Resend' button.");
+        console.warn("Server auto-email failed, falling back to Firebase Auth client email:", err);
+        try {
+          await sendEmailVerification(user, getEmailVerificationSettings());
+          showMessage("Verification email sent! Please check your inbox (and spam folder).", false);
+        } catch (clientErr) {
+          console.error("Auto email fallback failed:", clientErr);
+          showMessage("Could not send email automatically. Please click 'Resend' button.");
+        }
       }
     }
   }
@@ -114,4 +126,3 @@ document.getElementById("resendVerificationButton")?.addEventListener("click", a
 });
 
 document.getElementById("checkVerificationButton")?.addEventListener("click", window.checkVerification);
-document.getElementById("resendVerificationButton")?.addEventListener("click", window.resendVerification);
