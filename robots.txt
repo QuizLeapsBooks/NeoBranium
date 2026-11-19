@@ -1,5 +1,15 @@
 User-agent: *
 Allow: /
+Allow: /favicon.ico
+Allow: /favicon-16x16.png
+Allow: /favicon-32x32.png
+Allow: /favicon-48x48.png
+Allow: /favicon-96x96.png
+Allow: /favicon-144x144.png
+Allow: /favicon-192x192.png
+Allow: /favicon-512x512.png
+Allow: /apple-touch-icon.png
+
 Disallow: /api/
 Disallow: /htmls/sign.html
 Disallow: /htmls/dashboard.html
@@ -7,13 +17,22 @@ Disallow: /htmls/setting.html
 Disallow: /htmls/profile.html
 Disallow: /htmls/verify-email.html
 Disallow: /htmls/chat/
-Disallow: /htmls/doubt/
 Disallow: /htmls/bot/
 Disallow: /htmls/question-paper_generator-ai/
 Disallow: /htmls/ai-usage.html
+Disallow: /htmls/neolearn/messages.html
+Disallow: /htmls/neolearn/notifications.html
+Disallow: /htmls/neolearn/peers.html
+Disallow: /htmls/neolearn/profile.html
 Disallow: /architecture-map.html
 Disallow: /Notes/ihss301.pdf
 Disallow: /screenshot_images/
 Disallow: /dump.rdb
+
+User-agent: Googlebot-Image
+Allow: /favicon.ico
+Allow: /favicon-*.png
+Allow: /apple-touch-icon.png
+Allow: /online-graduation_16847316.png
 
 Sitemap: https://neobranium.web.app/sitemap.xml

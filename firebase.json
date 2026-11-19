@@ -249,6 +249,16 @@
     ],
     "redirects": [
       {
+        "source": "/blog",
+        "destination": "/blog/blog.html",
+        "type": 308
+      },
+      {
+        "source": "/notes",
+        "destination": "/Notes/detailed-notes.html",
+        "type": 308
+      },
+      {
         "source": "/about",
         "destination": "/about.html",
         "type": 308

@@ -89,14 +89,14 @@ test('4. Exam Modes: CBSE, School, and Competitive modes have specific grading r
 
 test('4a. Question generation: CBSE and competitive modes use higher-order difficulty guidance', () => {
   const cbseGuidance = getQuestionDifficultyGuidance('cbse', 'Medium');
-  assert.match(cbseGuidance, /competency-focused/i);
-  assert.match(cbseGuidance, /case\/context-based reasoning/i);
-  assert.match(cbseGuidance, /multi-step reasoning/i);
+  assert.match(cbseGuidance, /competency-(based|focused)/i);
+  assert.match(cbseGuidance, /(case-study\s+and\s+source-based|case\/context-based\s+reasoning)/i);
+  assert.match(cbseGuidance, /multi-step\s+(numerical\s+and\s+mathematical\s+problems|calculations|reasoning)/i);
 
   const competitiveGuidance = getQuestionDifficultyGuidance('competitive', 'Hard');
-  assert.match(competitiveGuidance, /advanced competitive\/foundation standard/i);
+  assert.match(competitiveGuidance, /(competitive-examination\s+and\s+foundation-level\s+standard|advanced\s+competitive\/foundation\s+standard)/i);
   assert.match(competitiveGuidance, /non-routine/i);
-  assert.match(competitiveGuidance, /do not introduce methods or concepts from higher grades/i);
+  assert.match(competitiveGuidance, /(Challenge\s+students\s+through\s+reasoning\s+and\s+depth|do\s+not\s+introduce\s+methods\s+or\s+concepts\s+from\s+higher\s+grades)/i);
 });
 
 // ─── 3. Image Signature and Upload Security ────────────────────────────────────

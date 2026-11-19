@@ -12,9 +12,10 @@
   <meta name="author" content="Shubham Singh">
   <meta name="robots" content="index, follow">
 
-  <!-- Favicon -->
-  <link rel="icon" href="/online-graduation_16847316.png" type="image/png">
-
+  <!-- Favicon -->  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <!-- Google Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +35,7 @@
   <meta property="og:title" content="Shubham Singh — Founder | NeoBranium">
   <meta property="og:description"
     content="Discover the vision and story of Shubham Singh, founder of NeoBranium — the student-first AI learning platform.">
-  <meta property="og:image" content="https://neobranium.web.app/online-graduation_16847316.png">
+  <meta property="og:image" content="https://neobranium.web.app/favicon-512x512.png">
   <meta property="og:url" content="https://neobranium.web.app/founder.html">
   <meta property="og:type" content="profile">
 
@@ -43,7 +44,35 @@
   <meta name="twitter:title" content="Shubham Singh — Founder | NeoBranium">
   <meta name="twitter:description"
     content="Discover the vision and story of Shubham Singh, founder of NeoBranium — the student-first AI learning platform.">
-  <meta name="twitter:image" content="https://neobranium.web.app/online-graduation_16847316.png">
+  <meta name="twitter:image" content="https://neobranium.web.app/favicon-512x512.png">
+
+  <!-- Structured Data: ProfilePage and Person -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    "@id": "https://neobranium.web.app/founder.html",
+    "url": "https://neobranium.web.app/founder.html",
+    "name": "Shubham Singh — Founder | NeoBranium",
+    "mainEntity": {
+      "@type": "Person",
+      "name": "Shubham Singh",
+      "jobTitle": "Founder & Creator",
+      "worksFor": {
+        "@type": "EducationalOrganization",
+        "name": "NeoBranium"
+      },
+      "url": "https://neobranium.web.app/founder.html"
+    },
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://neobranium.web.app/"},
+        {"@type": "ListItem", "position": 2, "name": "Founder", "item": "https://neobranium.web.app/founder.html"}
+      ]
+    }
+  }
+  </script>
 
   <!-- Base Stylesheet -->
   <link rel="stylesheet" href="/index_css.css">
