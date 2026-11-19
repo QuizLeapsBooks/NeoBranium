@@ -178,6 +178,17 @@ app.use(helmet({
     }
 }));
 
+// Prevent search engine crawlers from indexing API backend routes and the Render domain
+app.use((req, res, next) => {
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+    next();
+});
+
+app.get('/robots.txt', (req, res) => {
+    res.type('text/plain');
+    res.send('User-agent: *\nDisallow: /\n');
+});
+
 const allowedOrigins = [
     'https://neobranium.web.app',
     'https://neobranium.firebaseapp.com',
