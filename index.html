@@ -1453,6 +1453,404 @@
         }
       })();
     </script>
+
+    <!-- ═══ NEOBOOK INTRODUCTION MODAL DIALOG (OPENS UP TO 5 TIMES) ═══ -->
+    <style id="neobook-modal-styles">
+      .nb-dialog-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(8, 12, 22, 0.78);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10001;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+        padding: 16px;
+      }
+
+      .nb-dialog-overlay.nb-show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .nb-dialog-card {
+        position: relative;
+        width: 100%;
+        max-width: 520px;
+        max-height: 88vh;
+        overflow-y: auto;
+        background: linear-gradient(145deg, #0d1527 0%, #111b32 100%);
+        border: 1px solid rgba(99, 102, 241, 0.35);
+        border-radius: 24px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px rgba(99, 102, 241, 0.2);
+        color: #f8fafc;
+        padding: 32px 28px 24px;
+        transform: scale(0.92) translateY(20px);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .nb-dialog-overlay.nb-show .nb-dialog-card {
+        transform: scale(1) translateY(0);
+      }
+
+      .nb-dialog-close {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.08);
+        color: #cbd5e1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        z-index: 2;
+      }
+
+      .nb-dialog-close:hover {
+        background: #ef4444;
+        border-color: #ef4444;
+        color: #ffffff;
+        transform: rotate(90deg);
+      }
+
+      .nb-dialog-header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .nb-dialog-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: #818cf8;
+        background: rgba(99, 102, 241, 0.14);
+        border: 1px solid rgba(99, 102, 241, 0.3);
+        border-radius: 30px;
+        margin-bottom: 14px;
+      }
+
+      .nb-dialog-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 14px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: #ffffff;
+        box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
+      }
+
+      .nb-dialog-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.65rem;
+        font-weight: 800;
+        margin: 0 0 6px;
+        color: #ffffff;
+        line-height: 1.25;
+      }
+
+      .nb-dialog-subtitle {
+        color: #94a3b8;
+        font-size: 0.92rem;
+        margin: 0;
+      }
+
+      .nb-dialog-intro {
+        font-size: 0.88rem;
+        line-height: 1.5;
+        color: #cbd5e1;
+        text-align: center;
+        margin-bottom: 20px;
+        padding: 0 8px;
+      }
+
+      .nb-dialog-features {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+
+      .nb-feature-pill {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        padding: 12px 14px;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+
+      .nb-feature-pill-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 0.95rem;
+      }
+
+      .nb-feature-pill h4 {
+        font-size: 0.82rem;
+        font-weight: 700;
+        margin: 0 0 3px;
+        color: #f1f5f9;
+      }
+
+      .nb-feature-pill p {
+        font-size: 0.74rem;
+        color: #94a3b8;
+        margin: 0;
+        line-height: 1.35;
+      }
+
+      .nb-dialog-footer {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .nb-dialog-btn-primary {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 20px;
+        background: linear-gradient(135deg, #4f46e5 0%, #2563eb 100%);
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 0.92rem;
+        border-radius: 30px;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        transition: all 0.25s ease;
+      }
+
+      .nb-dialog-btn-primary:hover {
+        background: linear-gradient(135deg, #4338ca 0%, #1d4ed8 100%);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+        color: #ffffff;
+        transform: translateY(-1px);
+      }
+
+      .nb-dialog-btn-secondary {
+        padding: 12px 20px;
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: #94a3b8;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border-radius: 30px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .nb-dialog-btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #f1f5f9;
+        border-color: rgba(255, 255, 255, 0.3);
+      }
+
+      @media (max-width: 540px) {
+        .nb-dialog-card {
+          padding: 24px 18px 20px;
+          border-radius: 20px;
+        }
+
+        .nb-dialog-features {
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+
+        .nb-dialog-title {
+          font-size: 1.35rem;
+        }
+
+        .nb-dialog-footer {
+          flex-direction: column-reverse;
+          gap: 8px;
+        }
+
+        .nb-dialog-btn-primary, .nb-dialog-btn-secondary {
+          width: 100%;
+        }
+      }
+    </style>
+
+    <div id="neobookIntroOverlay" class="nb-dialog-overlay" role="dialog" aria-modal="true" aria-labelledby="neobookModalTitle" hidden>
+      <div class="nb-dialog-card">
+        <!-- Close button with X sign -->
+        <button id="neobookModalClose" class="nb-dialog-close" type="button" aria-label="Close NeoBook introduction">
+          <i class="fas fa-xmark" aria-hidden="true"></i>
+        </button>
+
+        <div class="nb-dialog-header">
+          <div class="nb-dialog-badge">
+            <i class="fas fa-sparkles"></i> NEW INNOVATION
+          </div>
+          <div class="nb-dialog-icon">
+            <i class="fas fa-book-bookmark"></i>
+          </div>
+          <h2 id="neobookModalTitle" class="nb-dialog-title">Introducing NeoBook</h2>
+          <p class="nb-dialog-subtitle">Your AI-Powered Research &amp; Study Notebook</p>
+        </div>
+
+        <p class="nb-dialog-intro">
+          Transform textbook PDFs, YouTube lectures, and study notes into an interactive, source-grounded research companion strictly tied to your syllabus.
+        </p>
+
+        <div class="nb-dialog-features">
+          <div class="nb-feature-pill">
+            <div class="nb-feature-pill-icon" style="background:rgba(99,102,241,0.18);color:#818cf8;">
+              <i class="fas fa-file-pdf"></i>
+            </div>
+            <div>
+              <h4>Multi-Source Notes</h4>
+              <p>Add PDFs, web links, or YouTube videos to chat directly with your course.</p>
+            </div>
+          </div>
+
+          <div class="nb-feature-pill">
+            <div class="nb-feature-pill-icon" style="background:rgba(14,165,233,0.18);color:#38bdf8;">
+              <i class="fas fa-quote-right"></i>
+            </div>
+            <div>
+              <h4>Verified Citations</h4>
+              <p>Every answer links to exact textbook paragraphs with zero hallucinations.</p>
+            </div>
+          </div>
+
+          <div class="nb-feature-pill">
+            <div class="nb-feature-pill-icon" style="background:rgba(168,85,247,0.18);color:#c084fc;">
+              <i class="fas fa-diagram-project"></i>
+            </div>
+            <div>
+              <h4>Concept Mind Maps</h4>
+              <p>Generate interactive visual diagrams from complex chapters in seconds.</p>
+            </div>
+          </div>
+
+          <div class="nb-feature-pill">
+            <div class="nb-feature-pill-icon" style="background:rgba(16,185,129,0.18);color:#34d399;">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <div>
+              <h4>Smart Self-Quizzes</h4>
+              <p>Auto-generate practice tests &amp; KaTeX formulas tailored to your weak points.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="nb-dialog-footer">
+          <button type="button" class="nb-dialog-btn-secondary" id="neobookModalDismiss">Maybe Later</button>
+          <a href="/NeoBook/index.html" class="nb-dialog-btn-primary" id="neobookModalExplore">
+            <span>Explore NeoBook</span>
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- NeoBook Dialog Counter & Controller (Opens up to 5 times per user) -->
+    <script>
+      (function () {
+        const STORAGE_KEY = 'neobook_intro_shown_count';
+        const MAX_OPENS = 5;
+
+        const overlay = document.getElementById('neobookIntroOverlay');
+        const closeBtn = document.getElementById('neobookModalClose');
+        const dismissBtn = document.getElementById('neobookModalDismiss');
+        const exploreBtn = document.getElementById('neobookModalExplore');
+
+        if (!overlay || !closeBtn) return;
+
+        function getViews() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            return raw ? parseInt(raw, 10) || 0 : 0;
+          } catch (_) {
+            return 0;
+          }
+        }
+
+        function setViews(count) {
+          try {
+            localStorage.setItem(STORAGE_KEY, String(count));
+          } catch (_) {}
+        }
+
+        function showModal() {
+          overlay.removeAttribute('hidden');
+          overlay.style.display = 'flex';
+          overlay.offsetHeight; // Force layout reflow
+          overlay.classList.add('nb-show');
+        }
+
+        function hideModal() {
+          overlay.classList.remove('nb-show');
+          setTimeout(() => {
+            overlay.style.display = 'none';
+            overlay.setAttribute('hidden', '');
+          }, 320);
+        }
+
+        // Check if user has seen it fewer than 5 times
+        const currentCount = getViews();
+        if (currentCount < MAX_OPENS) {
+          setViews(currentCount + 1);
+
+          // Give a short delay so the user sees the page first
+          // If brand intro overlay is actively displaying, wait until it finishes
+          const brandIntro = document.getElementById('brand-intro');
+          const isBrandIntroActive = brandIntro && !brandIntro.hasAttribute('hidden');
+          const delay = isBrandIntroActive ? 6800 : 1400;
+
+          setTimeout(showModal, delay);
+        }
+
+        // Close actions
+        closeBtn.addEventListener('click', hideModal);
+        if (dismissBtn) dismissBtn.addEventListener('click', hideModal);
+        if (exploreBtn) exploreBtn.addEventListener('click', hideModal);
+
+        // Click outside the modal card (backdrop click)
+        overlay.addEventListener('click', function (e) {
+          if (e.target === overlay) {
+            hideModal();
+          }
+        });
+
+        // Press Escape to dismiss
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && overlay.classList.contains('nb-show')) {
+            hideModal();
+          }
+        });
+      })();
+    </script>
     <script>document.getElementById('copyright-year').textContent = new Date().getFullYear();</script>
 </body>
 
