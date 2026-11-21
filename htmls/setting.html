@@ -93,6 +93,107 @@
               <div class="settings-inline-field"><button id="saveNotificationBtn" class="settings-save" type="button">Save</button></div>
             </div>
           </section>
+          <!-- NeoCalender Preferences Card -->
+          <section class="account-card" id="neocalenderSection">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+              <h2 style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="bi bi-calendar2-check text-success" aria-hidden="true"></i>NeoCalender Preferences
+              </h2>
+              <a href="/NeoCalender/index.html" class="account-header-link" style="font-size: 0.8rem; color: var(--account-accent); text-decoration: none;">
+                Open NeoCalender <i class="bi bi-arrow-up-right"></i>
+              </a>
+            </div>
+            <p class="account-muted" style="margin-bottom: 0.85rem; font-size: 0.88rem; line-height: 1.45;">
+              Configure personal time management, task priorities, calendar defaults, and AI assistance settings.
+            </p>
+
+            <div class="settings-section">
+              <div class="settings-field">
+                <label for="ncRemindersToggle">Task Reminders &amp; Deadlines</label>
+                <select id="ncRemindersToggle">
+                  <option value="true">Enabled (Alerts for upcoming &amp; overdue tasks)</option>
+                  <option value="false">Disabled</option>
+                </select>
+              </div>
+
+              <div class="settings-field">
+                <label for="ncDefaultPriority">Default Task Priority</label>
+                <select id="ncDefaultPriority">
+                  <option value="low">Low Priority</option>
+                  <option value="medium" selected>Medium Priority</option>
+                  <option value="high">High Priority</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+
+              <div class="settings-field">
+                <label for="ncPreferredView">Default Calendar View</label>
+                <select id="ncPreferredView">
+                  <option value="month">Month View</option>
+                  <option value="week">Week View</option>
+                  <option value="day">Day View</option>
+                </select>
+              </div>
+
+              <div class="settings-field">
+                <label for="ncWeekStart">Week Starts On</label>
+                <select id="ncWeekStart">
+                  <option value="monday">Monday</option>
+                  <option value="sunday">Sunday</option>
+                </select>
+              </div>
+
+              <div class="settings-field">
+                <label for="ncAiAutonomy">AI Assistant Actions</label>
+                <select id="ncAiAutonomy">
+                  <option value="confirm_destructive">Ask for confirmation before deleting or rescheduling</option>
+                  <option value="auto_quick_actions">Direct Quick Actions</option>
+                </select>
+              </div>
+
+              <div class="settings-field">
+                <label for="ncDailyHours">Daily Study / Available Hours</label>
+                <select id="ncDailyHours">
+                  <option value="4">4 Hours / day</option>
+                  <option value="6">6 Hours / day</option>
+                  <option value="8" selected>8 Hours / day (Balanced)</option>
+                  <option value="10">10 Hours / day</option>
+                  <option value="12">12 Hours / day (Intensive)</option>
+                </select>
+              </div>
+
+              <div class="settings-field">
+                <label for="ncFocusDuration">Preferred Focus Duration</label>
+                <select id="ncFocusDuration">
+                  <option value="25" selected>25 Minutes (Standard Pomodoro)</option>
+                  <option value="45">45 Minutes</option>
+                  <option value="50">50 Minutes (Deep Work)</option>
+                  <option value="60">60 Minutes</option>
+                </select>
+              </div>
+
+              <div class="settings-field">
+                <label for="ncHabitTracking">Habit Tracking &amp; Streaks</label>
+                <select id="ncHabitTracking">
+                  <option value="true" selected>Enabled (Track daily habits &amp; consistency)</option>
+                  <option value="false">Disabled</option>
+                </select>
+              </div>
+
+              <div class="settings-field">
+                <label for="ncGoalPlanning">Goal &amp; Milestone Management</label>
+                <select id="ncGoalPlanning">
+                  <option value="true" selected>Enabled (Track long-term goals &amp; milestones)</option>
+                  <option value="false">Disabled</option>
+                </select>
+              </div>
+
+              <div class="settings-inline-field mt-2">
+                <button id="saveNeoCalenderSettingsBtn" class="settings-save" type="button">Save NeoCalender Settings</button>
+              </div>
+              <div id="ncSettingsFeedback" class="status-msg" role="status" aria-live="polite" style="font-size: 0.85rem; margin-top: 0.5rem;"></div>
+            </div>
+          </section>
           <section class="account-card">
             <h2>Change password</h2>
             <div class="settings-section">

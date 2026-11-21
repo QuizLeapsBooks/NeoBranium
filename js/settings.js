@@ -711,3 +711,108 @@ if (syncLeaderboardStatsBtn) {
         }
     });
 }
+
+// ── NeoCalender Settings Controller ────────────────────────────────────────
+const ncRemindersToggle = document.getElementById("ncRemindersToggle");
+const ncDefaultPriority = document.getElementById("ncDefaultPriority");
+const ncPreferredView = document.getElementById("ncPreferredView");
+const ncWeekStart = document.getElementById("ncWeekStart");
+const ncAiAutonomy = document.getElementById("ncAiAutonomy");
+const ncDailyHours = document.getElementById("ncDailyHours");
+const ncFocusDuration = document.getElementById("ncFocusDuration");
+const ncHabitTracking = document.getElementById("ncHabitTracking");
+const ncGoalPlanning = document.getElementById("ncGoalPlanning");
+const saveNeoCalenderSettingsBtn = document.getElementById("saveNeoCalenderSettingsBtn");
+const ncSettingsFeedback = document.getElementById("ncSettingsFeedback");
+
+function showNcFeedback(message, isError = false) {
+    if (!ncSettingsFeedback) return;
+    ncSettingsFeedback.textContent = message;
+    ncSettingsFeedback.style.color = isError ? "var(--account-danger, #ef4444)" : "var(--account-success, #16a34a)";
+    setTimeout(() => {
+        if (ncSettingsFeedback.textContent === message) {
+            ncSettingsFeedback.textContent = "";
+        }
+    }, 4500);
+}
+
+async function loadNeoCalenderSettings() {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous) return;
+    try {
+        const token = await user.getIdToken();
+        const res = await fetch("/api/neocalender/settings", {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success && data.settings) {
+            const s = data.settings;
+            if (ncRemindersToggle) ncRemindersToggle.value = String(s.remindersEnabled !== false);
+            if (ncDefaultPriority) ncDefaultPriority.value = s.defaultPriority || "medium";
+            if (ncPreferredView) ncPreferredView.value = s.preferredView || "month";
+            if (ncWeekStart) ncWeekStart.value = s.weekStartDay || "monday";
+            if (ncAiAutonomy) ncAiAutonomy.value = s.aiAutonomy || "confirm_destructive";
+            if (ncDailyHours && s.dailyAvailableHours) ncDailyHours.value = String(s.dailyAvailableHours);
+            if (ncFocusDuration && s.preferredFocusDuration) ncFocusDuration.value = String(s.preferredFocusDuration);
+            if (ncHabitTracking) ncHabitTracking.value = String(s.habitTrackingEnabled !== false);
+            if (ncGoalPlanning) ncGoalPlanning.value = String(s.goalPlanningEnabled !== false);
+        }
+    } catch (err) {
+        console.warn("Could not load NeoCalender settings:", err);
+    }
+}
+
+// Load on auth state resolution
+auth.onAuthStateChanged((user) => {
+    if (user && !user.isAnonymous) {
+        loadNeoCalenderSettings();
+    }
+});
+
+if (saveNeoCalenderSettingsBtn) {
+    saveNeoCalenderSettingsBtn.addEventListener("click", async () => {
+        const user = auth.currentUser;
+        if (!user) {
+            showNcFeedback("Please sign in to update settings", true);
+            return;
+        }
+
+        saveNeoCalenderSettingsBtn.disabled = true;
+        saveNeoCalenderSettingsBtn.textContent = "Saving...";
+
+        const payload = {
+            remindersEnabled: ncRemindersToggle ? ncRemindersToggle.value === "true" : true,
+            defaultPriority: ncDefaultPriority ? ncDefaultPriority.value : "medium",
+            preferredView: ncPreferredView ? ncPreferredView.value : "month",
+            weekStartDay: ncWeekStart ? ncWeekStart.value : "monday",
+            aiAutonomy: ncAiAutonomy ? ncAiAutonomy.value : "confirm_destructive",
+            dailyAvailableHours: ncDailyHours ? Number(ncDailyHours.value) : 8,
+            preferredFocusDuration: ncFocusDuration ? Number(ncFocusDuration.value) : 25,
+            habitTrackingEnabled: ncHabitTracking ? ncHabitTracking.value === "true" : true,
+            goalPlanningEnabled: ncGoalPlanning ? ncGoalPlanning.value === "true" : true
+        };
+
+        try {
+            const token = await user.getIdToken();
+            const res = await fetch("/api/neocalender/settings", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                showNcFeedback("NeoCalender preferences saved successfully!");
+            } else {
+                showNcFeedback(data.error || "Failed to save settings", true);
+            }
+        } catch (err) {
+            showNcFeedback("Save failed: " + err.message, true);
+        } finally {
+            saveNeoCalenderSettingsBtn.disabled = false;
+            saveNeoCalenderSettingsBtn.textContent = "Save NeoCalender Settings";
+        }
+    });
+}

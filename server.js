@@ -12,6 +12,8 @@ import { paperRouter } from './routes/paperRoutes.js';
 import { createLeaderboardRouter } from './routes/leaderboardRoutes.js';
 import { neobookRouter } from './routes/neobookRoutes.js';
 import { createAiUsageRouter } from './routes/aiUsageRoutes.js';
+import { neocalenderRouter } from './NeoCalender/neocalender-routes.js';
+import { detectNeoCalenderIntent, processNeoCalenderAIRequest } from './NeoCalender/neocalender-ai-tools.js';
 
 import express from 'express';
 import cors from 'cors';
@@ -542,6 +544,24 @@ app.post('/api/chat', requireAuth, createAiUsageMiddleware({ feature: req => req
             } catch (profileErr) {
                 // Non-fatal: profile fetch failure must never break the chat
                 console.warn('[AI] Could not load student profile for context:', profileErr.message);
+            }
+        }
+
+        // ── NeoCalender Integration: Route productivity & task queries to NeoCalender AI tools ──
+        if (req.uid && task !== 'paper_generation' && geminiApiKey && detectNeoCalenderIntent(message)) {
+            try {
+                const calenderResult = await processNeoCalenderAIRequest(req.uid, { message, history: validatedHistory }, geminiApiKey, {
+                    aiUsageRequest: req.aiUsageRequest
+                });
+                if (calenderResult && calenderResult.reply) {
+                    return res.json({
+                        reply: calenderResult.reply,
+                        toolExecuted: calenderResult.toolExecuted,
+                        toolResult: calenderResult.toolResult
+                    });
+                }
+            } catch (calError) {
+                console.warn('[AI] NeoCalender tool routing error, gracefully falling back to standard chat:', calError.message);
             }
         }
 
@@ -1422,6 +1442,9 @@ app.use('/api', createLeaderboardRouter({ db }));
 
 // Mount NeoBook Research Workspace router
 app.use('/api/neobook', neobookRouter);
+
+// Mount NeoCalender Personal Productivity & Time Management router
+app.use('/api/neocalender', neocalenderRouter);
 
 // Statistics endpoint
 app.get('/api/stats', async (req, res) => {

@@ -21,7 +21,8 @@ export const AI_FEATURES = Object.freeze({
   NEOBOOK_FLASHCARDS: 'neobook_flashcards',
   NEOBOOK_STUDY_GUIDE: 'neobook_study_guide',
   NEOBOOK_MIND_MAP: 'neobook_mind_map',
-  NEOBOOK_AUDIO_OVERVIEW: 'neobook_audio_overview'
+  NEOBOOK_AUDIO_OVERVIEW: 'neobook_audio_overview',
+  NEOCALENDER: 'neocalender'
 });
 
 const listeners = new Set();

@@ -107,6 +107,7 @@
       <li><a href="/htmls/spotlight.html"><i class="bi bi-star"></i> Spotlight (Monthly)</a></li>
       <li><a href="/htmls/bot/bot.html"><i class="bi bi-robot"></i> Bot Helper</a></li>
       <li><a href="/NeoBook/index.html"><i class="bi bi-book"></i> NeoBook <span class="badge bg-primary ms-1" style="font-size: 0.65rem;">NEW</span></a></li>
+      <li><a href="/NeoCalender/index.html"><i class="bi bi-calendar2-check"></i> NeoCalender <span class="badge bg-success ms-1" style="font-size: 0.65rem;">NEW</span></a></li>
       <li><a href="/htmls/question-paper_generator-ai/ai-generate.html"><i class="bi bi-file-earmark-text"></i> Exam
           Paper Generator</a></li>
       <li><a href="/htmls/chat/chat_app.html"><i class="bi bi-chat-dots"></i> Live Chat</a></li>
@@ -220,6 +221,10 @@
           <div class="nb-tile-icon" style="color: #38bdf8;"><i class="bi bi-book-half"></i></div>
           <span class="nb-tile-label">NeoBook</span>
         </a>
+        <a href="/NeoCalender/index.html" class="nb-action-tile staggered-item text-decoration-none" id="neocalenderActionBtn">
+          <div class="nb-tile-icon" style="color: #10b981;"><i class="bi bi-calendar2-week-fill"></i></div>
+          <span class="nb-tile-label">NeoCalender</span>
+        </a>
       </div>
     </section>
 
@@ -321,6 +326,11 @@
         </div>
       </div>
     </div>
+
+    <!-- ═══ NEOCALENDER TODAY'S PRODUCTIVITY WIDGET ═════════════════════ -->
+    <section class="mb-4" aria-label="NeoCalender Today's Productivity">
+      <div id="neocalenderDashboardWidget"></div>
+    </section>
 
     <!-- ═══ ACTIVITY + TASKS ══════════════════════════════════════════════ -->
     <section class="mb-4" aria-labelledby="activitySectionTitle">
@@ -816,6 +826,8 @@
   </div>
   <!-- Guest Value Banner (shown only to unauthenticated visitors) -->
   <script src="/js/guest-value-banner.js" defer></script>
+  <!-- NeoCalender Dashboard Widget Integration -->
+  <script type="module" src="/js/neocalender-dashboard-widget.js"></script>
 </body>
 
 </html>

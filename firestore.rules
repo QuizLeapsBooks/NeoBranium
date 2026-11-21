@@ -2,6 +2,68 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ===============================================================
+    // Assumed Data Model - NeoCalender Sub-collections
+    // ===============================================================
+    // Collection: /users/{userId}/neocalender_tasks/{taskId}
+    // Fields:
+    //   - id: string (optional, matches taskId)
+    //   - uid: string (optional, matches userId)
+    //   - title: string (required, 1..300 chars)
+    //   - description: string (optional, <= 5000 chars)
+    //   - status: string (required, 'pending' | 'completed')
+    //   - priority: string (required, 'low' | 'medium' | 'high' | 'urgent')
+    //   - category: string (optional, <= 100 chars)
+    //   - listId: string (optional, <= 100 chars)
+    //   - dueDate, startDate, completedAt: string | timestamp | null
+    //   - dueTime, startTime: string (optional, <= 32 chars)
+    //   - reminder: string | bool | int | map | null
+    //   - recurrence: string (optional, 'none'|'daily'|'weekly'|'monthly'|'custom')
+    //   - recurrenceInterval: int | float
+    //   - subtasks: list (<= 100 items)
+    //   - tags: list (<= 50 items)
+    //   - order: int | float
+    //   - completionHistory: list (<= 1000 items)
+    //   - createdAt: string | timestamp (immutable on update)
+    //   - updatedAt: string | timestamp
+    //
+    // Collection: /users/{userId}/neocalender_lists/{listId}
+    // Fields:
+    //   - id: string (optional, matches listId)
+    //   - uid: string (optional, matches userId)
+    //   - name: string (required, 1..100 chars)
+    //   - color: string (optional, <= 32 chars)
+    //   - icon: string (optional, <= 64 chars)
+    //   - isDefault: bool
+    //   - order: int | float
+    //   - createdAt: string | timestamp (immutable on update)
+    //   - updatedAt: string | timestamp
+    //
+    // Collection: /users/{userId}/neocalender_settings/{settingId}
+    // Fields:
+    //   - remindersEnabled: bool
+    //   - notificationPref: string ('all' | 'important' | 'none')
+    //   - defaultPriority: string ('low' | 'medium' | 'high' | 'urgent')
+    //   - preferredView: string ('month' | 'week' | 'day' | 'tasks' | 'upcoming')
+    //   - weekStartDay: string ('monday' | 'sunday')
+    //   - dailySummaryTime: string (<= 10 chars)
+    //   - aiAutonomy: string ('confirm_destructive' | 'auto_quick_actions')
+    //   - timeZone: string (<= 64 chars)
+    //   - createdAt, updatedAt: string | timestamp
+    //
+    // Collection: /users/{userId}/neocalender_events/{eventId}
+    // Fields:
+    //   - id, uid: string
+    //   - title: string (required, 1..300 chars)
+    //   - description: string (optional, <= 5000 chars)
+    //   - startDate: string | timestamp
+    //   - endDate: string | timestamp | null
+    //   - startTime, endTime: string | null
+    //   - allDay: bool
+    //   - location, color, category, reminder, recurrence
+    //   - createdAt, updatedAt: string | timestamp
+    // ===============================================================
+
     // ── Helper functions ──────────────────────────────────────────────────────
 
     function isSignedIn() {
@@ -10,6 +72,77 @@ service cloud.firestore {
 
     function isOwner(uid) {
       return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // ── NeoCalender validation helpers ────────────────────────────────────────
+
+    function isValidNeoCalenderTask(data, userId, taskId) {
+      return (!('uid' in data) || data.uid == userId)
+        && (!('id' in data) || (data.id is string && data.id.size() <= 128 && data.id == taskId))
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 300
+        && (!('description' in data) || (data.description is string && data.description.size() <= 5000))
+        && data.status in ['pending', 'completed']
+        && data.priority in ['low', 'medium', 'high', 'urgent']
+        && (!('category' in data) || (data.category is string && data.category.size() <= 100))
+        && (!('listId' in data) || (data.listId is string && data.listId.size() <= 100))
+        && (!('dueDate' in data) || data.dueDate == null || (data.dueDate is string && data.dueDate.size() <= 64) || data.dueDate is timestamp)
+        && (!('dueTime' in data) || data.dueTime == null || (data.dueTime is string && data.dueTime.size() <= 32))
+        && (!('startDate' in data) || data.startDate == null || (data.startDate is string && data.startDate.size() <= 64) || data.startDate is timestamp)
+        && (!('startTime' in data) || data.startTime == null || (data.startTime is string && data.startTime.size() <= 32))
+        && (!('reminder' in data) || data.reminder == null || (data.reminder is string && data.reminder.size() <= 100) || data.reminder is bool || data.reminder is int || data.reminder is map)
+        && (!('recurrence' in data) || data.recurrence in ['none', 'daily', 'weekly', 'monthly', 'custom'])
+        && (!('recurrenceInterval' in data) || data.recurrenceInterval is int || data.recurrenceInterval is float)
+        && (!('subtasks' in data) || (data.subtasks is list && data.subtasks.size() <= 100))
+        && (!('tags' in data) || (data.tags is list && data.tags.size() <= 50))
+        && (!('order' in data) || data.order is int || data.order is float)
+        && (!('completionHistory' in data) || (data.completionHistory is list && data.completionHistory.size() <= 1000))
+        && (!('completedAt' in data) || data.completedAt == null || (data.completedAt is string && data.completedAt.size() <= 64) || data.completedAt is timestamp)
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64) || data.createdAt is timestamp)
+        && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64) || data.updatedAt is timestamp);
+    }
+
+    function isValidNeoCalenderList(data, userId, listId) {
+      return (!('uid' in data) || data.uid == userId)
+        && (!('id' in data) || (data.id is string && data.id.size() <= 128 && data.id == listId))
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+        && (!('color' in data) || (data.color is string && data.color.size() <= 32))
+        && (!('icon' in data) || (data.icon is string && data.icon.size() <= 64))
+        && (!('isDefault' in data) || data.isDefault is bool)
+        && (!('order' in data) || data.order is int || data.order is float)
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64) || data.createdAt is timestamp)
+        && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64) || data.updatedAt is timestamp);
+    }
+
+    function isValidNeoCalenderSettings(data) {
+      return (!('remindersEnabled' in data) || data.remindersEnabled is bool)
+        && (!('notificationPref' in data) || data.notificationPref in ['all', 'important', 'none'])
+        && (!('defaultPriority' in data) || data.defaultPriority in ['low', 'medium', 'high', 'urgent'])
+        && (!('preferredView' in data) || data.preferredView in ['month', 'week', 'day', 'tasks', 'upcoming'])
+        && (!('weekStartDay' in data) || data.weekStartDay in ['monday', 'sunday'])
+        && (!('dailySummaryTime' in data) || (data.dailySummaryTime is string && data.dailySummaryTime.size() <= 10))
+        && (!('aiAutonomy' in data) || data.aiAutonomy in ['confirm_destructive', 'auto_quick_actions'])
+        && (!('timeZone' in data) || (data.timeZone is string && data.timeZone.size() <= 64))
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64) || data.createdAt is timestamp)
+        && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64) || data.updatedAt is timestamp);
+    }
+
+    function isValidNeoCalenderEvent(data, userId, eventId) {
+      return (!('uid' in data) || data.uid == userId)
+        && (!('id' in data) || (data.id is string && data.id.size() <= 128 && data.id == eventId))
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 300
+        && (!('description' in data) || (data.description is string && data.description.size() <= 5000))
+        && (!('startDate' in data) || (data.startDate is string && data.startDate.size() <= 64) || data.startDate is timestamp)
+        && (!('endDate' in data) || data.endDate == null || (data.endDate is string && data.endDate.size() <= 64) || data.endDate is timestamp)
+        && (!('startTime' in data) || data.startTime == null || (data.startTime is string && data.startTime.size() <= 32))
+        && (!('endTime' in data) || data.endTime == null || (data.endTime is string && data.endTime.size() <= 32))
+        && (!('allDay' in data) || data.allDay is bool)
+        && (!('location' in data) || (data.location is string && data.location.size() <= 300))
+        && (!('color' in data) || (data.color is string && data.color.size() <= 32))
+        && (!('category' in data) || (data.category is string && data.category.size() <= 100))
+        && (!('reminder' in data) || data.reminder == null || (data.reminder is string && data.reminder.size() <= 100) || data.reminder is bool || data.reminder is int || data.reminder is map)
+        && (!('recurrence' in data) || (data.recurrence is string && data.recurrence.size() <= 32))
+        && (!('createdAt' in data) || (data.createdAt is string && data.createdAt.size() <= 64) || data.createdAt is timestamp)
+        && (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 64) || data.updatedAt is timestamp);
     }
 
     // ── Security events (write-only via Admin SDK) ────────────────────────────
@@ -109,10 +242,237 @@ service cloud.firestore {
         allow write: if false; // Admin SDK only
       }
 
+      // ── NeoCalender: Tasks sub-collection ─────────────────────────────────
+      // Users may read and write their own tasks with strict schema, ownership,
+      // and field value validation (title, status, priority, bounds).
+      match /neocalender_tasks/{taskId} {
+        allow read: if isOwner(userId);
+        allow delete: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['title', 'status', 'priority'])
+          && request.resource.data.keys().hasOnly([
+            'id', 'uid', 'title', 'description', 'status', 'priority', 'category', 'listId',
+            'dueDate', 'dueTime', 'startDate', 'startTime', 'reminder', 'recurrence',
+            'recurrenceInterval', 'subtasks', 'tags', 'order', 'completionHistory',
+            'completedAt', 'createdAt', 'updatedAt'
+          ])
+          && isValidNeoCalenderTask(request.resource.data, userId, taskId);
+        allow update: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['title', 'status', 'priority'])
+          && request.resource.data.keys().hasOnly([
+            'id', 'uid', 'title', 'description', 'status', 'priority', 'category', 'listId',
+            'dueDate', 'dueTime', 'startDate', 'startTime', 'reminder', 'recurrence',
+            'recurrenceInterval', 'subtasks', 'tags', 'order', 'completionHistory',
+            'completedAt', 'createdAt', 'updatedAt'
+          ])
+          && isValidNeoCalenderTask(request.resource.data, userId, taskId)
+          && (!('uid' in resource.data) || !('uid' in request.resource.data) || request.resource.data.uid == resource.data.uid)
+          && (!('id' in resource.data) || !('id' in request.resource.data) || request.resource.data.id == resource.data.id)
+          && (!('createdAt' in resource.data) || !('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt);
+      }
+
+      // ── NeoCalender: Custom Lists sub-collection ──────────────────────────
+      // Scoped to the authenticated owner with name validation and bounds.
+      match /neocalender_lists/{listId} {
+        allow read: if isOwner(userId);
+        allow delete: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['name'])
+          && request.resource.data.keys().hasOnly([
+            'id', 'uid', 'name', 'color', 'icon', 'isDefault', 'order', 'createdAt', 'updatedAt'
+          ])
+          && isValidNeoCalenderList(request.resource.data, userId, listId);
+        allow update: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['name'])
+          && request.resource.data.keys().hasOnly([
+            'id', 'uid', 'name', 'color', 'icon', 'isDefault', 'order', 'createdAt', 'updatedAt'
+          ])
+          && isValidNeoCalenderList(request.resource.data, userId, listId)
+          && (!('uid' in resource.data) || !('uid' in request.resource.data) || request.resource.data.uid == resource.data.uid)
+          && (!('id' in resource.data) || !('id' in request.resource.data) || request.resource.data.id == resource.data.id)
+          && (!('createdAt' in resource.data) || !('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt);
+      }
+
+      // ── NeoCalender: Settings & Preferences sub-collection ────────────────
+      // Scoped to the authenticated owner with enum and range validation.
+      match /neocalender_settings/{settingId} {
+        allow read: if isOwner(userId);
+        allow delete: if isOwner(userId);
+        allow create, update: if isOwner(userId)
+          && request.resource.data.keys().hasOnly([
+            'remindersEnabled', 'notificationPref', 'defaultPriority', 'preferredView',
+            'weekStartDay', 'dailySummaryTime', 'aiAutonomy', 'timeZone', 'createdAt', 'updatedAt'
+          ])
+          && isValidNeoCalenderSettings(request.resource.data);
+      }
+
+      // ── NeoCalender: Events sub-collection ────────────────────────────────
+      // Scoped to the authenticated owner with title and field validation.
+      match /neocalender_events/{eventId} {
+        allow read: if isOwner(userId);
+        allow delete: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['title'])
+          && request.resource.data.keys().hasOnly([
+            'id', 'uid', 'title', 'description', 'startDate', 'endDate', 'startTime', 'endTime',
+            'allDay', 'location', 'color', 'category', 'reminder', 'recurrence', 'createdAt', 'updatedAt'
+          ])
+          && isValidNeoCalenderEvent(request.resource.data, userId, eventId);
+        allow update: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['title'])
+          && request.resource.data.keys().hasOnly([
+            'id', 'uid', 'title', 'description', 'startDate', 'endDate', 'startTime', 'endTime',
+            'allDay', 'location', 'color', 'category', 'reminder', 'recurrence', 'createdAt', 'updatedAt'
+          ])
+          && isValidNeoCalenderEvent(request.resource.data, userId, eventId)
+          && (!('uid' in resource.data) || !('uid' in request.resource.data) || request.resource.data.uid == resource.data.uid)
+          && (!('id' in resource.data) || !('id' in request.resource.data) || request.resource.data.id == resource.data.id)
+          && (!('createdAt' in resource.data) || !('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt);
+      }
+
+      // ── NeoCalender: Habits sub-collection ───────────────────────────────────
+      match /neocalender_habits/{habitId} {
+        allow read: if isOwner(userId);
+        allow delete: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['title', 'frequency'])
+          && request.resource.data.keys().hasOnly([
+            'id', 'uid', 'title', 'description', 'frequency', 'customDays',
+            'category', 'color', 'icon', 'targetCount', 'reminderTime',
+            'status', 'currentStreak', 'longestStreak', 'totalCompletions',
+            'completionDates', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.uid == userId
+          && request.resource.data.title is string
+          && request.resource.data.title.size() > 0
+          && request.resource.data.title.size() <= 200
+          && request.resource.data.frequency in ['daily', 'weekly', 'custom'];
+        allow update: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['title', 'frequency'])
+          && request.resource.data.keys().hasOnly([
+            'id', 'uid', 'title', 'description', 'frequency', 'customDays',
+            'category', 'color', 'icon', 'targetCount', 'reminderTime',
+            'status', 'currentStreak', 'longestStreak', 'totalCompletions',
+            'completionDates', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.id == resource.data.id
+          && request.resource.data.createdAt == resource.data.createdAt;
+      }
+
+      // ── NeoCalender: Routines sub-collection ─────────────────────────────────
+      match /neocalender_routines/{routineId} {
+        allow read: if isOwner(userId);
+        allow delete: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['name'])
+          && request.resource.data.keys().hasOnly([
+            'id', 'uid', 'name', 'description', 'category', 'activities',
+            'estimatedMinutes', 'scheduledDays', 'startTime', 'isActive',
+            'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.uid == userId
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0;
+        allow update: if isOwner(userId)
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.id == resource.data.id;
+      }
+
+      // ── NeoCalender: Goals sub-collection ────────────────────────────────────
+      match /neocalender_goals/{goalId} {
+        allow read: if isOwner(userId);
+        allow delete: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['title', 'category'])
+          && request.resource.data.keys().hasOnly([
+            'id', 'uid', 'title', 'description', 'category', 'priority',
+            'startDate', 'targetDate', 'status', 'progress', 'progressHistory',
+            'associatedTaskIds', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.uid == userId
+          && request.resource.data.title is string
+          && request.resource.data.title.size() > 0
+          && request.resource.data.category in [
+            'academic', 'personal', 'health', 'career', 'project', 'custom'
+          ];
+        allow update: if isOwner(userId)
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.id == resource.data.id
+          && request.resource.data.createdAt == resource.data.createdAt;
+      }
+
+      // ── NeoCalender: Milestones sub-collection ───────────────────────────────
+      match /neocalender_milestones/{milestoneId} {
+        allow read: if isOwner(userId);
+        allow delete: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['title', 'goalId'])
+          && request.resource.data.keys().hasOnly([
+            'id', 'uid', 'goalId', 'title', 'description', 'targetDate',
+            'status', 'order', 'associatedTaskIds', 'completedAt',
+            'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.uid == userId;
+        allow update: if isOwner(userId)
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.goalId == resource.data.goalId;
+      }
+
+      // ── NeoCalender: Focus Sessions sub-collection ───────────────────────────
+      match /neocalender_focus_sessions/{sessionId} {
+        allow read: if isOwner(userId);
+        allow delete: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['startTime', 'durationMinutes'])
+          && request.resource.data.keys().hasOnly([
+            'id', 'uid', 'taskId', 'taskTitle', 'startTime', 'endTime',
+            'durationMinutes', 'actualMinutes', 'breakMinutes', 'intervals',
+            'status', 'notes', 'createdAt'
+          ])
+          && request.resource.data.uid == userId
+          && request.resource.data.durationMinutes is int
+          && request.resource.data.durationMinutes >= 1
+          && request.resource.data.durationMinutes <= 480;
+        allow update: if isOwner(userId)
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.id == resource.data.id;
+      }
+
+      // ── NeoCalender: Time Blocks sub-collection ───────────────────────────────
+      match /neocalender_time_blocks/{blockId} {
+        allow read: if isOwner(userId);
+        allow delete: if isOwner(userId);
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['date', 'startTime', 'endTime', 'title'])
+          && request.resource.data.keys().hasOnly([
+            'id', 'uid', 'date', 'startTime', 'endTime', 'title', 'description',
+            'taskId', 'category', 'color', 'type', 'isBreak', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.uid == userId
+          && request.resource.data.title is string
+          && request.resource.data.title.size() > 0;
+        allow update: if isOwner(userId)
+          && request.resource.data.uid == resource.data.uid
+          && request.resource.data.id == resource.data.id;
+      }
+
       // Preserve existing access to other user sub-collections, but do not let
       // this broad legacy grant override the stricter conversation or quota rules above.
       match /{subCollection}/{document=**} {
-        allow read, write: if isOwner(userId) && subCollection != 'conversations' && subCollection != 'ai_usage_daily';
+        allow read, write: if isOwner(userId)
+          && subCollection != 'conversations'
+          && subCollection != 'ai_usage_daily'
+          && subCollection != 'neocalender_tasks'
+          && subCollection != 'neocalender_lists'
+          && subCollection != 'neocalender_settings'
+          && subCollection != 'neocalender_events'
+          && subCollection != 'neocalender_habits'
+          && subCollection != 'neocalender_routines'
+          && subCollection != 'neocalender_goals'
+          && subCollection != 'neocalender_milestones'
+          && subCollection != 'neocalender_focus_sessions'
+          && subCollection != 'neocalender_time_blocks';
       }
     }
 

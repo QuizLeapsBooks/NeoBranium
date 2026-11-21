@@ -23,7 +23,7 @@ const COUNT_FIELDS = [
   'estimatedUsageRequests'
 ];
 
-const FEATURE_LABELS = {
+export const FEATURE_LABELS = {
   ai_board: 'Retired AI Board (historical)',
   chatbot: 'Chatbot',
   gemini_live: 'Gemini Live',
@@ -31,7 +31,8 @@ const FEATURE_LABELS = {
   neolens: 'NeoLens',
   paper_evaluation: 'Paper Evaluation',
   question_paper: 'Question Paper Generation',
-  tts: 'Text to Speech'
+  tts: 'Text to Speech',
+  neocalender: 'NeoCalender AI'
 };
 
 function emptyBucket() {

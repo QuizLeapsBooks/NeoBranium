@@ -162,3 +162,11 @@ export const paperModelAnswerQuota = createQuotaMiddleware({
   guestDailyLimit: parseInt(process.env.QUOTA_PAPER_GEN_GUEST_DAILY || '3', 10),
   failOpen: false
 });
+
+// /api/neocalender/ai — NeoCalender AI Assistant & Planner
+export const neocalenderQuota = createQuotaMiddleware({
+  category: 'neocalender',
+  dailyLimit: parseInt(process.env.QUOTA_NEOCALENDER_DAILY || '50', 10),
+  guestDailyLimit: parseInt(process.env.QUOTA_ANON_NEOCALENDER_DAILY || '0', 10),
+  failOpen: false
+});
