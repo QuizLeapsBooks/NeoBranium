@@ -31,6 +31,10 @@ scratch/
 temp/
 tmp/
 
+# Audit Reports
+AUDIT.md
+AUDIT_*.md
+
 # OS Files
 .DS_Store
 Thumbs.db
