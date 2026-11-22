@@ -103,6 +103,11 @@ body {
   transition: opacity 0.5s ease;
 }
 
+#preloader[style*="opacity: 0"],
+#preloader[style*="opacity:0"] {
+  pointer-events: none;
+}
+
 .preloader-logo {
   width: 80px;
   margin-bottom: 20px;

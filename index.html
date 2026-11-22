@@ -166,6 +166,29 @@
       <img src="/online-graduation_16847316.png" alt="NeoBranium loading" class="preloader-logo" />
       <div class="loader"></div>
     </div>
+    <script>
+      // Hide the preloader once the page has fully loaded (all assets ready).
+      // A 300ms grace period ensures the CSS transition feels smooth.
+      (function () {
+        function hidePreloader() {
+          var el = document.getElementById('preloader');
+          if (!el) return;
+          el.style.opacity = '0';
+          setTimeout(function () {
+            if (el && el.parentNode) el.parentNode.removeChild(el);
+          }, 500);
+        }
+        if (document.readyState === 'complete') {
+          setTimeout(hidePreloader, 300);
+        } else {
+          window.addEventListener('load', function () {
+            setTimeout(hidePreloader, 300);
+          });
+        }
+        // Hard fallback: never leave the preloader up for more than 4 seconds
+        setTimeout(hidePreloader, 4000);
+      })();
+    </script>
 
     <header>
       <div class="header-container">
