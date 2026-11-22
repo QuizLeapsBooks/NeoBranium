@@ -14,15 +14,16 @@ class NeoCalenderApi {
 
   resolveBaseUrl() {
     const host = window.location.hostname;
-    if (host === 'localhost' || host === '127.0.0.1') {
-      // In dev with live-server on port 5500, point to port 3000
-      if (window.location.port && window.location.port !== '3000') {
-        return 'http://localhost:3000/api/neocalender';
-      }
-      return '/api/neocalender';
+    // Local development: always point to Node server on port 3000
+    if (host === 'localhost' || host === '127.0.0.1' || host === '::1') {
+      return 'http://localhost:3000/api/neocalender';
     }
-    // Production Render backend or Firebase hosting rewrite
-    return '/api/neocalender';
+    // Production: read the backend-url meta tag (same pattern as all other pages),
+    // falling back to the Render backend URL.
+    const metaBackend =
+      document.querySelector('meta[name="backend-url"]')?.content?.trim() ||
+      'https://neobranium.onrender.com';
+    return `${metaBackend}/api/neocalender`;
   }
 
   async getAuthHeaders() {
