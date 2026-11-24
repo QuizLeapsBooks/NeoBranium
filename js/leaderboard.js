@@ -49,6 +49,16 @@ function esc(str) {
     .replace(/'/g, '&#39;');
 }
 
+function isSafeAvatarUrl(url) {
+  if (typeof url !== 'string' || !url.trim()) return false;
+  try {
+    const parsed = new URL(url, window.location.origin);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 function getInitial(name) {
   return (name || 'L').charAt(0).toUpperCase();
 }
@@ -247,9 +257,10 @@ function renderList() {
         ? 'nb-lb-accuracy-pill--mid'
         : 'nb-lb-accuracy-pill--low';
 
-      const avatarHtml = student.photoURL
+      const isSafePhoto = isSafeAvatarUrl(student.photoURL);
+      const avatarHtml = isSafePhoto
         ? `<img src="${esc(student.photoURL)}" alt="${esc(student.displayName)}" loading="lazy" />`
-        : getInitial(student.displayName);
+        : esc(getInitial(student.displayName));
 
       return `
         <a href="/student-profile.html?uid=${encodeURIComponent(student.userId)}" class="nb-lb-row ${rowHighlightClass}" role="row" aria-label="View ${esc(student.displayName)}'s profile">
@@ -311,9 +322,10 @@ function renderPodium(topThree = []) {
     const rankTitles = ['Champion', 'Runner-up', 'Third Place'];
     const icons = ['bi-trophy-fill', 'bi-award-fill', 'bi-star-fill'];
 
-    const avatarHtml = student.photoURL
+    const isSafePhoto = isSafeAvatarUrl(student.photoURL);
+    const avatarHtml = isSafePhoto
       ? `<img class="nb-podium-avatar-img" src="${esc(student.photoURL)}" alt="${esc(student.displayName)}" />`
-      : getInitial(student.displayName);
+      : esc(getInitial(student.displayName));
 
     return `
       <a href="/student-profile.html?uid=${encodeURIComponent(student.userId)}" class="nb-podium-card nb-podium-card--${rankNum}">

@@ -135,8 +135,8 @@ app.use(session({
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 200, // Raised to accommodate interactive app usage; NeoLearn has its own per-route limiters.
-    skip: (req) => req.path === '/api/health' || req.path === '/health' || req.path.startsWith('/neolearn/'),
+    max: 200, // Raised to accommodate interactive app usage; NeoLearn has dedicated per-route limiters with impression exemption.
+    skip: (req) => req.path === '/api/health' || req.path === '/health' || req.path === '/neolearn/impressions' || req.path === '/neolearn/impressions/batch',
     message: { reply: 'Too many requests, please try again later.' },
     // IP-based baseline; identity-specific AI quotas are enforced separately.
     standardHeaders: true,
@@ -1577,14 +1577,25 @@ app.post('/api/profile/upload-photo', express.json({ limit: '7mb' }), async (req
 
 // ── NeoLearn Rate Limiters ────────────────────────────────────────────────────
 function extractUidKey(req) {
+    if (req.uid && typeof req.uid === 'string') {
+        return `uid:${req.uid}`;
+    }
     try {
         const auth = req.headers?.authorization;
         if (auth?.startsWith('Bearer ')) {
-            const payload = JSON.parse(Buffer.from(auth.split('.')[1], 'base64url').toString());
-            if (payload?.user_id || payload?.sub) return `uid:${payload.user_id || payload.sub}`;
+            const token = auth.slice(7).trim();
+            const parts = token.split('.');
+            if (parts.length === 3) {
+                const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
+                const claimedUid = payload?.user_id || payload?.sub;
+                if (typeof claimedUid === 'string' && /^[a-zA-Z0-9_-]{1,128}$/.test(claimedUid)) {
+                    return `uid:${claimedUid}`;
+                }
+            }
         }
     } catch { /* fall through */ }
-    return `ip:${req.ip}`;
+    const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+    return `ip:${clientIp}`;
 }
 
 const neolearnFeedLimiter = rateLimit({
@@ -1594,6 +1605,24 @@ const neolearnFeedLimiter = rateLimit({
     legacyHeaders: false,
     keyGenerator: extractUidKey,
     message: { success: false, error: 'Feed is loading too fast. Please slow down.' }
+});
+
+const neolearnReadLimiter = rateLimit({
+    windowMs: 5 * 60 * 1000,   // 5 minutes
+    max: 120,                   // max 120 directory/social reads per 5 min per user/IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: extractUidKey,
+    message: { success: false, error: 'Too many requests. Please slow down.' }
+});
+
+const neolearnUploadLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,  // 15 minutes
+    max: 15,                    // max 15 post uploads per 15 min per user/IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: extractUidKey,
+    message: { success: false, error: 'Upload rate limit reached. Please wait before creating more posts.' }
 });
 
 const neolearnWriteLimiter = rateLimit({
@@ -1632,7 +1661,7 @@ const neolearnMomentLimiter = rateLimit({
     message: { success: false, error: 'Too many Moments created. Please try again later.' }
 });
 
-app.post('/api/neolearn/upload-post', createNeoLearnUploadHandler({
+app.post('/api/neolearn/upload-post', neolearnUploadLimiter, createNeoLearnUploadHandler({
     verifyAuthToken,
     isCloudinaryConfigured,
     cloudinary,
@@ -1648,17 +1677,17 @@ const neoLearnMomentHandlers = createNeoLearnMomentHandlers({
     cloudinary,
     isCloudinaryConfigured
 });
-app.get('/api/neolearn/moments', neoLearnMomentHandlers.getMoments);
-app.get('/api/neolearn/moments/:momentId/views', neoLearnMomentHandlers.getMomentViewers);
+app.get('/api/neolearn/moments', neolearnReadLimiter, neoLearnMomentHandlers.getMoments);
+app.get('/api/neolearn/moments/:momentId/views', neolearnReadLimiter, neoLearnMomentHandlers.getMomentViewers);
 app.post('/api/neolearn/moments', neolearnMomentLimiter, neoLearnMomentHandlers.createMoment);
 app.post('/api/neolearn/moments/like', neolearnWriteLimiter, neoLearnMomentHandlers.toggleMomentLike);
 app.post('/api/neolearn/moments/view', neolearnWriteLimiter, neoLearnMomentHandlers.recordMomentView);
 
 const neoLearnDirectoryHandlers = createNeoLearnDirectoryHandlers({ verifyAuthToken, db });
-app.get('/api/neolearn/peers', neoLearnDirectoryHandlers.getPeers);
-app.get('/api/neolearn/profiles/:userId', neoLearnDirectoryHandlers.getProfile);
+app.get('/api/neolearn/peers', neolearnReadLimiter, neoLearnDirectoryHandlers.getPeers);
+app.get('/api/neolearn/profiles/:userId', neolearnReadLimiter, neoLearnDirectoryHandlers.getProfile);
 
-app.post('/api/neolearn/settings', async (req, res) => {
+app.post('/api/neolearn/settings', neolearnWriteLimiter, async (req, res) => {
     try {
         const decodedToken = await verifyAuthToken(req);
         if (!decodedToken?.uid) return res.status(401).json({ success: false, error: 'Unauthorized: Invalid token' });
@@ -1681,26 +1710,26 @@ app.post('/api/neolearn/settings', async (req, res) => {
 });
 
 const neoLearnSocialHandlers = createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadPublicProfile, loadPublicProfiles });
-app.get('/api/neolearn/social/summary/:userId', neoLearnSocialHandlers.getSummary);
-app.get('/api/neolearn/social/connections/:userId', neoLearnSocialHandlers.getConnections);
+app.get('/api/neolearn/social/summary/:userId', neolearnReadLimiter, neoLearnSocialHandlers.getSummary);
+app.get('/api/neolearn/social/connections/:userId', neolearnReadLimiter, neoLearnSocialHandlers.getConnections);
 app.post('/api/neolearn/social/learning', neolearnWriteLimiter, neoLearnSocialHandlers.setLearning);
 app.get('/api/neolearn/feed', neolearnFeedLimiter, neoLearnSocialHandlers.getLearningFeed);
 
 const neoLearnNotificationHandlers = createNeoLearnNotificationHandlers({ verifyAuthToken, db, rtdb, admin });
 app.post('/api/neolearn/notifications/like', neolearnWriteLimiter, neoLearnNotificationHandlers.recordLikeNotification);
 app.post('/api/neolearn/notifications/comment', neolearnWriteLimiter, neoLearnNotificationHandlers.recordCommentNotification);
-app.post('/api/neolearn/notifications/mark-read', neoLearnNotificationHandlers.markNotificationRead);
+app.post('/api/neolearn/notifications/mark-read', neolearnWriteLimiter, neoLearnNotificationHandlers.markNotificationRead);
 
 const neoLearnMessageHandlers = createNeoLearnMessageHandlers({ verifyAuthToken, db, rtdb });
 app.post('/api/neolearn/messages/send', neolearnMessageLimiter, neoLearnMessageHandlers.sendMessage);
-app.post('/api/neolearn/messages/seen', neoLearnMessageHandlers.markMessageSeen);
-app.post('/api/neolearn/messages/hidden', neoLearnMessageHandlers.getHiddenConversations);
-app.post('/api/neolearn/messages/delete', neoLearnMessageHandlers.deleteConversation);
-app.post('/api/neolearn/messages/restore', neoLearnMessageHandlers.restoreConversation);
-app.post('/api/neolearn/messages/unsend', neoLearnMessageHandlers.unsendMessage);
-app.post('/api/neolearn/messages/react', neoLearnMessageHandlers.reactToMessage);
-app.post('/api/neolearn/messages/delete-for-me', neoLearnMessageHandlers.deleteMessageForMe);
-app.get('/api/neolearn/messages/deleted-for-me', neoLearnMessageHandlers.getDeletedMessages);
+app.post('/api/neolearn/messages/seen', neolearnWriteLimiter, neoLearnMessageHandlers.markMessageSeen);
+app.post('/api/neolearn/messages/hidden', neolearnReadLimiter, neoLearnMessageHandlers.getHiddenConversations);
+app.post('/api/neolearn/messages/delete', neolearnWriteLimiter, neoLearnMessageHandlers.deleteConversation);
+app.post('/api/neolearn/messages/restore', neolearnWriteLimiter, neoLearnMessageHandlers.restoreConversation);
+app.post('/api/neolearn/messages/unsend', neolearnWriteLimiter, neoLearnMessageHandlers.unsendMessage);
+app.post('/api/neolearn/messages/react', neolearnWriteLimiter, neoLearnMessageHandlers.reactToMessage);
+app.post('/api/neolearn/messages/delete-for-me', neolearnWriteLimiter, neoLearnMessageHandlers.deleteMessageForMe);
+app.get('/api/neolearn/messages/deleted-for-me', neolearnReadLimiter, neoLearnMessageHandlers.getDeletedMessages);
 
 const neoLearnModerationHandlers = createNeoLearnModerationHandlers({
     verifyAuthToken,
@@ -1708,19 +1737,20 @@ const neoLearnModerationHandlers = createNeoLearnModerationHandlers({
     rtdb,
     cloudinary,
     isCloudinaryConfigured,
-    admin
+    admin,
+    invalidateFeedCache: neoLearnSocialHandlers.invalidateFeedCache
 });
-app.delete('/api/neolearn/profile', neoLearnModerationHandlers.deleteProfile);
-app.delete('/api/neolearn/posts/:postId', neoLearnModerationHandlers.deletePost);
-app.patch('/api/neolearn/posts/:postId', neoLearnModerationHandlers.updatePost);
-app.post('/api/neolearn/posts/:postId/delete', neoLearnModerationHandlers.deletePost);
-app.post('/api/neolearn/posts/delete', neoLearnModerationHandlers.deletePost);
-app.post('/api/neolearn/reports/post', neoLearnModerationHandlers.reportPost);
-app.post('/api/neolearn/reports/profile', neoLearnModerationHandlers.reportProfile);
-app.post('/api/neolearn/blocks', neoLearnModerationHandlers.blockUser);
-app.get('/api/neolearn/blocks', neoLearnModerationHandlers.getBlockedUsers);
-app.delete('/api/neolearn/blocks/:targetUserId', neoLearnModerationHandlers.unblockUser);
-app.get('/api/neolearn/blocks/:targetUserId', neoLearnModerationHandlers.getBlockStatus);
+app.delete('/api/neolearn/profile', neolearnWriteLimiter, neoLearnModerationHandlers.deleteProfile);
+app.delete('/api/neolearn/posts/:postId', neolearnWriteLimiter, neoLearnModerationHandlers.deletePost);
+app.patch('/api/neolearn/posts/:postId', neolearnWriteLimiter, neoLearnModerationHandlers.updatePost);
+app.post('/api/neolearn/posts/:postId/delete', neolearnWriteLimiter, neoLearnModerationHandlers.deletePost);
+app.post('/api/neolearn/posts/delete', neolearnWriteLimiter, neoLearnModerationHandlers.deletePost);
+app.post('/api/neolearn/reports/post', neolearnWriteLimiter, neoLearnModerationHandlers.reportPost);
+app.post('/api/neolearn/reports/profile', neolearnWriteLimiter, neoLearnModerationHandlers.reportProfile);
+app.post('/api/neolearn/blocks', neolearnWriteLimiter, neoLearnModerationHandlers.blockUser);
+app.get('/api/neolearn/blocks', neolearnReadLimiter, neoLearnModerationHandlers.getBlockedUsers);
+app.delete('/api/neolearn/blocks/:targetUserId', neolearnWriteLimiter, neoLearnModerationHandlers.unblockUser);
+app.get('/api/neolearn/blocks/:targetUserId', neolearnReadLimiter, neoLearnModerationHandlers.getBlockStatus);
 
 // ── Impression tracking routes ────────────────────────────────────────────────
 // POST /api/neolearn/impressions       → record one impression (atomic, with 60 s cooldown)

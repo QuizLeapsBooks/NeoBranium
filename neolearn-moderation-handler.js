@@ -22,7 +22,8 @@ export function createNeoLearnModerationHandlers({
     rtdb,
     cloudinary,
     isCloudinaryConfigured,
-    admin
+    admin,
+    invalidateFeedCache
 }) {
     async function authenticate(req, res) {
         try {
@@ -188,6 +189,9 @@ export function createNeoLearnModerationHandlers({
             ]);
 
             await postRef.delete();
+            if (typeof invalidateFeedCache === 'function') {
+                invalidateFeedCache();
+            }
 
             return res.json({
                 success: true,
@@ -407,6 +411,11 @@ export function createNeoLearnModerationHandlers({
                 removeRelationshipIfExists(targetUserId, blockerId)
             ]);
 
+            if (typeof invalidateFeedCache === 'function') {
+                invalidateFeedCache(blockerId);
+                invalidateFeedCache(targetUserId);
+            }
+
             return res.json({
                 success: true,
                 message: 'User blocked successfully.',
@@ -434,6 +443,11 @@ export function createNeoLearnModerationHandlers({
             const blockDoc = await blockRef.get();
             if (blockDoc.exists) {
                 await blockRef.delete();
+            }
+
+            if (typeof invalidateFeedCache === 'function') {
+                invalidateFeedCache(blockerId);
+                invalidateFeedCache(targetUserId);
             }
 
             return res.json({

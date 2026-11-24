@@ -152,16 +152,45 @@ class NeoCalenderApp {
     });
   }
 
+  getSafeUrl(url) {
+    if (typeof url !== 'string' || !url.trim()) return null;
+    try {
+      const parsed = new URL(url, window.location.origin);
+      if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+        return parsed.href;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
   updateUserUI(user) {
     if (this.dom.userName) {
       this.dom.userName.textContent = user.displayName || user.email?.split('@')[0] || 'Scholar';
     }
     if (this.dom.userAvatar) {
-      if (user.photoURL) {
-        this.dom.userAvatar.innerHTML = `<img src="${user.photoURL}" alt="User Avatar" class="nc-user-img">`;
+      this.dom.userAvatar.replaceChildren();
+      const safeUrl = this.getSafeUrl(user.photoURL);
+      if (safeUrl) {
+        const img = document.createElement('img');
+        img.src = safeUrl;
+        img.alt = 'User Avatar';
+        img.className = 'nc-user-img';
+        img.onerror = () => {
+          this.dom.userAvatar.replaceChildren();
+          const fallback = document.createElement('div');
+          fallback.className = 'nc-avatar-fallback';
+          fallback.textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
+          this.dom.userAvatar.appendChild(fallback);
+        };
+        this.dom.userAvatar.appendChild(img);
       } else {
         const initial = (user.displayName || user.email || 'U').charAt(0).toUpperCase();
-        this.dom.userAvatar.innerHTML = `<div class="nc-avatar-fallback">${initial}</div>`;
+        const fallback = document.createElement('div');
+        fallback.className = 'nc-avatar-fallback';
+        fallback.textContent = initial;
+        this.dom.userAvatar.appendChild(fallback);
       }
     }
   }
@@ -973,10 +1002,12 @@ class NeoCalenderApp {
   }
 
   escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+    return String(str ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   // ── EVENT LISTENERS ─────────────────────────────────────────────────────

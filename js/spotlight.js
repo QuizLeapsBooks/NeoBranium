@@ -1,32 +1,31 @@
+// spotlight.js — Centralized Firebase singleton import
+import { db } from "./auth.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
- import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
-import { getFirestore, getDoc, doc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
+const spotlightGrid = document.getElementById("spotlightGrid");
 
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyA1iWJdGtmrox9RAHgWBxaK4p8KGf7ji_Y",
-  authDomain: "neobranium.firebaseapp.com",
-  projectId: "neobranium",
-  storageBucket: "neobranium.appspot.com",
-  messagingSenderId: "59188872045",
-  appId: "1:59188872045:web:450a70b28e4be5db335064",
-};
+function escapeHtml(str) {
+  if (typeof str !== "string") return String(str ?? "");
+  return str.replace(/[&<>"']/g, (m) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[m]));
+}
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const spotlightGrid = document.getElementById("spotlightGrid");
-
-  async function loadRankingData() {
+async function loadRankingData() {
+  if (!spotlightGrid) return;
+  try {
     const querySnapshot = await getDocs(collection(db, "users"));
+    spotlightGrid.innerHTML = "";
     querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      const name = data.username || "Unknown";
-      const rank = data.rank || "Unranked";
-      const score = data.score || "N/A";
-      const improve = data.improvement || "Update your content quality.";
+      const data = doc.data() || {};
+      const name = escapeHtml(data.username || "Unknown");
+      const rank = escapeHtml(data.rank || "Unranked");
+      const score = escapeHtml(data.score || "N/A");
+      const improve = escapeHtml(data.improvement || "Update your content quality.");
 
       spotlightGrid.innerHTML += `
         <div class="grid-container">
@@ -37,6 +36,11 @@ const firebaseConfig = {
         </div>
       `;
     });
+  } catch (err) {
+    console.error("Failed to load ranking data:", err);
   }
+}
 
+if (spotlightGrid) {
   loadRankingData();
+}

@@ -229,7 +229,12 @@ function createModerationHarness({ viewerId = 'viewer-123', authenticated = true
             throw new Error(`Unexpected collection in harness: ${collectionName}`);
         },
         async getAll(...refs) {
-            return refs.map((ref) => snapshot(ref.id, null));
+            return refs.map((ref) => {
+                if (ref.collectionName === 'neolearn_profiles' || ref.collectionName === 'users') {
+                    return snapshot(ref.id, profiles.get(ref.id));
+                }
+                return snapshot(ref.id, null);
+            });
         },
         async runTransaction(callback) {
             const writes = [];
@@ -277,6 +282,16 @@ function createModerationHarness({ viewerId = 'viewer-123', authenticated = true
         }
     };
 
+    const socialHandlers = createNeoLearnSocialHandlers({
+        verifyAuthToken: async () => {
+            if (!authenticated) throw new Error('Unauthorized');
+            return { uid: viewerId };
+        },
+        db,
+        admin: { firestore: { FieldValue: { serverTimestamp: () => 123456789 } } },
+        loadPublicProfile: async (_db, uid, prof) => ({ userId: uid, name: prof.name, profilePhotoUrl: '' })
+    });
+
     const moderationHandlers = createNeoLearnModerationHandlers({
         verifyAuthToken: async () => {
             if (!authenticated) throw new Error('Unauthorized');
@@ -288,17 +303,8 @@ function createModerationHarness({ viewerId = 'viewer-123', authenticated = true
         isCloudinaryConfigured: () => true,
         admin: {
             firestore: { FieldValue: { serverTimestamp: () => 123456789, delete: () => 'DELETE_FIELD' } }
-        }
-    });
-
-    const socialHandlers = createNeoLearnSocialHandlers({
-        verifyAuthToken: async () => {
-            if (!authenticated) throw new Error('Unauthorized');
-            return { uid: viewerId };
         },
-        db,
-        admin: { firestore: { FieldValue: { serverTimestamp: () => 123456789 } } },
-        loadPublicProfile: async (_db, uid, prof) => ({ userId: uid, name: prof.name, profilePhotoUrl: '' })
+        invalidateFeedCache: (uid) => socialHandlers.invalidateFeedCache(uid)
     });
 
     const directoryHandlers = createNeoLearnDirectoryHandlers({

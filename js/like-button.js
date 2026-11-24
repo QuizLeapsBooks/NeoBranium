@@ -1,23 +1,12 @@
-// like-button.js
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
-import { getFirestore, getDoc, doc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
-
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyA1iWJdGtmrox9RAHgWBxaK4p8KGf7ji_Y",
-  authDomain: "neobranium.firebaseapp.com",
-  projectId: "neobranium",
-  storageBucket: "neobranium.appspot.com",
-  messagingSenderId: "59188872045",
-  appId: "1:59188872045:web:450a70b28e4be5db335064",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+// like-button.js — Centralized Firebase singleton import
+import { auth, db, onAuthStateChanged } from "./auth.js";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  setDoc,
+  arrayUnion
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
 const likeBtn = document.getElementById("likeBtn");
 const likeCountText = document.getElementById("likeCount");

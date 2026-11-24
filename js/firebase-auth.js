@@ -176,6 +176,20 @@ document.getElementById("signup-form")?.addEventListener("submit", async (e) => 
   }
 });
 
+// Safe destination resolution with returnUrl support
+function getPostLoginRedirect() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const returnUrl = params.get('returnUrl');
+    if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
+      return returnUrl;
+    }
+  } catch (e) {
+    console.warn("Could not parse returnUrl:", e);
+  }
+  return "/htmls/dashboard.html";
+}
+
 document.getElementById("login-form")?.addEventListener("submit", async (e) => {
   e.preventDefault();
   
@@ -198,7 +212,8 @@ document.getElementById("login-form")?.addEventListener("submit", async (e) => {
     }
     
     showToast("Logged in successfully!", "success");
-    setTimeout(() => location.replace("/htmls/dashboard.html"), 1000);
+    const target = getPostLoginRedirect();
+    setTimeout(() => location.replace(target), 1000);
   } catch (error) {
     console.error(error);
     showToast("Login failed. Incorrect email or password.");
@@ -280,7 +295,8 @@ const handleGuestLogin = async () => {
     sessionStorage.setItem("isGuestMode", "true");
     try {
       await signInAnonymously(auth);
-      window.location.replace("/htmls/dashboard.html");
+      const target = getPostLoginRedirect();
+      window.location.replace(target);
     } catch (error) {
       sessionStorage.removeItem("isGuestMode");
       console.error("Guest sign-in failed:", error);

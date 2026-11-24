@@ -3,7 +3,6 @@ import test from 'node:test';
 import {
   addEarlierMessagePage,
   mergeConversationMessages,
-  sortPeersByLatestMessage
   sortPeersByLatestMessage,
   extractFirstUrl,
   URL_REGEX

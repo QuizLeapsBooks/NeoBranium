@@ -37,6 +37,18 @@ function validUserId(userId) {
 export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadPublicProfile, loadPublicProfiles }) {
     // Instance-scoped feed cache so each test harness is fully isolated.
     const feedCache = new Map(); // cacheKey -> { ts: number, data: object }
+
+    function invalidateFeedCache(userId) {
+        if (!userId) {
+            feedCache.clear();
+            return;
+        }
+        for (const key of feedCache.keys()) {
+            if (key.startsWith(`${userId}:`)) {
+                feedCache.delete(key);
+            }
+        }
+    }
     async function authenticate(req, res) {
         try {
             const decodedToken = await verifyAuthToken(req);
@@ -357,7 +369,7 @@ export function createNeoLearnSocialHandlers({ verifyAuthToken, db, admin, loadP
         }
     }
 
-    return { getSummary, getConnections, setLearning, getLearningFeed };
+    return { getSummary, getConnections, setLearning, getLearningFeed, invalidateFeedCache };
 }
 
 async function selectFeedByImpressions(db, posts, viewerUid, feedLimit) {

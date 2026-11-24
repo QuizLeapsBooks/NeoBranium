@@ -275,4 +275,35 @@ function hideResults(box) {
 }
 
 // Initialize on DOM ready
-document.addEventListener('DOMContentLoaded', initGlobalSearch);
+document.addEventListener('DOMContentLoaded', () => {
+  initGlobalSearch();
+
+  // Standardized mobile navigation menu handler for header.html and Notes pages
+  const menuToggle = document.querySelector('.menu-toggle');
+  const navMenu = document.querySelector('.nav-menu');
+  if (menuToggle && navMenu && !menuToggle.dataset.menuInitialized) {
+    menuToggle.dataset.menuInitialized = 'true';
+    menuToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isActive = navMenu.classList.toggle('active');
+      menuToggle.textContent = isActive ? '✕' : '☰';
+      menuToggle.setAttribute('aria-expanded', String(isActive));
+    });
+
+    document.addEventListener('click', (e) => {
+      if (navMenu.classList.contains('active') && !navMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+        navMenu.classList.remove('active');
+        menuToggle.textContent = '☰';
+        menuToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+        navMenu.classList.remove('active');
+        menuToggle.textContent = '☰';
+        menuToggle.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+});

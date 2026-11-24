@@ -3,11 +3,11 @@ import { getAuth, onAuthStateChanged, signOut, signInAnonymously, EmailAuthProvi
 import { getDatabase } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-database.js";
 import { getFirestore, getDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
-import { syncProfilePhoto } from "/js/profile-photo-cache.js";
+import { syncProfilePhoto } from "./profile-photo-cache.js";
 import {
     createAiQuotaApiClient,
     resolveUsageApiBase
-} from "/js/ai-usage-dashboard-model.js";
+} from "./ai-usage-dashboard-model.js";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -56,21 +56,45 @@ export function isGuestUser() {
     return sessionStorage.getItem('isGuestMode') === 'true';
 }
 
+export function getSafeReturnUrl() {
+    try {
+        const fullCurrent = window.location.pathname + window.location.search;
+        // Don't set returnUrl to sign/verify-email or root landing
+        if (window.location.pathname.includes('sign.html') || 
+            window.location.pathname.includes('verify-email.html') || 
+            window.location.pathname === '/' || 
+            window.location.pathname === '/index.html') {
+            return '';
+        }
+        return fullCurrent;
+    } catch {
+        return '';
+    }
+}
+
+export function buildSignInUrl(returnPath = null) {
+    const target = returnPath || getSafeReturnUrl();
+    if (target && target.startsWith('/') && !target.startsWith('//')) {
+        return `/htmls/sign.html?returnUrl=${encodeURIComponent(target)}`;
+    }
+    return '/htmls/sign.html';
+}
+
 export async function checkAccess(requiredAuth = false) {
     if (!requiredAuth) return true;
     // Wait for Firebase to resolve auth state before deciding
     return new Promise((resolve) => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             unsubscribe();
-            if (user) { resolve(true); return; }
+            if (user && !user.isAnonymous) { resolve(true); return; }
             if (isGuestUser()) {
                 console.info("Guest access restriction: Redirecting to sign-in.");
-                window.location.href = "/htmls/sign.html";
+                window.location.href = buildSignInUrl();
                 resolve(false);
                 return;
             }
-            // Fully logged-out — redirect to landing
-            window.location.replace("/index.html");
+            // Fully logged-out — redirect to sign-in with returnUrl
+            window.location.replace(buildSignInUrl());
             resolve(false);
         });
     });
@@ -517,6 +541,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const isLandingPage = (path === "/" || path === "/index.html") && !isNeoApp;
         const isAuthPage = path.includes("sign.html") || path.includes("verify-email.html");
         const isEntryPage = isLandingPage || isAuthPage;
+
+        // Explicit classification of route security requirements
+        const isAccountOnly = path.startsWith("/NeoBoard/") || 
+                              path.includes("/NeoBook") || 
+                              path.includes("/htmls/setting.html") || 
+                              path.includes("/htmls/profile.html") || 
+                              path.includes("/htmls/neolearn/");
+
+        const isProtected = isAccountOnly || 
+                            path.includes("/htmls/dashboard.html") || 
+                            path.includes("/htmls/my-learning.html") || 
+                            path.includes("/htmls/ai-usage.html") || 
+                            path.includes("/htmls/chat/chat_app.html");
+
         if (user) {
             scheduleQuotaMidnightRefresh(user);
         } else {
@@ -527,13 +565,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (user?.isAnonymous) {
             sessionStorage.setItem('isGuestMode', 'true');
-            const accountOnlyPath = path.includes("/NeoBook") || path.startsWith("/NeoBoard/");
-            if (accountOnlyPath) {
-                window.location.replace("/htmls/sign.html");
+            if (isAccountOnly) {
+                window.location.replace(buildSignInUrl());
                 return;
             }
             if (isEntryPage) {
-                window.location.replace("/htmls/dashboard.html");
+                const params = new URLSearchParams(window.location.search);
+                const returnUrl = params.get('returnUrl');
+                if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
+                    window.location.replace(returnUrl);
+                } else {
+                    window.location.replace("/htmls/dashboard.html");
+                }
                 return;
             }
             injectGuestBanner();
@@ -561,7 +604,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                     return;
                 }
-                window.location.replace("/htmls/dashboard.html");
+                // Honor returnUrl if present on sign-in
+                const params = new URLSearchParams(window.location.search);
+                const returnUrl = params.get('returnUrl');
+                if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
+                    window.location.replace(returnUrl);
+                } else {
+                    window.location.replace("/htmls/dashboard.html");
+                }
                 return;
             }
 
@@ -583,41 +633,27 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (isGuestUser()) {
+                if (isAccountOnly) {
+                    window.location.replace(buildSignInUrl());
+                    return;
+                }
                 try {
                     await signInAnonymously(auth);
                 } catch (error) {
                     console.error("Could not establish server-verifiable guest access:", error);
                     sessionStorage.removeItem("isGuestMode");
-                    window.location.replace("/htmls/sign.html");
+                    window.location.replace(buildSignInUrl());
                 }
                 return;
             }
 
-            if (path.includes("/NeoBook") || path.startsWith("/NeoBoard/")) {
-                window.location.replace("/htmls/sign.html");
+            if (isProtected) {
+                window.location.replace(buildSignInUrl());
                 return;
             }
 
-            if (isGuestUser()) {
-                if (isEntryPage) {
-                    // Let the user stay on the entry page (e.g. sign.html) so they can actually log in
-                    document.body.style.opacity = "1";
-                    return;
-                }
-                injectGuestBanner();
-                updateUserDisplay({ username: "Guest", bio: "Browsing as Guest" }, { displayName: "Guest" });
-                document.body.style.opacity = "1";
-                return;
-            }
-
-            // Only allow entry pages or standalone public apps (e.g., NeoBook, NeoBot)
-            if (path.includes("/NeoBook") || path.startsWith("/NeoBoard/")) {
-                window.location.replace("/htmls/sign.html");
-            } else if (!isEntryPage && !isNeoApp) {
-                window.location.replace("/index.html");
-            } else {
-                document.body.style.opacity = "1";
-            }
+            // Public pages are freely accessible without redirection
+            document.body.style.opacity = "1";
         }
     });
 

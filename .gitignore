@@ -25,6 +25,7 @@ dist/
 build/
 
 # Media / Uploads / Temp
+codebase.png
 screenshot_images/
 sreenshot_images/
 scratch/
@@ -34,6 +35,7 @@ tmp/
 # Audit Reports
 AUDIT.md
 AUDIT_*.md
+NEOBRANIUM_*.md
 
 # OS Files
 .DS_Store
