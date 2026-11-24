@@ -83,7 +83,7 @@
     gtag('config', 'G-002PB7F4H4');
   </script>
 
-  <!-- Structured Data: WebSite and EducationalOrganization -->
+  <!-- Structured Data: WebSite, EducationalOrganization, ParentOrganization -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -93,8 +93,15 @@
         "@id": "https://neobranium.web.app/#website",
         "url": "https://neobranium.web.app/",
         "name": "NeoBranium",
-        "description": "Free NCERT notes, AI doubt solving, practice questions, and study tools for Class 9–12 students",
+        "alternateName": [
+          "NeoBranium by AEVORIN",
+          "NeoBranium Learning Platform"
+        ],
+        "description": "Free NCERT notes, AI doubt solving, practice questions, and study tools for Class 9–12 students.",
         "inLanguage": "en-IN",
+        "publisher": {
+          "@id": "https://neobranium.web.app/#organization"
+        },
         "potentialAction": {
           "@type": "SearchAction",
           "target": {
@@ -116,8 +123,38 @@
           "width": 512,
           "height": 512
         },
-        "sameAs": [],
-        "description": "NeoBranium is a free educational platform by AEVORIN providing NCERT notes, AI-powered doubt solving, quizzes, and study tools for Indian students in Classes 9–12."
+        "parentOrganization": {
+          "@type": "Organization",
+          "@id": "https://neobranium.web.app/#parent-organization",
+          "name": "AEVORIN",
+          "alternateName": "Aevorin",
+          "url": "https://neobranium.web.app/about.html",
+          "logo": "https://neobranium.web.app/online-graduation_16847316.png",
+          "founder": {
+            "@type": "Person",
+            "@id": "https://neobranium.web.app/founder.html#person",
+            "name": "Shubham Singh",
+            "url": "https://neobranium.web.app/founder.html"
+          }
+        },
+        "founder": {
+          "@type": "Person",
+          "@id": "https://neobranium.web.app/founder.html#person",
+          "name": "Shubham Singh",
+          "url": "https://neobranium.web.app/founder.html"
+        },
+        "sameAs": [
+          "https://twitter.com/NeoBranium",
+          "https://youtube.com/@aevorin-neo",
+          "https://youtube.com/@NeoBranium",
+          "https://instagram.com/aevorinneo",
+          "https://facebook.com/NeoBranium"
+        ],
+        "description": "NeoBranium is a free educational platform by AEVORIN providing NCERT notes, AI-powered doubt solving, quizzes, and study tools for Indian students in Classes 9–12.",
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "IN"
+        }
       }
     ]
   }
@@ -218,6 +255,9 @@
                   <li><a href="/NeoBook/index.html"><strong>📖 NeoBook Research AI</strong> <span class="nav-live-badge"
                         style="font-size:0.55rem;padding:1px 5px;margin-left:4px;background:#6366f1;">NEW</span></a>
                   </li>
+                  <li><a href="/NeoCalender/index.html"><strong>📅 NeoCalender Planner</strong> <span class="nav-live-badge"
+                        style="font-size:0.55rem;padding:1px 5px;margin-left:4px;background:#0d9488;">NEW</span></a>
+                  </li>
                   <li><a href="/htmls/doubt/index.html">📸 NeoLens Photo Solver</a></li>
                   <li><a href="/NeoBoard/board.html">🎨 NeoBoard Canvas</a></li>
                   <li><a href="/htmls/question-paper_generator-ai/ai-generate.html">📝 Exam Paper Generator</a></li>
@@ -292,13 +332,15 @@
               <i class="fas fa-arrow-right"></i>
             </a>
             <h1 class="main-tagline animate__animated animate__fadeInUp">
-              Learn<span class="accent"> Smarter</span>, Grow Further
+              NeoBranium — Learn<span class="accent"> Smarter</span>, Grow Further
             </h1>
             <p class="slogan animate__animated animate__fadeInUp animate__delay-1s">
-              Free Class 9–12 study resources, with AI tools to help when a question gets tricky.
+              NeoBranium provides free Class 9–12 NCERT study resources, with AI tools to help when a question gets tricky.
             </p>
             <div class="hero-btns animate__animated animate__fadeInUp animate__delay-2s">
-              <a href="/Notes/detailed-notes.html" class="btn btn-primary"><i class="fas fa-book-open"
+              <a href="/htmls/sign.html" class="btn btn-primary"><i class="fas fa-rocket"
+                  aria-hidden="true"></i> Get Started</a>
+              <a href="/Notes/detailed-notes.html" class="btn btn-secondary"><i class="fas fa-book-open"
                   aria-hidden="true"></i> Explore Notes</a>
               <a href="/htmls/quiz_htmls/class10-physics-chapter-1.html" class="btn btn-secondary"><i
                   class="fas fa-list-check" aria-hidden="true"></i> Try a Quiz</a>
@@ -454,6 +496,24 @@
             <h3>NeoLearn</h3>
             <p>Discover learner profiles and share study moments with peers.</p>
             <a class="ecosystem-link" href="/htmls/neolearn/index.html">Explore NeoLearn <i class="fas fa-arrow-right"
+                aria-hidden="true"></i></a>
+          </article>
+
+          <article class="ecosystem-card ecosystem-card--neobook">
+            <div class="ecosystem-icon" aria-hidden="true"><i class="fas fa-book-bookmark"></i></div>
+            <span class="ecosystem-kicker">SOURCE-GROUNDED NOTEBOOK</span>
+            <h3>NeoBook</h3>
+            <p>Add web links, YouTube videos, and PDFs to create AI-grounded study notebooks.</p>
+            <a class="ecosystem-link" href="/NeoBook/index.html">Open NeoBook <i class="fas fa-arrow-right"
+                aria-hidden="true"></i></a>
+          </article>
+
+          <article class="ecosystem-card ecosystem-card--neocalender">
+            <div class="ecosystem-icon" aria-hidden="true"><i class="fas fa-calendar-check"></i></div>
+            <span class="ecosystem-kicker">PRODUCTIVITY &amp; HABITS</span>
+            <h3>NeoCalender</h3>
+            <p>Plan study schedules, build study habits, and manage exams with smart AI routines.</p>
+            <a class="ecosystem-link" href="/NeoCalender/index.html">Launch NeoCalender <i class="fas fa-arrow-right"
                 aria-hidden="true"></i></a>
           </article>
         </div>
@@ -804,6 +864,36 @@
               <span>Top Questions</span>
             </div>
             <span class="bento-link">Browse All Notes <i class="fas fa-arrow-right"></i></span>
+          </a>
+
+          <!-- Bento 7: NeoBook -->
+          <a href="/NeoBook/index.html" class="bento-card">
+            <span class="bento-highlight-pill pill-indigo">AI NOTEBOOK</span>
+            <div class="bento-icon bento-icon--neobook"><i class="fas fa-book-bookmark"></i></div>
+            <h3>NeoBook AI Research Notebook</h3>
+            <p>Organize websites, YouTube lectures, and revision PDFs into smart source notebooks. Generate synthesized
+              study summaries and verified AI answers with citations.</p>
+            <div class="bento-card-tags">
+              <span>Source Grounding</span>
+              <span>Mind Maps</span>
+              <span>Smart Citations</span>
+            </div>
+            <span class="bento-link">Launch NeoBook <i class="fas fa-arrow-right"></i></span>
+          </a>
+
+          <!-- Bento 8: NeoCalender -->
+          <a href="/NeoCalender/index.html" class="bento-card">
+            <span class="bento-highlight-pill pill-teal">TIME &amp; ROUTINES</span>
+            <div class="bento-icon bento-icon--neocalender"><i class="fas fa-calendar-check"></i></div>
+            <h3>NeoCalender AI Study Planner</h3>
+            <p>Smart productivity suite for students. Organize daily study sessions, track exam revision milestones,
+              maintain subject streaks, and optimize focus blocks.</p>
+            <div class="bento-card-tags">
+              <span>Smart Routines</span>
+              <span>Habit Streaks</span>
+              <span>Focus Timers</span>
+            </div>
+            <span class="bento-link">Open NeoCalender <i class="fas fa-arrow-right"></i></span>
           </a>
         </div>
       </section>
@@ -1215,38 +1305,6 @@
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "EducationalOrganization",
-        "@id": "https://neobranium.web.app/#organization",
-        "name": "NeoBranium",
-        "url": "https://neobranium.web.app",
-        "logo": "https://neobranium.web.app/online-graduation_16847316.png",
-        "description": "Free NCERT Class 9 & 10 notes, science & maths solutions, top questions, and instant AI doubt solving.",
-        "sameAs": [
-          "https://facebook.com/NeoBranium",
-          "https://instagram.com/aevorinneo",
-          "https://youtube.com/@aevorin-neo",
-          "https://twitter.com/NeoBranium"
-        ],
-        "address": {
-          "@type": "PostalAddress",
-          "addressCountry": "IN"
-        }
-      },
-      {
-        "@type": "WebSite",
-        "@id": "https://neobranium.web.app/#website",
-        "url": "https://neobranium.web.app",
-        "name": "NeoBranium",
-        "publisher": {
-          "@id": "https://neobranium.web.app/#organization"
-        },
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": "https://neobranium.web.app/search?q={search_term_string}",
-          "query-input": "required name=search_term_string"
-        }
-      },
-      {
         "@type": "FAQPage",
         "mainEntity": [
           {
@@ -1274,50 +1332,47 @@
             }
           }
         ]
-      }
-    ]
-  }
-  </script>
-    <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://neobranium.web.app/"
       },
       {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Class 12 Notes",
-        "item": "https://neobranium.web.app/Notes/class12-notes.html"
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": "Class 11 Notes",
-        "item": "https://neobranium.web.app/Notes/class11-notes.html"
-      },
-      {
-        "@type": "ListItem",
-        "position": 6,
-        "name": "Class 10 Notes",
-        "item": "https://neobranium.web.app/Notes/notes-science-class10.html"
-      },
-      {
-        "@type": "ListItem",
-        "position": 3,
-        "name": "Top Questions",
-        "item": "https://neobranium.web.app/IQ/top-question.html"
-      },
-      {
-        "@type": "ListItem",
-        "position": 5,
-        "name": "Blog",
-        "item": "https://neobranium.web.app/blog/blog.html"
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://neobranium.web.app/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Class 12 Notes",
+            "item": "https://neobranium.web.app/Notes/class12-notes.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Class 11 Notes",
+            "item": "https://neobranium.web.app/Notes/class11-notes.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "name": "Class 10 Notes",
+            "item": "https://neobranium.web.app/Notes/notes-science-class10.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "name": "Top Questions",
+            "item": "https://neobranium.web.app/IQ/top-question.html"
+          },
+          {
+            "@type": "ListItem",
+            "position": 6,
+            "name": "Blog",
+            "item": "https://neobranium.web.app/blog/blog.html"
+          }
+        ]
       }
     ]
   }

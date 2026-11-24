@@ -35,6 +35,7 @@
   <meta property="og:image" content="https://neobranium.web.app/favicon-512x512.png">
   <meta property="og:url" content="https://neobranium.web.app/about.html">
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="NeoBranium">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
@@ -744,17 +745,44 @@
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "NeoBranium",
-  "url": "https://neobranium.web.app/",
-  "logo": "https://neobranium.web.app/online-graduation_16847316.png",
-  "sameAs": [
-    "https://facebook.com/NeoBranium",
-    "https://instagram.com/aevorinneo",
-    "https://youtube.com/@aevorin-neo",
-    "https://twitter.com/NeoBranium"
-  ],
-  "description": "AI-powered learning platform for Class 9 & 10 students, created by Aevorin."
+  "@graph": [
+    {
+      "@type": "EducationalOrganization",
+      "@id": "https://neobranium.web.app/#organization",
+      "name": "NeoBranium",
+      "alternateName": "NeoBranium by AEVORIN",
+      "url": "https://neobranium.web.app/",
+      "logo": "https://neobranium.web.app/online-graduation_16847316.png",
+      "parentOrganization": {
+        "@type": "Organization",
+        "@id": "https://neobranium.web.app/#parent-organization",
+        "name": "AEVORIN",
+        "alternateName": "Aevorin",
+        "url": "https://neobranium.web.app/about.html",
+        "logo": "https://neobranium.web.app/online-graduation_16847316.png",
+        "founder": {
+          "@type": "Person",
+          "@id": "https://neobranium.web.app/founder.html#person",
+          "name": "Shubham Singh",
+          "url": "https://neobranium.web.app/founder.html"
+        }
+      },
+      "founder": {
+        "@type": "Person",
+        "@id": "https://neobranium.web.app/founder.html#person",
+        "name": "Shubham Singh",
+        "url": "https://neobranium.web.app/founder.html"
+      },
+      "sameAs": [
+        "https://twitter.com/NeoBranium",
+        "https://youtube.com/@aevorin-neo",
+        "https://youtube.com/@NeoBranium",
+        "https://instagram.com/aevorinneo",
+        "https://facebook.com/NeoBranium"
+      ],
+      "description": "NeoBranium is a free educational platform by AEVORIN providing NCERT notes, AI-powered doubt solving, quizzes, and study tools for Indian students in Classes 9–12."
+    }
+  ]
 }
 </script>
 </body>

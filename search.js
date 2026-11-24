@@ -106,7 +106,7 @@ const SEARCH_INDEX = [
   { title: "Political Science Notes Class 11", url: "/Notes/notes-political-science-class11.html", category: "Class 11 Notes", excerpt: "Complete political science notes for class 11 humanities." },
   { title: "Geography Notes Class 11", url: "/Notes/notes-geography-class11.html", category: "Class 11 Notes", excerpt: "Complete geography notes for class 11 humanities." },
   { title: "Sociology Notes Class 11", url: "/Notes/notes-sociology-class11.html", category: "Class 11 Notes", excerpt: "Complete sociology notes for class 11 humanities." },
-  { title: "Class 11 Notes Directory", url: "/Notes/class11-notes.html", category: "Class 11 Notes", excerpt: "Directory of all notes for Class 11 Science, Commerce, and Humanities." }
+  { title: "Class 11 Notes Directory", url: "/Notes/class11-notes.html", category: "Class 11 Notes", excerpt: "Directory of all notes for Class 11 Science, Commerce, and Humanities." },
   // --- Class 12 Notes ---
   { title: "Physics Notes Class 12", url: "/Notes/notes-physics-class12.html", category: "Class 12 Notes", excerpt: "Complete physics notes for class 12 covering electromagnetism, optics, and modern physics." },
   { title: "Chemistry Notes Class 12", url: "/Notes/notes-chemistry-class12.html", category: "Class 12 Notes", excerpt: "Complete chemistry notes for class 12 covering physical, organic, and inorganic." },

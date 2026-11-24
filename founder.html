@@ -12,7 +12,8 @@
   <meta name="author" content="Shubham Singh">
   <meta name="robots" content="index, follow">
 
-  <!-- Favicon -->  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -38,6 +39,7 @@
   <meta property="og:image" content="https://neobranium.web.app/favicon-512x512.png">
   <meta property="og:url" content="https://neobranium.web.app/founder.html">
   <meta property="og:type" content="profile">
+  <meta property="og:site_name" content="NeoBranium">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
@@ -46,31 +48,64 @@
     content="Discover the vision and story of Shubham Singh, founder of NeoBranium — the student-first AI learning platform.">
   <meta name="twitter:image" content="https://neobranium.web.app/favicon-512x512.png">
 
-  <!-- Structured Data: ProfilePage and Person -->
+  <!-- Structured Data: ProfilePage, Person, and Organization Graph -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "ProfilePage",
-    "@id": "https://neobranium.web.app/founder.html",
-    "url": "https://neobranium.web.app/founder.html",
-    "name": "Shubham Singh — Founder | NeoBranium",
-    "mainEntity": {
-      "@type": "Person",
-      "name": "Shubham Singh",
-      "jobTitle": "Founder & Creator",
-      "worksFor": {
-        "@type": "EducationalOrganization",
-        "name": "NeoBranium"
+    "@graph": [
+      {
+        "@type": "ProfilePage",
+        "@id": "https://neobranium.web.app/founder.html",
+        "url": "https://neobranium.web.app/founder.html",
+        "name": "Shubham Singh — Founder | NeoBranium",
+        "mainEntity": {
+          "@id": "https://neobranium.web.app/founder.html#person"
+        },
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://neobranium.web.app/"},
+            {"@type": "ListItem", "position": 2, "name": "Founder", "item": "https://neobranium.web.app/founder.html"}
+          ]
+        }
       },
-      "url": "https://neobranium.web.app/founder.html"
-    },
-    "breadcrumb": {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://neobranium.web.app/"},
-        {"@type": "ListItem", "position": 2, "name": "Founder", "item": "https://neobranium.web.app/founder.html"}
-      ]
-    }
+      {
+        "@type": "Person",
+        "@id": "https://neobranium.web.app/founder.html#person",
+        "name": "Shubham Singh",
+        "jobTitle": "Founder & Creator",
+        "description": "Founder and creator of NeoBranium, an AI-powered education and learning platform built by AEVORIN.",
+        "url": "https://neobranium.web.app/founder.html",
+        "worksFor": {
+          "@id": "https://neobranium.web.app/#organization"
+        }
+      },
+      {
+        "@type": "EducationalOrganization",
+        "@id": "https://neobranium.web.app/#organization",
+        "name": "NeoBranium",
+        "alternateName": "NeoBranium by AEVORIN",
+        "url": "https://neobranium.web.app/",
+        "logo": "https://neobranium.web.app/online-graduation_16847316.png",
+        "founder": {
+          "@id": "https://neobranium.web.app/founder.html#person"
+        },
+        "parentOrganization": {
+          "@type": "Organization",
+          "@id": "https://neobranium.web.app/#parent-organization",
+          "name": "AEVORIN",
+          "alternateName": "Aevorin",
+          "url": "https://neobranium.web.app/about.html"
+        },
+        "sameAs": [
+          "https://twitter.com/NeoBranium",
+          "https://youtube.com/@aevorin-neo",
+          "https://youtube.com/@NeoBranium",
+          "https://instagram.com/aevorinneo",
+          "https://facebook.com/NeoBranium"
+        ]
+      }
+    ]
   }
   </script>
 
@@ -438,41 +473,7 @@
     }
   </style>
 
-  <!-- Structured Data: Person and EducationalOrganization -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Person",
-        "@id": "https://neobranium.web.app/founder.html#person",
-        "name": "Shubham Singh",
-        "jobTitle": "Founder",
-        "description": "Founder and creator of NeoBranium, an AI-powered education and learning platform.",
-        "url": "https://neobranium.web.app/founder.html",
-        "worksFor": {
-          "@id": "https://neobranium.web.app/#organization"
-        }
-      },
-      {
-        "@type": "EducationalOrganization",
-        "@id": "https://neobranium.web.app/#organization",
-        "name": "NeoBranium",
-        "url": "https://neobranium.web.app/",
-        "logo": "https://neobranium.web.app/online-graduation_16847316.png",
-        "founder": {
-          "@id": "https://neobranium.web.app/founder.html#person"
-        },
-        "sameAs": [
-          "https://facebook.com/NeoBranium",
-          "https://instagram.com/aevorinneo",
-          "https://youtube.com/@aevorin-neo",
-          "https://twitter.com/NeoBranium"
-        ]
-      }
-    ]
-  }
-  </script>
+
 </head>
 
 <body class="founder-page">

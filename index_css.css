@@ -481,6 +481,8 @@ header {
 .ecosystem-card--neobot .ecosystem-icon { color: #6366f1; background: rgba(99, 102, 241, .15); }
 .ecosystem-card--board .ecosystem-icon { color: #c026d3; background: rgba(192, 38, 211, .14); }
 .ecosystem-card--generator .ecosystem-icon { color: #ea580c; background: rgba(234, 88, 12, .14); }
+.ecosystem-card--neobook .ecosystem-icon { color: #4f46e5; background: rgba(79, 70, 229, .14); }
+.ecosystem-card--neocalender .ecosystem-icon { color: #0d9488; background: rgba(13, 148, 136, .14); }
 @media (max-width: 1024px) and (min-width: 561px) {
   .ecosystem-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 }
@@ -2421,6 +2423,18 @@ footer {
   border: 1px solid rgba(245, 158, 11, 0.25);
 }
 
+.pill-indigo {
+  background: rgba(79, 70, 229, 0.12);
+  color: #4f46e5;
+  border: 1px solid rgba(79, 70, 229, 0.25);
+}
+
+.pill-teal {
+  background: rgba(13, 148, 136, 0.12);
+  color: #0d9488;
+  border: 1px solid rgba(13, 148, 136, 0.25);
+}
+
 .bento-icon {
   width: 52px;
   height: 52px;
@@ -2442,6 +2456,8 @@ footer {
 .bento-icon--generator { background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(234, 88, 12, 0.15)); color: #ea580c; }
 .bento-icon--social { background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(20, 184, 166, 0.15)); color: #059669; }
 .bento-icon--ncert { background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(59, 130, 246, 0.15)); color: #2563eb; }
+.bento-icon--neobook { background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(129, 140, 248, 0.2)); color: #4f46e5; }
+.bento-icon--neocalender { background: linear-gradient(135deg, rgba(13, 148, 136, 0.15), rgba(45, 212, 191, 0.2)); color: #0d9488; }
 
 .bento-card h3 {
   font-family: 'Outfit', sans-serif;
