@@ -6,6 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuToggle = document.querySelector('.menu-toggle');
   const navMenu = document.querySelector('.nav-menu');
   if (menuToggle && navMenu) {
+    // Mark as initialized BEFORE the listener so search.js (loaded next)
+    // sees the flag and does not register a duplicate handler that
+    // double-toggles active on every click (causing the menu to appear broken
+    // on the hosted site, where both DOMContentLoaded callbacks fire in order).
+    menuToggle.dataset.menuInitialized = 'true';
     menuToggle.addEventListener('click', () => {
       navMenu.classList.toggle('active');
       menuToggle.textContent = navMenu.classList.contains('active') ? '✕' : '☰';
