@@ -6,6 +6,7 @@
  */
 
 import express from 'express';
+import rateLimit from 'express-rate-limit';
 import { requireAuth, requireAccountAuth } from '../middleware/requireAuth.js';
 import * as service from './neocalender-service.js';
 import { processNeoCalenderAIRequest, executeNeoCalenderTool } from './neocalender-ai-tools.js';
@@ -14,6 +15,15 @@ import { neocalenderQuota } from '../middleware/quotaByUID.js';
 import { getRoutineTextModel } from '../gemini-models.js';
 
 export const neocalenderRouter = express.Router();
+
+const neocalenderAiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => req.uid || req.ip,
+  message: { success: false, error: 'Too many NeoCalender AI requests. Please slow down.' }
+});
 
 // Apply auth to all /api/neocalender endpoints
 neocalenderRouter.use(requireAuth, requireAccountAuth);
@@ -570,7 +580,7 @@ neocalenderRouter.get('/weekly-review', async (req, res) => {
 // ── AI ASSISTANT ──────────────────────────────────────────────────────────
 
 // POST /api/neocalender/ai
-neocalenderRouter.post('/ai', createAiUsageMiddleware({
+neocalenderRouter.post('/ai', neocalenderAiLimiter, createAiUsageMiddleware({
   feature: AI_FEATURES.NEOCALENDER,
   route: '/api/neocalender/ai',
   provider: 'gemini',
@@ -602,21 +612,21 @@ neocalenderRouter.post('/ai', createAiUsageMiddleware({
     if (req.aiUsageRequest) {
       req.aiUsageRequest.finalize({ status: 'failed', errorCategory: 'server_error' });
     }
-    res.status(500).json({ success: false, error: err.message, reply: 'Failed to process AI request. Please try again.' });
+    res.status(500).json({ success: false, error: 'Failed to process AI request.', reply: 'Failed to process AI request. Please try again.' });
   }
 });
 
 // POST /api/neocalender/ai/execute-tool
-neocalenderRouter.post('/ai/execute-tool', async (req, res) => {
+neocalenderRouter.post('/ai/execute-tool', neocalenderAiLimiter, async (req, res) => {
   try {
     const { toolName, args } = req.body || {};
-    if (!toolName) {
+    if (!toolName || typeof toolName !== 'string') {
       return res.status(400).json({ success: false, error: 'toolName is required' });
     }
     const result = await executeNeoCalenderTool(req.uid, toolName, args || {});
     res.json(result);
   } catch (err) {
     console.error('[NeoCalender] execute-tool error:', err);
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: 'Failed to execute calendar tool.' });
   }
 });

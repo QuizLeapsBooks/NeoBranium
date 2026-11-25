@@ -1023,21 +1023,26 @@ app.post('/api/tutor/practice-similar', requireAuth, createAiUsageMiddleware({ f
             return res.status(500).json({ success: false, error: 'AI service unavailable.' });
         }
 
-        if (base64 && base64.startsWith('data:')) {
-            base64 = base64.split(',')[1];
+        if (base64) {
+            const validatedImage = validateAIImage(base64, mimeType);
+            base64 = validatedImage.cleanBase64;
+            mimeType = validatedImage.verifiedMimeType;
         }
 
+        const safeIncorrectIndices = Array.isArray(incorrectIndices) ? incorrectIndices : [];
         const safeContext = typeof aiSolution === 'string' ? aiSolution.slice(0, 3000) : '';
-        const prevQuizContext = previousQuiz && previousQuiz.questions ? previousQuiz.questions.map((q, i) => ({
-            question: q.question,
-            wasIncorrect: incorrectIndices.includes(i)
-        })) : [];
+        const prevQuizContext = previousQuiz && Array.isArray(previousQuiz.questions)
+            ? previousQuiz.questions.slice(0, 10).map((q, i) => ({
+                question: String(q?.question || '').slice(0, 500),
+                wasIncorrect: safeIncorrectIndices.includes(i)
+            }))
+            : [];
 
-        const isPerfectScore = incorrectIndices && incorrectIndices.length === 0;
+        const isPerfectScore = safeIncorrectIndices.length === 0;
 
         let instructions = isPerfectScore
             ? `The student got ALL questions correct! Generate 5 NEW, slightly MORE CHALLENGING questions on the same concepts to deepen their understanding.`
-            : `The student got ${incorrectIndices.length} questions incorrect. Identify the specific concepts tested in the INCORRECT questions and generate 5 NEW questions targeting those exact concepts to help them practice. Focus on conceptual understanding.`;
+            : `The student got ${safeIncorrectIndices.length} questions incorrect. Identify the specific concepts tested in the INCORRECT questions and generate 5 NEW questions targeting those exact concepts to help them practice. Focus on conceptual understanding.`;
 
         const practicePrompt = `You are an expert educational quiz creator for Indian school students.
 
@@ -1580,20 +1585,6 @@ function extractUidKey(req) {
     if (req.uid && typeof req.uid === 'string') {
         return `uid:${req.uid}`;
     }
-    try {
-        const auth = req.headers?.authorization;
-        if (auth?.startsWith('Bearer ')) {
-            const token = auth.slice(7).trim();
-            const parts = token.split('.');
-            if (parts.length === 3) {
-                const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString());
-                const claimedUid = payload?.user_id || payload?.sub;
-                if (typeof claimedUid === 'string' && /^[a-zA-Z0-9_-]{1,128}$/.test(claimedUid)) {
-                    return `uid:${claimedUid}`;
-                }
-            }
-        }
-    } catch { /* fall through */ }
     const clientIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
     return `ip:${clientIp}`;
 }
@@ -1847,11 +1838,11 @@ app.post('/api/profile/remove-photo', async (req, res) => {
 });
 
 // Public Profile Endpoint (for viewing other users' profiles with active Thought of the Day)
-app.get('/api/profile/public/:userId', async (req, res) => {
+app.get('/api/profile/public/:userId', neolearnReadLimiter, async (req, res) => {
     try {
         const { userId } = req.params;
-        if (!userId) {
-            return res.status(400).json({ success: false, error: 'User ID is required' });
+        if (!userId || typeof userId !== 'string' || userId.length > 128 || userId.includes('/')) {
+            return res.status(400).json({ success: false, error: 'Valid User ID is required' });
         }
 
         if (!db) {
@@ -2104,7 +2095,18 @@ app.all('*', (req, res) => {
         return res.status(404).json({ error: 'Endpoint not found', path: req.originalUrl });
     }
     const targetBase = process.env.PRIMARY_FRONTEND_URL || 'https://neobranium.web.app';
-    const targetUrl = new URL(req.originalUrl, targetBase).toString();
+    const baseUrl = new URL(targetBase);
+    let targetUrl = `${baseUrl.origin}/`;
+    if (typeof req.originalUrl === 'string' && req.originalUrl.startsWith('/') && !req.originalUrl.startsWith('//')) {
+        try {
+            const parsedTarget = new URL(req.originalUrl, baseUrl.origin);
+            if (parsedTarget.origin === baseUrl.origin) {
+                targetUrl = parsedTarget.toString();
+            }
+        } catch {
+            // Fall back to baseUrl.origin + '/'
+        }
+    }
     return res.redirect(301, targetUrl);
 });
 

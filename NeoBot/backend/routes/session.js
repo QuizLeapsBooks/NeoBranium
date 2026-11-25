@@ -37,7 +37,7 @@ sessionRouter.post('/session-token', requireAuth, createAiUsageMiddleware({ feat
   }
 
   // Issue short-lived, single-use WebSocket connection ticket (resolves NB-SEC-09)
-  const isGuest = req.user?.firebase?.sign_in_provider === 'anonymous';
+  const isGuest = req.isGuest === true;
   const ticket = await issueWsTicket({ uid: req.uid, isGuest });
 
   return res.status(200).json({

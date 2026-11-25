@@ -1156,19 +1156,27 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update panel title
         quizPanelTitle.textContent = quiz.title || 'Practice Quiz';
 
+        const escapeQuizHtml = (value) => String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
         const optionLetters = ['A', 'B', 'C', 'D'];
         let html = '';
 
         if (quiz.topic) {
-            html += `<p class="quiz-topic-label"><i class="fa-solid fa-tag"></i> ${quiz.topic}</p>`;
+            html += `<p class="quiz-topic-label"><i class="fa-solid fa-tag"></i> ${escapeQuizHtml(quiz.topic)}</p>`;
         }
 
         quiz.questions.forEach((q, qIdx) => {
             const questionId = `quiz-q${qIdx}`;
+            const safeCorrect = Number.isInteger(q.correctAnswer) ? q.correctAnswer : 0;
             html += `
-                <div class="quiz-question" data-qidx="${qIdx}" data-correct="${q.correctAnswer}">
+                <div class="quiz-question" data-qidx="${qIdx}" data-correct="${safeCorrect}">
                     <p class="quiz-question-text">
-                        <span class="quiz-question-num">Q${qIdx + 1}.</span> ${q.question}
+                        <span class="quiz-question-num">Q${qIdx + 1}.</span> ${escapeQuizHtml(q.question)}
                     </p>
                     <div class="quiz-options" role="radiogroup">`;
 
@@ -1177,14 +1185,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <label class="quiz-option" data-oidx="${oIdx}">
                             <input type="radio" name="${questionId}" value="${oIdx}" style="display:none;">
                             <span class="quiz-option-letter">${optionLetters[oIdx] || oIdx}</span>
-                            <span class="quiz-option-text">${opt}</span>
+                            <span class="quiz-option-text">${escapeQuizHtml(opt)}</span>
                         </label>`;
             });
 
             html += `
                     </div>
                     <div class="quiz-explanation hidden" id="exp-${qIdx}">
-                        <i class="fa-solid fa-circle-info"></i> ${q.explanation || ''}
+                        <i class="fa-solid fa-circle-info"></i> ${escapeQuizHtml(q.explanation || '')}
                     </div>
                 </div>`;
         });
@@ -1196,7 +1204,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             </div>`;
 
-        quizContent.innerHTML = html;
+        quizContent.innerHTML = DOMPurify.sanitize(html);
 
         // Option selection (visual toggle)
         quizContent.querySelectorAll('.quiz-question').forEach(questionEl => {

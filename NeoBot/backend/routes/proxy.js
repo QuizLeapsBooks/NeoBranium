@@ -165,7 +165,13 @@ export function setupWebSocketProxy(server) {
     let guestIpHash = null;
     try {
       if (isGuest) {
-        const forwardedIp = request.headers['x-forwarded-for']?.split(',')[0]?.trim();
+        const trustHops = Math.max(1, Number(process.env.TRUST_PROXY_HOPS) || 1);
+        const forwardedHeader = typeof request.headers['x-forwarded-for'] === 'string'
+          ? request.headers['x-forwarded-for'].split(',').map(ip => ip.trim()).filter(Boolean)
+          : [];
+        const forwardedIp = forwardedHeader.length > 0
+          ? forwardedHeader[Math.max(0, forwardedHeader.length - trustHops)]
+          : undefined;
         guestIpHash = getGuestIpHash({
           ip: forwardedIp || request.socket?.remoteAddress,
           socket: request.socket

@@ -88,7 +88,7 @@ const sourceRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: 'Too many source processing requests. Please wait and try again.' },
-  keyGenerator: (req) => req.identity || req.ip,
+  keyGenerator: (req) => req.identity?.identityKey || req.ip,
 });
 
 // AI chat messages — most expensive operations
