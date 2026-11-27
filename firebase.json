@@ -241,6 +241,26 @@
     ],
     "redirects": [
       {
+        "source": "/NeoBook/index.html",
+        "destination": "/NeoBook/",
+        "type": 308
+      },
+      {
+        "source": "/NeoBot/index.html",
+        "destination": "/NeoBot/",
+        "type": 308
+      },
+      {
+        "source": "/NeoCalender/index.html",
+        "destination": "/NeoCalender/",
+        "type": 308
+      },
+      {
+        "source": "/htmls/privacy_policy&terms_conditions.html",
+        "destination": "/htmls/privacy.html",
+        "type": 308
+      },
+      {
         "source": "/blog",
         "destination": "/blog/blog.html",
         "type": 308

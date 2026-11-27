@@ -1291,10 +1291,22 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://neobranium.web.app/htmls/feedback.html</loc>
-    <lastmod>2026-09-25</lastmod>
+    <loc>https://neobranium.web.app/NeoBook/</loc>
+    <lastmod>2026-11-27</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://neobranium.web.app/NeoBot/</loc>
+    <lastmod>2026-11-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://neobranium.web.app/NeoCalender/</loc>
+    <lastmod>2026-11-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://neobranium.web.app/htmls/my-learning.html</loc>
@@ -1303,20 +1315,8 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://neobranium.web.app/htmls/notes.html</loc>
-    <lastmod>2026-10-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://neobranium.web.app/htmls/privacy.html</loc>
     <lastmod>2026-09-13</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://neobranium.web.app/htmls/privacy_policy&amp;terms_conditions.html</loc>
-    <lastmod>2026-11-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>

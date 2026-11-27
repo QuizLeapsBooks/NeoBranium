@@ -11,19 +11,9 @@ Allow: /favicon-512x512.png
 Allow: /apple-touch-icon.png
 
 Disallow: /api/
-Disallow: /htmls/sign.html
-Disallow: /htmls/dashboard.html
-Disallow: /htmls/setting.html
-Disallow: /htmls/profile.html
-Disallow: /htmls/verify-email.html
-Disallow: /htmls/chat/
-Disallow: /htmls/bot/
-Disallow: /htmls/question-paper_generator-ai/
-Disallow: /htmls/ai-usage.html
-Disallow: /htmls/neolearn/messages.html
-Disallow: /htmls/neolearn/notifications.html
-Disallow: /htmls/neolearn/peers.html
-Disallow: /htmls/neolearn/profile.html
+# Private application pages use a page-level noindex directive. Do not block
+# their crawl: Google must be able to fetch the directive before it can remove
+# a previously discovered URL from its index.
 Disallow: /architecture-map.html
 Disallow: /Notes/ihss301.pdf
 Disallow: /screenshot_images/

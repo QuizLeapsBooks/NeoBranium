@@ -25,6 +25,12 @@ PRIVATE_PATHS = {
     "htmls/bot/bot.html",
     "htmls/question-paper_generator-ai/ai-generate.html",
     "htmls/ai-usage.html",
+    "htmls/neolearn/index.html",
+    "htmls/neolearn/messages.html",
+    "htmls/neolearn/notifications.html",
+    "htmls/neolearn/peers.html",
+    "htmls/neolearn/profile.html",
+    "NeoBoard/board.html",
     "architecture-map.html",
     "header.html",
     "zohoverify/verifyforzoho.html",
@@ -146,6 +152,10 @@ def audit_file(rel_path, disallows, sitemap_urls):
         # Check if difference is trivial (e.g. trailing slash on index)
         if rel_path == "index.html" and meta['canonical'] == CANONICAL_DOMAIN:
             pass
+        # Firebase Hosting serves a directory request from its index.html, so
+        # the directory URL is the preferred canonical for nested app entrypoints.
+        elif rel_path.endswith('/index.html') and meta['canonical'] == f"{CANONICAL_DOMAIN}/{rel_path[:-10]}":
+            pass
         else:
             canonical_issue = f"MISMATCH ({meta['canonical']} != {expected_url})"
 
@@ -153,14 +163,18 @@ def audit_file(rel_path, disallows, sitemap_urls):
     blocked_by_robots = is_disallowed(rel_path, disallows)
 
     # In sitemap?
-    in_sitemap = expected_url in sitemap_urls or (rel_path == "index.html" and f"{CANONICAL_DOMAIN}/" in sitemap_urls)
+    in_sitemap = (
+        expected_url in sitemap_urls
+        or meta['canonical'] in sitemap_urls
+        or (rel_path == "index.html" and f"{CANONICAL_DOMAIN}/" in sitemap_urls)
+    )
 
     # Links inside file
     internal_links = re.findall(r'href=[\"\']([^\"\'#?]+)[\"\']', content)
     broken_links = []
     dir_name = os.path.dirname(full_path)
     for href in internal_links:
-        if href.startswith(('http://', 'https://', '//', 'mailto:', 'javascript:', 'tel:')):
+        if href.startswith(('http://', 'https://', '//', 'mailto:', 'javascript:', 'tel:', '${')):
             continue
         if href.endswith(('.css', '.png', '.ico', '.jpg', '.svg', '.json', '.xml', '.pdf', '.js')):
             continue
@@ -204,22 +218,25 @@ def main():
     # Summary
     total_files = len(results)
     public_files = [r for r in results if r['is_public']]
+    indexable_files = [r for r in results if r['is_indexable']]
     private_files = [r for r in results if not r['is_public']]
-    wrong_canonicals = [r for r in results if r['canonical_issue'] and r['canonical_issue'] != "MISSING"]
-    missing_canonicals_public = [r for r in public_files if r['canonical_issue'] == "MISSING"]
+    wrong_canonicals = [r for r in indexable_files if r['canonical_issue'] and r['canonical_issue'] != "MISSING"]
+    missing_canonicals_public = [r for r in indexable_files if r['canonical_issue'] == "MISSING"]
     all_broken_links = []
     for r in results:
         for b in r['broken_links']:
             all_broken_links.append((r['file'], b['href'], b['target']))
 
-    public_not_in_sitemap = [r for r in public_files if not r['in_sitemap']]
-    private_in_sitemap = [r for r in private_files if r['in_sitemap']]
+    public_not_in_sitemap = [r for r in indexable_files if not r['in_sitemap']]
+    # A private redirect may intentionally canonicalize to a public URL in the
+    # sitemap. Only report private URLs themselves, never their target.
+    private_in_sitemap = [r for r in private_files if r['expected_canonical'] in sitemap_urls]
 
     print("=" * 70)
     print("NEOBRANIUM TECHNICAL SEO AUDIT SUMMARY")
     print("=" * 70)
     print(f"Total HTML files:                 {total_files}")
-    print(f"Public / Indexable pages:         {len(public_files)}")
+    print(f"Public / Indexable pages:         {len(indexable_files)}")
     print(f"Private / Excluded pages:         {len(private_files)}")
     print(f"Wrong canonical tags (public):    {len(wrong_canonicals)}")
     print(f"Missing canonical tags (public):  {len(missing_canonicals_public)}")
@@ -234,7 +251,7 @@ def main():
         json.dump({
             "summary": {
                 "total_files": total_files,
-                "public_files": len(public_files),
+                "public_files": len(indexable_files),
                 "private_files": len(private_files),
                 "wrong_canonicals": len(wrong_canonicals),
                 "missing_canonicals_public": len(missing_canonicals_public),
